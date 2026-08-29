@@ -107,7 +107,7 @@ def comments_list_api_view(request: Request):
     paginated_comments = paginator.paginate_queryset(comments, request)
 
     data = serialize_comment_many(
-        paginated_comments, request.user, with_key_factors=True
+        paginated_comments, request.user, with_key_factors=True, request=request
     )
 
     return paginator.get_paginated_response(data)
@@ -235,6 +235,7 @@ def comment_report_api_view(request, pk=int):
 
 
 @api_view(["GET"])
+@permission_classes([AllowAny])
 def comment_detail_api_view(request: Request, pk: int):
     """
     Returns a single comment with its untruncated text, reading the text back

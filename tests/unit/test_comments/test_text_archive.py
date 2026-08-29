@@ -8,6 +8,7 @@ from django.core.management.base import CommandError
 from django.urls import reverse
 from django.utils import timezone
 from rest_framework.exceptions import ValidationError
+from rest_framework.test import APIClient
 
 from comments.models import Comment
 from comments.services.common import update_comment
@@ -17,6 +18,7 @@ from comments.services.text_archive import (
     archive_bot_comment_texts,
     build_key,
     get_archivable_comments,
+    upload_text,
 )
 from posts.models import Post
 from projects.permissions import ObjectPermission
@@ -344,6 +346,65 @@ class TestArchivedCommentEditing:
 
 
 class TestCommentDetailApiView:
+    def test_anonymous_reads_a_public_comment(self, user1, post, anon_client):
+        """
+        The endpoint is open to logged-out callers; what they may read is
+        decided per comment, not by whether they have an account.
+        """
+
+        comment = factory_comment(
+            author=user1, on_post=post, text=LONG_TEXT, text_original=LONG_TEXT
+        )
+
+        response = anon_client.get(reverse("comment-detail", kwargs={"pk": comment.pk}))
+
+        assert response.status_code == 200
+        assert response.data["text"] == LONG_TEXT
+
+    def test_anonymous_reads_archived_public_text(
+        self, user1, post, s3_stub, anon_client
+    ):
+        """
+        Only private bot comments are archived today. This covers the case the
+        open endpoint exists for: a public comment archived on age alone, whose
+        row holds a stub a logged-out reader has to be able to open.
+        """
+
+        comment = factory_comment(
+            author=user1, on_post=post, text=LONG_TEXT, text_original=LONG_TEXT
+        )
+        upload_text(comment.pk, LONG_TEXT, comment.on_post_id, comment.author_id)
+        Comment.objects.rewrite(False).filter(pk=comment.pk).update(
+            text="",
+            text_original=LONG_TEXT[:ARCHIVE_STUB_LENGTH],
+            is_text_archived=True,
+        )
+
+        response = anon_client.get(reverse("comment-detail", kwargs={"pk": comment.pk}))
+
+        assert response.status_code == 200
+        assert response.data["text"] == LONG_TEXT
+        assert response.data["is_text_archived"] is True
+
+    def test_anonymous_cannot_read_a_private_comment(
+        self, bot, post, s3_stub, anon_client
+    ):
+        comment = factory_archivable_comment(bot, post)
+        archive_bot_comment_texts()
+
+        response = anon_client.get(reverse("comment-detail", kwargs={"pk": comment.pk}))
+
+        assert response.status_code == 403
+
+    def test_anonymous_cannot_read_a_deleted_comment(self, user1, post, anon_client):
+        comment = factory_comment(
+            author=user1, on_post=post, text=LONG_TEXT, is_soft_deleted=True
+        )
+
+        response = anon_client.get(reverse("comment-detail", kwargs={"pk": comment.pk}))
+
+        assert response.status_code == 403
+
     def test_author_reads_archived_text(
         self, bot, post, s3_stub, create_client_for_user
     ):
@@ -455,3 +516,44 @@ class TestCommentDetailApiView:
         )
 
         assert response.status_code == 404
+
+
+class TestArchivedTextNoticeForApiClients:
+    """
+    The web front end offers a button that loads the rest of the comment, so
+    the notice is only spelled out for callers that have no such affordance.
+    """
+
+    def _list_own_private_comments(self, client, post):
+        return client.get(
+            reverse("comment-list"), {"post": post.pk, "is_private": True}
+        )
+
+    def test_api_key_caller_gets_a_pointer_to_the_full_text(
+        self, bot, post, s3_stub, create_client_for_user
+    ):
+        comment = factory_archivable_comment(bot, post)
+        archive_bot_comment_texts()
+
+        response = self._list_own_private_comments(create_client_for_user(bot), post)
+
+        assert response.status_code == 200
+        (data,) = [c for c in response.data["results"] if c["id"] == comment.pk]
+        assert data["is_text_archived"] is True
+        assert "Content Truncated" in data["text"]
+        assert f"/api/comments/{comment.pk}/" in data["text"]
+
+    def test_session_caller_gets_the_bare_stub(self, bot, post, s3_stub):
+        comment = factory_archivable_comment(bot, post)
+        archive_bot_comment_texts()
+
+        client = APIClient()
+        client.force_login(bot)
+        response = self._list_own_private_comments(client, post)
+
+        assert response.status_code == 200
+        (data,) = [c for c in response.data["results"] if c["id"] == comment.pk]
+        # The flag is still there; it is what the front end renders the button from
+        assert data["is_text_archived"] is True
+        assert "Content Truncated" not in data["text"]
+        assert data["text"] == LONG_TEXT[:ARCHIVE_STUB_LENGTH]

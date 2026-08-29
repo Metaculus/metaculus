@@ -5,6 +5,7 @@ from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
+from authentication.auth import FallbackTokenAuthentication
 from comments.constants import TimeWindow
 from comments.models import Comment, KeyFactor, CommentsOfTheWeekEntry
 from comments.utils import comments_extract_user_mentions_mapping
@@ -104,30 +105,41 @@ class CommentSerializer(serializers.ModelSerializer):
         }
 
     def get_text(self, value: Comment):
-        """
-        The stored text, which for an archived comment is only the leading stub
-        left behind by `archive_bot_comment_texts`. Rather than hand back a
-        sentence that stops mid-word, point at the endpoint that serves the
-        whole thing.
-
-        `comment_detail_api_view` overwrites `text` with the full text after
-        serialization, so the endpoint this points at does not itself answer
-        with the notice.
-        """
-
         if value.is_soft_deleted:
             return _("deleted")
 
-        if not value.is_text_archived:
+        if not value.is_text_archived or not self._reader_is_an_api_client():
             return value.text
 
         url = build_frontend_url(f"/api/comments/{value.id}/")
 
         return (
             f"{value.text}... \n\n### WARNING: Content Truncated"
-            "\nLong private bot comments older than 1 month are automatically "
-            "archived to save space."
+            "\nThis comment has been archived to save space."
             f"\nTo retrieve full content, please visit [{url}]({url})"
+        )
+
+    def _reader_is_an_api_client(self) -> bool:
+        """
+        Whether the truncation notice has to be spelled out in the text itself.
+
+        The web front end renders a "load the rest" button off
+        `is_text_archived`, so a notice in the body would sit right next to the
+        button that already does the job. A script has no such affordance, so
+        it gets the pointer inline.
+
+        An API key is the thing the front end never uses: web users arrive
+        through `SessionJWTAuthentication` or a session cookie, while keys are
+        documented as bot-only (see `DEFAULT_AUTHENTICATION_CLASSES`). Absent a
+        request — internal callers that serialize without one — nothing is
+        added, since there is no client to inform.
+        """
+
+        request = self.context.get("request")
+
+        return isinstance(
+            getattr(request, "successful_authenticator", None),
+            FallbackTokenAuthentication,
         )
 
     def get_on_post_data(self, value: Comment):
@@ -207,10 +219,11 @@ def serialize_comment(
     mentions: list[User] | None = None,
     author_staff_permission: ObjectPermission = None,
     key_factors: list[KeyFactor] = None,
+    request=None,
 ) -> dict:
     mentions = mentions or []
     serialized_data = CommentSerializer(
-        comment, context={"current_user": current_user}
+        comment, context={"current_user": current_user, "request": request}
     ).data
 
     # Permissions
@@ -237,6 +250,7 @@ def serialize_comment_many(
     comments: QuerySet[Comment] | list[Comment],
     current_user: User | None = None,
     with_key_factors: bool = False,
+    request=None,
 ) -> list[dict]:
     current_user = (
         current_user if current_user and current_user.is_authenticated else None
@@ -284,6 +298,7 @@ def serialize_comment_many(
                 post_staff_users_map.get(comment.on_post, {}).get(comment.author_id)
             ),
             key_factors=comment_key_factors_map.get(comment.id),
+            request=request,
         )
         for comment in objects
     ]
