@@ -15,6 +15,7 @@ from questions.serializers.common import ForecastSerializer
 from users.models import User
 from users.serializers import BaseUserSerializer
 from utils.dtypes import flatten, generate_map_from_list
+from utils.frontend import build_frontend_url
 from .key_factors import serialize_key_factors_many, KeyFactorWriteSerializer
 
 
@@ -76,9 +77,9 @@ class CommentSerializer(serializers.ModelSerializer):
             "text_edited_at",
             "is_soft_deleted",
             "text",
-            # TODO: consumed by the front end in a later commit, which will
-            # replace the stub in `text` with a "load full text" affordance
-            # backed by the `comment-detail` endpoint
+            # `text` already carries a pointer to the full text when this is
+            # set (see `get_text`); the flag is exposed so API clients can act
+            # on it rather than parse the notice out of the prose.
             "is_text_archived",
             "on_post",
             "on_post_data",
@@ -106,7 +107,29 @@ class CommentSerializer(serializers.ModelSerializer):
         }
 
     def get_text(self, value: Comment):
-        return _("deleted") if value.is_soft_deleted else value.text
+        """
+        The stored text, which for an archived comment is only the leading stub
+        left behind by `archive_bot_comment_texts`. Rather than hand back a
+        sentence that stops mid-word, point at the endpoint that serves the
+        whole thing.
+
+        `comment_detail_api_view` overwrites `text` with the full text after
+        serialization, so the endpoint this points at does not itself answer
+        with the notice.
+        """
+
+        if value.is_soft_deleted:
+            return _("deleted")
+
+        if not value.is_text_archived:
+            return value.text
+
+        url = build_frontend_url(f"/api/comments/{value.id}/")
+
+        return (
+            f"{value.text}... \n\n### WARNING: Content Truncated\nTo retrieve "
+            f"full content, please visit [{url}]({url})"
+        )
 
     def get_on_post_data(self, value: Comment):
         """
