@@ -2429,5 +2429,9 @@
   "newsHotnessColWeight": "权重",
   "newsHotnessColContribution": "贡献值",
   "viewComment": "查看评论",
+  "loadFullComment": "评论被截断——加载剩余部分",
+  "onlyBots": "仅限机器人",
+  "humansOnly": "仅限人类",
+  "humansAndBots": "人类和机器人",
   "feedTileQuestionsRecentlyResolved": "{count, plural, one {# 个问题最近已解决} other {# 个问题最近已解决}}"
 }
