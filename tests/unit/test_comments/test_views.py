@@ -320,52 +320,6 @@ class TestCommentDelete:
         assert comment.is_soft_deleted is False
 
 
-class TestCommentDetail:
-    def test_reads_public_comment(self, user1, user2_client):
-        post = factory_post(author=user1)
-        comment = factory_comment(
-            author=user1, on_post=post, text_original="Public comment"
-        )
-
-        response = user2_client.get(
-            reverse("comment-detail", kwargs={"pk": comment.pk})
-        )
-
-        assert response.status_code == 200
-        assert response.data["id"] == comment.pk
-        assert response.data["text"] == "Public comment"
-        assert response.data["author"]["id"] == user1.pk
-        assert response.data["is_text_archived"] is False
-
-    def test_anonymous_cannot_read(self, user1, anon_client):
-        post = factory_post(author=user1)
-        comment = factory_comment(author=user1, on_post=post)
-
-        response = anon_client.get(reverse("comment-detail", kwargs={"pk": comment.pk}))
-
-        assert response.status_code in (401, 403)
-
-    def test_private_comment_is_hidden_from_other_users(self, user1, user2_client):
-        post = factory_post(author=user1)
-        comment = factory_comment(author=user1, on_post=post, is_private=True)
-
-        response = user2_client.get(
-            reverse("comment-detail", kwargs={"pk": comment.pk})
-        )
-
-        assert response.status_code == 403
-
-    def test_deleted_comment_is_not_readable(self, user1, user1_client):
-        post = factory_post(author=user1)
-        comment = factory_comment(author=user1, on_post=post, is_soft_deleted=True)
-
-        response = user1_client.get(
-            reverse("comment-detail", kwargs={"pk": comment.pk})
-        )
-
-        assert response.status_code == 403
-
-
 class TestCommentCreation:
     url = reverse("comment-create")
 

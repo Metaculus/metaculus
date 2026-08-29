@@ -245,8 +245,7 @@ class Command(BaseCommand):
             )
         scheduler.add_job(
             close_old_connections(job_archive_bot_comment_texts.send),
-            # First day of every month at 04:00
-            trigger=CronTrigger.from_crontab("0 4 1 * *"),
+            trigger=CronTrigger.from_crontab("0 4 * * *"),  # Daily at 04:00 UTC
             id="comments_archive_bot_comment_texts",
             max_instances=1,
             replace_existing=True,

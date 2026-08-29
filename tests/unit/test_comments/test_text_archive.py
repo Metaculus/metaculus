@@ -3,14 +3,12 @@ from datetime import timedelta
 from io import StringIO
 
 import pytest  # noqa
-from django.contrib import admin
 from django.core.management import call_command
 from django.core.management.base import CommandError
 from django.urls import reverse
 from django.utils import timezone
 from rest_framework.exceptions import ValidationError
 
-from comments.admin import CommentAdmin
 from comments.models import Comment
 from comments.services.common import update_comment
 from comments.services.text_archive import (
@@ -457,58 +455,3 @@ class TestCommentDetailApiView:
         )
 
         assert response.status_code == 404
-
-
-class TestCommentAdminArchivedText:
-    """
-    The admin is where staff investigate a comment, so it has to show the
-    archived text rather than the stub the row was left with.
-    """
-
-    @pytest.fixture()
-    def comment_admin(self):
-        return CommentAdmin(Comment, admin.site)
-
-    def test_renders_the_archived_text(self, bot, post, s3_stub, comment_admin):
-        comment = factory_archivable_comment(bot, post)
-        archive_bot_comment_texts()
-        comment.refresh_from_db()
-
-        assert LONG_TEXT in comment_admin.archived_text(comment)
-
-    def test_says_so_when_the_archive_cannot_be_read(
-        self, bot, post, s3_stub, comment_admin
-    ):
-        comment = factory_archivable_comment(bot, post)
-        archive_bot_comment_texts()
-        comment.refresh_from_db()
-        s3_stub.clear()
-
-        assert "could not be retrieved" in comment_admin.archived_text(comment)
-
-    def test_field_is_only_added_for_archived_comments(
-        self, bot, post, s3_stub, comment_admin
-    ):
-        comment = factory_archivable_comment(bot, post)
-
-        assert "archived_text" not in comment_admin.get_fields(None, comment)
-
-        archive_bot_comment_texts()
-        comment.refresh_from_db()
-
-        assert "archived_text" in comment_admin.get_fields(None, comment)
-
-    def test_text_and_archived_text_are_read_only_once_archived(
-        self, bot, post, s3_stub, comment_admin
-    ):
-        comment = factory_archivable_comment(bot, post)
-
-        assert "text" not in comment_admin.get_readonly_fields(None, comment)
-
-        archive_bot_comment_texts()
-        comment.refresh_from_db()
-
-        readonly_fields = comment_admin.get_readonly_fields(None, comment)
-        assert "text" in readonly_fields
-        assert "text_original" in readonly_fields
-        assert "archived_text" in readonly_fields

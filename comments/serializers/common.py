@@ -127,8 +127,10 @@ class CommentSerializer(serializers.ModelSerializer):
         url = build_frontend_url(f"/api/comments/{value.id}/")
 
         return (
-            f"{value.text}... \n\n### WARNING: Content Truncated\nTo retrieve "
-            f"full content, please visit [{url}]({url})"
+            f"{value.text}... \n\n### WARNING: Content Truncated"
+            "\nLong private bot comments older than 1 month are automatically "
+            "archived to save space."
+            f"\nTo retrieve full content, please visit [{url}]({url})"
         )
 
     def get_on_post_data(self, value: Comment):

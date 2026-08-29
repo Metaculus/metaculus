@@ -34,10 +34,11 @@ class ProgressWriter:
     """
     Prints a running one-line summary with a rate and an ETA.
 
-    This command works through hundreds of thousands of rows over hours, so
-    the point is to make a long run observable rather than to look pretty.
-    Output is one line per batch, not a redrawn line, so it survives being
-    piped to a log file.
+    The daily run has only a day of new comments to clear, but the first
+    backfill works through hundreds of thousands of rows over hours, so the
+    point is to make a long run observable rather than to look pretty. Output
+    is one line per batch, not a redrawn line, so it survives being piped to a
+    log file.
     """
 
     def __init__(self, stdout, total: int = 0):
@@ -76,7 +77,7 @@ class Command(BaseCommand):
         "Moves the full text of private bot comments older than "
         f"{ARCHIVE_AGE_DAYS} days and longer than {ARCHIVE_MIN_TEXT_LENGTH} "
         f"characters to S3, leaving a {ARCHIVE_STUB_LENGTH}-character stub in "
-        "the database. Runs monthly as a cron job; the full text stays "
+        "the database. Runs daily as a cron job; the full text stays "
         "readable through the comment-detail endpoint."
     )
 
