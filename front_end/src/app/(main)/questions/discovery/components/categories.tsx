@@ -26,7 +26,7 @@ const CategoriesDiscovery: FC<Props> = ({ categories }) => {
       <div className="grid w-full gap-3 md:grid-cols-5">
         {categoriesToDisplay.map((category) => (
           <Link
-            href={`/questions/?${POST_CATEGORIES_FILTER}=${category.slug}&for_main_feed=false`}
+            href={`/questions/?${POST_CATEGORIES_FILTER}=${category.slug}`}
             key={category.id}
             className="flex items-center gap-4 rounded bg-olive-300 p-4 text-olive-900 no-underline dark:bg-olive-300-dark dark:text-olive-900-dark md:min-h-[145px] md:flex-col md:items-start md:justify-between md:gap-0"
             onClick={() =>
