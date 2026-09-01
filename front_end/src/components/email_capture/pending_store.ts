@@ -2,6 +2,7 @@ import {
   EmailCapturePendingRecord,
   SocialGatedActionStash,
 } from "@/types/gated_actions";
+import { safeLocalStorage, safeSessionStorage } from "@/utils/core/storage";
 
 // Matches the backend link TTL (AUTH_EMAIL_LINK_TIMEOUT, 24h default). An
 // older record means every link it produced is dead, so it reads as absent.
@@ -36,13 +37,7 @@ const parseRecord = (raw: string | null): EmailCapturePendingRecord | null => {
 };
 
 export const readPending = (): EmailCapturePendingRecord | null => {
-  if (typeof window === "undefined") return null;
-  let raw: string | null = null;
-  try {
-    raw = window.localStorage.getItem(PENDING_KEY);
-  } catch {
-    return null;
-  }
+  const raw = safeLocalStorage.getItem(PENDING_KEY);
   if (raw !== cachedRaw) {
     cachedRaw = raw;
     cachedRecord = parseRecord(raw);
@@ -59,20 +54,12 @@ const notifyChange = () => {
 };
 
 export const writePending = (record: EmailCapturePendingRecord) => {
-  try {
-    window.localStorage.setItem(PENDING_KEY, JSON.stringify(record));
-  } catch {
-    return;
-  }
+  safeLocalStorage.setItem(PENDING_KEY, JSON.stringify(record));
   notifyChange();
 };
 
 export const clearPending = () => {
-  try {
-    window.localStorage.removeItem(PENDING_KEY);
-  } catch {
-    return;
-  }
+  safeLocalStorage.removeItem(PENDING_KEY);
   notifyChange();
 };
 
@@ -90,24 +77,16 @@ export const subscribePending = (onChange: () => void) => {
 export const stashSocialGatedAction = (
   stash: Omit<SocialGatedActionStash, "stashedAt">
 ) => {
-  try {
-    window.sessionStorage.setItem(
-      SOCIAL_STASH_KEY,
-      JSON.stringify({ ...stash, stashedAt: Date.now() })
-    );
-  } catch {
-    // Losing the stash only means the user redoes the tap after OAuth
-  }
+  // Losing the stash only means the user redoes the tap after OAuth
+  safeSessionStorage.setItem(
+    SOCIAL_STASH_KEY,
+    JSON.stringify({ ...stash, stashedAt: Date.now() })
+  );
 };
 
 export const takeSocialGatedAction = (): SocialGatedActionStash | null => {
-  let raw: string | null = null;
-  try {
-    raw = window.sessionStorage.getItem(SOCIAL_STASH_KEY);
-    window.sessionStorage.removeItem(SOCIAL_STASH_KEY);
-  } catch {
-    return null;
-  }
+  const raw = safeSessionStorage.getItem(SOCIAL_STASH_KEY);
+  safeSessionStorage.removeItem(SOCIAL_STASH_KEY);
   if (!raw) return null;
   try {
     const stash = JSON.parse(raw) as SocialGatedActionStash;

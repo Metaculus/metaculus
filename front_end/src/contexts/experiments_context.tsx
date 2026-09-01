@@ -16,6 +16,7 @@ import {
   SUBSCRIBE_CAPTURE_FLAG_KEY,
 } from "@/constants/experiments";
 import { useAuth } from "@/contexts/auth_context";
+import { safeDocumentCookie } from "@/utils/core/storage";
 
 type ExperimentsContextValue = {
   subscribeCaptureVariant: ExperimentVariant | null;
@@ -37,10 +38,7 @@ export const ExperimentsProvider: FC<
 );
 
 function readAssignmentCookieVariant(): ExperimentVariant | null {
-  const raw = document.cookie
-    .split("; ")
-    .find((cookie) => cookie.startsWith(`${SUBSCRIBE_CAPTURE_COOKIE_NAME}=`))
-    ?.slice(SUBSCRIBE_CAPTURE_COOKIE_NAME.length + 1);
+  const raw = safeDocumentCookie.get(SUBSCRIBE_CAPTURE_COOKIE_NAME);
   if (!raw) return null;
 
   try {
@@ -58,8 +56,8 @@ export const useSubscribeCaptureVariant = (): ExperimentVariant | null => {
   // client-side). Read synchronously so the first render is already correct;
   // an SSR'd consumer outside the provider would risk a hydration mismatch
   // here, so keep such components inside ExperimentsProvider.
-  const [cookieVariant] = useState<ExperimentVariant | null>(() =>
-    typeof document === "undefined" ? null : readAssignmentCookieVariant()
+  const [cookieVariant] = useState<ExperimentVariant | null>(
+    readAssignmentCookieVariant
   );
 
   if (user) return null;

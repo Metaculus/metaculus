@@ -17,12 +17,9 @@ function writeCsrfToken(token: string): void {
   });
 }
 
-// crypto.randomUUID only exists in secure contexts; getRandomValues does not
-// have that restriction, so http://<lan-ip> dev sessions don't crash on render
+// Not crypto.randomUUID: that one only exists in secure contexts, so it throws
+// on http://<lan-ip> dev sessions. getRandomValues carries no such restriction.
 function randomToken(): string {
-  if (typeof crypto.randomUUID === "function") {
-    return crypto.randomUUID();
-  }
   const bytes = new Uint8Array(16);
   crypto.getRandomValues(bytes);
   return Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
