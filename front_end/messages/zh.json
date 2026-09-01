@@ -2493,6 +2493,7 @@
   "emailCaptureSubscribeBodyRepeat": "我们将向 {email} 发送一个新链接。它将改为开启这些更新。",
   "shareOpenedInNewTab": "已在新标签页中打开 {target}。",
   "copiedUrlMessage": "链接已复制到剪贴板",
+  "copyUrlErrorMessage": "复制链接失败，请重试。",
   "emailLinkSignedInSubscribe": "你已登录，现在正在关注此问题。",
   "emailLinkSignedInVote": "你已登录，你的投票已保存。",
   "emailLinkSignedInForecast": "你已登录，你的预测已保存。",

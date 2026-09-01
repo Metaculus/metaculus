@@ -2489,6 +2489,7 @@
   "emailCaptureSubscribeBodyRepeat": "Enviaremos um novo link para {email}. Ele ativará estas novidades no lugar.",
   "shareOpenedInNewTab": "Abrimos {target} em uma nova aba.",
   "copiedUrlMessage": "A URL foi copiada para sua área de transferência",
+  "copyUrlErrorMessage": "Não foi possível copiar o link. Tente novamente.",
   "emailLinkSignedInSubscribe": "Você entrou e agora está seguindo esta pergunta.",
   "emailLinkSignedInVote": "Você entrou e seu voto foi salvo.",
   "emailLinkSignedInForecast": "Você entrou e sua previsão foi salva.",

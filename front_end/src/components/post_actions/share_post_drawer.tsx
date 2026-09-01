@@ -29,7 +29,10 @@ type Props = {
  */
 const SharePostDrawer: FC<Props> = ({ open, onOpenChange, questionTitle }) => {
   const t = useTranslations();
-  const copyUrl = useCopyUrl({ successMessage: t("copiedUrlMessage") });
+  const copyUrl = useCopyUrl({
+    successMessage: t("copiedUrlMessage"),
+    errorMessage: t("copyUrlErrorMessage"),
+  });
   const shareOnTwitterLink = useShareOnTwitterLink(
     `${questionTitle} #metaculus`
   );

@@ -2455,6 +2455,7 @@
   "emailCaptureSubscribeBodyRepeat": "We'll send a new link to {email}. It turns on these updates instead.",
   "shareOpenedInNewTab": "Opened {target} in a new tab.",
   "copiedUrlMessage": "URL is now copied to your clipboard",
+  "copyUrlErrorMessage": "Couldn't copy the link. Please try again.",
   "emailLinkSignedInSubscribe": "You're signed in, and you're now following this question.",
   "emailLinkSignedInVote": "You're signed in, and your vote is saved.",
   "emailLinkSignedInForecast": "You're signed in, and your forecast is saved.",

@@ -2491,6 +2491,7 @@
   "emailCaptureSubscribeBodyRepeat": "Pošleme nový odkaz na {email}. Místo toho zapne tyto novinky.",
   "shareOpenedInNewTab": "{target} otevřeno v nové kartě.",
   "copiedUrlMessage": "URL byla zkopírována do schránky",
+  "copyUrlErrorMessage": "Odkaz se nepodařilo zkopírovat. Zkuste to prosím znovu.",
   "emailLinkSignedInSubscribe": "Jste přihlášeni a nyní sledujete tuto otázku.",
   "emailLinkSignedInVote": "Jste přihlášeni a váš hlas je uložen.",
   "emailLinkSignedInForecast": "Jste přihlášeni a vaše prognóza je uložena.",

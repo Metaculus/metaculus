@@ -2491,6 +2491,7 @@
   "emailCaptureSubscribeBodyRepeat": "Enviaremos un nuevo enlace a {email}. Activará estas novedades en su lugar.",
   "shareOpenedInNewTab": "Se abrió {target} en una pestaña nueva.",
   "copiedUrlMessage": "La URL se ha copiado en tu portapapeles",
+  "copyUrlErrorMessage": "No se pudo copiar el enlace. Inténtalo de nuevo.",
   "emailLinkSignedInSubscribe": "Has iniciado sesión y ahora sigues esta pregunta.",
   "emailLinkSignedInVote": "Has iniciado sesión y tu voto está guardado.",
   "emailLinkSignedInForecast": "Has iniciado sesión y tu pronóstico está guardado.",

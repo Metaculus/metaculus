@@ -2488,6 +2488,7 @@
   "emailCaptureSubscribeBodyRepeat": "我們將向 {email} 發送一個新連結。它將改為開啟這些更新。",
   "shareOpenedInNewTab": "已在新分頁中打開 {target}。",
   "copiedUrlMessage": "連結已複製到剪貼簿",
+  "copyUrlErrorMessage": "複製連結失敗，請重試。",
   "emailLinkSignedInSubscribe": "你已登入，現在正在追蹤此問題。",
   "emailLinkSignedInVote": "你已登入，你的投票已儲存。",
   "emailLinkSignedInForecast": "你已登入，你的預測已儲存。",

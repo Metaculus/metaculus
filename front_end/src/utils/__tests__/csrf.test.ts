@@ -17,7 +17,8 @@ describe("getOrMintCsrfToken", () => {
   it("mints a token and persists it as a cookie when none exists", () => {
     const token = getOrMintCsrfToken();
 
-    expect(token).toMatch(/^[0-9a-f]{8}-[0-9a-f-]{27}$/);
+    // 16 random bytes, hex-encoded (see randomToken); not a UUID
+    expect(token).toMatch(/^[0-9a-f]{32}$/);
     expect(document.cookie).toContain(`${CSRF_COOKIE_NAME}=${token}`);
   });
 
