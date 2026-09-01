@@ -16,7 +16,12 @@ type Props = {
  * the capture drawer's option cards). Compose inside a
  * `grid grid-cols-2 gap-2` container; see share_post_drawer.tsx.
  */
-const DrawerActionButton: FC<Props> = ({ icon, label, onClick, className }) => (
+const BottomDrawerActionButton: FC<Props> = ({
+  icon,
+  label,
+  onClick,
+  className,
+}) => (
   <button
     onClick={onClick}
     className={cn(
@@ -29,4 +34,4 @@ const DrawerActionButton: FC<Props> = ({ icon, label, onClick, className }) => (
   </button>
 );
 
-export default DrawerActionButton;
+export default BottomDrawerActionButton;

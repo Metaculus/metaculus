@@ -7,8 +7,8 @@ import { useEffect, useState } from "react";
 
 import BaseModal from "@/components/base_modal";
 import ForecastMaker from "@/components/forecast_maker";
+import BottomDrawer from "@/components/ui/bottom_drawer";
 import Button from "@/components/ui/button";
-import BottomDrawer from "@/components/ui/drawer";
 import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
 import { useBreakpoint } from "@/hooks/tailwind";

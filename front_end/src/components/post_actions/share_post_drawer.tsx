@@ -7,8 +7,8 @@ import { useTranslations } from "next-intl";
 import { FC } from "react";
 import toast from "react-hot-toast";
 
-import BottomDrawer from "@/components/ui/drawer";
-import DrawerActionButton from "@/components/ui/drawer_action_button";
+import BottomDrawer from "@/components/ui/bottom_drawer";
+import BottomDrawerActionButton from "@/components/ui/bottom_drawer_action_button";
 import useEmbedModalContext from "@/contexts/embed_modal_context";
 import {
   useCopyUrl,
@@ -52,22 +52,22 @@ const SharePostDrawer: FC<Props> = ({ open, onOpenChange, questionTitle }) => {
       titleClassName="capitalize"
     >
       <div className="grid grid-cols-2 gap-2 pt-3.5">
-        <DrawerActionButton
+        <BottomDrawerActionButton
           icon={<FontAwesomeIcon icon={faLink} />}
           label={t("copyLink")}
           onClick={copyUrl}
         />
-        <DrawerActionButton
+        <BottomDrawerActionButton
           icon={<FontAwesomeIcon icon={faXTwitter} />}
           label={t("xTwitter")}
           onClick={() => shareToTarget(shareOnTwitterLink, t("xTwitter"))}
         />
-        <DrawerActionButton
+        <BottomDrawerActionButton
           icon={<FontAwesomeIcon icon={faFacebookF} />}
           label={t("facebook")}
           onClick={() => shareToTarget(shareOnFacebookLink, t("facebook"))}
         />
-        <DrawerActionButton
+        <BottomDrawerActionButton
           icon={<FontAwesomeIcon icon={faCode} />}
           label={t("embed")}
           className="capitalize"

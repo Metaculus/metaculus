@@ -25,7 +25,7 @@ type Props = PropsWithChildren<{
  * house pattern for turning a desktop interaction (dropdown, modal) into a
  * mobile sheet: gate on `useBreakpoint("sm")` at the call site, pass `title`
  * for the standard header, and put the content in children (for action
- * grids, compose DrawerActionButton in a `grid grid-cols-2 gap-2`).
+ * grids, compose BottomDrawerActionButton in a `grid grid-cols-2 gap-2`).
  * share_post_drawer.tsx is the reference example.
  */
 const BottomDrawer: FC<Props> = ({

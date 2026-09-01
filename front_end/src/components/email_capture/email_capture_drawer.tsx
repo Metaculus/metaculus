@@ -16,8 +16,8 @@ import {
   getDefaultSubscriptionProps,
   getInitialNotebookSubscriptions,
 } from "@/components/post_subscribe/subscribe_button/utils";
+import BottomDrawer from "@/components/ui/bottom_drawer";
 import Button from "@/components/ui/button";
-import BottomDrawer from "@/components/ui/drawer";
 import { Input } from "@/components/ui/form_field";
 import {
   registerSubscribeCaptureExposure,
