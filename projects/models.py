@@ -482,7 +482,15 @@ class Project(TimeStampedModel, TranslatedModel):  # type: ignore
     def update_forecasts_count(self):
         from posts.models import Post
 
-        result = Post.objects.filter_projects(self).aggregate(
+        # UNION, not the OR in filter_projects(): the OR spans posts_post and the
+        # m2m and seq-scans. A post can sit in both branches, so summing them
+        # separately would double-count.
+        post_ids = (
+            Post.objects.filter(default_project=self)
+            .values("id")
+            .union(Post.objects.filter(projects=self).values("id"))
+        )
+        result = Post.objects.filter(id__in=post_ids).aggregate(
             total_forecasts=Sum("forecasts_count")
         )
 
