@@ -159,6 +159,7 @@ type Props = {
   variant?: SectionVariant;
   id?: string;
   detailElement?: ((isOpen: boolean) => ReactNode) | ReactNode | null;
+  titleSuffix?: ReactNode;
   hiddenUntilFound?: boolean;
 };
 
@@ -172,6 +173,7 @@ const SectionToggle: FC<PropsWithChildren<Props>> = ({
   contentWrapperClassName,
   children,
   detailElement,
+  titleSuffix,
   hiddenUntilFound,
 }) => {
   const isPrintMode = usePrintOverride();
@@ -197,6 +199,7 @@ const SectionToggle: FC<PropsWithChildren<Props>> = ({
           className={iconVariants({ variant, open })}
         />
         <span>{title}</span>
+        {titleSuffix}
         {typeof detailElement === "function"
           ? detailElement(open)
           : detailElement}

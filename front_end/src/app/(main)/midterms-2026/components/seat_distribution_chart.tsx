@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { FC, useId, useMemo } from "react";
+import { FC, useCallback, useId, useMemo, useRef, useState } from "react";
 import {
   VictoryArea,
   VictoryAxis,
@@ -9,6 +9,7 @@ import {
   VictoryChart,
   VictoryLabel,
   VictoryLine,
+  VictoryScatter,
   VictoryTooltip,
   VictoryVoronoiContainer,
 } from "victory";
@@ -81,7 +82,64 @@ const HOVER_BAR_COLOR_DARK = "#E2E8F0";
 const HOVER_BAR_WIDTH = 1;
 const HOVER_BAR_ACTIVE_OPACITY = 0.75;
 
+// Shared flyout geometry for both the hover tooltip and the median callout.
+const TOOLTIP_FLYOUT_PADDING = { top: 11, bottom: 10, left: 12, right: 12 };
+const TOOLTIP_CORNER_RADIUS = 6;
+const TOOLTIP_POINTER_LENGTH = 10;
+const HOVER_FLYOUT_OPACITY = 0.9;
+// Per-line line-heights for the hover tooltip's two lines. The second value is
+// bumped over the first to open ~2px more gap between them (line 2 is 14px, so
+// 1.3 -> 1.44 moves its baseline 18.2px -> 20.2px).
+const HOVER_TOOLTIP_LINE_HEIGHTS: [number, number] = [1.3, 1.44];
+
+// Median callout. The flyout inverts against the page — black on light, white on
+// dark — so the party inks have to invert too: the light page needs the *light*
+// party swatch to read on its black flyout, and the dark page needs the darker
+// one on white. That's the opposite of every other party color in this file,
+// which is why these don't reuse demFill / demStroke.
+const MEDIAN_INK_LIGHT = "#000000";
+const MEDIAN_INK_DARK = "#ffffff";
+const MEDIAN_FLYOUT_OPACITY = 0.8;
+const MEDIAN_FONT_SIZE = 14;
+const MEDIAN_MARKER_SIZE = 4;
+const MEDIAN_MARKER_STROKE_WIDTH = 1.5;
+
 type Point = { x: number; y: number };
+
+/**
+ * One-line, two-ink tooltip label: "Median:" in the flyout's foreground color
+ * followed by the seat value in its party color. VictoryLabel's array API only
+ * stacks lines vertically, so the two runs need to be sibling tspans here.
+ * VictoryTooltip still sizes its flyout from the concatenated `text` prop it was
+ * given, so auto-sizing keeps working.
+ */
+const MedianTooltipLabel: FC<{
+  x?: number;
+  y?: number;
+  labelText: string;
+  valueText: string;
+  labelFill: string;
+  valueFill: string;
+}> = ({ x, y, labelText, valueText, labelFill, valueFill }) => (
+  <text
+    x={x}
+    y={y}
+    textAnchor="middle"
+    dominantBaseline="central"
+    style={{
+      fontFamily: TEXT_FONT_FAMILY,
+      fontSize: MEDIAN_FONT_SIZE,
+      fontWeight: 700,
+    }}
+  >
+    {/* Non-breaking space so the SVG renderer can't collapse the gap between
+        the two runs. */}
+    <tspan fill={labelFill}>{`${labelText} `}</tspan>
+    <tspan fill={valueFill} style={{ fontVariantNumeric: "tabular-nums" }}>
+      {valueText}
+    </tspan>
+  </text>
+);
 
 const SeatDistributionChart: FC<Props> = ({
   post,
@@ -101,6 +159,32 @@ const SeatDistributionChart: FC<Props> = ({
   const reactId = useId().replace(/:/g, "");
   const fillGradientId = `seat-fill-${reactId}`;
   const strokeGradientId = `seat-stroke-${reactId}`;
+  // The median callout is a default-state affordance: it yields the moment a bin
+  // is hovered so it never stacks with the hover tooltip.
+  const [isBinHovered, setIsBinHovered] = useState(false);
+  // Victory's voronoi handleMouseMove calls onActivated(newPoints) and then
+  // onDeactivated(previousPoints) back-to-back in the same tick whenever the
+  // active bin changes. Without this flag the paired onDeactivated would
+  // immediately undo every activation and the callout would never hide. Only the
+  // genuine clears — pointer out of bounds, or off the container — arrive
+  // without a preceding activation.
+  const justActivatedRef = useRef(false);
+  const handleBinActivated = useCallback((points: unknown[]) => {
+    const active = points.length > 0;
+    justActivatedRef.current = active;
+    setIsBinHovered(active);
+  }, []);
+  const handleBinDeactivated = useCallback(() => {
+    if (justActivatedRef.current) {
+      justActivatedRef.current = false;
+      return;
+    }
+    setIsBinHovered(false);
+  }, []);
+  const handlePointerLeave = useCallback(() => {
+    justActivatedRef.current = false;
+    setIsBinHovered(false);
+  }, []);
 
   const question = post.question as QuestionWithNumericForecasts | undefined;
 
@@ -274,6 +358,43 @@ const SeatDistributionChart: FC<Props> = ({
   const neutralFill = isDark ? EVEN_BAR_FILL_DARK : EVEN_BAR_FILL_LIGHT;
   const hoverBarColor = isDark ? HOVER_BAR_COLOR_DARK : HOVER_BAR_COLOR_LIGHT;
   const evenTextColor = isDark ? EVEN_TEXT_COLOR_DARK : EVEN_TEXT_COLOR_LIGHT;
+  const chartBg = isDark
+    ? MIDTERMS_COLORS.cardBgDark
+    : MIDTERMS_COLORS.cardBgLight;
+
+  // Median callout. Both questions are Discrete, so the median lands on an
+  // integer bin center and the marker snaps to a bar rather than floating
+  // between two. Negative = Dem advantage, positive = Rep (see data.ts).
+  const medianInk = isDark ? MEDIAN_INK_DARK : MEDIAN_INK_LIGHT;
+  const medianLabelFill = isDark ? "#262f38" : "#ffffff";
+  const medianSeats = Math.round(quartileXs.median);
+  // Zero needs its own wording: it belongs to neither party, and without a branch
+  // it falls through to the Republican string as "R +0 seats" in red. It lands on
+  // the EVEN bin, which does state a different thing (that bar is
+  // P(advantage = 0); the median is where the CDF crosses 50%) — the callout is
+  // shown at every median regardless.
+  const medianLabelText = t("midtermsHubMedianLabel");
+  const medianValueText =
+    medianSeats === 0
+      ? t("midtermsHubMedianEven")
+      : medianSeats < 0
+        ? t("midtermsHubMedianDem", { count: Math.abs(medianSeats) })
+        : t("midtermsHubMedianRep", { count: medianSeats });
+  // Keyed off the flyout's own background, not the page: the light page's black
+  // flyout needs the *Dark* swatches (the pair designed to read on dark
+  // surfaces), and the dark page's white flyout needs the darker Border pair.
+  // Zero takes the label's own ink — party colors would assert a lean that isn't
+  // there.
+  const medianValueFill =
+    medianSeats === 0
+      ? medianLabelFill
+      : medianSeats < 0
+        ? isDark
+          ? MIDTERMS_COLORS.demBorder
+          : MIDTERMS_COLORS.demPrimaryDark
+        : isDark
+          ? MIDTERMS_COLORS.repBorder
+          : MIDTERMS_COLORS.repPrimaryDark;
 
   const BAR_FILL_OPACITY = 0.7;
   const BAR_FILL_OPACITY_HOVER = 1;
@@ -385,10 +506,14 @@ const SeatDistributionChart: FC<Props> = ({
 
   const tooltipComponent = (
     <VictoryTooltip
-      cornerRadius={6}
-      flyoutPadding={{ top: 10, bottom: 10, left: 12, right: 12 }}
-      flyoutStyle={{ fill: tooltipBgFill, stroke: "transparent" }}
-      labelComponent={<VictoryLabel lineHeight={1.3} />}
+      cornerRadius={TOOLTIP_CORNER_RADIUS}
+      flyoutPadding={TOOLTIP_FLYOUT_PADDING}
+      flyoutStyle={{
+        fill: tooltipBgFill,
+        fillOpacity: HOVER_FLYOUT_OPACITY,
+        stroke: "transparent",
+      }}
+      labelComponent={<VictoryLabel lineHeight={HOVER_TOOLTIP_LINE_HEIGHTS} />}
       style={[
         {
           fill: tooltipTextFill,
@@ -405,8 +530,40 @@ const SeatDistributionChart: FC<Props> = ({
           fontVariantNumeric: "tabular-nums",
         },
       ]}
-      pointerLength={10}
+      pointerLength={TOOLTIP_POINTER_LENGTH}
       constrainToVisibleArea
+    />
+  );
+
+  const medianTooltipComponent = (
+    <VictoryTooltip
+      // Always-on: this flyout is a static annotation, not a hover response.
+      // The marker series is voronoi-blacklisted, so nothing ever overrides it.
+      active
+      cornerRadius={TOOLTIP_CORNER_RADIUS}
+      flyoutPadding={TOOLTIP_FLYOUT_PADDING}
+      flyoutStyle={{
+        fill: medianInk,
+        fillOpacity: MEDIAN_FLYOUT_OPACITY,
+        stroke: "transparent",
+      }}
+      pointerLength={TOOLTIP_POINTER_LENGTH}
+      constrainToVisibleArea
+      // Must match MedianTooltipLabel's own text style — VictoryTooltip measures
+      // this to size the flyout.
+      style={{
+        fontSize: MEDIAN_FONT_SIZE,
+        fontWeight: 700,
+        fontFamily: TEXT_FONT_FAMILY,
+      }}
+      labelComponent={
+        <MedianTooltipLabel
+          labelText={medianLabelText}
+          valueText={medianValueText}
+          labelFill={medianLabelFill}
+          valueFill={medianValueFill}
+        />
+      }
     />
   );
 
@@ -444,6 +601,9 @@ const SeatDistributionChart: FC<Props> = ({
       className="relative w-full"
       ref={containerRef}
       aria-label={ariaTitle}
+      // Safety net: Victory's onDeactivated doesn't reliably fire when the
+      // pointer leaves the plot quickly, which would strand the median hidden.
+      onMouseLeave={handlePointerLeave}
       role="img"
     >
       {/* Hard-edge linear gradient that snaps from dem fill to rep fill at
@@ -491,10 +651,17 @@ const SeatDistributionChart: FC<Props> = ({
               labels={formatTooltipLabel}
               labelComponent={tooltipComponent}
               mouseFollowTooltips={false}
+              onActivated={handleBinActivated}
+              onDeactivated={handleBinDeactivated}
               voronoiBlacklist={
                 isDiscrete
-                  ? ["even-connector", "oob-divider-l", "oob-divider-r"]
-                  : ["area", "q-l", "q-m", "q-u"]
+                  ? [
+                      "median-marker",
+                      "even-connector",
+                      "oob-divider-l",
+                      "oob-divider-r",
+                    ]
+                  : ["median-marker", "area", "q-l", "q-m", "q-u"]
               }
               // Let the page scroll vertically through the chart on touch; the
               // chart only consumes horizontal moves (for the tooltip). Mirrors
@@ -704,6 +871,29 @@ const SeatDistributionChart: FC<Props> = ({
                 { x: rightDividerX, y: yMax * OOB_DIVIDER_HEIGHT_FRAC },
               ]}
               style={{ data: { stroke: axisColor, strokeWidth: 1 } }}
+            />
+          )}
+
+          {/* Median marker — a dot on the x-axis at the median bin carrying an
+              always-on flyout. Rendered last so it paints above the bars, and
+              unmounted entirely while a bin is hovered so it never stacks with
+              the hover tooltip. */}
+          {!isBinHovered && (
+            <VictoryScatter
+              name="median-marker"
+              data={[{ x: medianSeats, y: 0 }]}
+              size={MEDIAN_MARKER_SIZE}
+              style={{
+                data: {
+                  fill: medianInk,
+                  // Ring in the card background so the dot separates from
+                  // whatever bar it lands on.
+                  stroke: chartBg,
+                  strokeWidth: MEDIAN_MARKER_STROKE_WIDTH,
+                },
+              }}
+              labels={() => `${medianLabelText} ${medianValueText}`}
+              labelComponent={medianTooltipComponent}
             />
           )}
 

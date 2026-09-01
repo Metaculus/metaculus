@@ -66,7 +66,7 @@ export const RANKING_CATEGORIES: Record<CategoryKey, RankingCategory> = {
           <Link href="/help/medals-faq/" className={smallLinkClassName}>
             Learn more about Metaculus Medals
           </Link>
-          <Link href="/pro-forecasters" className={smallLinkClassName}>
+          <Link href="/faq/#what-are-pros" className={smallLinkClassName}>
             Learn more about becoming a Pro Forecaster
           </Link>
         </div>

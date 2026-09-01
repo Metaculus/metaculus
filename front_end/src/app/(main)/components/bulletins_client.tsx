@@ -6,6 +6,7 @@ import { useAuth } from "@/contexts/auth_context";
 import ClientMiscApi from "@/services/api/misc/misc.client";
 import type { BulletinItem } from "@/services/api/misc/misc.shared";
 import { logError } from "@/utils/core/errors";
+import { safeDocumentCookie } from "@/utils/core/storage";
 
 import { dismissBulletin } from "../actions";
 import Bulletin from "./bulletin";
@@ -25,7 +26,9 @@ type Props = {
 const writeDismissedBulletinIdsToCookie = (ids: Iterable<number>) => {
   const serializedIds = serializeDismissedBulletinIds(ids);
 
-  document.cookie = `${DISMISSED_BULLETINS_COOKIE}=${serializedIds}; path=/; max-age=31536000; samesite=lax`;
+  safeDocumentCookie.set(DISMISSED_BULLETINS_COOKIE, serializedIds, {
+    maxAge: 60 * 60 * 24 * 365,
+  });
 };
 
 const BulletinsClient: FC<Props> = ({

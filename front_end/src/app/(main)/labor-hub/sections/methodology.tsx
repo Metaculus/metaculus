@@ -113,6 +113,7 @@ export function MethodologySection({ ...props }: ComponentProps<"section">) {
                 <li>Cheryl Oldham (Bipartisan Policy Center)</li>
                 <li>Brent Orrell (American Enterprise Institute)</li>
                 <li>Sneha Revanur (Encode AI)</li>
+                <li>Jacob Schaal (King&apos;s College London)</li>
                 <li>Philipp Schmitt (Axim Collaborative)</li>
                 <li>Dane Stangler (Bipartisan Policy Center)</li>
                 <li>Shayna Strom (Washington Center for Equitable Growth)</li>

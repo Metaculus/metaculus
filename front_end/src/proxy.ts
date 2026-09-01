@@ -237,8 +237,12 @@ export const config = {
       // Run for pages only
       // Ignores prefetch requests, all media files
       // And embedded urls
+      // `md` is excluded: those responses are anonymous and public, and
+      // agent_markdown/respond.ts re-checks the gate enforced above. Do NOT
+      // exclude by Accept header — this matcher is site-wide, so that would
+      // let any request skip the gate on paths that still render HTML.
       source:
-        "/((?!api|_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt|csp-report|questions/embed|experiments/embed|opengraph-image-|twitter-image-|app-version|.*\\..*).*)",
+        "/((?!api|md|_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt|csp-report|questions/embed|experiments/embed|opengraph-image-|twitter-image-|app-version|.*\\..*).*)",
       missing: [
         { type: "header", key: "next-router-prefetch" },
         { type: "header", key: "purpose", value: "prefetch" },

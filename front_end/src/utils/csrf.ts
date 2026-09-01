@@ -1,3 +1,5 @@
+import { safeDocumentCookie } from "@/utils/core/storage";
+
 // __Host- prefix: browsers reject the cookie unless it is Secure, host-only and
 // Path=/, which protects the double-submit check from subdomain cookie-tossing.
 export const CSRF_COOKIE_NAME = "__Host-_csrf";
@@ -5,16 +7,14 @@ export const CSRF_COOKIE_NAME = "__Host-_csrf";
 const CSRF_COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 365;
 
 function readCsrfToken(): string | null {
-  return (
-    document.cookie
-      .split("; ")
-      .find((cookie) => cookie.startsWith(`${CSRF_COOKIE_NAME}=`))
-      ?.slice(CSRF_COOKIE_NAME.length + 1) ?? null
-  );
+  return safeDocumentCookie.get(CSRF_COOKIE_NAME);
 }
 
 function writeCsrfToken(token: string): void {
-  document.cookie = `${CSRF_COOKIE_NAME}=${token}; Path=/; Secure; SameSite=Lax; Max-Age=${CSRF_COOKIE_MAX_AGE_SECONDS}`;
+  safeDocumentCookie.set(CSRF_COOKIE_NAME, token, {
+    secure: true,
+    maxAge: CSRF_COOKIE_MAX_AGE_SECONDS,
+  });
 }
 
 // crypto.randomUUID only exists in secure contexts; getRandomValues does not

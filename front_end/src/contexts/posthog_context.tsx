@@ -14,14 +14,12 @@ import {
   SUBSCRIBE_CAPTURE_COOKIE_NAME,
   SUBSCRIBE_CAPTURE_FLAG_KEY,
 } from "@/constants/experiments";
+import { safeDocumentCookie } from "@/utils/core/storage";
 
 // Experiment assignments are pinned in first-party cookies by the
 // middleware (proxy.ts) when an eligible visitor is enrolled
 function getAssignmentCookie(cookieName: string): ExperimentAssignment | null {
-  const raw = document.cookie
-    .split("; ")
-    .find((cookie) => cookie.startsWith(`${cookieName}=`))
-    ?.slice(cookieName.length + 1);
+  const raw = safeDocumentCookie.get(cookieName);
   if (!raw) return null;
 
   try {

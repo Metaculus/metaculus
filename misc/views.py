@@ -1,8 +1,5 @@
-from datetime import datetime
-
 from django.conf import settings
 from django.core.mail import EmailMessage
-from django.http import JsonResponse
 from django.utils import timezone
 from django.views.decorators.cache import cache_page
 from rest_framework import status
@@ -12,9 +9,6 @@ from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import AllowAny
 from rest_framework.request import Request
 from rest_framework.response import Response
-
-from questions.constants import UnsuccessfulResolutionType
-from questions.models import Forecast, Question
 
 from .models import Bulletin, BulletinViewedBy, ITNArticle, SidebarItem
 from .serializers import (
@@ -28,6 +22,7 @@ from .services.ad_tiles import (
     get_tile_object_by_id,
 )
 from .services.itn import remove_article
+from .services.stats import get_cached_site_stats
 from .utils import get_data_access_status
 
 
@@ -138,23 +133,10 @@ def get_dismissed_bulletin_ids(request):
     return Response({"dismissed_bulletin_ids": dismissed_bulletin_ids})
 
 
-@cache_page(60 * 60 * 24)
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def get_site_stats(request):
-    now_year = datetime.now().year
-    public_questions = Question.objects.filter_public()
-    stats = {
-        "predictions": Forecast.objects.filter(question__in=public_questions)
-        .exclude(source=Forecast.SourceChoices.AUTOMATIC)
-        .count(),
-        "questions": public_questions.count(),
-        "resolved_questions": public_questions.filter(actual_resolve_time__isnull=False)
-        .exclude(resolution__in=UnsuccessfulResolutionType)
-        .count(),
-        "years_of_predictions": now_year - 2015 + 1,
-    }
-    return JsonResponse(stats)
+    return Response(get_cached_site_stats())
 
 
 @api_view(["POST"])

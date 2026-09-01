@@ -1,5 +1,8 @@
 from django.db import models
 
+# Default number of bots a user may own. Lift per user via metadata["max_bots"].
+DEFAULT_MAX_BOTS = 5
+
 forbidden_usernames = [
     "anonymous",
     "moderator",

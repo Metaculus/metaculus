@@ -5,6 +5,7 @@ import { isNil } from "lodash";
 import { useLocale, useTranslations } from "next-intl";
 import { FC, useEffect, useMemo, useRef, useState } from "react";
 
+import { useQuestionLayoutSafe } from "@/app/(main)/questions/[id]/components/question_layout/question_layout_context";
 import { savePrivateNote } from "@/app/(main)/questions/actions";
 import MarkdownEditor from "@/components/markdown_editor";
 import LoadingSpinner from "@/components/ui/loading_spiner";
@@ -13,6 +14,7 @@ import SectionToggle from "@/components/ui/section_toggle";
 import { useAuth } from "@/contexts/auth_context";
 import { useDebouncedCallback } from "@/hooks/use_debounce";
 import { Post } from "@/types/post";
+import { logError } from "@/utils/core/errors";
 import { formatDate } from "@/utils/formatters/date";
 
 type Props = {
@@ -59,11 +61,22 @@ const PrivateNote: FC<Props> = ({ post: { private_note, id }, hideToggle }) => {
   const t = useTranslations();
   const locale = useLocale();
   const { text, updated_at } = private_note || {};
-  const [noteText, setNoteText] = useState(text || "");
+  const questionLayout = useQuestionLayoutSafe();
+  // Seed from context first so the note survives Private Notes tab-panel remounts
+  // (context persists the latest edit; the `post` prop stays at its page-load value).
+  const [noteText, setNoteText] = useState(
+    () => questionLayout?.privateNoteText ?? text ?? ""
+  );
   const [isLoading, setIsLoading] = useState(false);
   const [savedAt, setSavedAt] = useState<undefined | Date>();
   const { user } = useAuth();
   const editorRef = useRef<MDXEditorMethods>(null);
+  const latestValueRef = useRef(noteText);
+  // Value of the most recent save request, kept apart from the displayed text so
+  // that mirroring edits eagerly doesn't make the editor look already-saved.
+  // null after a failed request, so retrying the same text isn't deduped away.
+  const lastRequestedRef = useRef<string | null>(noteText);
+  const saveRequestIdRef = useRef(0);
 
   const noteStatusDetails = useMemo(() => {
     if (isLoading) {
@@ -75,21 +88,63 @@ const PrivateNote: FC<Props> = ({ post: { private_note, id }, hideToggle }) => {
     }
   }, [savedAt, isLoading]);
 
+  // Publish every edit right away: the debounce and the request that follow can
+  // outlive this component (switching tabs unmounts the panel), and the context
+  // is what the next mount reads from.
+  const syncValue = (value: string) => {
+    latestValueRef.current = value;
+    setNoteText(value);
+    questionLayout?.setPrivateNoteText(value);
+  };
+
   const saveNote = async (value: string) => {
-    if (value === noteText) {
+    syncValue(value);
+
+    if (value === lastRequestedRef.current) {
       return;
     }
+    lastRequestedRef.current = value;
 
-    setNoteText(value);
-
+    const requestId = ++saveRequestIdRef.current;
     setIsLoading(true);
-    await savePrivateNote(id, value);
-    setIsLoading(false);
+
+    try {
+      await savePrivateNote(id, value);
+    } catch (error) {
+      logError(error);
+
+      // Nothing reached the server, so let an identical retry through — unless a
+      // newer request has already claimed the ref.
+      if (lastRequestedRef.current === value) {
+        lastRequestedRef.current = null;
+      }
+      return;
+    } finally {
+      if (requestId === saveRequestIdRef.current) {
+        setIsLoading(false);
+      }
+    }
+
+    if (requestId !== saveRequestIdRef.current) {
+      // Superseded while in flight — the newest request reports the final status.
+      return;
+    }
 
     setSavedAt(new Date());
   };
 
   const saveNoteDebounced = useDebouncedCallback(saveNote, 1500);
+
+  // The debounce timer is dropped on unmount, so hand off anything still pending.
+  useEffect(() => {
+    return () => {
+      if (latestValueRef.current !== lastRequestedRef.current) {
+        savePrivateNote(id, latestValueRef.current).catch(logError);
+      }
+    };
+  }, [id]);
+
+  const hasNoteContent = noteText.trim().length > 0;
 
   if (!user) {
     return null;
@@ -101,6 +156,7 @@ const PrivateNote: FC<Props> = ({ post: { private_note, id }, hideToggle }) => {
       markdown={noteText}
       mode="write"
       onChange={(val) => {
+        syncValue(val);
         saveNoteDebounced(val);
       }}
       onBlur={() => {
@@ -124,19 +180,18 @@ const PrivateNote: FC<Props> = ({ post: { private_note, id }, hideToggle }) => {
         <div className="scroll-mt-24 border border-gray-500 bg-gray-0 dark:border-gray-500-dark dark:bg-gray-0-dark">
           {editorBody}
         </div>
-        {(noteStatusDetails || updated_at) && (
-          <div className="text-right text-xs">
-            {noteStatusDetails ??
-              (updated_at &&
-                t.rich("privateNoteUpdatedFrom", {
+        <div className="text-right text-xs">
+          {noteStatusDetails ??
+            (updated_at
+              ? t.rich("privateNoteUpdatedFrom", {
                   date: () => (
                     <RelativeTime datetime={updated_at} format="relative">
                       {formatDate(locale, new Date(updated_at))}
                     </RelativeTime>
                   ),
-                }))}
-          </div>
-        )}
+                })
+              : t("privateNoteAutosaveHint"))}
+        </div>
       </div>
     );
   }
@@ -145,23 +200,25 @@ const PrivateNote: FC<Props> = ({ post: { private_note, id }, hideToggle }) => {
     <SectionToggle
       title={t("privateNote")}
       variant={text ? "orange" : "primary"}
-      detailElement={(isOpen) => {
-        if (isOpen) {
-          return <div className="ml-auto text-xs">{noteStatusDetails}</div>;
-        } else if (updated_at) {
-          return (
-            <div className="ml-auto text-xs">
-              {t.rich("privateNoteUpdatedFrom", {
-                date: () => (
-                  <RelativeTime datetime={updated_at} format="relative">
-                    {formatDate(locale, new Date(updated_at))}
-                  </RelativeTime>
-                ),
-              })}
-            </div>
-          );
-        }
-      }}
+      titleSuffix={
+        hasNoteContent ? (
+          <span className="size-2.5 shrink-0 rounded-full bg-orange-500 dark:bg-orange-500-dark" />
+        ) : null
+      }
+      detailElement={(isOpen) => (
+        <div className="ml-auto text-xs">
+          {(isOpen ? noteStatusDetails : undefined) ??
+            (updated_at
+              ? t.rich("privateNoteUpdatedFrom", {
+                  date: () => (
+                    <RelativeTime datetime={updated_at} format="relative">
+                      {formatDate(locale, new Date(updated_at))}
+                    </RelativeTime>
+                  ),
+                })
+              : t("privateNoteAutosaveHint"))}
+        </div>
+      )}
     >
       {editor}
     </SectionToggle>
