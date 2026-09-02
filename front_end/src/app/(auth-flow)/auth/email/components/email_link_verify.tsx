@@ -3,17 +3,17 @@
 import { Turnstile, TurnstileInstance } from "@marsidev/react-turnstile";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { FC, useEffect, useRef, useState } from "react";
+import { FC, startTransition, useEffect, useRef, useState } from "react";
 
 import {
   requestEmailLinkAction,
   verifyEmailLinkAction,
 } from "@/app/(main)/accounts/actions";
 import { updateProfileAction } from "@/app/(main)/accounts/profile/actions";
+import SigningInPanel from "@/components/auth/signing_in_panel";
 import { readPending } from "@/components/email_capture/pending_store";
 import Button from "@/components/ui/button";
 import { Input } from "@/components/ui/form_field";
-import LoadingIndicator from "@/components/ui/loading_indicator";
 import { useAuth } from "@/contexts/auth_context";
 import { usePublicSettings } from "@/contexts/public_settings_context";
 import { useServerAction } from "@/hooks/use_server_action";
@@ -59,6 +59,16 @@ const EmailLinkVerify: FC<Props> = ({ userId, token, redirectUrl }) => {
   const turnstileRef = useRef<TurnstileInstance | null>(null);
   const turnstileTokenRef = useRef<string | undefined>(undefined);
 
+  // Warm the destination first, then navigate inside a transition: React keeps
+  // this panel on screen until the next route has fully rendered, so nothing
+  // paints half-finished. The curtain on the other side fades it away.
+  const goTo = (destination: string) => {
+    router.prefetch(destination);
+    startTransition(() => {
+      router.replace(destination);
+    });
+  };
+
   useEffect(() => {
     // Consumption is JS-gated (scanner protection) and must fire exactly once.
     if (firedRef.current) return;
@@ -66,7 +76,7 @@ const EmailLinkVerify: FC<Props> = ({ userId, token, redirectUrl }) => {
 
     // Back button / refresh after a successful verify: already signed in.
     if (user) {
-      router.replace(safeRedirect(redirectUrl));
+      goTo(safeRedirect(redirectUrl));
       return;
     }
 
@@ -112,9 +122,7 @@ const EmailLinkVerify: FC<Props> = ({ userId, token, redirectUrl }) => {
           : result.user
       );
 
-      router.replace(
-        withConfirmedEvent(safeRedirect(redirectUrl), appliedTrigger)
-      );
+      goTo(withConfirmedEvent(safeRedirect(redirectUrl), appliedTrigger));
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -150,7 +158,7 @@ const EmailLinkVerify: FC<Props> = ({ userId, token, redirectUrl }) => {
   if (failed) {
     // redirect_url is deliberately NOT honored on failure.
     return (
-      <div className="flex flex-col items-center gap-4 text-center">
+      <div className="flex min-h-screen flex-col items-center justify-center gap-4 px-4 text-center">
         <h1 className="m-0 text-blue-800 dark:text-blue-800-dark">
           {t("emailLinkInvalidTitle")}
         </h1>
@@ -231,14 +239,7 @@ const EmailLinkVerify: FC<Props> = ({ userId, token, redirectUrl }) => {
     );
   }
 
-  return (
-    <div className="flex flex-col items-center gap-4">
-      <LoadingIndicator />
-      <p className="text-gray-600 dark:text-gray-600-dark">
-        {t("emailLinkSigningIn")}
-      </p>
-    </div>
-  );
+  return <SigningInPanel message={t("emailLinkSigningIn")} />;
 };
 
 export default EmailLinkVerify;
