@@ -18,7 +18,7 @@ export async function exchangeSocialOauthCode(
   code: string,
   nonce: string,
   gatedAction?: GatedActionInput | null,
-  fromEmailCapture = false
+  signupSource?: typeof EMAIL_CAPTURE_SIGNUP_SOURCE | null
 ) {
   const cookieStore = await cookies();
   assertValidCsrfNonce(cookieStore.get(CSRF_COOKIE_NAME)?.value, nonce);
@@ -29,7 +29,7 @@ export async function exchangeSocialOauthCode(
     code,
     `${PUBLIC_APP_URL}/accounts/social/${provider}`,
     gatedAction ? mapGatedActionToWire(gatedAction) : null,
-    fromEmailCapture ? EMAIL_CAPTURE_SIGNUP_SOURCE : null
+    signupSource ?? null
   );
 
   if (response?.tokens) {

@@ -14,6 +14,7 @@ import LoadingIndicator from "@/components/ui/loading_indicator";
 import { SocialProviderType } from "@/types/auth";
 import { rotateCsrfToken } from "@/utils/csrf";
 import { withConfirmedEvent } from "@/utils/email_link_confirmation";
+import { EMAIL_CAPTURE_SIGNUP_SOURCE } from "@/utils/gated_actions";
 
 type Props = {
   provider: SocialProviderType;
@@ -44,7 +45,7 @@ const SocialAuthClient: FC<Props> = ({
           stash?.gatedAction ?? null,
           // A stash means the capture drawer sent them here, which is what
           // decides whether a brand-new account starts in the consumer view
-          !!stash
+          stash ? EMAIL_CAPTURE_SIGNUP_SOURCE : null
         );
         // Invalidate the nonce now that it has served its purpose (and been
         // logged as a `state` param) — bounds any replay to the flow duration.
