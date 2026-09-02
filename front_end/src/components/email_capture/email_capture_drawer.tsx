@@ -712,7 +712,7 @@ const EmailCaptureDrawer: FC<Props> = ({
                 : `${t("emailCaptureSentBody", { email: sentEmail ?? "" })} ${sentAction}`}
             </p>
             {!openedAsRecap && (
-              <p className="m-0 text-balance text-xs leading-relaxed text-gray-500 dark:text-gray-500-dark">
+              <p className="m-0 text-xs leading-relaxed text-gray-500 dark:text-gray-500-dark">
                 {wasRepeatSend
                   ? t("emailCaptureSentNoteRepeat")
                   : t("emailCaptureSentNote")}
