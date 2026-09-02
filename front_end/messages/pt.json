@@ -2425,5 +2425,9 @@
   "newsHotnessColCluster": "Cluster",
   "newsHotnessColWeight": "Peso",
   "newsHotnessColContribution": "Contribuição",
+  "loadFullComment": "Comentário truncado — carregar o resto",
+  "onlyBots": "Apenas bots",
+  "humansOnly": "Apenas humanos",
+  "humansAndBots": "Humanos e bots",
   "feedTileQuestionsRecentlyResolved": "{count, plural, one {# pergunta recentemente resolvida} other {# perguntas recentemente resolvidas}}"
 }

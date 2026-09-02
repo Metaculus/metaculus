@@ -2424,5 +2424,9 @@
   "newsHotnessColCluster": "叢集",
   "newsHotnessColWeight": "權重",
   "newsHotnessColContribution": "貢獻值",
+  "loadFullComment": "評論被截斷 — 加載其餘部分",
+  "onlyBots": "僅限機器人",
+  "humansOnly": "僅限人類",
+  "humansAndBots": "人類和機器人",
   "feedTileQuestionsRecentlyResolved": "{count, plural, one {最近解決了 # 個問題} other {最近解決了 # 個問題}}"
 }

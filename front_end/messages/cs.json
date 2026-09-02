@@ -2427,5 +2427,9 @@
   "newsHotnessColCluster": "Klastr",
   "newsHotnessColWeight": "Váha",
   "newsHotnessColContribution": "Příspěvek",
+  "loadFullComment": "Komentář zkrácen — načíst zbytek",
+  "onlyBots": "Pouze boti",
+  "humansOnly": "Pouze lidé",
+  "humansAndBots": "Lidé a boti",
   "feedTileQuestionsRecentlyResolved": "{count, plural, one {# otázka nedávno vyřešena} other {# otázek nedávno vyřešeno}}"
 }

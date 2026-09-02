@@ -91,6 +91,10 @@ class CommentsApi extends ApiService {
     return response;
   }
 
+  async getComment(id: number): Promise<CommentType> {
+    return await this.get<CommentType>(`/comments/${id}/`);
+  }
+
   async getCommentsOfWeek(start_date: string): Promise<CommentOfWeekEntry[]> {
     return await this.get<CommentOfWeekEntry[]>(
       `/comments/comments-of-week/?start_date=${start_date}`
