@@ -7,14 +7,18 @@ import { getAuthCookieManager } from "@/services/auth_tokens";
 import { SocialProviderType } from "@/types/auth";
 import { GatedActionInput } from "@/types/gated_actions";
 import { assertValidCsrfNonce, CSRF_COOKIE_NAME } from "@/utils/csrf";
-import { mapGatedActionToWire } from "@/utils/gated_actions";
+import {
+  EMAIL_CAPTURE_SIGNUP_SOURCE,
+  mapGatedActionToWire,
+} from "@/utils/gated_actions";
 import { getPublicSettings } from "@/utils/public_settings.server";
 
 export async function exchangeSocialOauthCode(
   provider: SocialProviderType,
   code: string,
   nonce: string,
-  gatedAction?: GatedActionInput | null
+  gatedAction?: GatedActionInput | null,
+  fromEmailCapture = false
 ) {
   const cookieStore = await cookies();
   assertValidCsrfNonce(cookieStore.get(CSRF_COOKIE_NAME)?.value, nonce);
@@ -24,7 +28,8 @@ export async function exchangeSocialOauthCode(
     provider,
     code,
     `${PUBLIC_APP_URL}/accounts/social/${provider}`,
-    gatedAction ? mapGatedActionToWire(gatedAction) : null
+    gatedAction ? mapGatedActionToWire(gatedAction) : null,
+    fromEmailCapture ? EMAIL_CAPTURE_SIGNUP_SOURCE : null
   );
 
   if (response?.tokens) {

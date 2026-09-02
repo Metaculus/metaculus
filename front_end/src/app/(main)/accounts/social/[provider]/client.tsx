@@ -41,7 +41,10 @@ const SocialAuthClient: FC<Props> = ({
           provider,
           code,
           nonce,
-          stash?.gatedAction ?? null
+          stash?.gatedAction ?? null,
+          // A stash means the capture drawer sent them here, which is what
+          // decides whether a brand-new account starts in the consumer view
+          !!stash
         );
         // Invalidate the nonce now that it has served its purpose (and been
         // logged as a `state` param) — bounds any replay to the flow duration.

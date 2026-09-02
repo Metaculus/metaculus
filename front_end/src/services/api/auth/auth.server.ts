@@ -60,7 +60,8 @@ class ServerAuthApiClass extends ApiService {
     provider: SocialProviderType,
     code: string,
     redirect_uri: string,
-    gated_action?: GatedActionWire | null
+    gated_action?: GatedActionWire | null,
+    signup_source?: string | null
   ): Promise<SocialAuthResponse | null> {
     return this.post<
       SocialAuthResponse,
@@ -68,10 +69,16 @@ class ServerAuthApiClass extends ApiService {
         code: string;
         redirect_uri: string;
         gated_action?: GatedActionWire | null;
+        signup_source?: string;
       }
     >(
       `/auth/social/${provider}/`,
-      { code, redirect_uri, ...(gated_action ? { gated_action } : {}) },
+      {
+        code,
+        redirect_uri,
+        ...(gated_action ? { gated_action } : {}),
+        ...(signup_source ? { signup_source } : {}),
+      },
       {},
       { passAuthHeader: false }
     );
