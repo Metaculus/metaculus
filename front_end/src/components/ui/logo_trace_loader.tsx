@@ -73,15 +73,23 @@ const LogoTraceLoader: FC<Props> = ({
   // Timers rather than transition callbacks: an animation that never ends -
   // a backgrounded tab pauses them - would otherwise strand the loader
   // mid-phase and never call onDone.
+  //
+  // Deliberately not keyed on phase. This effect changes phase, so depending on
+  // it would re-run the effect immediately, and the cleanup would cancel the
+  // timer that carries the loader on to the fill - leaving it stuck on the
+  // closed outline forever.
   useEffect(() => {
-    if (reducedMotion || !settled || phase !== "loop") return;
-    setPhase("closingOutline");
+    if (reducedMotion || !settled) return;
+    setPhase((current) => (current === "loop" ? "closingOutline" : current));
     const toFill = setTimeout(
-      () => setPhase("fadingFill"),
+      () =>
+        setPhase((current) =>
+          current === "closingOutline" ? "fadingFill" : current
+        ),
       CLOSE_OUTLINE_SECONDS * 1000
     );
     return () => clearTimeout(toFill);
-  }, [reducedMotion, settled, phase]);
+  }, [reducedMotion, settled]);
 
   useEffect(() => {
     if (phase !== "fadingFill") return;
