@@ -2468,7 +2468,6 @@
   "emailCapturePhraseDiscussion": "proběhne nová diskuse",
   "emailCaptureSentNote": "Odkaz vás přihlásí a platí jeden den. Můžete jej otevřít na jakémkoli zařízení.",
   "emailCaptureSentNoteRepeat": "Tento odkaz nahrazuje ten předchozí. Funguje pouze váš nejnovější odkaz.",
-  "emailCaptureDone": "Hotovo",
   "emailCaptureWrongAddress": "Špatná adresa? Použijte jiný e-mail",
   "emailCaptureUseDifferentEmail": "Použít jiný e-mail",
   "emailCaptureRecapSentTo": "Odesláno na {email}.",

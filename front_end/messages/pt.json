@@ -2466,7 +2466,6 @@
   "emailCapturePhraseDiscussion": "houver nova discussão",
   "emailCaptureSentNote": "O link faz seu login e é válido por um dia. Você pode abri-lo em qualquer dispositivo.",
   "emailCaptureSentNoteRepeat": "Este link substitui o anterior. Apenas o seu link mais recente funciona.",
-  "emailCaptureDone": "Concluído",
   "emailCaptureWrongAddress": "Endereço errado? Use outro e-mail",
   "emailCaptureUseDifferentEmail": "Usar outro e-mail",
   "emailCaptureRecapSentTo": "Enviado para {email}.",

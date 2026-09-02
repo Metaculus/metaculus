@@ -2468,7 +2468,6 @@
   "emailCapturePhraseDiscussion": "haya nueva discusión",
   "emailCaptureSentNote": "El enlace inicia tu sesión y es válido durante un día. Puedes abrirlo en cualquier dispositivo.",
   "emailCaptureSentNoteRepeat": "Este enlace reemplaza al anterior. Solo funciona tu enlace más reciente.",
-  "emailCaptureDone": "Listo",
   "emailCaptureWrongAddress": "¿Dirección incorrecta? Usa otro correo",
   "emailCaptureUseDifferentEmail": "Usa otro correo",
   "emailCaptureRecapSentTo": "Enviado a {email}.",

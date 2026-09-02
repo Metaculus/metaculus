@@ -2470,7 +2470,6 @@
   "emailCapturePhraseDiscussion": "有新讨论",
   "emailCaptureSentNote": "该链接会为你登录，有效期为一天。你可以在任何设备上打开它。",
   "emailCaptureSentNoteRepeat": "此链接将替换你之前的链接。只有最新的链接有效。",
-  "emailCaptureDone": "完成",
   "emailCaptureWrongAddress": "地址有误？换一个邮箱",
   "emailCaptureUseDifferentEmail": "换一个邮箱",
   "emailCaptureRecapSentTo": "已发送至 {email}。",

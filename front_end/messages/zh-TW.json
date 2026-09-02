@@ -2465,7 +2465,6 @@
   "emailCapturePhraseDiscussion": "有新討論",
   "emailCaptureSentNote": "該連結會為你登入，有效期為一天。你可以在任何裝置上打開它。",
   "emailCaptureSentNoteRepeat": "此連結將取代你之前的連結。只有最新的連結有效。",
-  "emailCaptureDone": "完成",
   "emailCaptureWrongAddress": "地址有誤？換一個電子郵件",
   "emailCaptureUseDifferentEmail": "換一個電子郵件",
   "emailCaptureRecapSentTo": "已發送至 {email}。",

@@ -453,28 +453,26 @@ const EmailCaptureDrawer: FC<Props> = ({
   const secondaryLink =
     "cursor-pointer border-none bg-transparent p-0.5 text-sm text-gray-600 underline underline-offset-4 dark:text-gray-600-dark";
 
-  const envelopeBadge = (
-    <div className="flex size-11 items-center justify-center rounded-full bg-blue-300 dark:bg-blue-300-dark">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-        <rect
-          x="3"
-          y="5"
-          width="18"
-          height="14"
-          rx="2"
-          className="stroke-blue-800 dark:stroke-blue-800-dark"
-          strokeWidth="2"
-        />
-        <path
-          d="m4 7 8 6 8-6"
-          className="stroke-blue-800 dark:stroke-blue-800-dark"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
-    </div>
-  );
+  // Rendered by the send and resend views rather than once for the whole sheet,
+  // so it sits with the button it guards instead of trailing the terms line.
+  // Tokens are single-use; moving between those views remounts the widget,
+  // which issues a fresh one - exactly what the next attempt needs.
+  const turnstileNode = PUBLIC_TURNSTILE_SITE_KEY ? (
+    <Turnstile
+      ref={turnstileRef}
+      siteKey={PUBLIC_TURNSTILE_SITE_KEY}
+      // Renders nothing unless Cloudflare actually needs a challenge, so it
+      // costs no chrome when it is not needed
+      options={{ appearance: "interaction-only" }}
+      className="self-center"
+      onSuccess={(token) => {
+        turnstileTokenRef.current = token;
+        setIsTurnstileValidated(true);
+      }}
+      onError={() => setIsTurnstileValidated(false)}
+      onExpire={() => setIsTurnstileValidated(false)}
+    />
+  ) : null;
 
   // On mobile the shell renders a header row (back or title, plus close); the
   // titles below only render inline on desktop, where BaseModal has no header
@@ -657,6 +655,7 @@ const EmailCaptureDrawer: FC<Props> = ({
               {inputCopy.caption}
             </span>
           )}
+          {turnstileNode}
           {googleUrl && (
             <>
               <div className="flex items-center gap-2.5">
@@ -701,7 +700,6 @@ const EmailCaptureDrawer: FC<Props> = ({
 
       {view === "sent" && (
         <>
-          {envelopeBadge}
           <div className="flex flex-col gap-1.5">
             {isDesktop && (
               <h2 className="m-0 text-xl font-bold tracking-tight">
@@ -714,7 +712,7 @@ const EmailCaptureDrawer: FC<Props> = ({
                 : `${t("emailCaptureSentBody", { email: sentEmail ?? "" })} ${sentAction}`}
             </p>
             {!openedAsRecap && (
-              <p className="m-0 text-xs leading-relaxed text-gray-500 dark:text-gray-500-dark">
+              <p className="m-0 text-balance text-xs leading-relaxed text-gray-500 dark:text-gray-500-dark">
                 {wasRepeatSend
                   ? t("emailCaptureSentNoteRepeat")
                   : t("emailCaptureSentNote")}
@@ -733,6 +731,7 @@ const EmailCaptureDrawer: FC<Props> = ({
                   {t("emailCaptureServerError")}
                 </div>
               )}
+              {turnstileNode}
               <Button
                 variant="primary"
                 className="w-full"
@@ -758,13 +757,6 @@ const EmailCaptureDrawer: FC<Props> = ({
             </>
           ) : (
             <>
-              <Button
-                variant="secondary"
-                className="w-full"
-                onClick={requestClose}
-              >
-                {t("emailCaptureDone")}
-              </Button>
               <button
                 onClick={() => {
                   setEditingEmail(true);
@@ -778,25 +770,6 @@ const EmailCaptureDrawer: FC<Props> = ({
             </>
           )}
         </>
-      )}
-
-      {/* Mounted for both the send and resend paths: tokens are single-use, so
-      the widget has to stay alive past the input view to re-issue one */}
-      {PUBLIC_TURNSTILE_SITE_KEY && view !== "options" && (
-        <Turnstile
-          ref={turnstileRef}
-          siteKey={PUBLIC_TURNSTILE_SITE_KEY}
-          // Renders nothing unless Cloudflare actually needs a challenge, so
-          // the widget can stay mounted for resend without adding chrome
-          options={{ appearance: "interaction-only" }}
-          className="self-center"
-          onSuccess={(token) => {
-            turnstileTokenRef.current = token;
-            setIsTurnstileValidated(true);
-          }}
-          onError={() => setIsTurnstileValidated(false)}
-          onExpire={() => setIsTurnstileValidated(false)}
-        />
       )}
     </div>
   );

@@ -2432,7 +2432,6 @@
   "emailCapturePhraseDiscussion": "there is new discussion",
   "emailCaptureSentNote": "The link signs you in and works for a day. You can open it on any device.",
   "emailCaptureSentNoteRepeat": "This link replaces your earlier one. Only your newest link works.",
-  "emailCaptureDone": "Done",
   "emailCaptureWrongAddress": "Wrong address? Use a different email",
   "emailCaptureUseDifferentEmail": "Use a different email",
   "emailCaptureRecapSentTo": "Sent to {email}.",
