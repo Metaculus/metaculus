@@ -9,7 +9,19 @@ import cn from "@/utils/core/cn";
 // filled mark. Kept as a literal rather than imported from the component,
 // which renders an <svg> we cannot stroke.
 const LOGO_VIEW_BOX = "0 0 13 17";
+const LOGO_VIEW_HEIGHT = 17;
 const LOGO_ASPECT = 13 / 17;
+
+// One dash covering a sixth of the outline, which is what the mark looked like
+// at 24px before the trace was measured in screen pixels. Expressed against
+// pathLength={1}, so it stays one long travelling stroke at every size rather
+// than multiplying into ticks as the mark grows.
+const DASH_ON = 0.16;
+const DASH_PATTERN = `${DASH_ON} ${1 - DASH_ON}`;
+
+// 0.75px at 24px tall. Held as a ratio so the trace keeps that weight as it
+// scales, rather than thinning out as the mark grows.
+const STROKE_RATIO = 0.75 / 24;
 const LOGO_PATH =
   "M2.86441 4.9955V17H0V0H4.03955L6.46328 8.46177L8.88701 0H13V17H10.0621V4.9955L7.19774 17H5.72881L2.86441 4.9955Z";
 
@@ -20,6 +32,7 @@ type Props = {
   isComplete?: boolean;
   /** Height in pixels; width follows the mark's 13:17 ratio. */
   size?: number;
+  /** Rendered width of the trace in pixels. Defaults to size / 24. */
   strokeWidth?: number;
   loopDurationSeconds?: number;
   fillFadeSeconds?: number;
@@ -34,7 +47,7 @@ const LogoTraceLoader: FC<Props> = ({
   loading = true,
   isComplete = false,
   size = 40,
-  strokeWidth = 2,
+  strokeWidth,
   loopDurationSeconds = 1.6,
   fillFadeSeconds = 0.35,
   className,
@@ -103,6 +116,11 @@ const LogoTraceLoader: FC<Props> = ({
 
   const showFill = phase === "fadingFill" || phase === "done";
 
+  // The stroke is authored in viewBox units, so convert the caller's pixels
+  // through the same scale the mark itself is drawn at.
+  const strokePx = strokeWidth ?? size * STROKE_RATIO;
+  const strokeUnits = (strokePx * LOGO_VIEW_HEIGHT) / size;
+
   return (
     <svg
       role="status"
@@ -121,9 +139,8 @@ const LogoTraceLoader: FC<Props> = ({
           d={LOGO_PATH}
           fill="none"
           stroke="currentColor"
-          strokeWidth={Math.max(1, strokeWidth / 2)}
+          strokeWidth={strokeUnits / 2}
           strokeLinejoin="round"
-          vectorEffect="non-scaling-stroke"
           opacity={0.18}
         />
       )}
@@ -133,14 +150,13 @@ const LogoTraceLoader: FC<Props> = ({
           d={LOGO_PATH}
           fill="none"
           stroke="currentColor"
-          strokeWidth={strokeWidth}
+          strokeWidth={strokeUnits}
           strokeLinecap="round"
           // The outline turns back on itself at the two V apexes, where a
           // miter would spike well past the letterform
           strokeLinejoin="round"
-          vectorEffect="non-scaling-stroke"
           pathLength={1}
-          strokeDasharray={phase === "loop" ? "0.16 0.84" : "1 0"}
+          strokeDasharray={phase === "loop" ? DASH_PATTERN : "1 0"}
           // The phase below is flipped by an effect, so it is a frame late;
           // this stops the loop being painted at all when motion is unwanted
           className="motion-reduce:!animate-none"
