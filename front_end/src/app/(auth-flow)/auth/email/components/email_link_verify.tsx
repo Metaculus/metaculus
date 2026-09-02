@@ -17,6 +17,7 @@ import { Input } from "@/components/ui/form_field";
 import { useAuth } from "@/contexts/auth_context";
 import { usePublicSettings } from "@/contexts/public_settings_context";
 import { useServerAction } from "@/hooks/use_server_action";
+import { sendAnalyticsEvent } from "@/utils/analytics";
 import cn from "@/utils/core/cn";
 import { withConfirmedEvent } from "@/utils/email_link_confirmation";
 import { ensureRelativeRedirect } from "@/utils/navigation";
@@ -98,7 +99,19 @@ const EmailLinkVerify: FC<Props> = ({ userId, token, redirectUrl }) => {
       // Read before setUser: the confirm-email banner clears the pending
       // record in an effect as soon as a user appears, so the destination
       // page can no longer discover which action the link carried
-      const appliedTrigger = readPending()?.trigger ?? null;
+      const pending = readPending();
+      const appliedTrigger = pending?.trigger ?? null;
+
+      // Closes the funnel emailSubmitted opens. Without it the last thing
+      // measured is someone typing an address, not their coming back through
+      // the link, so the drop-off between the two is invisible. A link opened
+      // on a different device has no local record, which is what sameDevice
+      // reports - those arrivals carry no trigger or surface.
+      sendAnalyticsEvent("emailLinkVerified", {
+        trigger: appliedTrigger,
+        surface: pending?.surface,
+        sameDevice: !!pending,
+      });
 
       // Arriving by magic link means exploring, not enrolling: skip the
       // forecaster tutorial for good rather than interrupting the action the
