@@ -2,10 +2,23 @@ from django import forms
 from django.contrib import admin
 from django.core.exceptions import ValidationError
 
-from .models import AdTile, Bulletin, SidebarItem, UserDataAccess
+from .models import (
+    AdTile,
+    Bulletin,
+    SidebarItem,
+    UserDataAccess,
+    default_ad_tile_placements,
+)
 
 
 class AdTileAdminForm(forms.ModelForm):
+    placements = forms.MultipleChoiceField(
+        choices=AdTile.Placements.choices,
+        widget=forms.CheckboxSelectMultiple,
+        initial=default_ad_tile_placements,
+        help_text="Surfaces this tile may appear on.",
+    )
+
     class Meta:
         model = AdTile
         fields = "__all__"
@@ -37,6 +50,7 @@ class AdTileAdmin(admin.ModelAdmin):
     list_display = [
         "display_title",
         "is_active",
+        "placements",
         "order",
         "exposure_rate",
         "publish_at",
