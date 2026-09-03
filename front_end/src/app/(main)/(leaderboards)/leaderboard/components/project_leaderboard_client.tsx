@@ -146,7 +146,7 @@ const ProjectLeaderboardClient = ({
                     <dd>
                       {t.rich("leaderboardCoverageInfo", {
                         link: (chunks) => (
-                          <Link href={"/help/scores-faq/#coverage"}>
+                          <Link href="/help/scores-faq/#coverage">
                             {chunks}
                           </Link>
                         ),
