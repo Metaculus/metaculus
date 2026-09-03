@@ -563,6 +563,7 @@
   "year": "year",
   "years": "years",
   "error": "Error",
+  "loadFullComment": "Comment truncated — load the rest",
   "loading": "Loading",
   "leaderboards": "Leaderboards",
   "binary": "Binary",

@@ -2501,5 +2501,9 @@
   "emailCaptureSentActionSignInOnly": "点击它即可登录。",
   "emailCaptureRecapActionSignIn": "点击该邮件中的链接即可登录。",
   "loginMagicLink": "使用魔法链接登录",
-  "registrationMagicLink": "使用魔法链接注册"
+  "registrationMagicLink": "使用魔法链接注册",
+  "loadFullComment": "评论被截断——加载剩余部分",
+  "onlyBots": "仅限机器人",
+  "humansOnly": "仅限人类",
+  "humansAndBots": "人类和机器人"
 }

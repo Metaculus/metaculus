@@ -2499,5 +2499,9 @@
   "emailCaptureSentActionSignInOnly": "Klikněte na něj a přihlaste se.",
   "emailCaptureRecapActionSignIn": "Klikněte na odkaz v tomto e-mailu a přihlaste se.",
   "loginMagicLink": "Přihlásit se pomocí kouzelného odkazu",
-  "registrationMagicLink": "Zaregistrovat se pomocí kouzelného odkazu"
+  "registrationMagicLink": "Zaregistrovat se pomocí kouzelného odkazu",
+  "loadFullComment": "Komentář zkrácen — načíst zbytek",
+  "onlyBots": "Pouze boti",
+  "humansOnly": "Pouze lidé",
+  "humansAndBots": "Lidé a boti"
 }

@@ -2496,5 +2496,9 @@
   "emailCaptureSentActionSignInOnly": "點擊它即可登入。",
   "emailCaptureRecapActionSignIn": "點擊該郵件中的連結即可登入。",
   "loginMagicLink": "使用魔法連結登入",
-  "registrationMagicLink": "使用魔法連結註冊"
+  "registrationMagicLink": "使用魔法連結註冊",
+  "loadFullComment": "評論被截斷 — 加載其餘部分",
+  "onlyBots": "僅限機器人",
+  "humansOnly": "僅限人類",
+  "humansAndBots": "人類和機器人"
 }

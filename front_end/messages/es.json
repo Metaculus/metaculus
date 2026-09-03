@@ -2499,5 +2499,9 @@
   "emailCaptureSentActionSignInOnly": "Haz clic en él para iniciar sesión.",
   "emailCaptureRecapActionSignIn": "Haz clic en el enlace de ese correo para iniciar sesión.",
   "loginMagicLink": "Iniciar sesión con un enlace mágico",
-  "registrationMagicLink": "Registrarse con un enlace mágico"
+  "registrationMagicLink": "Registrarse con un enlace mágico",
+  "loadFullComment": "Comentario truncado — carga el resto",
+  "onlyBots": "Solo bots",
+  "humansOnly": "Solo humanos",
+  "humansAndBots": "Humanos y Bots"
 }

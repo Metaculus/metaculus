@@ -101,3 +101,23 @@ def update_current_top_comments_of_week():
     # Update the week before
     week_start_date = week_start_date - timedelta(days=7)
     update_top_comments_of_week(week_start_date)
+
+
+@dramatiq.actor(time_limit=1_800_000, max_retries=1)
+def job_archive_bot_comment_texts():
+    # Import here to avoid circular imports
+    from comments.services.text_archive import (
+        archive_bot_comment_texts,
+        check_is_enabled,
+    )
+
+    if not check_is_enabled():
+        return
+
+    stats = archive_bot_comment_texts()
+
+    logger.info(
+        f"Archived the text of {stats.archived} bot comment(s), "
+        f"reclaiming {stats.chars_reclaimed} characters "
+        f"({stats.failed} failed, {stats.skipped} skipped)"
+    )
