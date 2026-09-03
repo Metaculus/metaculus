@@ -1,3 +1,5 @@
+import { ThemeColor } from "@/types/theme";
+
 export const METAC_COLORS = {
   gray: {
     0: { DEFAULT: "#ffffff", dark: "#262f38" },
@@ -202,3 +204,10 @@ export const METAC_COLORS = {
 export const MULTIPLE_CHOICE_COLOR_SCALE = Object.values(
   METAC_COLORS["mc-option"]
 ).map((value) => value);
+
+export const MC_OPTION_PALETTE_KEYS = Object.keys(METAC_COLORS["mc-option"]);
+
+export function getMcOptionColor(key?: string | null): ThemeColor | undefined {
+  if (!key) return undefined;
+  return (METAC_COLORS["mc-option"] as Record<string, ThemeColor>)[key];
+}
