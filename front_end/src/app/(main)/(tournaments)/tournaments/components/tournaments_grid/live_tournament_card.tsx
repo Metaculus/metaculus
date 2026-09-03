@@ -21,13 +21,13 @@ import GradientProgressLine from "../../../tournament/components/gradient_progre
 
 type Props = {
   item: TournamentPreview;
-  nowTs?: number;
+  nowTs: number;
   hideTimeline?: boolean;
 };
 
 const LiveTournamentCard: React.FC<Props> = ({
   item,
-  nowTs = 0,
+  nowTs,
   hideTimeline = false,
 }) => {
   const t = useTranslations();
@@ -111,7 +111,7 @@ function TournamentTimelineBar({
   closeDate,
   isOngoing,
 }: {
-  nowTs: number | null;
+  nowTs: number;
   timeline: TournamentTimeline | null;
   startDate?: string | null;
   forecastingEndDate?: string | null;
@@ -122,18 +122,16 @@ function TournamentTimelineBar({
   const closedTs = safeTs(forecastingEndDate ?? closeDate ?? null);
   if (!startTs || !closedTs) return null;
 
-  const now = nowTs ?? Date.now();
-
   const rawClosed =
     timeline?.all_questions_closed != null
       ? Boolean(timeline.all_questions_closed)
       : !isOngoing;
 
-  const isClosed = rawClosed && now >= closedTs;
+  const isClosed = rawClosed && nowTs >= closedTs;
   const isResolved = Boolean(timeline?.all_questions_resolved);
 
   if (!isClosed) {
-    return <ActiveMiniBar nowTs={now} startTs={startTs} endTs={closedTs} />;
+    return <ActiveMiniBar nowTs={nowTs} startTs={startTs} endTs={closedTs} />;
   }
 
   return <ClosedStatus isResolved={isResolved} />;
@@ -144,17 +142,15 @@ function ActiveMiniBar({
   startTs,
   endTs,
 }: {
-  nowTs: number | null;
+  nowTs: number;
   startTs: number;
   endTs: number;
 }) {
   const t = useTranslations();
-  let label = t("tournamentTimelineOngoing");
+  let label: string;
   let p = 0;
 
-  if (nowTs == null) {
-    label = t("tournamentTimelineOngoing");
-  } else if (nowTs < startTs) {
+  if (nowTs < startTs) {
     label = t("tournamentTimelineStarts", {
       when: formatTournamentRelativeDelta(t, startTs - nowTs, {
         fromNow: true,

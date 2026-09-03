@@ -12,6 +12,7 @@ import { FeedLayout } from "@/components/ui/layout_switcher";
 import { FEED_LAYOUT_COOKIE } from "@/constants/posts_feed";
 import { useAuth } from "@/contexts/auth_context";
 import { InterfaceType } from "@/types/users";
+import { safeDocumentCookie } from "@/utils/core/storage";
 
 type FeedLayoutContextType = {
   layout: FeedLayout;
@@ -44,7 +45,9 @@ const FeedLayoutProvider: FC<PropsWithChildren<{ cookieLayout?: string }>> = ({
 
   const setLayout = (newLayout: FeedLayout) => {
     setLayoutState(newLayout);
-    document.cookie = `${FEED_LAYOUT_COOKIE}=${newLayout};path=/;max-age=${60 * 60 * 24 * 365};samesite=lax`;
+    safeDocumentCookie.set(FEED_LAYOUT_COOKIE, newLayout, {
+      maxAge: 60 * 60 * 24 * 365,
+    });
   };
 
   return (

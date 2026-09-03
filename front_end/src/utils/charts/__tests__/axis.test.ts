@@ -460,7 +460,7 @@ describe("generateScale", () => {
           zoomedDomain: [0, 1],
           scaling: {
             range_min: 0,
-            range_max: 100,
+            range_max: 400,
             zero_point: null,
           },
         });
@@ -473,8 +473,8 @@ describe("generateScale", () => {
         .map((tick) => wideScale.tickFormat(tick))
         .filter(Boolean);
 
-      expect(narrowLabels).toHaveLength(6);
-      expect(wideLabels).toHaveLength(11);
+      expect(narrowLabels).toHaveLength(5);
+      expect(wideLabels).toHaveLength(9);
     });
 
     it("keeps both horizontal forecast bounds visible", () => {

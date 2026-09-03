@@ -12,14 +12,12 @@ import {
   AutotranslationAssignment,
   parseAssignment,
 } from "@/constants/experiments";
+import { safeDocumentCookie } from "@/utils/core/storage";
 
 // The auto-translation experiment assignment is pinned in a first-party
 // cookie by the middleware (proxy.ts) when an eligible visitor is enrolled
 function getAutotranslationAssignment(): AutotranslationAssignment | null {
-  const raw = document.cookie
-    .split("; ")
-    .find((cookie) => cookie.startsWith(`${AUTOTRANSLATION_COOKIE_NAME}=`))
-    ?.slice(AUTOTRANSLATION_COOKIE_NAME.length + 1);
+  const raw = safeDocumentCookie.get(AUTOTRANSLATION_COOKIE_NAME);
   if (!raw) return null;
 
   try {

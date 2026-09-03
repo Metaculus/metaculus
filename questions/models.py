@@ -496,6 +496,13 @@ class Question(TimeStampedModel, TranslatedModel):  # type: ignore
                 name="idx_question_post_resolve_time",
                 condition=Q(resolution__isnull=True),
             ),
+            # Covering index for filter_default_aggregation()'s join, which needs
+            # the method per question id and would otherwise heap-fetch wide rows
+            models.Index(
+                fields=["id"],
+                include=("default_aggregation_method",),
+                name="idx_q_id_incl_default_agg",
+            ),
         ]
 
 
