@@ -1,3 +1,4 @@
+from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.db.models import Subquery, OuterRef
 from django.db.models.functions import Least, Greatest
@@ -115,3 +116,106 @@ class AggregateCoherenceLinkVote(TimeStampedModel):
                 fields=["user_id", "aggregation_id"],
             ),
         ]
+
+
+# ---------------------------------------------------------------------------
+# AI-suggested coherence links.
+#
+# One row per eligible target question, updated in place by two writers —
+# the paid LLM pipeline and the daily free-vote refresh — so the table never
+# grows over time and needs no cleanup. If a method is retired its name may
+# linger in the JSON until the target's next refresh, but the read aggregator
+# ignores any method not in Method.ALL, so retired names have no effect.
+# ---------------------------------------------------------------------------
+
+
+class CoherenceLinkSuggestion(TimeStampedModel):
+    """
+    All AI-suggested links for one target question, plus metadata about the
+    last paid (LLM) run that produced them.
+    """
+
+    class Method:
+        """The voting methods. Suggestions are ranked by how many voted."""
+
+        # Paid methods: one LLM call each, run by the daily scheduler on
+        # stale targets until the budget runs out.
+        LLM_BROAD = "llm_broad"  # full pool, high recall
+        LLM_STRICT = "llm_strict"  # full pool, genuine causal influence only
+        LLM_SIMILAR_ONLY = "llm_similar_only"  # strict, over an embedding shortlist
+        # Free methods: cheap queries, refreshed daily for every target.
+        SIMILAR = "similar"  # in the Similar Questions list
+        COMMUNITY_LINK = "community_link"  # an AggregateCoherenceLink exists
+
+        PAID = frozenset({LLM_BROAD, LLM_STRICT, LLM_SIMILAR_ONLY})
+        FREE = frozenset({SIMILAR, COMMUNITY_LINK})
+        ALL = PAID | FREE
+
+    class PaidRunStatus(models.TextChoices):
+        PENDING = "pending"
+        DONE = "done"
+        ERROR = "error"
+
+    target_question = models.OneToOneField(
+        Question, models.CASCADE, related_name="ai_suggestions"
+    )
+
+    # Vote storage. {"<candidate_question_id>": ["method_name", ...]}
+    # Keys are strings so the JSON round-trips cleanly.
+    methods_by_candidate = models.JSONField(default=dict, blank=True)
+
+    # ---- Last paid-run state (overwritten in place; no history) ----
+    # Empty string = the paid pipeline has never run for this target.
+    paid_run_status = models.CharField(
+        max_length=16, blank=True, default="", choices=PaidRunStatus.choices
+    )
+    paid_run_started_at = models.DateTimeField(null=True, blank=True)
+    # Incremented via F() after each method completes, so a crashed worker
+    # mid-run still leaves accurate spend on record.
+    paid_run_cost_usd = models.DecimalField(max_digits=10, decimal_places=6, default=0)
+    paid_run_methods_attempted = ArrayField(
+        models.CharField(max_length=32), default=list, blank=True
+    )
+    paid_run_methods_succeeded = ArrayField(
+        models.CharField(max_length=32), default=list, blank=True
+    )
+    paid_run_pool_hash = models.CharField(max_length=64, blank=True, default="")
+    paid_run_pool_size = models.PositiveIntegerField(null=True, blank=True)
+    paid_run_elapsed_s = models.PositiveIntegerField(null=True, blank=True)
+    paid_run_error_message = models.TextField(blank=True, default="")
+
+    # ---- Free-vote refresh marker ----
+    free_refreshed_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        indexes = [
+            # Budget query: sum cost where started_at >= today's start
+            models.Index(
+                fields=["paid_run_started_at"], name="clsugg_paid_started_idx"
+            ),
+        ]
+
+    def replace_votes(self, methods: frozenset, new_votes: dict) -> None:
+        """
+        Replace this row's entries for the given method group (Method.PAID or
+        Method.FREE), preserving the other group's entries untouched.
+
+        `new_votes` maps candidate question id -> iterable of method names;
+        names outside `methods` are ignored, as are self-votes. Both writers
+        go through here so neither can clobber the other's votes.
+        """
+        merged: dict[str, list[str]] = {}
+        for cid_str, names in (self.methods_by_candidate or {}).items():
+            kept = [m for m in names if m not in methods]
+            if kept:
+                merged[cid_str] = kept
+
+        for cid, names in new_votes.items():
+            if cid == self.target_question_id:
+                continue
+            entry = merged.setdefault(str(cid), [])
+            for m in names:
+                if m in methods and m not in entry:
+                    entry.append(m)
+
+        self.methods_by_candidate = merged

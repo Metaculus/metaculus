@@ -448,6 +448,16 @@ ALPHA_ACCESS_TOKEN = os.environ.get("ALPHA_ACCESS_TOKEN")
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
 # use a default value, otherwise openai lib will use the value from the default OPENAI_API_KEY variable
 OPENAI_API_KEY_FACTORS = os.environ.get("OPENAI_API_KEY_FACTORS", "nokey")
+OPENAI_API_KEY_QUESTION_LINKS = os.environ.get("OPENAI_API_KEY_QUESTION_LINKS", "nokey")
+
+# --- Question Links (aka Coherence) ---------------------------------------
+# When disabled, no suggestions are computed or served and nothing is spent.
+SUGGESTIONS_AI_ENABLED = (
+    os.environ.get("SUGGESTIONS_AI_ENABLED", "false").lower() == "true"
+)
+# Daily ceiling/budget in USD for how much to spend on finding question links.
+# Expect the entire budget to be spent every day.
+SUGGESTIONS_LIMIT_USD_DAILY = float(os.environ.get("SUGGESTIONS_LIMIT_USD_DAILY", "5"))
 
 # Serper Google API key
 SERPER_API_KEY = os.environ.get("SERPER_API_KEY")

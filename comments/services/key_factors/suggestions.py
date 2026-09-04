@@ -387,7 +387,9 @@ def generate_keyfactors(
 
     client = get_openai_client(settings.OPENAI_API_KEY_FACTORS)
 
-    response_format = pydantic_to_openai_json_schema(KeyFactorsResponse)
+    response_format = pydantic_to_openai_json_schema(
+        KeyFactorsResponse, name="key_factors_response"
+    )
 
     try:
         response = client.chat.completions.create(
