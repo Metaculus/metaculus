@@ -7,6 +7,7 @@ import React, { FC, ReactNode, useMemo } from "react";
 import Button from "@/components/ui/button";
 import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
+import type { ForecastPayload } from "@/services/api/questions/questions.server";
 import cn from "@/utils/core/cn";
 
 type Props = {
@@ -19,6 +20,9 @@ type Props = {
   isDisabled?: boolean;
   predictionExpirationChip?: ReactNode;
   onPredictionExpirationClick?: () => void;
+  // When provided, logged-out users get the email-capture drawer with their
+  // forecast as the deferred action instead of the signup modal
+  buildGatedForecastPayload?: () => ForecastPayload[] | null;
 };
 
 const PredictButton: FC<Props> = ({
@@ -31,6 +35,7 @@ const PredictButton: FC<Props> = ({
   isDisabled,
   predictionExpirationChip,
   onPredictionExpirationClick,
+  buildGatedForecastPayload,
 }) => {
   const { user } = useAuth();
   const { setCurrentModal } = useModal();
@@ -75,7 +80,9 @@ const PredictButton: FC<Props> = ({
   ]);
   const buttonLabel = useMemo(() => {
     if (!user) {
-      return t("signUpToPredict");
+      return buildGatedForecastPayload
+        ? t("emailCaptureForecastTitle")
+        : t("signUpToPredict");
     }
 
     if (hasUserForecast && !isDirty && isUserForecastActive) {
@@ -83,11 +90,33 @@ const PredictButton: FC<Props> = ({
     }
 
     return predictLabel ?? t("saveChange");
-  }, [hasUserForecast, isDirty, predictLabel, t, user, isUserForecastActive]);
+  }, [
+    hasUserForecast,
+    isDirty,
+    predictLabel,
+    t,
+    user,
+    isUserForecastActive,
+    buildGatedForecastPayload,
+  ]);
 
   const handleClick = () => {
     if (!user) {
-      setCurrentModal({ type: "signup" });
+      if (buildGatedForecastPayload) {
+        const payload = buildGatedForecastPayload();
+        setCurrentModal({
+          type: "emailCapture",
+          data: {
+            trigger: "forecast",
+            surface: "predictButton",
+            // Untouched slider yields no payload; the drawer falls back to
+            // sign-in-only copy and never clears a pending action
+            gatedAction: payload?.length ? { type: "forecast", payload } : null,
+          },
+        });
+      } else {
+        setCurrentModal({ type: "signup" });
+      }
       return;
     }
 

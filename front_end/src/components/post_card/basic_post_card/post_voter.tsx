@@ -27,7 +27,21 @@ const PostVoter: FC<Props> = ({ className, post, questionPage, compact }) => {
   const [vote, setVote] = useState(post.vote);
   const handleVote = async (direction: VoteDirection) => {
     if (!user) {
-      setCurrentModal({ type: "signin" });
+      if (direction === 1 || direction === -1) {
+        setCurrentModal({
+          type: "emailCapture",
+          data: {
+            trigger: "post_vote",
+            surface: questionPage ? "questionPage" : "questionFeed",
+            gatedAction: {
+              type: "post_vote",
+              payload: { post: post.id, direction },
+            },
+          },
+        });
+      } else {
+        setCurrentModal({ type: "signin" });
+      }
       return;
     }
     if (user.is_bot) {

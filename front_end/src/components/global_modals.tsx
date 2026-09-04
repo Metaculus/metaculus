@@ -1,7 +1,8 @@
 "use client";
 import dynamic from "next/dynamic";
-import React, { FC } from "react";
+import React, { FC, useEffect } from "react";
 
+import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
 import type { CurrentModal, ModalType } from "@/contexts/modal_context";
 import { usePublicSettings } from "@/contexts/public_settings_context";
@@ -74,6 +75,11 @@ const DisputeKeyFactorModal = dynamic(
   { ssr: false }
 );
 
+const EmailCaptureDrawer = dynamic(
+  () => import("@/components/email_capture/email_capture_drawer"),
+  { ssr: false }
+);
+
 function isModal<T extends ModalType>(
   m: CurrentModal | null,
   type: T
@@ -86,6 +92,20 @@ const GlobalModals: FC = () => {
   const onClose = () => setCurrentModal(null);
 
   const { PUBLIC_ALLOW_TUTORIAL } = usePublicSettings();
+  // Logging out is a client-side navigation, so the root layout (and this
+  // modal state) survives it. The tutorial is for signed-in forecasters
+  // only, so never show it to a signed-out visitor whatever opened it.
+  const { user } = useAuth();
+
+  // Hiding it is not enough: the request has to be dropped too. A sign-in that
+  // does not itself open a modal (SimplifiedSignupModal owns its own state and
+  // only calls setUser) would otherwise reveal the stale tutorial the moment a
+  // user reappears, with nothing having asked for it.
+  useEffect(() => {
+    if (!user && isModal(currentModal, "onboarding")) {
+      setCurrentModal(null);
+    }
+  }, [user, currentModal, setCurrentModal]);
 
   return (
     <>
@@ -127,9 +147,11 @@ const GlobalModals: FC = () => {
       {isModal(currentModal, "contactUs") && (
         <ContactUsModal isOpen onClose={onClose} />
       )}
-      {PUBLIC_ALLOW_TUTORIAL && isModal(currentModal, "onboarding") && (
-        <OnboardingModal isOpen onClose={onClose} />
-      )}
+      {PUBLIC_ALLOW_TUTORIAL &&
+        !!user &&
+        isModal(currentModal, "onboarding") && (
+          <OnboardingModal isOpen onClose={onClose} />
+        )}
       {isModal(currentModal, "confirm") && (
         <ConfirmModal
           isOpen
@@ -151,6 +173,17 @@ const GlobalModals: FC = () => {
           onFinalize={currentModal.data.onFinalize}
           onRemove={currentModal.data.onRemove}
           onSubmitted={currentModal.data.onSubmitted}
+        />
+      )}
+      {isModal(currentModal, "emailCapture") && currentModal.data && (
+        <EmailCaptureDrawer
+          isOpen
+          onClose={onClose}
+          trigger={currentModal.data.trigger}
+          surface={currentModal.data.surface}
+          gatedAction={currentModal.data.gatedAction}
+          subscribePost={currentModal.data.subscribePost}
+          initialView={currentModal.data.initialView}
         />
       )}
       {isModal(currentModal, "copyQuestionLink") && currentModal.data && (

@@ -12,8 +12,10 @@ import ServerProfileApi from "@/services/api/profile/profile.server";
 import { getAuthCookieManager } from "@/services/auth_tokens";
 import { LanguageService } from "@/services/language_service";
 import { AuthResponse, SignUpResponse } from "@/types/auth";
+import { GatedActionInput } from "@/types/gated_actions";
 import { CurrentUser } from "@/types/users";
 import { ApiError } from "@/utils/core/errors";
+import { mapGatedActionToWire } from "@/utils/gated_actions";
 import { getPublicSettings } from "@/utils/public_settings.server";
 
 export type ApiErrorPayload = {
@@ -218,6 +220,42 @@ export async function simplifiedSignUpAction(
       errors: ApiError.isApiError(err)
         ? (err.data as ApiErrorPayload)
         : undefined,
+    };
+  }
+}
+
+export async function requestEmailLinkAction(params: {
+  email: string;
+  redirectUrl?: string | null;
+  gatedAction?: GatedActionInput | null;
+  turnstileToken?: string;
+}): Promise<{ errors?: ApiErrorPayload | null }> {
+  const headersList = await headers();
+  const ipAddress =
+    headersList.get("CF-Connecting-IP") || headersList.get("X-Real-IP");
+
+  try {
+    await ServerAuthApi.requestEmailLink(
+      {
+        email: params.email,
+        redirect_url: params.redirectUrl ?? null,
+        gated_action: params.gatedAction
+          ? mapGatedActionToWire(params.gatedAction)
+          : null,
+      },
+      {
+        ...(params.turnstileToken
+          ? { "cf-turnstile-response": params.turnstileToken }
+          : {}),
+        ...(ipAddress ? { "CF-Connecting-IP": ipAddress } : {}),
+      }
+    );
+    return { errors: null };
+  } catch (err: unknown) {
+    return {
+      errors: ApiError.isApiError(err)
+        ? (err.data as ApiErrorPayload)
+        : { detail: "Something went wrong. Please try again." },
     };
   }
 }

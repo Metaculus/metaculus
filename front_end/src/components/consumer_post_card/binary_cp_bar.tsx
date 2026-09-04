@@ -49,10 +49,14 @@ const BinaryCPBar: FC<Props> = ({
       ? Math.round((questionCP as number) * 1000) / 10
       : null;
 
-  const width = isEmbed ? 85 : 112;
-  const height = isEmbed ? 50 : 66;
-  const strokeWidth = isEmbed ? 8 : 12;
-  const strokeCursorWidth = isEmbed ? 12 : 17;
+  // lg draws at real size so the layout box matches the visual; xs/sm keep
+  // their CSS-transform shrink (their card layouts assume the md-sized box)
+  const isLg = size === "lg" && !isEmbed;
+  const width = isEmbed ? 85 : isLg ? 140 : 112;
+  const height = isEmbed ? 50 : isLg ? 82.5 : 66;
+  const strokeWidth = isEmbed ? 8 : isLg ? 15 : 12;
+  const strokeCursorWidth = isEmbed ? 12 : isLg ? 21 : 17;
+  const tickHalfLength = isLg ? 2.5 : 2;
   const radius = (width - strokeWidth) / 2;
   const arcAngle = Math.PI * 1.1;
   const center = { x: width / 2, y: height - strokeWidth };
@@ -99,8 +103,6 @@ const BinaryCPBar: FC<Props> = ({
         {
           "scale-[0.5]": size === "xs",
           "scale-[0.85]": size === "sm",
-          "scale-100": size === "md",
-          "scale-[1.25]": size === "lg",
         },
         isEmbed && "scale-100",
         className
@@ -150,19 +152,19 @@ const BinaryCPBar: FC<Props> = ({
           <line
             x1={
               progressArc.endPoint.x -
-              2 * Math.cos(progressArc.angle + Math.PI / 2)
+              tickHalfLength * Math.cos(progressArc.angle + Math.PI / 2)
             }
             y1={
               progressArc.endPoint.y -
-              2 * Math.sin(progressArc.angle + Math.PI / 2)
+              tickHalfLength * Math.sin(progressArc.angle + Math.PI / 2)
             }
             x2={
               progressArc.endPoint.x +
-              2 * Math.cos(progressArc.angle + Math.PI / 2)
+              tickHalfLength * Math.cos(progressArc.angle + Math.PI / 2)
             }
             y2={
               progressArc.endPoint.y +
-              2 * Math.sin(progressArc.angle + Math.PI / 2)
+              tickHalfLength * Math.sin(progressArc.angle + Math.PI / 2)
             }
             stroke={hex}
             className={!colorOverride ? strokeClass : undefined}
@@ -172,7 +174,8 @@ const BinaryCPBar: FC<Props> = ({
       </svg>
       <div
         className={cn(
-          "absolute bottom-0 flex w-[60px] flex-col items-center justify-center text-center text-sm",
+          "absolute bottom-0 flex flex-col items-center justify-center text-center text-sm",
+          isLg ? "w-[75px]" : "w-[60px]",
           !colorOverride && textClass,
           size === "xs" && "bottom-[10px] scale-[200%]"
         )}
@@ -185,7 +188,9 @@ const BinaryCPBar: FC<Props> = ({
               ? "text-[18px] leading-[24px]"
               : size === "xs"
                 ? "text-[12px] leading-4"
-                : "text-xl leading-8"
+                : isLg
+                  ? "text-[25px] leading-10"
+                  : "text-xl leading-8"
           )}
         >
           {cpPercentage != null ? `${cpPercentage}%` : "%"}
@@ -197,7 +202,9 @@ const BinaryCPBar: FC<Props> = ({
               ? "text-[9px] leading-[9px]"
               : size === "xs"
                 ? "text-[6px] leading-[6px]"
-                : "text-xs"
+                : isLg
+                  ? "text-[15px]"
+                  : "text-xs"
           )}
         >
           {t("chance")}

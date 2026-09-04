@@ -9,15 +9,17 @@ import { getPublicSetting } from "@/components/public_settings_script";
 import {
   AUTOTRANSLATION_COOKIE_NAME,
   AUTOTRANSLATION_FLAG_KEY,
-  AutotranslationAssignment,
+  ExperimentAssignment,
   parseAssignment,
+  SUBSCRIBE_CAPTURE_COOKIE_NAME,
+  SUBSCRIBE_CAPTURE_FLAG_KEY,
 } from "@/constants/experiments";
 import { safeDocumentCookie } from "@/utils/core/storage";
 
-// The auto-translation experiment assignment is pinned in a first-party
-// cookie by the middleware (proxy.ts) when an eligible visitor is enrolled
-function getAutotranslationAssignment(): AutotranslationAssignment | null {
-  const raw = safeDocumentCookie.get(AUTOTRANSLATION_COOKIE_NAME);
+// Experiment assignments are pinned in first-party cookies by the
+// middleware (proxy.ts) when an eligible visitor is enrolled
+function getAssignmentCookie(cookieName: string): ExperimentAssignment | null {
+  const raw = safeDocumentCookie.get(cookieName);
   if (!raw) return null;
 
   try {
@@ -41,7 +43,15 @@ function CSPostHogProvider({
     const PUBLIC_POSTHOG_BASE_URL = getPublicSetting("PUBLIC_POSTHOG_BASE_URL");
 
     if (PUBLIC_POSTHOG_KEY) {
-      const autotranslationAssignment = getAutotranslationAssignment();
+      const autotranslationAssignment = getAssignmentCookie(
+        AUTOTRANSLATION_COOKIE_NAME
+      );
+      const subscribeCaptureAssignment = getAssignmentCookie(
+        SUBSCRIBE_CAPTURE_COOKIE_NAME
+      );
+      // Both enrollments share one identity by construction (proxy.ts)
+      const bootstrapAssignment =
+        autotranslationAssignment ?? subscribeCaptureAssignment;
 
       posthog.init(PUBLIC_POSTHOG_KEY, {
         api_host: PUBLIC_POSTHOG_BASE_URL,
@@ -56,20 +66,28 @@ function CSPostHogProvider({
             : "memory",
         // Reuse the server-side experiment assignment: the same distinct_id
         // keeps identity stable across visits under memory persistence, and
-        // the bootstrapped flag stamps $feature/... on events from the start
-        ...(autotranslationAssignment && {
+        // the bootstrapped flags stamp $feature/... on events from the start
+        ...(bootstrapAssignment && {
           bootstrap: {
-            distinctID: autotranslationAssignment.distinctId,
+            distinctID: bootstrapAssignment.distinctId,
             isIdentifiedID: false,
             featureFlags: {
-              [AUTOTRANSLATION_FLAG_KEY]: autotranslationAssignment.variant,
+              ...(autotranslationAssignment && {
+                [AUTOTRANSLATION_FLAG_KEY]: autotranslationAssignment.variant,
+              }),
+              ...(subscribeCaptureAssignment && {
+                [SUBSCRIBE_CAPTURE_FLAG_KEY]:
+                  subscribeCaptureAssignment.variant,
+              }),
             },
           },
         }),
       });
 
       if (autotranslationAssignment) {
-        // Captures $feature_flag_called so PostHog registers exposure
+        // Captures $feature_flag_called so PostHog registers exposure.
+        // The subscribe-capture experiment registers exposure only when
+        // one of its surfaces is shown (registerSubscribeCaptureExposure)
         posthog.getFeatureFlag(AUTOTRANSLATION_FLAG_KEY);
       }
     }

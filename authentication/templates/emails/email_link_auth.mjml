@@ -23,10 +23,6 @@
         <mj-section>
             <mj-column>
                 <mj-text padding-bottom="0px">
-                    {% blocktrans %}Hello {{ username }}{% endblocktrans %}
-                </mj-text>
-
-                <mj-text padding-top="8px">
                     {% blocktrans %}
                     Confirm your email address to activate your Metaculus account.
                     {% endblocktrans %}

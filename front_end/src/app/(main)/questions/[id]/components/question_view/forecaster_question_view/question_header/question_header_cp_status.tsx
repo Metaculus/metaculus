@@ -337,7 +337,7 @@ const QuestionHeaderCPStatus: FC<Props> = ({
             question={question}
             className={cn("mx-auto pb-1 text-center", {
               "w-max max-w-32": size === "md",
-              "mt-6": size === "lg",
+              "mt-2": size === "lg",
             })}
             size="sm"
             unit={"%"}

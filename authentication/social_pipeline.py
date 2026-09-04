@@ -5,6 +5,10 @@ from rest_framework.exceptions import ValidationError
 from users.models import User
 from users.services.username_generator import generate_username
 
+# Marks a signup that came through the email-capture drawer rather than the
+# ordinary signup modal; sent by the frontend on the code-exchange request.
+EMAIL_CAPTURE_SOURCE = "email_capture"
+
 
 def associate_by_email(backend, details, user=None, *args, **kwargs):
     """
@@ -53,10 +57,20 @@ def create_user(strategy, details, backend, user=None, *args, **kwargs):
     if not settings.PUBLIC_ALLOW_SIGNUP:
         raise ValidationError("Signup is disabled")
 
+    # Signing up from the email-capture drawer means arriving as a reader, so
+    # start in the consumer view rather than switching layouts on arrival. The
+    # ordinary signup modal sends no source and keeps the forecaster default.
+    from_capture = strategy.request_data().get("signup_source") == EMAIL_CAPTURE_SOURCE
+
     user = User.objects.create_user(
         username=generate_username(),
         email=kwargs.get("email", details.get("email")),
         username_set_at=None,
+        interface_type=(
+            User.InterfaceType.CONSUMER_VIEW
+            if from_capture
+            else User.InterfaceType.FORECASTER_VIEW
+        ),
     )
 
     return {

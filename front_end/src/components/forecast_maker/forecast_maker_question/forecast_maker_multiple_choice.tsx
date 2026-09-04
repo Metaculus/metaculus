@@ -26,6 +26,7 @@ import { useAuth } from "@/contexts/auth_context";
 import { useHideCP } from "@/contexts/cp_context";
 import useAppTheme from "@/hooks/use_app_theme";
 import { useServerAction } from "@/hooks/use_server_action";
+import type { ForecastPayload } from "@/services/api/questions/questions.server";
 import { ErrorResponse } from "@/types/fetch";
 import { PostWithForecasts } from "@/types/post";
 import {
@@ -452,11 +453,11 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
     );
   };
 
-  const handlePredictSubmit = useCallback(
-    async (forecastExpiration?: ForecastExpirationValue) => {
-      setSubmitError(undefined);
-
-      if (!isForecastValid) return;
+  const buildForecastPayload = useCallback(
+    (
+      forecastExpiration?: ForecastExpirationValue
+    ): ForecastPayload[] | null => {
+      if (!isForecastValid) return null;
 
       const forecastValue: Record<string, number> = {};
       choicesForecasts.forEach((el) => {
@@ -471,8 +472,8 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
           );
         }
       });
-      sendPredictEvent(post, question, hideCP);
-      const response = await createForecasts(post.id, [
+
+      return [
         {
           questionId: question.id,
           forecastEndTime: forecastExpirationToDate(
@@ -485,22 +486,32 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
             probabilityYesPerCategory: forecastValue,
           },
         },
-      ]);
+      ];
+    },
+    [
+      isForecastValid,
+      choicesForecasts,
+      question,
+      modalSavedState.forecastExpiration,
+    ]
+  );
+
+  const handlePredictSubmit = useCallback(
+    async (forecastExpiration?: ForecastExpirationValue) => {
+      setSubmitError(undefined);
+
+      const payload = buildForecastPayload(forecastExpiration);
+      if (!payload) return;
+
+      sendPredictEvent(post, question, hideCP);
+      const response = await createForecasts(post.id, payload);
       setIsDirty(false);
       if (response && "errors" in response && !!response.errors) {
         setSubmitError(response.errors);
       }
       onPredictionSubmit?.();
     },
-    [
-      isForecastValid,
-      choicesForecasts,
-      post,
-      question,
-      hideCP,
-      modalSavedState.forecastExpiration,
-      onPredictionSubmit,
-    ]
+    [buildForecastPayload, post, question, hideCP, onPredictionSubmit]
   );
   const [submit, isPending] = useServerAction(handlePredictSubmit);
 
@@ -677,6 +688,7 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
               )}
               <PredictButton
                 onSubmit={submit}
+                buildGatedForecastPayload={() => buildForecastPayload()}
                 isDirty={isDirty}
                 hasUserForecast={forecastHasValues}
                 isUserForecastActive={isOpenQuestionPredicted(question)}
