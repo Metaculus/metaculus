@@ -27,11 +27,15 @@ class EmailLinkTokenGenerator(ScopedTokenGenerator):
 
 email_link_token_generator = EmailLinkTokenGenerator()
 
+# Recorded in User.metadata when this flow creates the account
+SIGNUP_METHOD_EMAIL_LINK = "email_link"
 
-def verify_email_link_auth(user_id: int, token: str) -> User:
+
+def verify_email_link_auth(user_id: int, token: str) -> tuple[User, bool]:
     """
     Validates an email-link token, activates the user when applicable and
-    returns them. One generic error for every failure mode (anti-enumeration).
+    returns them along with whether this call completed their signup. One
+    generic error for every failure mode (anti-enumeration).
     """
 
     user = User.objects.select_for_update().filter(pk=user_id).first()
@@ -44,11 +48,21 @@ def verify_email_link_auth(user_id: int, token: str) -> User:
         logger.info(f"email_link verify rejected: user_id={user_id}")
         raise ValidationError({"token": ["Link is invalid or expired"]})
 
+    # Read before activating: check_can_activate goes false the moment we do,
+    # and get_tokens_for_user stamps last_login straight after. Also require
+    # that this flow created the account - a signup-form account still waiting
+    # on its confirmation email can be activated by a link too, and that signup
+    # was already counted when the form was submitted.
+    is_new = user.check_can_activate() and (
+        (user.metadata or {}).get("signup_details", {}).get("method")
+        == SIGNUP_METHOD_EMAIL_LINK
+    )
+
     if user.check_can_activate():
         user.is_active = True
         user.save(update_fields=["is_active"])
 
-    return user
+    return user, is_new
 
 
 def send_email_link_auth_email(user: User, redirect_url: str | None) -> None:

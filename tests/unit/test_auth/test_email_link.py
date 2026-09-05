@@ -184,6 +184,7 @@ class TestEmailLinkVerify:
         assert response.data["tokens"]["access"]
         assert response.data["tokens"]["refresh"]
         assert response.data["user"]["id"] == user.id
+        assert response.data["is_new"] is True
         assert "action_result" not in response.data
         user.refresh_from_db()
         assert user.is_active
@@ -200,8 +201,33 @@ class TestEmailLinkVerify:
         )
 
         assert response.status_code == 200
+        assert response.data["is_new"] is False
         user1.refresh_from_db()
         assert user1.last_login
+
+    def test_unconfirmed_signup_activated_by_link_is_not_new(self, anon_client, mocker):
+        """
+        A signup-form account still waiting on its confirmation email can be
+        activated by a link, but that signup was already counted when the form
+        was submitted - counting it again here would double it.
+        """
+        mocker.patch("authentication.views.email_link.send_email_link_auth_email")
+        user = User.objects.create_user(
+            username="formsignup",
+            email="formsignup@example.com",
+            password="pw",
+            is_active=False,
+        )
+        token = email_link_token_generator.make_token(user)
+
+        response = anon_client.post(
+            self.url, {"user_id": user.id, "token": token}, format="json"
+        )
+
+        assert response.status_code == 200
+        assert response.data["is_new"] is False
+        user.refresh_from_db()
+        assert user.is_active
 
     def test_single_use(self, anon_client, user1):
         token = email_link_token_generator.make_token(user1)

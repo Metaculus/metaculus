@@ -9,6 +9,7 @@ from rest_framework.response import Response
 from authentication.serializers import ConfirmationTokenSerializer
 from authentication.services.common import get_tokens_for_user
 from authentication.services.email_link import (
+    SIGNUP_METHOD_EMAIL_LINK,
     send_email_link_auth_email,
     verify_email_link_auth,
 )
@@ -64,7 +65,10 @@ def email_link_request_api_view(request):
             # while signed out, rather than switching layouts under them.
             interface_type=User.InterfaceType.CONSUMER_VIEW,
             metadata={
-                "signup_details": {"method": "email_link", "action_type": action_type}
+                "signup_details": {
+                    "method": SIGNUP_METHOD_EMAIL_LINK,
+                    "action_type": action_type,
+                }
             },
         )
 
@@ -95,9 +99,15 @@ def email_link_verify_api_view(request):
     # One transaction so the token check and the last_login write that consumes it
     # cannot interleave with a concurrent request holding the same token.
     with transaction.atomic():
-        user = verify_email_link_auth(**serializer.validated_data)
+        user, is_new = verify_email_link_auth(**serializer.validated_data)
         tokens = get_tokens_for_user(user)
 
     apply_pending_action(user)
 
-    return Response({"tokens": tokens, "user": UserPrivateSerializer(user).data})
+    return Response(
+        {
+            "tokens": tokens,
+            "user": UserPrivateSerializer(user).data,
+            "is_new": is_new,
+        }
+    )

@@ -12,9 +12,11 @@ import {
 } from "@/components/email_capture/pending_store";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { SocialProviderType } from "@/types/auth";
+import { sendAnalyticsEvent } from "@/utils/analytics";
 import { rotateCsrfToken } from "@/utils/csrf";
 import { withConfirmedEvent } from "@/utils/email_link_confirmation";
 import { EMAIL_CAPTURE_SIGNUP_SOURCE } from "@/utils/gated_actions";
+import { SIGNUP_METHOD_GOOGLE } from "@/utils/signup_methods";
 
 type Props = {
   provider: SocialProviderType;
@@ -38,7 +40,7 @@ const SocialAuthClient: FC<Props> = ({
     const stash = takeSocialGatedAction();
     void (async () => {
       try {
-        await exchangeSocialOauthCode(
+        const { isNew } = await exchangeSocialOauthCode(
           provider,
           code,
           nonce,
@@ -47,6 +49,15 @@ const SocialAuthClient: FC<Props> = ({
           // decides whether a brand-new account starts in the consumer view
           stash ? EMAIL_CAPTURE_SIGNUP_SOURCE : null
         );
+        // Only the exchange that created the account is a registration; an
+        // existing user signing in with Google lands here too.
+        if (isNew) {
+          sendAnalyticsEvent("register", {
+            method: SIGNUP_METHOD_GOOGLE,
+            fromEmailCapture: !!stash,
+          });
+        }
+
         // Invalidate the nonce now that it has served its purpose (and been
         // logged as a `state` param) — bounds any replay to the flow duration.
         rotateCsrfToken();

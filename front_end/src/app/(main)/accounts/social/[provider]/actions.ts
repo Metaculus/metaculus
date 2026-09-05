@@ -36,4 +36,6 @@ export async function exchangeSocialOauthCode(
     const authManager = await getAuthCookieManager();
     authManager.setAuthTokens(response.tokens);
   }
+
+  return { isNew: !!response?.is_new };
 }
