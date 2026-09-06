@@ -438,7 +438,7 @@ def generate_data(
         if question.type in QUESTION_CONTINUOUS_TYPES:
             # locations where CDF is evaluated
             continuous_range = []
-            for x in np.linspace(0, 1, 201):
+            for x in np.linspace(0, 1, (question.inbound_outcome_count or 200) + 1):
                 val = unscaled_location_to_scaled_location(x, question)
                 continuous_range.append(format_value(val))
 
