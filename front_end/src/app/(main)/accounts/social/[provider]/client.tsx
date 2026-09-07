@@ -16,7 +16,6 @@ import { sendAnalyticsEvent } from "@/utils/analytics";
 import { rotateCsrfToken } from "@/utils/csrf";
 import { withConfirmedEvent } from "@/utils/email_link_confirmation";
 import { EMAIL_CAPTURE_SIGNUP_SOURCE } from "@/utils/gated_actions";
-import { SIGNUP_METHOD_GOOGLE } from "@/utils/signup_methods";
 
 type Props = {
   provider: SocialProviderType;
@@ -50,10 +49,12 @@ const SocialAuthClient: FC<Props> = ({
           stash ? EMAIL_CAPTURE_SIGNUP_SOURCE : null
         );
         // Only the exchange that created the account is a registration; an
-        // existing user signing in with Google lands here too.
+        // existing user signing in with a provider lands here too. The provider
+        // name is the method, so this stays right if another one is enabled -
+        // Facebook is configured on the backend already, just not offered.
         if (isNew) {
           sendAnalyticsEvent("register", {
-            method: SIGNUP_METHOD_GOOGLE,
+            method: provider,
             fromEmailCapture: !!stash,
           });
         }

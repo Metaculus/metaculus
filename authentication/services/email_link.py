@@ -53,10 +53,17 @@ def verify_email_link_auth(user_id: int, token: str) -> tuple[User, bool]:
     # that this flow created the account - a signup-form account still waiting
     # on its confirmation email can be activated by a link too, and that signup
     # was already counted when the form was submitted.
-    is_new = user.check_can_activate() and (
-        (user.metadata or {}).get("signup_details", {}).get("method")
-        == SIGNUP_METHOD_EMAIL_LINK
+    #
+    # metadata is free-form JSON that staff can edit by hand, so nothing
+    # guarantees either level is an object. Anything else simply does not match.
+    metadata = user.metadata if isinstance(user.metadata, dict) else {}
+    signup_details = metadata.get("signup_details")
+    created_by_email_link = (
+        isinstance(signup_details, dict)
+        and signup_details.get("method") == SIGNUP_METHOD_EMAIL_LINK
     )
+
+    is_new = user.check_can_activate() and created_by_email_link
 
     if user.check_can_activate():
         user.is_active = True
