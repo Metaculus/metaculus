@@ -26,7 +26,7 @@ const TournamentsFilter: React.FC = () => {
     },
     {
       label: t("endingSoon"),
-      value: TournamentsSortBy.CloseDateAsc,
+      value: TournamentsSortBy.WinnersAnnouncedDateAsc,
     },
     {
       label: t("newest"),
