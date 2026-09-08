@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("posts", "0032_post_news_hotness"),
+        ("posts", "0033_postusersnapshot_posts_postuser_forecasted_idx"),
     ]
 
     operations = [
