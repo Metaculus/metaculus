@@ -13,7 +13,7 @@ import Button from "@/components/ui/button";
 import ButtonGroup from "@/components/ui/button_group";
 import Checkbox from "@/components/ui/checkbox";
 import DatetimeUtc from "@/components/ui/datetime_utc";
-import { FormError, Input } from "@/components/ui/form_field";
+import { FormError, FormErrorMessage, Input } from "@/components/ui/form_field";
 import LoadingSpinner from "@/components/ui/loading_spiner";
 import Select from "@/components/ui/select";
 import {
@@ -44,6 +44,7 @@ type FormData = z.infer<typeof schema>;
 const QuestionResolutionModal: FC<Props> = ({ isOpen, onClose, question }) => {
   const t = useTranslations();
   const [submitErrors, setSubmitErrors] = useState<ErrorResponse>([]);
+  const [resolutionValueError, setResolutionValueError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const currentDateTime = useMemo(
     () => format(new Date(), "yyyy-MM-dd'T'HH:mm"),
@@ -165,6 +166,7 @@ const QuestionResolutionModal: FC<Props> = ({ isOpen, onClose, question }) => {
               value={resolutionType}
               options={resolutionTypeOptions}
               onChange={(event) => {
+                setResolutionValueError("");
                 setValue("resolutionType", event.target.value);
                 setValue("resolutionValue", undefined);
               }}
@@ -174,6 +176,7 @@ const QuestionResolutionModal: FC<Props> = ({ isOpen, onClose, question }) => {
               value={resolutionType}
               buttons={resolutionTypeOptions}
               onChange={(value) => {
+                setResolutionValueError("");
                 setValue("resolutionType", value);
                 setValue("resolutionValue", undefined);
               }}
@@ -185,6 +188,7 @@ const QuestionResolutionModal: FC<Props> = ({ isOpen, onClose, question }) => {
               value={unambiguousType ?? ""}
               buttons={unambiguousOptions}
               onChange={(value) => {
+                setResolutionValueError("");
                 setValue("unambiguousType", value);
                 value !== "knownValue"
                   ? setValue("resolutionValue", value)
@@ -250,6 +254,21 @@ const QuestionResolutionModal: FC<Props> = ({ isOpen, onClose, question }) => {
                 }
                 max={question?.scaling.range_max ?? undefined}
                 {...register("resolutionValue")}
+                onInvalid={(event) => {
+                  event.preventDefault();
+                  setResolutionValueError(
+                    event.currentTarget.validationMessage
+                  );
+                }}
+                onInput={() => setResolutionValueError("")}
+              />
+            )}
+          {question.type === QuestionType.Discrete &&
+            resolutionType === "unambiguous" &&
+            unambiguousType === "knownValue" && (
+              <FormErrorMessage
+                errors={resolutionValueError}
+                className="select-text text-center"
               />
             )}
           {question.type === QuestionType.Date &&
