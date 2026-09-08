@@ -27,8 +27,7 @@ similar-questions list whenever no suggestions are available.
 | -------------- | ------------------------------------------------------- |
 | `pool.py`      | eligibility rules, candidate pool, popularity ranking   |
 | `prompts.py`   | model choice, prompt text, context-window fitting       |
-| `llm.py`       | OpenAI transport: pricing, retries, response parsing    |
-| `parsing.py`   | tolerant JSON fallback for almost-JSON responses        |
+| `llm.py`       | OpenAI transport: pricing, retries, structured outputs  |
 | `methods.py`   | the five voting methods (compute only)                  |
 | `pipeline.py`  | the two write paths (paid run / free refresh)           |
 | `budget.py`    | daily USD spend guard                                   |

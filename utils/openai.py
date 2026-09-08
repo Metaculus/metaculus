@@ -193,12 +193,12 @@ def run_spam_analysis(text: str, content_type: str) -> SpamAnalysisResult:
     return user
 
 
-def pydantic_to_openai_json_schema(model: BaseModel, name: str) -> dict:
+def pydantic_to_openai_json_schema(model: BaseModel) -> dict:
     """Convert a Pydantic model into an OpenAI-compatible JSON schema."""
     return {
         "type": "json_schema",
         "json_schema": {
-            "name": name,
+            "name": "key_factors_response",
             "schema": model.model_json_schema(),
         },
     }

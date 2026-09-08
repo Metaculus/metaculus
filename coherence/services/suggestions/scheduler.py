@@ -18,8 +18,6 @@ shared candidate-pool prefix into OpenAI's prompt cache, so everything
 that runs afterwards — in any worker — reads input at the cached rate.
 """
 
-from __future__ import annotations
-
 import logging
 from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, wait
 from dataclasses import dataclass

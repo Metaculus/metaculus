@@ -10,8 +10,6 @@ recorded on each target's row for observability (the scheduler's staleness
 check is purely time-based).
 """
 
-from __future__ import annotations
-
 import hashlib
 from dataclasses import dataclass
 

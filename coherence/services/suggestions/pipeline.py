@@ -13,8 +13,6 @@ Cost is committed with an atomic F() bump after each method finishes, so a
 worker crash mid-run still leaves accurate spend on record.
 """
 
-from __future__ import annotations
-
 import logging
 import time
 from decimal import Decimal

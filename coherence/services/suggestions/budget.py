@@ -9,8 +9,6 @@ The scheduler checks `headroom_usd()` before each target and stops for the
 day when it dips below the per-target estimate.
 """
 
-from __future__ import annotations
-
 from datetime import UTC, datetime, time
 
 from django.conf import settings

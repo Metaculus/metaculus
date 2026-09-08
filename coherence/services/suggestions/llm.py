@@ -6,25 +6,22 @@ The API reports token counts but not cost, so USD is computed locally from
 the pricing constants below.
 """
 
-from __future__ import annotations
-
 import logging
 import time
 from dataclasses import dataclass, field
 
 import openai
 from django.conf import settings
-from pydantic import ValidationError
 
-from coherence.services.suggestions import parsing, prompts
-from utils.openai import get_openai_client, pydantic_to_openai_json_schema
+from coherence.services.suggestions import prompts
+from utils.openai import get_openai_client
 
 logger = logging.getLogger(__name__)
 
 # One call can be a large share of an org's per-minute token allowance, so
 # 429s between consecutive calls are normal and just need patience — the
 # caller is a batch job with nowhere urgent to be. The SDK's own retry
-# layer is disabled (see _create_with_retries): its hidden resubmissions
+# layer is disabled (see _parse_with_retries): its hidden resubmissions
 # of a huge request burn rate-limit budget before our loop sees the failure.
 _RETRYABLE_ERRORS = (
     openai.RateLimitError,
@@ -71,7 +68,7 @@ def request_votes(
 
     client = get_openai_client(settings.OPENAI_API_KEY_QUESTION_LINKS)
     try:
-        response = _create_with_retries(
+        response = _parse_with_retries(
             client,
             messages=[
                 {"role": "system", "content": prompts.SYSTEM_PROMPT},
@@ -84,6 +81,12 @@ def request_votes(
             method_label=method_label,
             target_id=target_id,
         )
+    except openai.LengthFinishReasonError as exc:
+        # Output hit MAX_OUTPUT_TOKENS. Tokens were still billed, so record
+        # the spend even though the truncated response is discarded.
+        cost = _cost_usd(exc.completion.usage)
+        _log_usage(method_label, target_id, exc.completion.usage, cost)
+        return LlmResult(cost_usd=cost, error="truncated_output")
     except Exception as exc:
         logger.exception("OpenAI call failed for %s target=%s", method_label, target_id)
         return LlmResult(error=f"api_error: {exc.__class__.__name__}")
@@ -93,24 +96,30 @@ def request_votes(
 
     if not response.choices:
         return LlmResult(cost_usd=cost, error="no_choices")
-    content = (response.choices[0].message.content or "").strip()
+    message = response.choices[0].message
+    if message.parsed is None:
+        logger.warning(
+            "%s target=%s: no parsed output (refusal=%s)",
+            method_label,
+            target_id,
+            message.refusal,
+        )
+        return LlmResult(cost_usd=cost, error="no_parsed_output")
     valid_ids = {c["id"] for c in candidates}
     return LlmResult(
-        candidate_ids=_parse_candidate_ids(content, valid_ids),
+        candidate_ids=_filter_candidate_ids(message.parsed, valid_ids),
         cost_usd=cost,
     )
 
 
-def _create_with_retries(client, *, messages, method_label, target_id):
+def _parse_with_retries(client, *, messages, method_label, target_id):
     client = client.with_options(max_retries=0)
     for wait_seconds in (*_RETRY_WAITS_SECONDS, None):
         try:
-            return client.chat.completions.create(
+            return client.chat.completions.parse(
                 model=prompts.MODEL_NAME,
                 messages=messages,
-                response_format=pydantic_to_openai_json_schema(
-                    prompts.MethodResponse, name="coherence_link_suggestions"
-                ),
+                response_format=prompts.MethodResponse,
                 prompt_cache_key=prompts.PROMPT_CACHE_KEY,
                 max_completion_tokens=prompts.MAX_OUTPUT_TOKENS,
             )
@@ -168,38 +177,18 @@ def _log_usage(method_label: str, target_id: int, usage, cost: float) -> None:
     )
 
 
-def _parse_candidate_ids(content: str, valid_ids: set[int]) -> list[int]:
+def _filter_candidate_ids(
+    parsed: prompts.MethodResponse, valid_ids: set[int]
+) -> list[int]:
     """
-    Parse candidate ids from the structured response; fall back to the
-    tolerant extractor for almost-JSON. Hallucinated and duplicate ids are
-    dropped, response order is preserved.
+    Strict structured outputs guarantee the response shape, not the values:
+    the model can still emit ids outside the candidate pool, or repeats.
+    Hallucinated and duplicate ids are dropped, response order is preserved.
     """
-    try:
-        response = prompts.MethodResponse.model_validate_json(content)
-        parsed = [c.candidate_id for c in response.candidates]
-    except ValidationError:
-        try:
-            data = parsing.extract_json(content)
-        except ValueError:
-            logger.warning("failed to parse LLM JSON: %s", content[:200])
-            return []
-        if isinstance(data, dict):
-            data = data.get("candidates", [])
-        parsed = []
-        for item in data if isinstance(data, list) else []:
-            cid = (
-                item.get("candidate_id", item.get("id"))
-                if isinstance(item, dict)
-                else item
-            )
-            try:
-                parsed.append(int(cid))
-            except (TypeError, ValueError):
-                continue
-
     seen: set[int] = set()
     out: list[int] = []
-    for cid in parsed:
+    for candidate in parsed.candidates:
+        cid = candidate.candidate_id
         if cid in valid_ids and cid not in seen:
             seen.add(cid)
             out.append(cid)

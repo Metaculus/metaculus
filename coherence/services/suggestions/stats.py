@@ -3,8 +3,6 @@ Observability numbers for the suggestion_stats management command.
 Written for someone who doesn't know the code: every key is a sentence.
 """
 
-from __future__ import annotations
-
 from datetime import timedelta
 
 from django.conf import settings

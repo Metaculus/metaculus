@@ -14,8 +14,6 @@ same batch. `PROMPT_CACHE_KEY` keeps our calls routed to the same cache
 shard.
 """
 
-from __future__ import annotations
-
 import functools
 
 import tiktoken

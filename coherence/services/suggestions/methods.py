@@ -16,8 +16,6 @@ methods return plain id lists — they answer from live data and don't share
 the LLM plumbing. Storage for both lives in pipeline.py.
 """
 
-from __future__ import annotations
-
 import logging
 
 from django.db.models import Q

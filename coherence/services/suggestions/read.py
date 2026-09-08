@@ -6,8 +6,6 @@ eligibility-filter the candidates. Score = number of active methods that
 voted; method names not in Method.ALL (retired methods) are ignored.
 """
 
-from __future__ import annotations
-
 from dataclasses import dataclass
 
 from django.conf import settings
