@@ -22,8 +22,8 @@ from questions.services.forecasts import (
     build_question_forecasts,
     get_forecasts_per_user,
 )
+from questions.services.lifecycle import score_resolved_question
 from scoring.constants import ScoreTypes
-from scoring.utils import score_question
 from users.models import User
 from utils.dramatiq import concurrency_retries, task_concurrent_limit
 from utils.email import send_notification_email_with_template
@@ -57,27 +57,30 @@ def run_build_question_forecasts(question_id: int):
 
 @dramatiq.actor(time_limit=1_800_000)
 def resolve_question_and_send_notifications(question_id: int):
+    """
+    Scoring + notifications for a question resolved with `score_as_task`, which
+    opts out of the default of scoring inside the resolution request.
+    """
+
     question: Question = Question.objects.get(id=question_id)
 
+    score_resolved_question(question, question.resolution)
+    send_resolution_notifications(question)
+
+
+@dramatiq.actor
+def send_question_resolution_notifications(question_id: int):
+    """
+    The notification half of `resolve_question_and_send_notifications`, for
+    resolutions whose scoring already ran inside the request.
+    """
+
+    send_resolution_notifications(Question.objects.get(id=question_id))
+
+
+def send_resolution_notifications(question: Question):
     # Delete already scheduled resolution notifications
     delete_scheduled_question_resolution_notifications(question)
-
-    # scoring
-    score_types = [
-        ScoreTypes.BASELINE,
-        ScoreTypes.PEER,
-        ScoreTypes.RELATIVE_LEGACY,
-    ]
-    spot_scoring_time = question.get_spot_scoring_time()
-    if spot_scoring_time:
-        score_types.append(ScoreTypes.SPOT_PEER)
-        score_types.append(ScoreTypes.SPOT_BASELINE)
-    score_question(
-        question,
-        question.resolution,
-        spot_scoring_time=spot_scoring_time,
-        score_types=score_types,
-    )
 
     scores = (
         question.scores.filter(user__isnull=False)
@@ -94,14 +97,6 @@ def resolve_question_and_send_notifications(question_id: int):
     user_notification_params: dict[
         User, NotificationPredictedQuestionResolved.ParamsType
     ] = {}
-
-    # Update leaderboards
-    from questions.services.common import update_leaderboards_for_question
-
-    update_leaderboards_for_question(question)
-
-    # Rebuild question aggregations
-    build_question_forecasts(question)
 
     # Send question resolution notifications
     notify_post_status_change(

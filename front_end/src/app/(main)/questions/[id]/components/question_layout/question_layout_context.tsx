@@ -43,6 +43,12 @@ type QuestionLayoutContextValue = {
   // Active tab state (shared between mobile + desktop tab bars)
   activeTab?: string;
   setActiveTab: (tab: string) => void;
+
+  // Latest known private note text — persists across tab-panel unmounts so the
+  // editor and the tab indicator survive switching away from the Private Notes tab.
+  // undefined = not yet edited this session (fall back to server data).
+  privateNoteText?: string;
+  setPrivateNoteText: (text: string) => void;
 };
 
 const TAB_HASH_VALUES = new Set([
@@ -63,6 +69,7 @@ export const QuestionLayoutProvider = ({ children }: PropsWithChildren) => {
   const hash = useHash();
   const [keyFactorsExpanded, setKeyFactorsExpanded] = useState<boolean>();
   const [activeTab, setActiveTab] = useState<string>();
+  const [privateNoteText, setPrivateNoteText] = useState<string>();
   const [keyFactorOverlay, setKeyFactorOverlay] =
     useState<KeyFactorOverlayState>(null);
 
@@ -130,6 +137,8 @@ export const QuestionLayoutProvider = ({ children }: PropsWithChildren) => {
       clearScrollToComment,
       activeTab,
       setActiveTab,
+      privateNoteText,
+      setPrivateNoteText,
     }),
     [
       keyFactorsExpanded,
@@ -145,6 +154,7 @@ export const QuestionLayoutProvider = ({ children }: PropsWithChildren) => {
       requestScrollToComment,
       clearScrollToComment,
       activeTab,
+      privateNoteText,
     ]
   );
 

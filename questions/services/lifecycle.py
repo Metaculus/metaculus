@@ -4,7 +4,7 @@ from datetime import datetime
 from django.db import transaction
 from django.db.models import Q
 from django.utils import timezone
-from rest_framework.exceptions import ValidationError
+from rest_framework.exceptions import APIException, ValidationError
 
 from notifications.services import delete_scheduled_question_resolution_notifications
 from posts.models import Post
@@ -18,6 +18,33 @@ from .common import update_leaderboards_for_question
 from .forecasts import build_question_forecasts
 
 logger = logging.getLogger(__name__)
+
+
+def score_resolved_question(question: Question, resolution: str | None):
+    """
+    The scoring work that follows a change to a question's resolution. Shared by
+    the live (in request) and the background paths, and by unresolution, which
+    passes `resolution=None` to unset the scores.
+    """
+
+    score_types = [
+        ScoreTypes.BASELINE,
+        ScoreTypes.PEER,
+        ScoreTypes.RELATIVE_LEGACY,
+    ]
+    spot_scoring_time = question.get_spot_scoring_time()
+    if spot_scoring_time:
+        score_types.append(ScoreTypes.SPOT_PEER)
+        score_types.append(ScoreTypes.SPOT_BASELINE)
+
+    score_question(
+        question,
+        resolution,
+        spot_scoring_time=spot_scoring_time,
+        score_types=score_types,
+    )
+    update_leaderboards_for_question(question)
+    build_question_forecasts(question)
 
 
 def handle_question_open(question: Question):
@@ -76,7 +103,16 @@ def resolve_question(
     question: Question,
     resolution: str,
     actual_resolve_time: datetime,
+    score_as_task: bool = True,
 ):
+    """
+    By default scoring and notifications are handed to a background task, the
+    way resolution has always worked. `score_as_task=False` scores inside this
+    transaction instead, so a failure or a timeout undoes the resolution.
+
+    Conditional branches resolved along the way always score in the background.
+    """
+
     if question.open_time and question.open_time > actual_resolve_time:
         raise ValidationError("Can't resolve a question before its open date")
 
@@ -213,10 +249,32 @@ def resolve_question(
     # Invalidate project questions count cache since resolution affects visibility
     invalidate_projects_questions_count_cache(post.get_related_projects())
 
-    # Calculate scores + notify forecasters
-    from questions.tasks import resolve_question_and_send_notifications
+    if score_as_task:
+        # Calculate scores + notify forecasters in the background
+        from questions.tasks import resolve_question_and_send_notifications
 
-    resolve_question_and_send_notifications.send(question.id)
+        transaction.on_commit(
+            lambda: resolve_question_and_send_notifications.send(question.id)
+        )
+        return
+
+    # Calculate scores here, so that a failure rolls the resolution back. A
+    # request that outlives the server's own timeout rolls back the same way.
+    try:
+        score_resolved_question(question, question.resolution)
+    except Exception as exc:
+        logger.exception("Scoring resolved question %s failed", question.id)
+        raise APIException(
+            "Failed to score the question, so the resolution was undone. "
+            "Retry, or resolve again with asynchronous scoring."
+        ) from exc
+
+    # Notify forecasters in the background
+    from questions.tasks import send_question_resolution_notifications
+
+    transaction.on_commit(
+        lambda: send_question_resolution_notifications.send(question.id)
+    )
 
 
 @transaction.atomic()
@@ -288,28 +346,5 @@ def unresolve_question(question: Question):
     post.save()
 
     # TODO: set up unresolution notifications
-    # in the "resolve_question" function, scoring is handled in the same task
-    # as notifications. So this should be moved in the same way after notifications
-    # are generated
-    # scoring
-    score_types = [
-        ScoreTypes.BASELINE,
-        ScoreTypes.PEER,
-        ScoreTypes.RELATIVE_LEGACY,
-    ]
-    spot_scoring_time = question.get_spot_scoring_time()
-    if spot_scoring_time:
-        score_types.append(ScoreTypes.SPOT_PEER)
-        score_types.append(ScoreTypes.SPOT_BASELINE)
-    score_question(
-        question,
-        None,  # None is the equivalent of unsetting scores
-        spot_scoring_time=spot_scoring_time,
-        score_types=score_types,
-    )
-
-    # Update leaderboards
-    update_leaderboards_for_question(question)
-
-    # Rebuild question aggregations
-    build_question_forecasts(question)
+    # None is the equivalent of unsetting scores
+    score_resolved_question(question, None)

@@ -1,5 +1,6 @@
 import logging
 
+from django.db import transaction
 from rest_framework import serializers, status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
@@ -58,6 +59,10 @@ def email_link_request_api_view(request):
             password=None,  # unusable password: email-link is the only way in
             is_active=False,
             is_bot=False,
+            # Someone who arrived by following one question is a reader, not a
+            # forecaster: start them in the view the site already gives them
+            # while signed out, rather than switching layouts under them.
+            interface_type=User.InterfaceType.CONSUMER_VIEW,
             metadata={
                 "signup_details": {"method": "email_link", "action_type": action_type}
             },
@@ -87,8 +92,12 @@ def email_link_verify_api_view(request):
     serializer = ConfirmationTokenSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
 
-    user = verify_email_link_auth(**serializer.validated_data)
-    tokens = get_tokens_for_user(user)
+    # One transaction so the token check and the last_login write that consumes it
+    # cannot interleave with a concurrent request holding the same token.
+    with transaction.atomic():
+        user = verify_email_link_auth(**serializer.validated_data)
+        tokens = get_tokens_for_user(user)
+
     apply_pending_action(user)
 
     return Response({"tokens": tokens, "user": UserPrivateSerializer(user).data})

@@ -6,6 +6,7 @@ import { getPublicSettings } from "@/utils/public_settings.server";
 import CommunityInsightsSection from "./sections/community_insights";
 import ElectionsMapSection from "./sections/elections_map_section";
 import ElectoralConsequencesSection from "./sections/electoral_consequences";
+import EngagementSection from "./sections/engagement_section";
 import FooterSection from "./sections/footer";
 import HeroSection from "./sections/hero";
 import SeatDistributionsSection from "./sections/seat_distributions";
@@ -47,6 +48,7 @@ export default function MidtermsHubPage() {
         <ThingsToWatchSection />
         <ElectoralConsequencesSection />
         <CommunityInsightsSection />
+        <EngagementSection />
         <FooterSection />
       </div>
     </main>

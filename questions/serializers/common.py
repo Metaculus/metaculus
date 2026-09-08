@@ -40,6 +40,7 @@ class QuestionSerializer(serializers.ModelSerializer):
     resolution = serializers.SerializerMethodField()
     spot_scoring_time = serializers.SerializerMethodField()
     all_options_ever = serializers.SerializerMethodField()
+    inbound_outcome_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Question
@@ -80,10 +81,15 @@ class QuestionSerializer(serializers.ModelSerializer):
             "group_rank",
         )
 
+    def get_inbound_outcome_count(self, question: Question) -> int | None:
+        if question.type in QUESTION_CONTINUOUS_TYPES:
+            return question.get_inbound_outcome_count()
+
     def get_scaling(self, question: Question):
         continuous_range = None
         nominal_min = question.range_min
         nominal_max = question.range_max
+        inbound_outcome_count = self.get_inbound_outcome_count(question)
         if question.type in QUESTION_CONTINUOUS_TYPES:
 
             def format_value(val):
@@ -93,11 +99,7 @@ class QuestionSerializer(serializers.ModelSerializer):
 
             # locations where CDF is evaluated
             continuous_range = []
-            for x in np.linspace(
-                0,
-                1,
-                (question.inbound_outcome_count or DEFAULT_INBOUND_OUTCOME_COUNT) + 1,
-            ):
+            for x in np.linspace(0, 1, inbound_outcome_count + 1):
                 val = unscaled_location_to_scaled_location(x, question)
                 continuous_range.append(format_value(val))
             if question.type == Question.QuestionType.DISCRETE:
@@ -111,7 +113,7 @@ class QuestionSerializer(serializers.ModelSerializer):
             "zero_point": question.zero_point,
             "open_upper_bound": question.open_upper_bound,
             "open_lower_bound": question.open_lower_bound,
-            "inbound_outcome_count": question.inbound_outcome_count,
+            "inbound_outcome_count": inbound_outcome_count,
             "continuous_range": continuous_range,
         }
 
@@ -217,6 +219,14 @@ class QuestionWriteSerializer(serializers.ModelSerializer):
                 errors.append("Range Max is required for continuous questions")
             if data.get("range_min") is None:
                 errors.append("Range Min is required for continuous questions")
+            inbound_outcome_count = data.get("inbound_outcome_count")
+            if inbound_outcome_count is None:
+                errors.append(
+                    "Inbound Outcome Count is required for continuous questions "
+                    f"(default: {DEFAULT_INBOUND_OUTCOME_COUNT})"
+                )
+            elif inbound_outcome_count < 1:
+                errors.append("Inbound Outcome Count must be positive")
 
         if errors:
             raise serializers.ValidationError(errors)
@@ -451,9 +461,9 @@ class ForecastWriteSerializer(serializers.ModelSerializer):
         if probability_yes is None:
             raise serializers.ValidationError("probability_yes is required")
         probability_yes = float(probability_yes)
-        if probability_yes < 0.001 or probability_yes > 0.999:
+        if not (probability_yes >= 0.001 and probability_yes <= 0.999):
             raise serializers.ValidationError(
-                "probability_yes should be between 0.001 and 0.999"
+                "probability_yes should be between 0.001 and 0.999 (inclusive)"
             )
         return probability_yes
 

@@ -1354,7 +1354,7 @@ export function generateScale({
   } else if (axisLength < 800) {
     maxLabelCount = direction === ScaleDirection.Horizontal ? 7 : 21;
   } else if (axisLength < 1200) {
-    maxLabelCount = direction === ScaleDirection.Horizontal ? 11 : 21;
+    maxLabelCount = direction === ScaleDirection.Horizontal ? 9 : 21;
   } else {
     maxLabelCount = direction === ScaleDirection.Horizontal ? 21 : 26;
   }

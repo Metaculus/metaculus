@@ -55,7 +55,7 @@ export default async function ChamberControlCard({ data }: Props) {
 
   const labels = {
     forecast: t("midtermsHubChamberForecast"),
-    current: t("midtermsHubChamberCurrent"),
+    today: t("midtermsHubChamberToday"),
     democrats: t("midtermsHubPartyDemocrats"),
     republicans: t("midtermsHubPartyRepublicans"),
   };
@@ -126,7 +126,7 @@ export default async function ChamberControlCard({ data }: Props) {
 
 type Labels = {
   forecast: string;
-  current: string;
+  today: string;
   democrats: string;
   republicans: string;
 };
@@ -222,15 +222,14 @@ function ChamberRow({
           <CvBar fill color={REP_FILL} borderColor={REP_BORDER} />
         </div>
       )}
-      <div className="mt-2 text-center text-sm tabular-nums text-blue-700 dark:text-blue-700-dark">
-        <span className="mr-1">{labels.current}</span>
-        <span style={{ color: MIDTERMS_COLORS.demPrimary }}>
-          D {currentDem}
-        </span>
+      {/* Pre-midterm baseline. Deliberately gray rather than party-colored (or
+          even the card's blue) so it reads as context and doesn't compete with
+          the live forecast above it. */}
+      <div className="mt-2 text-center text-sm tabular-nums text-gray-600 dark:text-gray-400-dark">
+        <span className="mr-1">{labels.today}</span>
+        <span>D {currentDem}</span>
         {slash}
-        <span style={{ color: MIDTERMS_COLORS.repPrimary }}>
-          R {currentRep}
-        </span>
+        <span>R {currentRep}</span>
       </div>
     </div>
   );

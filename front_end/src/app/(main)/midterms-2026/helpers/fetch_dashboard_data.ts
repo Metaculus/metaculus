@@ -17,8 +17,11 @@ import {
   SENATE_RACES,
   STANDALONE_GOVERNOR_RACES,
   STANDALONE_SENATE_RACES,
+  UNFORECAST_GOVERNOR_RACES,
+  UNFORECAST_SENATE_RACES,
   type SenateRace,
   type StandaloneRace,
+  type UnforecastRace,
 } from "../data";
 import {
   getDemWinPct,
@@ -43,6 +46,7 @@ function buildGroupRace(
       question && parentPost
         ? `/questions/${parentPost.id}/?sub-question=${question.id}`
         : null,
+    rating: null,
   };
 }
 
@@ -64,7 +68,37 @@ function buildStandaloneRace(
     question,
     demWinPct,
     href: post ? `/questions/${post.id}` : null,
+    rating: null,
   };
+}
+
+// Builds a placeholder race for a state on the 2026 ballot with no Metaculus
+// question, so the map can show it and the totals can count it. Every
+// question-derived field is null; `rating` carries the whole payload.
+function buildUnforecastRace(r: UnforecastRace): SenateRaceWithQuestion {
+  return {
+    state: r.state,
+    name: r.name,
+    subQuestionLabel: r.state,
+    parentPost: null,
+    question: null,
+    demWinPct: null,
+    href: null,
+    rating: r.rating,
+  };
+}
+
+// Drops any table row whose state has since gained a real race, so a stale entry
+// degrades to a no-op instead of putting the state on the map twice.
+function appendUnforecast(
+  races: SenateRaceWithQuestion[],
+  table: UnforecastRace[]
+): SenateRaceWithQuestion[] {
+  const covered = new Set(races.map((r) => r.state));
+  return [
+    ...races,
+    ...table.filter((r) => !covered.has(r.state)).map(buildUnforecastRace),
+  ];
 }
 
 export const fetchSenateRaces = cache(
@@ -109,7 +143,13 @@ export const fetchSenateRaces = cache(
       buildStandaloneRace(r, byId.get(r.postId) ?? null)
     );
 
-    return { races: [...groupRaces, ...standaloneRaces], parentPost };
+    return {
+      races: appendUnforecast(
+        [...groupRaces, ...standaloneRaces],
+        UNFORECAST_SENATE_RACES
+      ),
+      parentPost,
+    };
   }
 );
 
@@ -154,7 +194,12 @@ export const fetchGovernorRaces = cache(
       buildStandaloneRace(r, byId.get(r.postId) ?? null)
     );
 
-    return { races: [...groupRaces, ...standaloneRaces] };
+    return {
+      races: appendUnforecast(
+        [...groupRaces, ...standaloneRaces],
+        UNFORECAST_GOVERNOR_RACES
+      ),
+    };
   }
 );
 

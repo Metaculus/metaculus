@@ -1,6 +1,7 @@
 import datetime
 import difflib
 from collections import defaultdict
+import logging
 
 from django.db import IntegrityError, transaction
 from django.db.models import (
@@ -36,6 +37,8 @@ from projects.permissions import ObjectPermission
 from questions.models import Forecast
 from users.models import User
 from ..tasks import run_on_post_comment_create
+
+logger = logging.getLogger(__name__)
 
 spam_error = ValidationError(
     detail="This comment seems to be spam. Please contact "
@@ -187,6 +190,17 @@ def perform_create_comment(
 def update_comment(
     comment: Comment, text: str = None, included_forecast: Forecast = None
 ):
+    if comment.is_text_archived:
+        # Only a stub of the text remains in the db, so we can neither diff
+        # against it nor let it be overwritten
+        logger.info(
+            f"Attempt to update archived comment {comment.id} by "
+            f"user {comment.author_id}"
+        )
+        raise ValidationError(
+            "This comment's text has been archived and can no longer be edited."
+        )
+
     differ = difflib.Differ()
 
     diff = list(differ.compare(comment.text.splitlines(), text.splitlines()))

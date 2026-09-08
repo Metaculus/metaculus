@@ -14,6 +14,7 @@ import LoadingIndicator from "@/components/ui/loading_indicator";
 import { useAuth } from "@/contexts/auth_context";
 import { useHideCP } from "@/contexts/cp_context";
 import { useServerAction } from "@/hooks/use_server_action";
+import type { ForecastPayload } from "@/services/api/questions/questions.server";
 import { ErrorResponse } from "@/types/fetch";
 import { PostWithForecasts } from "@/types/post";
 import { QuestionWithNumericForecasts } from "@/types/question";
@@ -107,22 +108,17 @@ const ForecastMakerBinary: FC<Props> = ({
 
   const [submitError, setSubmitError] = useState<ErrorResponse>();
   const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
-  const handlePredictSubmit = async (
+  const buildForecastPayload = (
     forecastExpiration: ForecastExpirationValue
-  ) => {
-    setSubmitError(undefined);
+  ): ForecastPayload[] | null => {
+    if (forecast === null) return null;
 
-    if (forecast === null) return;
-
-    sendPredictEvent(post, question, hideCP);
-
-    const forecastValue = round(forecast / 100, BINARY_FORECAST_PRECISION);
-    const response = await createForecasts(post.id, [
+    return [
       {
         questionId: question.id,
         forecastData: {
           continuousCdf: null,
-          probabilityYes: forecastValue,
+          probabilityYes: round(forecast / 100, BINARY_FORECAST_PRECISION),
           probabilityYesPerCategory: null,
         },
         forecastEndTime: forecastExpirationToDate(
@@ -130,7 +126,19 @@ const ForecastMakerBinary: FC<Props> = ({
           getExpirationBaseDate(question)
         ),
       },
-    ]);
+    ];
+  };
+  const handlePredictSubmit = async (
+    forecastExpiration: ForecastExpirationValue
+  ) => {
+    setSubmitError(undefined);
+
+    const payload = buildForecastPayload(forecastExpiration);
+    if (!payload) return;
+
+    sendPredictEvent(post, question, hideCP);
+
+    const response = await createForecasts(post.id, payload);
     setIsForecastDirty(false);
 
     if (response && "errors" in response && !!response.errors) {
@@ -215,6 +223,9 @@ const ForecastMakerBinary: FC<Props> = ({
                   isDirty={isForecastDirty}
                   isPending={isPending}
                   onSubmit={() => submit(modalSavedState.forecastExpiration)}
+                  buildGatedForecastPayload={() =>
+                    buildForecastPayload(modalSavedState.forecastExpiration)
+                  }
                   predictLabel={predictLabel}
                   predictionExpirationChip={expirationShortChip}
                   onPredictionExpirationClick={() =>

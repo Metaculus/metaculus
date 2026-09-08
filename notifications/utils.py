@@ -1,4 +1,5 @@
 import re
+from html import unescape
 
 from django.utils.html import strip_tags
 from markdown import markdown
@@ -98,7 +99,10 @@ def generate_email_notebook_preview_text(
     (preview: str, truncated: bool)
     """
 
-    source = remove_markdown(text).replace("\\", "")
+    # Decode entities (&nbsp;, &amp;, ...) left over after strip_tags — the email
+    # template auto-escapes this text, so they would otherwise render literally.
+    # Safe here only because this preview is NOT rendered with `| safe`.
+    source = unescape(remove_markdown(text)).replace("\\", "")
     source = _normalise_whitespace_keep_newlines(source)
 
     # tokenize, *but* preserve newlines so paragraphs stay visible

@@ -10,6 +10,7 @@ import {
   SocialProviderType,
 } from "@/types/auth";
 import { serverFetcher } from "@/utils/core/fetch/fetch.server";
+import { GatedActionWire } from "@/utils/gated_actions";
 
 export type SignUpProps = {
   email: string;
@@ -58,14 +59,26 @@ class ServerAuthApiClass extends ApiService {
   async exchangeSocialOauthCode(
     provider: SocialProviderType,
     code: string,
-    redirect_uri: string
+    redirect_uri: string,
+    gated_action?: GatedActionWire | null,
+    signup_source?: string | null
   ): Promise<SocialAuthResponse | null> {
     return this.post<
       SocialAuthResponse,
-      { code: string; redirect_uri: string }
+      {
+        code: string;
+        redirect_uri: string;
+        gated_action?: GatedActionWire | null;
+        signup_source?: string;
+      }
     >(
       `/auth/social/${provider}/`,
-      { code, redirect_uri },
+      {
+        code,
+        redirect_uri,
+        ...(gated_action ? { gated_action } : {}),
+        ...(signup_source ? { signup_source } : {}),
+      },
       {},
       { passAuthHeader: false }
     );
@@ -104,6 +117,22 @@ class ServerAuthApiClass extends ApiService {
       "/auth/signup/activate/",
       { user_id: userId, token },
       {},
+      { passAuthHeader: false }
+    );
+  }
+
+  async requestEmailLink(
+    body: {
+      email: string;
+      redirect_url?: string | null;
+      gated_action?: GatedActionWire | null;
+    },
+    headers: HeadersInit
+  ) {
+    return this.post<null>(
+      "/auth/email-link/",
+      body,
+      { headers },
       { passAuthHeader: false }
     );
   }

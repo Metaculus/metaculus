@@ -18,8 +18,14 @@ export async function dismissFeedTile(id: string) {
   return await serverMiscApi.dismissFeedTile(id);
 }
 
+// Mailjet contact list per hub. A listKey that isn't in here resolves to
+// undefined and then falls back to MAILJET_NEWSLETTER_ID downstream (see
+// misc.server.ts), so a missing or misspelled entry silently subscribes people to
+// the general newsletter instead of erroring — always add the key here alongside
+// the hub that passes it.
 const NEWSLETTER_LIST_IDS: Record<string, string> = {
   labor: "10617959",
+  midterms: "10628608",
 };
 
 export async function subscribeToNewsletter(email: string, listKey?: string) {

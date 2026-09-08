@@ -9,6 +9,7 @@ from projects.models import Project
 from scoring.models import LeaderboardEntry
 from users.constants import forbidden_usernames
 from users.models import User, UserCampaignRegistration
+from users.services.bots_management import get_max_bots
 
 
 class BaseUserSerializer(serializers.ModelSerializer):
@@ -78,6 +79,7 @@ class UserPrivateSerializer(UserPublicSerializer):
     should_suggest_keyfactors = serializers.SerializerMethodField()
     has_password = serializers.SerializerMethodField()
     metaculus_news_subscription = serializers.SerializerMethodField()
+    max_bots = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -97,6 +99,7 @@ class UserPrivateSerializer(UserPublicSerializer):
             "api_access_tier",
             "api_forecasting_access",
             "is_primary_bot",
+            "max_bots",
             "has_password",
             "username_set_at",
             "metaculus_news_subscription",
@@ -132,6 +135,9 @@ class UserPrivateSerializer(UserPublicSerializer):
 
     def get_metaculus_news_subscription(self, user: User) -> bool:
         return user.project_subscriptions.filter(project__slug="platform").exists()
+
+    def get_max_bots(self, user: User) -> int | None:
+        return get_max_bots(user)
 
 
 class UserPrivateDataAccessSerializer(UserPrivateSerializer):

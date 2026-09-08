@@ -49,6 +49,10 @@ const config: Config = {
           from: { opacity: "0" },
           to: { opacity: "1" },
         },
+        "fade-out": {
+          from: { opacity: "1" },
+          to: { opacity: "0" },
+        },
         "comment-in-right": {
           from: { opacity: "0", transform: "translateX(28px)" },
           to: { opacity: "1", transform: "translateX(0)" },
@@ -64,6 +68,7 @@ const config: Config = {
         spin: "spin 1s infinite",
         "highlight-flash": "highlight-flash 2s ease-out forwards",
         "fade-in": "fade-in 200ms ease-out",
+        "fade-out": "fade-out 300ms ease-out forwards",
         "comment-in-right": "comment-in-right 280ms ease-out",
         "comment-in-left": "comment-in-left 280ms ease-out",
       },

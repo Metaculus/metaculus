@@ -229,6 +229,25 @@ a {
   }
 }
 
+/* Travelling dash for LogoTraceLoader. Lives here rather than in the Tailwind
+   config because its duration is a prop applied through an inline style, so no
+   animate-* utility exists for Tailwind to emit the keyframe from - the same
+   reason the orbit keyframes below are here. */
+@keyframes logo-trace-loop {
+  to {
+    stroke-dashoffset: -1;
+  }
+}
+
+@keyframes logo-trace-fill {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
 /* FutureEval Orbit Animation Keyframes */
 /* Using pure CSS animations for perfectly synchronized, GPU-accelerated rotation */
 @keyframes orbit-rotate {

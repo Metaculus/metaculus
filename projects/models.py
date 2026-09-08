@@ -491,15 +491,19 @@ class Project(TimeStampedModel, TranslatedModel):  # type: ignore
     def update_forecasters_count(self):
         from posts.models import PostUserSnapshot
 
+        staff_ids = list(
+            User.objects.filter(is_staff=True).values_list("pk", flat=True)
+        )
+        snapshots = PostUserSnapshot.objects.filter(
+            last_forecast_date__isnull=False,
+            # TODO: don't count project admins
+        ).exclude(user_id__in=staff_ids)
+
+        # Must stay UNION, not UNION ALL: it is what dedupes the user ids.
         self.forecasters_count = (
-            PostUserSnapshot.objects.filter(
-                last_forecast_date__isnull=False,
-                user__is_staff=False,
-                # TODO: don't count project admins
-            )
-            .filter(Q(post__default_project=self) | Q(post__projects=self))
+            snapshots.filter(post__default_project=self)
             .values("user_id")
-            .distinct()
+            .union(snapshots.filter(post__projects=self).values("user_id"))
             .count()
         )
 

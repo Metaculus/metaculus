@@ -1,3 +1,4 @@
+from django.contrib.postgres.fields import ArrayField
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models.fields.files import ImageFieldFile
@@ -145,7 +146,19 @@ class UserDataAccess(TimeStampedModel):
         ]
 
 
+def default_ad_tile_placements() -> list[str]:
+    return [
+        AdTile.Placements.QUESTIONS_FEED.value,
+        AdTile.Placements.QUESTION_SIDEBAR.value,
+    ]
+
+
 class AdTile(TimeStampedModel):
+    class Placements(models.TextChoices):
+        QUESTIONS_FEED = "questions_feed"
+        QUESTION_SIDEBAR = "question_sidebar"
+        NEWS_FEED = "news_feed"
+
     title = models.CharField(
         max_length=200,
         blank=True,
@@ -197,6 +210,11 @@ class AdTile(TimeStampedModel):
         default=100,
         validators=[MinValueValidator(1), MaxValueValidator(100)],
         help_text="1-100. Percentage chance of being shown (rolled on the frontend).",
+    )
+    placements = ArrayField(
+        models.CharField(max_length=32, choices=Placements.choices),
+        default=default_ad_tile_placements,
+        help_text="Surfaces this tile may appear on. At least one is required.",
     )
 
     class Meta:

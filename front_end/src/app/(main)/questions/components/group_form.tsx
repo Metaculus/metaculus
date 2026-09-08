@@ -287,6 +287,8 @@ const GroupForm: React.FC<Props> = ({
             scaling: x.scaling,
             open_lower_bound: x.open_lower_bound,
             open_upper_bound: x.open_upper_bound,
+            inbound_outcome_count:
+              x.inbound_outcome_count ?? DefaultInboundOutcomeCount,
           };
         } else if (sqType === QuestionType.Discrete) {
           if (isNil(x.scaling?.range_max) || isNil(x.scaling?.range_min)) {
@@ -302,7 +304,8 @@ const GroupForm: React.FC<Props> = ({
             scaling: x.scaling,
             open_lower_bound: x.open_lower_bound,
             open_upper_bound: x.open_upper_bound,
-            inbound_outcome_count: x.inbound_outcome_count,
+            inbound_outcome_count:
+              x.inbound_outcome_count ?? DefaultInboundOutcomeCount,
           };
         } else if (sqType === QuestionType.Date) {
           if (isNil(x.scaling?.range_max) || isNil(x.scaling?.range_min)) {
@@ -317,6 +320,8 @@ const GroupForm: React.FC<Props> = ({
             scaling: x.scaling,
             open_lower_bound: x.open_lower_bound,
             open_upper_bound: x.open_upper_bound,
+            inbound_outcome_count:
+              x.inbound_outcome_count ?? DefaultInboundOutcomeCount,
           };
         } else {
           setError("Invalid sub-question type");
@@ -399,10 +404,11 @@ const GroupForm: React.FC<Props> = ({
         scaling: x.scaling,
         open_lower_bound: x.open_lower_bound,
         open_upper_bound: x.open_upper_bound,
-        inbound_outcome_count:
-          x.type === "discrete"
-            ? x.inbound_outcome_count ?? DefaultInboundOutcomeCount
-            : undefined,
+        inbound_outcome_count: ContinuousQuestionTypes.some(
+          (type) => type === x.type
+        )
+          ? x.inbound_outcome_count ?? DefaultInboundOutcomeCount
+          : undefined,
         has_forecasts:
           (x.aggregations[x.default_aggregation_method].latest
             ?.forecaster_count || 0) > 0,

@@ -1,6 +1,9 @@
 import pytest
 
-from notifications.utils import generate_email_comment_preview_text
+from notifications.utils import (
+    generate_email_comment_preview_text,
+    generate_email_notebook_preview_text,
+)
 
 
 @pytest.mark.parametrize(
@@ -72,3 +75,24 @@ def test_generate_email_comment_preview_text(
 
     assert preview == expected_preview
     assert found_mention == expected_found_mention
+
+
+@pytest.mark.parametrize(
+    "markdown_text,expected_preview",
+    [
+        # HTML entities from the notebook editor must be decoded, not shown literally
+        # &nbsp; decodes to U+00A0 (non-breaking space), not a regular space
+        [
+            "Building on the previous&nbsp;Respiratory Outlook initiatives",
+            "Building on the previous\xa0Respiratory Outlook initiatives",
+        ],
+        ["Johnson &amp; Johnson vaccine", "Johnson & Johnson vaccine"],
+        ["Numbers &gt; words", "Numbers > words"],
+        # Raw markup typed by the author stays literal (template auto-escapes it)
+        ["a &lt;b&gt; tag", "a <b> tag"],
+    ],
+)
+def test_generate_email_notebook_preview_text_decodes_entities(
+    markdown_text, expected_preview
+):
+    assert generate_email_notebook_preview_text(markdown_text) == expected_preview

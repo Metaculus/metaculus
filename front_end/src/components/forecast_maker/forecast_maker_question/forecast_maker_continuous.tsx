@@ -14,6 +14,7 @@ import LoadingIndicator from "@/components/ui/loading_indicator";
 import { useAuth } from "@/contexts/auth_context";
 import { useHideCP } from "@/contexts/cp_context";
 import { useServerAction } from "@/hooks/use_server_action";
+import type { ForecastPayload } from "@/services/api/questions/questions.server";
 import { ContinuousForecastInputType } from "@/types/charts";
 import { ErrorResponse } from "@/types/fetch";
 import { PostWithForecasts } from "@/types/post";
@@ -254,6 +255,42 @@ const ForecastMakerContinuous: FC<Props> = ({
     question.scheduled_close_time
   );
 
+  const buildForecastPayload = (
+    forecastExpiration: ForecastExpirationValue
+  ): ForecastPayload[] | null => {
+    if (forecastInputMode === ContinuousForecastInputType.Quantile) {
+      const validationErrors = validateUserQuantileData({
+        question,
+        components: quantileDistributionComponents,
+        cdf: userCdf,
+        t,
+      });
+      if (validationErrors.length !== 0) return null;
+    }
+
+    return [
+      {
+        questionId: question.id,
+        forecastData: {
+          continuousCdf: userCdf,
+          probabilityYes: null,
+          probabilityYesPerCategory: null,
+        },
+        forecastEndTime: forecastExpirationToDate(
+          forecastExpiration,
+          getExpirationBaseDate(question)
+        ),
+        distributionInput: {
+          type: forecastInputMode,
+          components:
+            forecastInputMode === ContinuousForecastInputType.Slider
+              ? sliderDistributionComponents
+              : clearQuantileComponents(quantileDistributionComponents),
+        } as DistributionSlider | DistributionQuantile,
+      },
+    ];
+  };
+
   const handlePredictSubmit = async (
     forecastExpiration: ForecastExpirationValue
   ) => {
@@ -278,27 +315,10 @@ const ForecastMakerContinuous: FC<Props> = ({
       }
     }
 
-    const response = await createForecasts(post.id, [
-      {
-        questionId: question.id,
-        forecastData: {
-          continuousCdf: userCdf,
-          probabilityYes: null,
-          probabilityYesPerCategory: null,
-        },
-        forecastEndTime: forecastExpirationToDate(
-          forecastExpiration,
-          getExpirationBaseDate(question)
-        ),
-        distributionInput: {
-          type: forecastInputMode,
-          components:
-            forecastInputMode === ContinuousForecastInputType.Slider
-              ? sliderDistributionComponents
-              : clearQuantileComponents(quantileDistributionComponents),
-        } as DistributionSlider | DistributionQuantile,
-      },
-    ]);
+    const payload = buildForecastPayload(forecastExpiration);
+    if (!payload) return;
+
+    const response = await createForecasts(post.id, payload);
     setIsDirty(false);
     if (response && "errors" in response && !!response.errors) {
       setSubmitError(response.errors);
@@ -418,6 +438,9 @@ const ForecastMakerContinuous: FC<Props> = ({
             )}
             <PredictButton
               onSubmit={() => submit(modalSavedState.forecastExpiration)}
+              buildGatedForecastPayload={() =>
+                buildForecastPayload(modalSavedState.forecastExpiration)
+              }
               isDirty={predictButtonIsDirty}
               hasUserForecast={!!previousForecast}
               isUserForecastActive={hasUserActiveForecast}
