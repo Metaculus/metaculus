@@ -3,6 +3,7 @@ import "server-only";
 import { ApiService } from "@/services/api/api_service";
 import {
   AuthResponse,
+  EmailLinkVerifyResponse,
   AuthTokens,
   SignUpResponse,
   SocialAuthResponse,
@@ -138,7 +139,10 @@ class ServerAuthApiClass extends ApiService {
   }
 
   async verifyEmailLink(userId: string, token: string) {
-    return this.post<AuthResponse, { user_id: string; token: string }>(
+    return this.post<
+      EmailLinkVerifyResponse,
+      { user_id: string; token: string }
+    >(
       "/auth/email-link/verify/",
       { user_id: userId, token },
       {},

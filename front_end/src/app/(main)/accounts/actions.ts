@@ -263,7 +263,9 @@ export async function requestEmailLinkAction(params: {
 export async function verifyEmailLinkAction(
   userId: string,
   token: string
-): Promise<{ user: CurrentUser } | { errors: ApiErrorPayload }> {
+): Promise<
+  { user: CurrentUser; isNew: boolean } | { errors: ApiErrorPayload }
+> {
   try {
     const response = await ServerAuthApi.verifyEmailLink(userId, token);
 
@@ -274,7 +276,7 @@ export async function verifyEmailLinkAction(
       await LanguageService.setLocaleCookie(response.user.language);
     }
 
-    return { user: response.user };
+    return { user: response.user, isNew: response.is_new };
   } catch (err: unknown) {
     return {
       errors: ApiError.isApiError(err)

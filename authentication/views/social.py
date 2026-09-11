@@ -48,9 +48,16 @@ def social_providers_api_view(request):
 class SocialCodeAuth(SocialTokenOnlyAuthView):
     class TokenSerializer(serializers.Serializer):
         tokens = serializers.SerializerMethodField()
+        is_new = serializers.SerializerMethodField()
 
         def get_tokens(self, obj: User):
             return get_tokens_for_user(obj)
+
+        def get_is_new(self, obj: User) -> bool:
+            # social_core stamps this on the user the pipeline returns, from
+            # whichever of our steps claimed or created the account. In memory
+            # only, so it is true just on the request that created them.
+            return getattr(obj, "is_new", False)
 
     serializer_class = TokenSerializer
     authentication_classes = (JWTAuthentication,)

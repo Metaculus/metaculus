@@ -1,13 +1,16 @@
 import datetime
 import re
 
+import pytest
 from django.contrib.auth.tokens import default_token_generator
 from django.utils import timezone
 from rest_framework.reverse import reverse
 
 from authentication.services.email_link import (
+    SIGNUP_METHOD_EMAIL_LINK,
     EmailLinkTokenGenerator,
     email_link_token_generator,
+    verify_email_link_auth,
 )
 from authentication.services.gated_actions import (
     pop_pending_action,
@@ -184,6 +187,7 @@ class TestEmailLinkVerify:
         assert response.data["tokens"]["access"]
         assert response.data["tokens"]["refresh"]
         assert response.data["user"]["id"] == user.id
+        assert response.data["is_new"] is True
         assert "action_result" not in response.data
         user.refresh_from_db()
         assert user.is_active
@@ -200,8 +204,82 @@ class TestEmailLinkVerify:
         )
 
         assert response.status_code == 200
+        assert response.data["is_new"] is False
         user1.refresh_from_db()
         assert user1.last_login
+
+    def test_unconfirmed_signup_activated_by_link_is_not_new(self, anon_client, mocker):
+        """
+        A signup-form account still waiting on its confirmation email can be
+        activated by a link, but that signup was already counted when the form
+        was submitted - counting it again here would double it.
+        """
+        mocker.patch("authentication.views.email_link.send_email_link_auth_email")
+        user = User.objects.create_user(
+            username="formsignup",
+            email="formsignup@example.com",
+            password="pw",
+            is_active=False,
+        )
+        token = email_link_token_generator.make_token(user)
+
+        response = anon_client.post(
+            self.url, {"user_id": user.id, "token": token}, format="json"
+        )
+
+        assert response.status_code == 200
+        assert response.data["is_new"] is False
+        user.refresh_from_db()
+        assert user.is_active
+
+    @pytest.mark.parametrize(
+        "metadata",
+        [
+            "not-an-object",
+            42,
+            ["signup_details"],
+            {"signup_details": "not-an-object"},
+            {"signup_details": None},
+            {"signup_details": {"method": "something_else"}},
+        ],
+    )
+    def test_malformed_metadata_is_not_a_signup(self, metadata):
+        """
+        metadata is free-form JSON that staff can edit by hand, so the signup
+        method lookup must not assume either level is an object - it used to
+        raise AttributeError. Exercised against the service rather than the
+        endpoint because serializing a user with non-object metadata fails
+        separately, in get_max_bots, which this branch does not touch.
+        """
+        user = User.objects.create_user(
+            username="oddmetadata",
+            email="oddmetadata@example.com",
+            password=None,
+            is_active=False,
+            metadata=metadata,
+        )
+        token = email_link_token_generator.make_token(user)
+
+        verified, is_new = verify_email_link_auth(user.id, token)
+
+        assert verified.id == user.id
+        assert is_new is False
+        verified.refresh_from_db()
+        assert verified.is_active
+
+    def test_metadata_marking_this_flow_is_a_signup(self):
+        user = User.objects.create_user(
+            username="linksignup",
+            email="linksignup@example.com",
+            password=None,
+            is_active=False,
+            metadata={"signup_details": {"method": SIGNUP_METHOD_EMAIL_LINK}},
+        )
+        token = email_link_token_generator.make_token(user)
+
+        _, is_new = verify_email_link_auth(user.id, token)
+
+        assert is_new is True
 
     def test_single_use(self, anon_client, user1):
         token = email_link_token_generator.make_token(user1)

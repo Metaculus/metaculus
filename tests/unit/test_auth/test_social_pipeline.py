@@ -6,6 +6,7 @@ from django.utils import timezone
 from rest_framework.exceptions import ValidationError
 
 from authentication.social_pipeline import associate_by_email, create_user
+from authentication.views.social import SocialCodeAuth
 from tests.unit.test_users.factories import factory_user
 from users.models import User
 
@@ -110,4 +111,25 @@ class TestCreateUser:
         assert (
             "social_core.pipeline.user.get_username"
             not in settings.SOCIAL_AUTH_PIPELINE
+        )
+
+
+class TestSocialAuthResponse:
+    """
+    social_core stamps is_new on the user the pipeline returns. The response has
+    to carry it through, or the client cannot tell a signup from a sign-in and
+    every Google login would count as a registration.
+    """
+
+    def test_reports_a_signup(self):
+        user = factory_user()
+        user.is_new = True
+
+        assert SocialCodeAuth.TokenSerializer(instance=user).data["is_new"] is True
+
+    def test_reports_a_sign_in(self):
+        # No attribute at all, which is what an existing account arrives with
+        assert (
+            SocialCodeAuth.TokenSerializer(instance=factory_user()).data["is_new"]
+            is False
         )

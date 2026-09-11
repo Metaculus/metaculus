@@ -21,6 +21,7 @@ import { sendAnalyticsEvent } from "@/utils/analytics";
 import cn from "@/utils/core/cn";
 import { withConfirmedEvent } from "@/utils/email_link_confirmation";
 import { ensureRelativeRedirect } from "@/utils/navigation";
+import { SIGNUP_METHOD_EMAIL_LINK } from "@/utils/signup_methods";
 
 type Props = {
   userId: string;
@@ -112,6 +113,17 @@ const EmailLinkVerify: FC<Props> = ({ userId, token, redirectUrl }) => {
         surface: pending?.surface,
         sameDevice: !!pending,
       });
+
+      // The account is created when the address is submitted, so only the
+      // verification that completes the signup counts - a returning user
+      // asking for a sign-in link arrives here too.
+      if (result.isNew) {
+        sendAnalyticsEvent("register", {
+          method: SIGNUP_METHOD_EMAIL_LINK,
+          trigger: appliedTrigger,
+          surface: pending?.surface,
+        });
+      }
 
       // Arriving by magic link means exploring, not enrolling: skip the
       // forecaster tutorial for good rather than interrupting the action the
