@@ -13,6 +13,7 @@ from rest_framework.generics import get_object_or_404
 
 from utils.tasks import update_translations_task
 from utils.translation import (
+    automatic_translations_enabled,
     get_translation_fields_for_model,
     build_supported_localized_fieldname,
     is_translation_dirty,
@@ -82,6 +83,13 @@ class CustomTranslationAdmin(admin.ModelAdmin):
 
     @admin.action(description="Update translations")
     def update_translations(self, request, queryset):
+        if not automatic_translations_enabled():
+            messages.warning(
+                request,
+                "Automatic translations are disabled, nothing was translated.",
+            )
+            return
+
         for obj in queryset:
             obj.update_and_maybe_translate()
         messages.success(request, "Translations update triggered")
@@ -196,7 +204,8 @@ class TranslatedModel(models.Model):
         # The function does the following:
         # 1. Copies the truth content from the field mentioned above to the field
         #    with the _original suffix (corresponding to the Untranslated option)
-        # 2. Resets the value to None for all the other language specific fields, because:
+        # 2. If the original content changed, resets the value to None for all the
+        #    other language specific fields, because:
         #    - if the content is not supposed to be translated None is fine (it will default to the _original field)
         #    - if the content is supposed to be translated, it will be translated and set by the translation task
         # 3. If the content is dirty and the content is supposed to be translated (not private, not bot)
@@ -207,15 +216,20 @@ class TranslatedModel(models.Model):
             self.update_fields_with_original_content()
         )
 
-        # 2. Reset the other language specific fields
-        reset_fields = self.reset_localised_fields(all_update_fields)
+        # 2. Reset the other language specific fields.
+        # Untouched content keeps its existing translations, which matters when
+        # automatic translations are off, as nothing would regenerate them.
+        is_dirty = is_translation_dirty(self)
+        reset_fields = (
+            self.reset_localised_fields(all_update_fields) if is_dirty else []
+        )
 
         update_fields = list(set(all_update_fields_localised + reset_fields))
 
         self.save(update_fields=update_fields)
 
         # 3. If the content is dirty and the content is supposed to be translated
-        if should_translate_if_dirty and is_translation_dirty(self):
+        if should_translate_if_dirty and is_dirty and automatic_translations_enabled():
             app_label, model_name = model._meta.app_label, model._meta.model_name
             update_translations_task.send(app_label, model_name, self.pk)
 

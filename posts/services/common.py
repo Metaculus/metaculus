@@ -40,6 +40,7 @@ from utils.models import model_update
 from utils.the_math.aggregations import get_aggregations_at_time
 from utils.the_math.measures import prediction_difference_for_sorting
 from utils.translation import (
+    automatic_translations_enabled,
     detect_and_update_content_language,
     queryset_filter_outdated_translations,
     update_translations_for_model,
@@ -259,7 +260,7 @@ def trigger_update_post_translations(
     batch_size = 10
     comments_qs = get_comments_feed(qs=Comment.objects.filter(), post=post)
 
-    if with_comments:
+    if with_comments and automatic_translations_enabled():
         comments_qs = queryset_filter_outdated_translations(comments_qs)
         detect_and_update_content_language(comments_qs, batch_size)
         update_translations_for_model(comments_qs, batch_size)
