@@ -15,6 +15,7 @@ import Button from "@/components/ui/button";
 import { FormErrorMessage } from "@/components/ui/form_field";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { useDebouncedCallback } from "@/hooks/use_debounce";
+import ClientCoherenceLinksApi from "@/services/api/coherence_links/coherence_links.client";
 import ClientPostsApi from "@/services/api/posts/posts.client";
 import {
   ALLOWED_COHERENCE_LINK_QUESTION_TYPES,
@@ -62,6 +63,9 @@ const AddCoherenceLinkModal: FC<Props> = ({ post, isOpen, onClose }) => {
   const [step, setStep] = useState<Step>("pick");
   const [search, setSearch] = useState("");
   const [suggested, setSuggested] = useState<QuestionWithForecasts[]>([]);
+  // True when `suggested` came from the AI endpoint; false when we fell back
+  // to the embedding-similarity feed (different header label).
+  const [suggestedIsAi, setSuggestedIsAi] = useState(false);
   const [results, setResults] = useState<QuestionWithForecasts[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -97,18 +101,40 @@ const AddCoherenceLinkModal: FC<Props> = ({ post, isOpen, onClose }) => {
       resetState();
       return;
     }
+    const questionId = post.question?.id;
+    if (!questionId) return;
     let cancelled = false;
     (async () => {
       setIsLoading(true);
       try {
-        const similar = await ClientPostsApi.getSimilarPosts(post.id);
+        // Prefer AI-driven suggestions; fall back to the similar-questions
+        // feed when they're unavailable, empty, or the request fails.
+        let questions: QuestionWithForecasts[] = [];
+        let fromAi = false;
+        try {
+          const aiResp =
+            await ClientCoherenceLinksApi.getSuggestedLinksForQuestion(
+              questionId
+            );
+          // Keep server-side ranking. For each entry, expand the post and
+          // pick the specific subquestion the suggestion pointed at.
+          for (const entry of aiResp.data ?? []) {
+            const picked = expandPost(entry.post).find(
+              (q) => q.id === entry.suggested_question_id
+            );
+            if (picked) questions.push(picked);
+          }
+          fromAi = questions.length > 0;
+        } catch (e) {
+          logError(e);
+        }
+        if (!fromAi) {
+          const similar = await ClientPostsApi.getSimilarPosts(post.id);
+          questions = similar.flatMap(expandPost);
+        }
         if (!cancelled) {
-          setSuggested(
-            similar
-              .flatMap(expandPost)
-              .filter(isLinkable)
-              .slice(0, SUGGESTION_LIMIT)
-          );
+          setSuggested(questions.filter(isLinkable).slice(0, SUGGESTION_LIMIT));
+          setSuggestedIsAi(fromAi);
         }
       } catch (e) {
         logError(e);
@@ -119,7 +145,7 @@ const AddCoherenceLinkModal: FC<Props> = ({ post, isOpen, onClose }) => {
     return () => {
       cancelled = true;
     };
-  }, [isOpen, post.id, resetState]);
+  }, [isOpen, post.id, post.question?.id, resetState]);
 
   const runSearch = useDebouncedCallback(async (query: string) => {
     if (!query.trim()) {
@@ -240,7 +266,7 @@ const AddCoherenceLinkModal: FC<Props> = ({ post, isOpen, onClose }) => {
           />
           {!search.trim() && (
             <div className="text-xs font-medium uppercase tracking-wide text-gray-600 dark:text-gray-600-dark">
-              {t("suggestedQuestions")}
+              {suggestedIsAi ? t("suggestedQuestions") : t("similarQuestions")}
             </div>
           )}
           <div className="flex min-h-[240px] flex-1 flex-col gap-2 overflow-y-auto">
