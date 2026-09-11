@@ -1,9 +1,9 @@
-import { intlFormatDistance } from "date-fns";
 import { useLocale, useTranslations } from "next-intl";
 import { FC } from "react";
 
 import RelativeTime from "@/components/ui/relative_time";
 import cn from "@/utils/core/cn";
+import { formatIntlDistance } from "@/utils/formatters/date";
 
 type Props = {
   cpRevealsOn: string;
@@ -17,9 +17,7 @@ const UpcomingCP: FC<Props> = ({ cpRevealsOn, className }) => {
     <div className={cn("w-full text-center", className)}>
       <span className="block">{t("cpRevealed")}</span>
       <RelativeTime datetime={cpRevealsOn} lang={locale} className="leading-6">
-        {intlFormatDistance(cpRevealsOn, new Date(), {
-          locale,
-        })}
+        {formatIntlDistance(locale, cpRevealsOn, new Date())}
       </RelativeTime>
     </div>
   );
