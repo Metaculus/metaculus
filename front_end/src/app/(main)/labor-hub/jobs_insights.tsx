@@ -28,11 +28,11 @@ export const JOBS_INSIGHTS = {
     negative: (
       <>
         By 2030, <strong>software developers</strong>,{" "}
-        <strong>services sales representatives</strong>, and{" "}
-        <strong>financial specialists</strong> are expected to see the largest
-        declines as AI absorbs coding, customer outreach, and rules-based
-        analysis work. Software development leads the drop, with rapid AI
-        adoption and no legal protections.
+        <strong>financial specialists</strong>, and{" "}
+        <strong>services sales representatives</strong> are expected to see the
+        largest declines as AI absorbs coding, rules-based analysis, and
+        customer outreach work. Software development leads the drop, with rapid
+        AI adoption and no legal protections.
       </>
     ),
   },
