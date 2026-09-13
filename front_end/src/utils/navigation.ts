@@ -102,9 +102,9 @@ export const getProjectLink = (
     case TournamentType.Index:
       return `/index/${getProjectSlug(project)}/`;
     case TaxonomyProjectType.Topic:
-      return `/questions/?topic=${project.slug}&for_main_feed=false`;
+      return `/questions/?topic=${project.slug}`;
     case TaxonomyProjectType.Category:
-      return `/questions/?categories=${project.slug}&for_main_feed=false`;
+      return `/questions/?categories=${project.slug}`;
     case TaxonomyProjectType.LeaderboardTag:
       return getLeaderboardTagUrl(project);
     default:
@@ -145,7 +145,7 @@ export function getLeaderboardTagUrl({
 }
 
 export function getLeaderboardTagFeedUrl({ slug }: LeaderboardTag) {
-  return `/questions/?leaderboard_tags=${slug}&for_main_feed=false`;
+  return `/questions/?leaderboard_tags=${slug}`;
 }
 
 type ContributionsUrlParams = {
