@@ -39,6 +39,8 @@ from posts.services.common import (
     trigger_update_post_translations,
     make_repost,
     vote_post,
+    pin_post,
+    unpin_post,
 )
 from posts.services.feed import get_posts_feed, get_similar_posts
 from posts.services.hotness import (
@@ -476,6 +478,33 @@ def activity_boost_api_view(request, pk):
     return Response(
         {"score": boost.score, "score_total": compute_hotness_total_boosts(post)},
         status=status.HTTP_201_CREATED,
+    )
+
+
+@api_view(["POST"])
+def post_toggle_pin_api_view(request, pk):
+    """
+    Pin/Unpin a post to the top of its default project's feed (admins only)
+    """
+
+    pin = serializers.BooleanField(allow_null=True).run_validation(
+        request.data.get("pin")
+    )
+
+    post = get_object_or_404(Post, pk=pk)
+
+    # Check permissions
+    permission = get_post_permission_for_user(post, user=request.user)
+    ObjectPermission.can_pin_post(permission, raise_exception=True)
+
+    if pin:
+        pin_post(post)
+    else:
+        unpin_post(post)
+
+    return Response(
+        serialize_post(post, current_user=request.user),
+        status=status.HTTP_200_OK,
     )
 
 

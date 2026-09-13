@@ -521,6 +521,24 @@ def soft_delete_post(post: Post):
     delete_scheduled_post_notifications(post)
 
 
+def pin_post(post: Post):
+    """
+    Pins a post to the top of its default project's feed.
+    """
+
+    post.is_pinned = True
+    post.save(update_fields=["is_pinned"])
+
+    return post
+
+
+def unpin_post(post: Post):
+    post.is_pinned = False
+    post.save(update_fields=["is_pinned"])
+
+    return post
+
+
 def get_posts_staff_users(
     posts: Iterable[Post],
 ) -> dict[Post, dict[int, ObjectPermission]]:
