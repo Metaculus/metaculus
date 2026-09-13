@@ -1313,21 +1313,21 @@ paths:
             type: string
             format: date-time
             example: '2024-01-01'
-          description: "Post open timestamp filter: `open_time__<operator>`. Supported operators: `gt`, `gte`, `lt`, `lte`."
+          description: "Post open timestamp filter: `open_time__<operator>`. Supported operators: `gt`, `gte`, `lt`, `lte`. For example, to query everything opened after 2024-01-01, use `open_time__gt=2024-01-01`. For everything opened on or before that date, use `open_time__lte=2024-01-01`."
         - in: query
           name: published_at__gt
           schema:
             type: string
             format: date-time
             example: '2024-01-01'
-          description: "Post publication timestamp filter: `published_at__<operator>`. Supported operators: `gt`, `gte`, `lt`, `lte`."
+          description: "Post publication timestamp filter: `published_at__<operator>`. Supported operators: `gt`, `gte`, `lt`, `lte`. For example, to query everything published after 2024-01-01, use `published_at__gt=2024-01-01`. For everything published on or before that date, use `published_at__lte=2024-01-01`."
         - in: query
           name: scheduled_resolve_time__gt
           schema:
             type: string
             format: date-time
             example: '2024-01-01'
-          description: "Scheduled resolution timestamp filter: `scheduled_resolve_time__<operator>`. Supported operators: `gt`, `gte`, `lt`, `lte`."
+          description: "Scheduled resolution timestamp filter: `scheduled_resolve_time__<operator>`. Supported operators: `gt`, `gte`, `lt`, `lte`. For example, to query everything scheduled to resolve after 2024-01-01, use `scheduled_resolve_time__gt=2024-01-01`. For everything scheduled to resolve on or before that date, use `scheduled_resolve_time__lte=2024-01-01`."
         - in: query
           name: forecast_type
           schema:
