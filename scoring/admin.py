@@ -15,6 +15,7 @@ from scoring.constants import ExclusionStatuses
 from scoring.models import (
     Leaderboard,
     LeaderboardEntry,
+    Reputation,
     Score,
     MedalExclusionRecord,
     ArchivedScore,
@@ -536,6 +537,19 @@ class MedalExclusionRecordAdmin(admin.ModelAdmin):
         AutocompleteFilterFactory("Project", "project"),
         AutocompleteFilterFactory("Leaderboard", "leaderboard"),
     ]
+
+
+@admin.register(Reputation)
+class ReputationAdmin(admin.ModelAdmin):
+    list_display = ["__str__", "user", "type", "value", "time"]
+    search_fields = ["user__username", "user__email"]
+    autocomplete_fields = ["user"]
+    list_filter = [
+        "type",
+        AutocompleteFilterFactory("User", "user"),
+    ]
+    date_hierarchy = "time"
+    ordering = ["-time"]
 
 
 @admin.register(LeaderboardsRanksEntry)
