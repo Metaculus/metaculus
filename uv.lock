@@ -1140,7 +1140,7 @@ requires-dist = [
     { name = "markdown", specifier = ">=3.6,<4" },
     { name = "mysql-connector-python", specifier = ">=9.0.0,<10" },
     { name = "numpy", specifier = ">=1.26.4,<2" },
-    { name = "openai", specifier = ">=1.36.0,<2" },
+    { name = "openai", specifier = ">=1.109.1,<2" },
     { name = "paramiko", specifier = ">=3.5,<5" },
     { name = "pgvector", specifier = ">=0.3.2,<0.4" },
     { name = "pillow", specifier = ">=12.3.0,<13" },
