@@ -283,7 +283,7 @@ class ConditionalWriteSerializer(serializers.ModelSerializer):
         model = Conditional
         fields = ("condition_id", "condition_child_id")
 
-    def _get_viewable_question(self, question_id: int, label: str) -> Question:
+    def _get_viewable_question(self, question_id: int) -> Question:
         question = Question.objects.filter(
             pk=question_id,
             post__in=Post.objects.filter_permission(user=self.context.get("user")),
