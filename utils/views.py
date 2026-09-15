@@ -156,7 +156,7 @@ def validate_data_request(request: Request, **kwargs):
         for post in posts:
             permission = get_post_permission_for_user(post, user=user)
             ObjectPermission.can_view(permission, raise_exception=True)
-    elif question:
+    if question:
         post = question.get_post()
         if post:
             posts = [post]
@@ -224,10 +224,14 @@ def validate_data_request(request: Request, **kwargs):
         for post in posts:
             questions.extend(post.get_questions())
     elif project:
+        # A viewable project may still hold posts the user cannot see
+        # (drafts, rejected, restricted), so pull only from the viewable ones.
         questions = list(
             Question.objects.filter(
-                Q(post__default_project=project) | Q(post__projects=project)
-            ).distinct()
+                post_id__in=Post.objects.filter_permission(user=user)
+                .filter(Q(default_project=project) | Q(projects=project))
+                .values_list("id", flat=True)
+            )
         )
     if not questions:
         raise NotFound("No questions found")
