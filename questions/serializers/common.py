@@ -1,5 +1,6 @@
 import logging
-from datetime import datetime, timezone as dt_timezone, timedelta
+from datetime import datetime, timedelta
+from datetime import timezone as dt_timezone
 
 import numpy as np
 from django.utils import timezone
@@ -11,11 +12,11 @@ from questions.constants import UnsuccessfulResolutionType
 from questions.models import (
     DEFAULT_INBOUND_OUTCOME_COUNT,
     QUESTION_CONTINUOUS_TYPES,
-    Question,
-    Conditional,
-    GroupOfQuestions,
     AggregateForecast,
+    Conditional,
     Forecast,
+    GroupOfQuestions,
+    Question,
 )
 from questions.serializers.aggregate_forecasts import serialize_question_aggregations
 from questions.services.multiple_choice_handlers import get_all_options_from_history
@@ -26,9 +27,9 @@ from utils.the_math.formulas import (
     unscaled_location_to_scaled_location,
 )
 from utils.the_math.measures import (
+    get_difference_display,
     percent_point_function,
     prediction_difference_for_sorting,
-    get_difference_display,
 )
 
 logger = logging.getLogger(__name__)
@@ -282,11 +283,19 @@ class ConditionalWriteSerializer(serializers.ModelSerializer):
         model = Conditional
         fields = ("condition_id", "condition_child_id")
 
-    def validate_condition_id(self, value):
-        question = Question.objects.filter(pk=value).first()
+    def _get_viewable_question(self, question_id: int, label: str) -> Question:
+        question = Question.objects.filter(
+            pk=question_id,
+            post__in=Post.objects.filter_permission(user=self.context.get("user")),
+        ).first()
 
         if not question:
-            raise ValidationError("Condition does not exist")
+            raise ValidationError("Question ID does not exist")
+
+        return question
+
+    def validate_condition_id(self, value):
+        question = self._get_viewable_question(value)
 
         if question.type != Question.QuestionType.BINARY:
             raise ValidationError("Condition can only be binary question")
@@ -294,10 +303,7 @@ class ConditionalWriteSerializer(serializers.ModelSerializer):
         return value
 
     def validate_condition_child_id(self, value):
-        question = Question.objects.filter(pk=value).first()
-
-        if not question:
-            raise ValidationError("Condition Child does not exist")
+        self._get_viewable_question(value)
 
         return value
 
