@@ -611,6 +611,13 @@ GOOGLE_TRANSLATE_SERVICE_ACCOUNT_KEY = os.environ.get(
     "GOOGLE_TRANSLATE_SERVICE_ACCOUNT_KEY", None
 )
 
+# Machine translation of new/edited content. When disabled, the whole
+# translation machinery stays in place (already translated content is still
+# served), but no new content is sent to the translation service.
+AUTOMATIC_TRANSLATIONS_ENABLED = (
+    os.environ.get("AUTOMATIC_TRANSLATIONS_ENABLED", "false").lower() == "true"
+)
+
 CAMPAIGN_USER_REGISTRATION_HOOK_KEY_URL_PAIR = os.environ.get(
     "CAMPAIGN_USER_REGISTRATION_HOOK_KEY_URL_PAIR", None
 )
