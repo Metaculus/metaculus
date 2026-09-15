@@ -116,7 +116,7 @@ class TestConditionalCreatePermissions:
         response = _create_conditional(user1_client, condition, child)
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert "Condition Child does not exist" in str(response.data)
+        assert "Question ID does not exist" in str(response.data)
 
     def test_viewable_sources_are_accepted(self, user1, user1_client):
         condition = _source_question(user1, get_site_main_project(), title="cond")
@@ -170,4 +170,4 @@ class TestConditionalCreatePermissions:
         )
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert "Condition Child does not exist" in str(response.data)
+        assert "Question ID does not exist" in str(response.data)
