@@ -1,0 +1,69 @@
+{
+  "hero": {
+    "eyebrowKey": "initiativesHeroEyebrow",
+    "headingKey": "initiativesHeroHeading",
+    "descriptionKey": "initiativesHeroDescription",
+    "initialInitiativeId": "radiant",
+    "actions": [
+      {
+        "id": "partner",
+        "labelKey": "initiativesHeroPartnerCta",
+        "href": "/services/",
+        "variant": "primary"
+      },
+      {
+        "id": "learn-more",
+        "labelKey": "initiativesHeroLearnMoreCta",
+        "href": "#initiatives-featured",
+        "variant": "secondary"
+      }
+    ]
+  },
+  "initiatives": [
+    {
+      "id": "futureeval",
+      "nameKey": "initiativeFutureEvalName",
+      "taglineKey": "initiativeFutureEvalTagline",
+      "url": "/futureeval/",
+      "brand": { "color": "#7fa9dc" },
+      "order": 1,
+      "placements": ["hero"]
+    },
+    {
+      "id": "midterms",
+      "nameKey": "initiativeMidtermsName",
+      "taglineKey": "initiativeMidtermsTagline",
+      "url": "/midterms-2026/",
+      "brand": { "color": "#b0628f" },
+      "order": 2,
+      "placements": ["hero"]
+    },
+    {
+      "id": "case-studies",
+      "nameKey": "initiativeCaseStudiesName",
+      "taglineKey": "initiativeCaseStudiesTagline",
+      "url": "/services/",
+      "brand": { "color": "#d7c3af" },
+      "order": 3,
+      "placements": ["hero"]
+    },
+    {
+      "id": "radiant",
+      "nameKey": "initiativeRadiantName",
+      "taglineKey": "initiativeRadiantTagline",
+      "url": "/notebooks/42293/map-the-future-before-you-build-it/",
+      "brand": { "color": "#f95700" },
+      "order": 4,
+      "placements": ["hero"]
+    },
+    {
+      "id": "labor-hub",
+      "nameKey": "initiativeLaborHubName",
+      "taglineKey": "initiativeLaborHubTagline",
+      "url": "/labor-hub/",
+      "brand": { "color": "#45a48d" },
+      "order": 5,
+      "placements": ["hero"]
+    }
+  ]
+}
