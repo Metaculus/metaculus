@@ -82,7 +82,7 @@ class TestConditionalCreatePermissions:
         response = _create_conditional(user1_client, condition, child)
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert "Condition does not exist" in str(response.data)
+        assert "Question ID does not exist" in str(response.data)
 
     def test_private_condition_child_is_rejected(self, user1, user2, user1_client):
         condition = _source_question(user2, get_site_main_project(), title="public")
@@ -91,7 +91,7 @@ class TestConditionalCreatePermissions:
         response = _create_conditional(user1_client, condition, child)
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert "Condition Child does not exist" in str(response.data)
+        assert "Question ID does not exist" in str(response.data)
 
     def test_private_source_error_does_not_confirm_existence(
         self, user1, user2, user1_client
