@@ -28,6 +28,7 @@ import { useServerAction } from "@/hooks/use_server_action";
 import { AppTheme } from "@/types/theme";
 import { CurrentUser } from "@/types/users";
 import { sendAnalyticsEvent } from "@/utils/analytics";
+import { SIGNUP_METHOD_PASSWORD } from "@/utils/signup_methods";
 
 import usePostLoginActionHandler from "./hooks/usePostLoginActionHandler";
 
@@ -109,6 +110,7 @@ export const SignupForm: FC<{
       turnstileRef.current?.reset();
     } else {
       sendAnalyticsEvent("register", {
+        method: SIGNUP_METHOD_PASSWORD,
         event_category: new URLSearchParams(window.location.search).toString(),
         signupPath: redirectLocation,
       });
