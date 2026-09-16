@@ -5,7 +5,6 @@ export type InitiativePlacement = "hero" | "featured" | "inventory";
 
 export type InitiativeBrand = {
   color: string;
-  darkColor?: string;
 };
 
 export type Initiative = {

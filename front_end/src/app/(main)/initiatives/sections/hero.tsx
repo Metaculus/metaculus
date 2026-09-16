@@ -12,20 +12,19 @@ const HeroSection = async () => {
   const heroInitiatives = getInitiativesByPlacement("hero");
 
   return (
-    <section className="flex flex-col items-center gap-8 px-4 pb-16 pt-10 text-center sm:pb-24 sm:pt-16">
-      <p className="m-0 flex items-center gap-2 text-xs font-medium uppercase tracking-[0.12em] text-blue-700 dark:text-blue-700-dark">
-        <span
-          aria-hidden="true"
-          className="size-1.5 bg-blue-700 dark:bg-blue-700-dark"
-        />
-        {t(hero.eyebrowKey)}
-      </p>
+    <section className="flex flex-col items-center gap-8 px-4 pb-10 pt-14 text-center xl:pb-20">
+      <div className="flex flex-col items-center gap-6">
+        <p className="m-0 flex items-center gap-2 text-xs font-medium uppercase tracking-[0.12em] text-blue-700">
+          <span aria-hidden="true" className="size-1.5 bg-blue-700" />
+          {t(hero.eyebrowKey)}
+        </p>
 
-      <h1 className="m-0 max-w-[764px] text-balance text-[36px] font-medium leading-[100%] tracking-[-1.7px] text-blue-900 dark:text-blue-900-dark md:text-[44px] md:tracking-[-2.8px] xl:text-[60px]">
-        {t(hero.headingKey)}
-      </h1>
+        <h1 className="m-0 max-w-[764px] text-balance  text-[44px] font-medium leading-[100%] tracking-[-1.7px] text-blue-900 md:text-[60px] md:tracking-[-2.8px]">
+          {t(hero.headingKey)}
+        </h1>
+      </div>
 
-      <p className="m-0 max-w-[676px] text-balance text-base font-normal leading-[160%] text-blue-900 dark:text-blue-900-dark md:text-[18px]">
+      <p className="m-0 w-full max-w-[676px] text-base font-normal leading-[160%] text-blue-900 md:text-[18px]">
         {t(hero.descriptionKey)}
       </p>
 
@@ -41,7 +40,7 @@ const HeroSection = async () => {
                 "h-[42px] rounded-md px-[18px] py-0 text-sm leading-[14px]",
                 action.variant === "primary" && "text-white",
                 action.variant === "secondary" &&
-                  "border-[rgba(33,48,67,0.40)] bg-transparent font-semibold text-blue-900 dark:border-blue-500-dark dark:text-blue-900-dark"
+                  "border-[rgba(33,48,67,0.40)] bg-transparent font-semibold text-blue-900"
               )}
             >
               {t(action.labelKey)}

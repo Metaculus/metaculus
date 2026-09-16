@@ -32,6 +32,63 @@ const WHEEL_IDLE_RESET = 200;
 const VISIBLE_ITEMS = 5;
 const MIN_LOOP_SLIDES = VISIBLE_ITEMS + 1;
 
+type ActiveInitiativeLinkProps = {
+  initiative: Initiative;
+  name: string;
+  isActive: boolean;
+};
+
+const ActiveInitiativeLink: FC<ActiveInitiativeLinkProps> = ({
+  initiative,
+  name,
+  isActive,
+}) => {
+  const t = useTranslations();
+
+  return (
+    <Link
+      href={initiative.url}
+      aria-label={t("initiativesCarouselVisitInitiative", { name })}
+      aria-hidden={!isActive}
+      tabIndex={isActive ? undefined : -1}
+      className={`group col-start-1 row-start-1 max-w-xs justify-self-center text-center no-underline ${isActive ? "" : "invisible"}`}
+    >
+      <span className="block text-[24px] font-medium leading-[110%] tracking-[-0.48px] text-blue-900">
+        {name}
+      </span>
+      <span className="mt-3 block text-balance text-[18px] font-normal leading-[140%] text-blue-900">
+        {t(initiative.taglineKey)}{" "}
+        <FontAwesomeIcon
+          icon={faArrowRight}
+          aria-hidden="true"
+          className="h-3 w-3 align-baseline transition-transform group-hover:translate-x-1 group-focus-visible:translate-x-1 motion-reduce:transition-none"
+        />
+      </span>
+    </Link>
+  );
+};
+
+const InitiativeDetails: FC<{
+  initiatives: Initiative[];
+  selectedIndex: number;
+  className?: string;
+}> = ({ initiatives, selectedIndex, className }) => {
+  const t = useTranslations();
+
+  return (
+    <div className={`grid w-full grid-cols-1 ${className ?? ""}`}>
+      {initiatives.map((initiative, index) => (
+        <ActiveInitiativeLink
+          key={initiative.id}
+          initiative={initiative}
+          name={t(initiative.nameKey)}
+          isActive={index === selectedIndex}
+        />
+      ))}
+    </div>
+  );
+};
+
 type Props = {
   initiatives: Initiative[];
   initialInitiativeId?: string;
@@ -49,9 +106,11 @@ const InitiativeCarousel: FC<Props> = ({
   const startIndex =
     requestedStartIndex >= 0
       ? requestedStartIndex
-      : Math.floor((initiatives.length - 1) / 2);
+      : Math.max(0, Math.floor((initiatives.length - 1) / 2));
 
   const slides = useMemo(() => {
+    if (initiatives.length < 2) return [];
+
     const cycles = Math.max(1, Math.ceil(MIN_LOOP_SLIDES / initiatives.length));
     const result: {
       initiative: Initiative;
@@ -235,6 +294,25 @@ const InitiativeCarousel: FC<Props> = ({
 
   const activeName = t(activeInitiative.nameKey);
 
+  if (initiatives.length < 2) {
+    return (
+      <div className="flex w-full flex-col items-center">
+        <div className="py-4">
+          <InitiativeMark
+            initiative={activeInitiative}
+            name={activeName}
+            className="size-[120px] md:size-[200px]"
+          />
+        </div>
+        <InitiativeDetails
+          initiatives={initiatives}
+          selectedIndex={selectedIndex}
+          className="mt-6"
+        />
+      </div>
+    );
+  }
+
   return (
     <div
       role="group"
@@ -301,34 +379,19 @@ const InitiativeCarousel: FC<Props> = ({
             })}
           </ul>
         </div>
-        <div className="pointer-events-none absolute inset-y-0 left-0 w-10 bg-gradient-to-r from-blue-200 to-transparent dark:from-blue-200-dark" />
-        <div className="pointer-events-none absolute inset-y-0 right-0 w-10 bg-gradient-to-l from-blue-200 to-transparent dark:from-blue-200-dark" />
+        <div className="pointer-events-none absolute inset-y-0 left-0 w-10 bg-gradient-to-r from-blue-200 to-transparent" />
+        <div className="pointer-events-none absolute inset-y-0 right-0 w-10 bg-gradient-to-l from-blue-200 to-transparent" />
       </div>
 
       <div
         aria-live={autoplayEnabled ? "off" : "polite"}
         aria-atomic="true"
-        className="mt-6 flex w-full justify-center"
+        className="mt-6 w-full"
       >
-        <Link
-          href={activeInitiative.url}
-          aria-label={t("initiativesCarouselVisitInitiative", {
-            name: activeName,
-          })}
-          className="group max-w-xs text-center no-underline"
-        >
-          <span className="block text-[24px] font-medium leading-[110%] tracking-[-0.48px] text-blue-900 dark:text-blue-900-dark">
-            {activeName}
-          </span>
-          <span className="mt-3 block text-balance text-[18px] font-normal leading-[140%] text-blue-900 dark:text-blue-900-dark">
-            {t(activeInitiative.taglineKey)}{" "}
-            <FontAwesomeIcon
-              icon={faArrowRight}
-              aria-hidden="true"
-              className="h-3 w-3 align-baseline transition-transform group-hover:translate-x-1 group-focus-visible:translate-x-1 motion-reduce:transition-none"
-            />
-          </span>
-        </Link>
+        <InitiativeDetails
+          initiatives={initiatives}
+          selectedIndex={selectedIndex}
+        />
       </div>
     </div>
   );

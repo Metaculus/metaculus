@@ -20,13 +20,12 @@ const InitiativeMark: FC<Props> = ({ initiative, name, className }) => {
   return (
     <span
       className={cn(
-        "relative flex items-center justify-center overflow-hidden rounded-[22%] bg-[var(--initiative-brand)] @container dark:bg-[var(--initiative-brand-dark)]",
+        "relative flex items-center justify-center overflow-hidden rounded-[22%] bg-[var(--initiative-brand)] @container",
         className
       )}
       style={
         {
           "--initiative-brand": brand.color,
-          "--initiative-brand-dark": brand.darkColor ?? brand.color,
           "--initiative-mark-foreground": getReadableForeground(brand.color),
         } as CSSProperties
       }
