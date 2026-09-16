@@ -7,6 +7,20 @@ export type InitiativeBrand = {
   color: string;
 };
 
+export type InitiativePartner = {
+  logo: string;
+  nameKey: TranslationKey;
+  url?: string;
+};
+
+export type InitiativeFeature = {
+  order: number;
+  headingKey: TranslationKey;
+  descriptionKey: TranslationKey;
+  badgeKey?: TranslationKey;
+  partners?: InitiativePartner[];
+};
+
 export type Initiative = {
   id: string;
   nameKey: TranslationKey;
@@ -18,7 +32,10 @@ export type Initiative = {
   categoryId?: string;
   order: number;
   placements: InitiativePlacement[];
+  feature?: InitiativeFeature;
 };
+
+export type FeaturedInitiative = Initiative & { feature: InitiativeFeature };
 
 export type InitiativesHeroAction = {
   id: string;

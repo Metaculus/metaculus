@@ -3,6 +3,7 @@ import { getTranslations } from "next-intl/server";
 
 import { ThemeOverrideContainer } from "@/contexts/theme_override_context";
 
+import FeaturedSection from "./sections/featured";
 import HeroSection from "./sections/hero";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -20,8 +21,8 @@ export default function InitiativesPage() {
       <main className="bg-blue-200">
         <div className="mx-auto w-full max-w-7xl">
           <HeroSection />
-          <div id="initiatives-featured" className="scroll-mt-nav" />
         </div>
+        <FeaturedSection />
       </main>
     </ThemeOverrideContainer>
   );

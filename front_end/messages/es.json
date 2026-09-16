@@ -2524,5 +2524,20 @@
   "initiativeRadiantName": "Radiant",
   "initiativeRadiantTagline": "Traza el futuro antes de construirlo",
   "initiativeLaborHubName": "Labor Hub",
-  "initiativeLaborHubTagline": "El futuro de la automatización laboral con IA"
+  "initiativeLaborHubTagline": "El futuro de la automatización laboral con IA",
+  "initiativesFeaturedTitle": "Destacados de este trimestre",
+  "initiativesCategoryAI": "IA",
+  "initiativesCategoryPolicy": "Política",
+  "initiativesFeaturedLearnMoreAbout": "Más información sobre {name}",
+  "initiativesFeaturedPartneringWith": "En colaboración con",
+  "initiativesBadgeNew": "Nuevo",
+  "initiativesPartnerRenaissancePhilanthropy": "Renaissance Philanthropy",
+  "initiativesPartnerSchultzFamilyFoundation": "Schultz Family Foundation",
+  "initiativeLaborHubFeatureHeading": "Labor Hub",
+  "initiativeLaborHubFeatureDescription": "Pronósticos en tiempo real de nuestra comunidad global de pronosticadores sobre el futuro de la fuerza laboral de EE. UU. a medida que avanza la IA.",
+  "initiativesFeaturedLearnMore": "Más información",
+  "initiativeFutureEvalFeatureHeading": "FutureEval",
+  "initiativeFutureEvalFeatureDescription": "FutureEval mide la capacidad de los agentes de IA para predecir resultados futuros en diversos sectores.",
+  "initiativeMidtermsFeatureHeading": "Seguimiento de las elecciones intermedias de EE. UU. de 2026",
+  "initiativeMidtermsFeatureDescription": "Pronósticos de la comunidad de Metaculus sobre las contiendas disputadas y las políticas que moldearán el futuro."
 }

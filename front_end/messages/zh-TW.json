@@ -2521,5 +2521,20 @@
   "initiativeRadiantName": "Radiant",
   "initiativeRadiantTagline": "在建造未來之前先描繪它",
   "initiativeLaborHubName": "Labor Hub",
-  "initiativeLaborHubTagline": "AI 勞動力自動化的未來"
+  "initiativeLaborHubTagline": "AI 勞動力自動化的未來",
+  "initiativesFeaturedTitle": "本季精選",
+  "initiativesCategoryAI": "人工智慧",
+  "initiativesCategoryPolicy": "政策",
+  "initiativesFeaturedLearnMoreAbout": "進一步了解 {name}",
+  "initiativesFeaturedPartneringWith": "合作夥伴",
+  "initiativesBadgeNew": "新",
+  "initiativesPartnerRenaissancePhilanthropy": "Renaissance Philanthropy",
+  "initiativesPartnerSchultzFamilyFoundation": "Schultz Family Foundation",
+  "initiativeLaborHubFeatureHeading": "Labor Hub",
+  "initiativeLaborHubFeatureDescription": "來自我們全球預測社群的即時預測，關注 AI 發展下美國勞動力的未來。",
+  "initiativesFeaturedLearnMore": "了解更多",
+  "initiativeFutureEvalFeatureHeading": "FutureEval",
+  "initiativeFutureEvalFeatureDescription": "FutureEval 衡量 AI 代理預測各產業未來結果的能力。",
+  "initiativeMidtermsFeatureHeading": "2026 年美國期中選舉追蹤",
+  "initiativeMidtermsFeatureDescription": "Metaculus 社群對競爭激烈的選舉以及由此形塑的政策的預測。"
 }

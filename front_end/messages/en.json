@@ -2513,5 +2513,20 @@
   "initiativeRadiantName": "Radiant",
   "initiativeRadiantTagline": "Map the future before you build it",
   "initiativeLaborHubName": "Labor Hub",
-  "initiativeLaborHubTagline": "Future of the AI workforce automation"
+  "initiativeLaborHubTagline": "Future of the AI workforce automation",
+  "initiativesFeaturedTitle": "Featured this quarter",
+  "initiativesCategoryAI": "AI",
+  "initiativesCategoryPolicy": "Policy",
+  "initiativesFeaturedLearnMoreAbout": "Learn more about {name}",
+  "initiativesFeaturedPartneringWith": "Partnering with",
+  "initiativesBadgeNew": "New",
+  "initiativesPartnerRenaissancePhilanthropy": "Renaissance Philanthropy",
+  "initiativesPartnerSchultzFamilyFoundation": "Schultz Family Foundation",
+  "initiativeLaborHubFeatureHeading": "Labor Hub",
+  "initiativeLaborHubFeatureDescription": "Real-time forecasts from our global forecasting community on the future of the US workforce as AI advances.",
+  "initiativesFeaturedLearnMore": "Learn more",
+  "initiativeFutureEvalFeatureHeading": "FutureEval",
+  "initiativeFutureEvalFeatureDescription": "FutureEval measures the ability of AI agents to predict future outcomes in various industries.",
+  "initiativeMidtermsFeatureHeading": "2026 US Midterms Tracker",
+  "initiativeMidtermsFeatureDescription": "Forecasts from the Metaculus community on contested races and the policies they will shape."
 }

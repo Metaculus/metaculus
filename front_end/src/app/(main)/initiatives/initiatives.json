@@ -25,18 +25,31 @@
       "nameKey": "initiativeFutureEvalName",
       "taglineKey": "initiativeFutureEvalTagline",
       "url": "/futureeval/",
-      "brand": { "color": "#7fa9dc" },
+      "artwork": "/images/initiatives/futureeval-featured.png",
+      "brand": { "color": "#4BA79E" },
+      "categoryId": "ai",
       "order": 1,
-      "placements": ["hero"]
+      "placements": ["hero", "featured"],
+      "feature": {
+        "order": 1,
+        "headingKey": "initiativeFutureEvalFeatureHeading",
+        "descriptionKey": "initiativeFutureEvalFeatureDescription"
+      }
     },
     {
       "id": "midterms",
       "nameKey": "initiativeMidtermsName",
       "taglineKey": "initiativeMidtermsTagline",
       "url": "/midterms-2026/",
-      "brand": { "color": "#b0628f" },
+      "brand": { "color": "#2C77B4" },
+      "categoryId": "policy",
       "order": 2,
-      "placements": ["hero"]
+      "placements": ["hero", "featured"],
+      "feature": {
+        "order": 3,
+        "headingKey": "initiativeMidtermsFeatureHeading",
+        "descriptionKey": "initiativeMidtermsFeatureDescription"
+      }
     },
     {
       "id": "case-studies",
@@ -61,9 +74,26 @@
       "nameKey": "initiativeLaborHubName",
       "taglineKey": "initiativeLaborHubTagline",
       "url": "/labor-hub/",
-      "brand": { "color": "#45a48d" },
+      "artwork": "/images/initiatives/labor-hub-featured.png",
+      "brand": { "color": "#AF6994" },
+      "categoryId": "ai",
       "order": 5,
-      "placements": ["hero"]
+      "placements": ["hero", "featured"],
+      "feature": {
+        "order": 2,
+        "headingKey": "initiativeLaborHubFeatureHeading",
+        "descriptionKey": "initiativeLaborHubFeatureDescription",
+        "partners": [
+          {
+            "logo": "/partners/renaissance-philanthropy-logo.svg",
+            "nameKey": "initiativesPartnerRenaissancePhilanthropy"
+          },
+          {
+            "logo": "/partners/schultz-family-foundation-logo.svg",
+            "nameKey": "initiativesPartnerSchultzFamilyFoundation"
+          }
+        ]
+      }
     }
   ]
 }

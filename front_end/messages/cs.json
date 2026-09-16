@@ -2524,5 +2524,20 @@
   "initiativeRadiantName": "Radiant",
   "initiativeRadiantTagline": "Zmapujte budoucnost dřív, než ji postavíte",
   "initiativeLaborHubName": "Labor Hub",
-  "initiativeLaborHubTagline": "Budoucnost automatizace práce pomocí AI"
+  "initiativeLaborHubTagline": "Budoucnost automatizace práce pomocí AI",
+  "initiativesFeaturedTitle": "Vybrané iniciativy tohoto čtvrtletí",
+  "initiativesCategoryAI": "AI",
+  "initiativesCategoryPolicy": "Politika",
+  "initiativesFeaturedLearnMoreAbout": "Zjistit více o iniciativě {name}",
+  "initiativesFeaturedPartneringWith": "Ve spolupráci s",
+  "initiativesBadgeNew": "Nové",
+  "initiativesPartnerRenaissancePhilanthropy": "Renaissance Philanthropy",
+  "initiativesPartnerSchultzFamilyFoundation": "Schultz Family Foundation",
+  "initiativeLaborHubFeatureHeading": "Labor Hub",
+  "initiativeLaborHubFeatureDescription": "Aktuální předpovědi naší globální prognostické komunity o budoucnosti pracovní síly v USA s postupujícím rozvojem AI.",
+  "initiativesFeaturedLearnMore": "Zjistit více",
+  "initiativeFutureEvalFeatureHeading": "FutureEval",
+  "initiativeFutureEvalFeatureDescription": "FutureEval měří schopnost agentů AI předpovídat budoucí výsledky v různých odvětvích.",
+  "initiativeMidtermsFeatureHeading": "Přehled voleb v polovině mandátu v USA 2026",
+  "initiativeMidtermsFeatureDescription": "Předpovědi komunity Metaculus o sporných závodech a politikách, které utvářejí."
 }
