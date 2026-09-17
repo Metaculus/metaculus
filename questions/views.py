@@ -365,6 +365,12 @@ def bulk_forecast_and_comment_api_view(request):
             )
             continue
         parent = comment.get("parent")
+        if parent and parent.on_post_id != on_post.id:
+            errors.append(
+                f"Comment {i}: parent comment belongs to post "
+                f"{parent.on_post_id}, not post {on_post.id}."
+            )
+            continue
         permission = get_post_permission_for_user(
             parent.on_post if parent else on_post, user=user
         )
@@ -376,11 +382,24 @@ def bulk_forecast_and_comment_api_view(request):
     if errors:
         raise ValidationError(errors)
 
+    source = (
+        Forecast.SourceChoices.UI
+        if is_internal_request(request)
+        else Forecast.SourceChoices.API
+    )
+
     with transaction.atomic():
-        create_forecast_bulk(user=user, forecasts=forecasts_data)
+        create_forecast_bulk(
+            user=user,
+            forecasts=forecasts_data,
+            source=source,
+        )
 
         for comment_data in comments_data:
-            on_post = comment_data["on_post"]
+            parent = comment_data.get("parent")
+            # Replies are persisted on the parent's post, so the included
+            # forecast must come from that post, not the submitted one.
+            on_post = parent.on_post if parent else comment_data["on_post"]
             included_forecast_flag = comment_data.pop("included_forecast", False)
             comment_data.pop("key_factors", None)
 

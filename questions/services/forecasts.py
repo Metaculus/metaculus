@@ -191,10 +191,11 @@ def after_forecast_actions(question: Question, user: User):
             user=user, post=post, cp_change_threshold=0.1, is_global=True
         )
 
-    # Run async tasks
+    # Run async tasks once the surrounding transaction commits, so a later
+    # rollback can't leave workers rebuilding aggregates for rolled-back forecasts.
     from questions.tasks import run_build_question_forecasts
 
-    run_build_question_forecasts.send(question.id)
+    transaction.on_commit(lambda: run_build_question_forecasts.send(question.id))
 
 
 def create_forecast_bulk(
@@ -229,7 +230,11 @@ def create_forecast_bulk(
         #
         # As a temporary solution, we introduce a 10-second delay before execution
         # to ensure all forecasts are processed.
-        run_on_post_forecast.send_with_options(args=(post.id,), delay=10_000)
+        transaction.on_commit(
+            lambda post_id=post.id: run_on_post_forecast.send_with_options(
+                args=(post_id,), delay=10_000
+            )
+        )
 
 
 def withdraw_forecast_bulk(user: User = None, withdrawals: list[dict] = None):
@@ -282,7 +287,11 @@ def withdraw_forecast_bulk(user: User = None, withdrawals: list[dict] = None):
         #
         # As a temporary solution, we introduce a 10-second delay before execution
         # to ensure all forecasts are processed.
-        run_on_post_forecast.send_with_options(args=(post.id,), delay=10_000)
+        transaction.on_commit(
+            lambda post_id=post.id: run_on_post_forecast.send_with_options(
+                args=(post_id,), delay=10_000
+            )
+        )
 
 
 def update_forecast_notification(
