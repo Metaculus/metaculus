@@ -53,10 +53,10 @@ const ActiveInitiativeLink: FC<ActiveInitiativeLinkProps> = ({
       tabIndex={isActive ? undefined : -1}
       className={`group col-start-1 row-start-1 max-w-xs justify-self-center text-center no-underline ${isActive ? "" : "invisible"}`}
     >
-      <span className="block text-[24px] font-medium leading-[110%] tracking-[-0.48px] text-blue-900">
+      <span className="block text-[24px] font-medium leading-[110%] tracking-[-0.48px] text-blue-900 dark:text-blue-900-dark">
         {name}
       </span>
-      <span className="mt-3 block text-balance text-[18px] font-normal leading-[140%] text-blue-900">
+      <span className="mt-3 block text-balance text-[18px] font-normal leading-[140%] text-blue-900 dark:text-blue-900-dark">
         {t(initiative.taglineKey)}{" "}
         <FontAwesomeIcon
           icon={faArrowRight}
@@ -365,7 +365,7 @@ const InitiativeCarousel: FC<Props> = ({
                       })}
                       aria-current={!isRepeat && realIndex === selectedIndex}
                       onClick={() => emblaApi?.scrollTo(index)}
-                      className="block rounded-[22%] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-800 focus-visible:ring-offset-2"
+                      className="block rounded-[22%] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-800 focus-visible:ring-offset-2 dark:focus-visible:ring-blue-800-dark dark:focus-visible:ring-offset-blue-200-dark"
                     >
                       <InitiativeMark
                         initiative={initiative}
@@ -379,8 +379,8 @@ const InitiativeCarousel: FC<Props> = ({
             })}
           </ul>
         </div>
-        <div className="pointer-events-none absolute inset-y-0 left-0 w-10 bg-gradient-to-r from-blue-200 to-transparent" />
-        <div className="pointer-events-none absolute inset-y-0 right-0 w-10 bg-gradient-to-l from-blue-200 to-transparent" />
+        <div className="pointer-events-none absolute inset-y-0 left-0 w-10 bg-gradient-to-r from-blue-200 to-transparent dark:from-blue-200-dark" />
+        <div className="pointer-events-none absolute inset-y-0 right-0 w-10 bg-gradient-to-l from-blue-200 to-transparent dark:from-blue-200-dark" />
       </div>
 
       <div

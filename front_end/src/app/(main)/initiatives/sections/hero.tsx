@@ -12,19 +12,22 @@ const HeroSection = async () => {
   const heroInitiatives = getInitiativesByPlacement("hero");
 
   return (
-    <section className="flex flex-col items-center gap-8 px-4 pb-10 pt-14 text-center xl:pb-20">
+    <section className="flex flex-col items-center gap-8 px-5 pb-10 pt-14 text-center md:px-12 xl:pb-20">
       <div className="flex flex-col items-center gap-6">
-        <p className="m-0 flex items-center gap-2 text-xs font-medium uppercase tracking-[0.12em] text-blue-700">
-          <span aria-hidden="true" className="size-1.5 bg-blue-700" />
+        <p className="m-0 flex items-center gap-2 text-xs font-medium uppercase tracking-[0.12em] text-blue-700 dark:text-blue-700-dark">
+          <span
+            aria-hidden="true"
+            className="size-1.5 bg-blue-700 dark:bg-blue-700-dark"
+          />
           {t(hero.eyebrowKey)}
         </p>
 
-        <h1 className="m-0 max-w-[764px] text-balance  text-[44px] font-medium leading-[100%] tracking-[-1.7px] text-blue-900 md:text-[60px] md:tracking-[-2.8px]">
+        <h1 className="m-0 max-w-[764px] text-balance  text-[44px] font-medium leading-[100%] tracking-[-1.7px] text-blue-900 dark:text-blue-900-dark md:text-[60px] md:tracking-[-2.8px]">
           {t(hero.headingKey)}
         </h1>
       </div>
 
-      <p className="m-0 w-full max-w-[676px] text-base font-normal leading-[160%] text-blue-900 md:text-[18px]">
+      <p className="m-0 w-full max-w-[676px] text-base font-normal leading-[160%] text-blue-900 dark:text-blue-900-dark md:text-[18px]">
         {t(hero.descriptionKey)}
       </p>
 
@@ -40,7 +43,7 @@ const HeroSection = async () => {
                 "h-[42px] rounded-md px-[18px] py-0 text-sm leading-[14px]",
                 action.variant === "primary" && "text-white",
                 action.variant === "secondary" &&
-                  "border-[rgba(33,48,67,0.40)] bg-transparent font-semibold text-blue-900"
+                  "border-[rgba(33,48,67,0.40)] bg-transparent font-semibold text-blue-900 dark:border-blue-500-dark dark:bg-transparent dark:text-blue-900-dark"
               )}
             >
               {t(action.labelKey)}
@@ -50,7 +53,7 @@ const HeroSection = async () => {
       )}
 
       {heroInitiatives.length > 0 && (
-        <div className="-mx-4 mt-4 w-[calc(100%+2rem)] md:mt-12">
+        <div className="-mx-5 mt-4 w-[calc(100%+2.5rem)] md:-mx-12 md:mt-12 md:w-[calc(100%+6rem)]">
           <InitiativeCarousel
             initiatives={heroInitiatives}
             initialInitiativeId={hero.initialInitiativeId}

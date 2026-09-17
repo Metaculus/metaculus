@@ -37,6 +37,26 @@ export type Initiative = {
 
 export type FeaturedInitiative = Initiative & { feature: InitiativeFeature };
 
+export type TestimonialAccent = "blue" | "purple";
+
+export type InitiativesTestimonial = {
+  id: string;
+  quoteKey: TranslationKey;
+  authorKey: TranslationKey;
+  roleKey: TranslationKey;
+  avatar?: string;
+  accent?: TestimonialAccent;
+};
+
+export type TestimonialContent = {
+  id: string;
+  quote: string;
+  author: string;
+  role: string;
+  avatar?: string;
+  accent?: TestimonialAccent;
+};
+
 export type InitiativesHeroAction = {
   id: string;
   labelKey: TranslationKey;
@@ -54,5 +74,6 @@ export type InitiativesHero = {
 
 export type InitiativesPageData = {
   hero: InitiativesHero;
+  testimonials?: InitiativesTestimonial[];
   initiatives: Initiative[];
 };
