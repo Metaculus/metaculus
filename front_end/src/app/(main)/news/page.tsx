@@ -7,6 +7,7 @@ import LoadingIndicator from "@/components/ui/loading_indicator";
 import { POST_NEWS_TYPE_FILTER } from "@/constants/posts_feed";
 import ServerProjectsApi from "@/services/api/projects/projects.server";
 import { SearchParams } from "@/types/navigation";
+import { TilePlacement } from "@/types/projects";
 import { QuestionOrder } from "@/types/question";
 
 import NewsFilters from "./components/news_filters";
@@ -60,7 +61,12 @@ export default async function NewsFeed(props: {
             <LoadingIndicator className="mx-auto h-8 w-24 text-gray-600 dark:text-gray-600-dark" />
           }
         >
-          <AwaitedPostsFeed filters={filters} type="news" forceLayout="list" />
+          <AwaitedPostsFeed
+            filters={filters}
+            type="news"
+            forceLayout="list"
+            tilePlacement={TilePlacement.NEWS_FEED}
+          />
         </Suspense>
       </div>
     </main>

@@ -19,6 +19,7 @@ import serverMiscApi from "@/services/api/misc/misc.server";
 import ServerProfileApi from "@/services/api/profile/profile.server";
 import ServerProjectsApi from "@/services/api/projects/projects.server";
 import { SearchParams } from "@/types/navigation";
+import { TilePlacement } from "@/types/projects";
 import { QuestionOrder } from "@/types/question";
 import { InterfaceType } from "@/types/users";
 
@@ -128,7 +129,8 @@ export default async function Questions(props: {
                       isCommunity={false}
                       clientFilterOptions={feedFilterOptions}
                       isFeedQueryProvided
-                      showProjectTiles={Object.keys(searchParams).every(
+                      tilePlacement={TilePlacement.QUESTIONS_FEED}
+                      prefetchTiles={Object.keys(searchParams).every(
                         (key) => key === POST_PAGE_FILTER
                       )}
                     />

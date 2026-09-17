@@ -14,7 +14,7 @@ type Props = {
   current: TournamentsSection;
   tournaments: TournamentPreview[];
   children: React.ReactNode;
-  nowTs?: number;
+  nowTs: number;
 };
 
 const TournamentsScreen: React.FC<Props> = ({

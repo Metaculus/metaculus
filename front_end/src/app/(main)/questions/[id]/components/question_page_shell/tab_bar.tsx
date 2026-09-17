@@ -34,6 +34,7 @@ type TabDef = {
   key: TabKey;
   label: string;
   count?: number;
+  indicator?: boolean;
 };
 
 type Props = {
@@ -53,9 +54,11 @@ const tabClassName = (isActive: boolean) =>
 
 const QuestionPageShellTabBar: FC<Props> = ({ post, variant, className }) => {
   const t = useTranslations();
-  const { activeTab, setActiveTab } = useQuestionLayout();
+  const { activeTab, setActiveTab, privateNoteText } = useQuestionLayout();
   const { user } = useAuth();
   const isAdmin = !!(user?.is_staff || user?.is_superuser);
+  const hasPrivateNote =
+    (privateNoteText ?? post.private_note?.text ?? "").trim().length > 0;
 
   const isSm = useBreakpoint("sm");
   const { hideCP } = useHideCP();
@@ -84,7 +87,11 @@ const QuestionPageShellTabBar: FC<Props> = ({ post, variant, className }) => {
     { key: "info", label: t("info") },
     ...newsHotnessTab,
     { key: "question-links", label: t("questionLinks") },
-    { key: "private-notes", label: t("privateNotes") },
+    {
+      key: "private-notes",
+      label: t("privateNotes"),
+      indicator: hasPrivateNote,
+    },
     ...(hasSimilarQuestionsTab
       ? [
           {
@@ -149,9 +156,16 @@ const QuestionPageShellTabBar: FC<Props> = ({ post, variant, className }) => {
             scrollOnSelect={false}
             dynamicClassName={tabClassName}
           >
-            {tab.count !== undefined
-              ? `${tab.label} (${tab.count})`
-              : tab.label}
+            {tab.indicator ? (
+              <span className="inline-flex items-center gap-1.5">
+                <span className="size-2.5 shrink-0 rounded-full bg-orange-500 dark:bg-orange-500-dark" />
+                <span>{tab.label}</span>
+              </span>
+            ) : tab.count !== undefined ? (
+              `${tab.label} (${tab.count})`
+            ) : (
+              tab.label
+            )}
           </TabsTab>
         ))}
       </TabsList>

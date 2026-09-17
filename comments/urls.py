@@ -10,6 +10,7 @@ urlpatterns = [
         name="comment-delete",
     ),
     path("comments/<int:pk>/edit/", common.comment_edit_api_view, name="comment-edit"),
+    path("comments/<int:pk>/", common.comment_detail_api_view, name="comment-detail"),
     path("comments/<int:pk>/vote/", common.comment_vote_api_view, name="comment-vote"),
     path(
         "comments/<int:pk>/toggle_cmm/",

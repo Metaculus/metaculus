@@ -24,13 +24,9 @@ const ForecastMaker: FC<Props> = ({ post, onPredictionSubmit }) => {
   const t = useTranslations();
   const { user } = useAuth();
 
-  // Bots predict via API; hide the maker so its default starting curve isn't
-  // mistaken for the bot's actual forecast.
-  if (user?.is_bot) {
-    return null;
-  }
-
   const { group_of_questions: groupOfQuestions, conditional, question } = post;
+  // Bots submit via API, so canPredictQuestion returns false for them; the
+  // panel still renders read-only so they can see their latest forecast.
   const canPredict = canPredictQuestion(post, user);
   const isPrePrediction = isPostPrePrediction(post);
   const predictLabel = isPrePrediction ? t("prePredict") : t("predict");

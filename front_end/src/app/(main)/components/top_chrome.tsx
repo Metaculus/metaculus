@@ -3,6 +3,7 @@ import { logError } from "@/utils/core/errors";
 import { ApiForecastingBanner } from "./api_forecasting_banner_server";
 import Bulletins from "./bulletins";
 import ContentTranslatedBanner from "./content_translated_banner";
+import EmailConfirmBanner from "./email_confirm_banner";
 import { ImpersonationBanner } from "./impersonation_banner_server";
 import { TopChromeClient } from "./top_chrome_client";
 import {
@@ -81,6 +82,9 @@ export const TopChrome = ({
       )}
       <TopChromePartErrorBoundary name="api forecasting banner">
         <SafeApiForecastingBanner />
+      </TopChromePartErrorBoundary>
+      <TopChromePartErrorBoundary name="email confirm banner">
+        <EmailConfirmBanner />
       </TopChromePartErrorBoundary>
       {!hideTranslationBanner && (
         <TopChromePartErrorBoundary name="translation banner">

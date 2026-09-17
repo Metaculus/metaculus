@@ -61,7 +61,14 @@ export const PostSubscriptionProvider: React.FC<
 
   const handleSubscribe = useCallback(async () => {
     if (!user) {
-      setCurrentModal({ type: "signup" });
+      setCurrentModal({
+        type: "emailCapture",
+        data: {
+          trigger: "post_subscribe",
+          surface: "postSubscribeButton",
+          subscribePost: { postId: post.id, isNotebook: !!post.notebook },
+        },
+      });
       return;
     }
 

@@ -17,6 +17,7 @@ from questions.models import Question
 from questions.services.forecasts import build_question_forecasts
 from utils.csv_utils import export_all_data_for_questions
 from utils.models import CustomTranslationAdmin
+from utils.translation import automatic_translations_enabled
 
 
 @admin.register(Post)
@@ -166,6 +167,12 @@ class PostAdmin(CustomTranslationAdmin):
         return self.export_selected_posts_data(request, queryset, anonymized=True)
 
     def update_translations(self, request, posts_qs):
+        if not automatic_translations_enabled():
+            messages.warning(
+                request, "Automatic translations are disabled, nothing was translated."
+            )
+            return
+
         for post in posts_qs:
             trigger_update_post_translations(post, with_comments=True, force=True)
 

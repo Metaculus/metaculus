@@ -11,6 +11,7 @@ import { POSTS_PER_PAGE } from "@/constants/posts_feed";
 import serverMiscApi from "@/services/api/misc/misc.server";
 import ServerPostsApi from "@/services/api/posts/posts.server";
 import { PostsParams } from "@/services/api/posts/posts.shared";
+import { TilePlacement } from "@/types/projects";
 import { logError } from "@/utils/core/errors";
 import { getPublicSettings } from "@/utils/public_settings.server";
 
@@ -18,7 +19,11 @@ type Props = {
   filters: PostsParams;
   type?: PostsFeedType;
   isCommunity?: boolean;
-  showProjectTiles?: boolean;
+  tilePlacement?: TilePlacement;
+  // SSR-only: whether to prefetch tiles server-side for this render. Unlike
+  // `tilePlacement`, this must NOT be forwarded to the client component — the
+  // client re-derives "should tiles show right now" live from feedQueryParams.
+  prefetchTiles?: boolean;
   forceLayout?: FeedLayout;
   clientFilterOptions?: FiltersFromSearchParamsOptions;
   isFeedQueryProvided?: boolean;
@@ -34,13 +39,15 @@ const AwaitedPostsFeed: FC<Props> = async ({
   filters,
   type,
   isCommunity,
-  showProjectTiles,
+  tilePlacement,
+  prefetchTiles = true,
   forceLayout,
   clientFilterOptions,
   isFeedQueryProvided,
 }) => {
   const { PUBLIC_MINIMAL_UI } = getPublicSettings();
-  const skipTiles = !showProjectTiles || isCommunity || PUBLIC_MINIMAL_UI;
+  const skipTiles =
+    !tilePlacement || !prefetchTiles || isCommunity || PUBLIC_MINIMAL_UI;
   const hydrationPageNumber = getHydrationPageNumber(filters.page);
 
   const [{ count, results: questions }, projectTiles] = await Promise.all([
@@ -63,6 +70,7 @@ const AwaitedPostsFeed: FC<Props> = async ({
       initialCount={count}
       initialProjectTiles={projectTiles}
       type={type}
+      tilePlacement={tilePlacement}
       isCommunity={isCommunity}
       forceLayout={forceLayout}
       clientFilterOptions={clientFilterOptions}

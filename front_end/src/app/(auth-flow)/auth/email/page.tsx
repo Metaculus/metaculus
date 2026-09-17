@@ -12,9 +12,12 @@ export default async function EmailLinkAuthPage(props: {
   const { user_id, token, redirect_url } = await props.searchParams;
   const t = await getTranslations();
 
+  // Deliberately outside the (main) route group: no navbar, footer or banners,
+  // so nothing appears and disappears around the loading state while the link
+  // is being consumed.
   return (
-    <main className="mx-auto flex min-h-min w-full max-w-3xl flex-auto flex-col items-center rounded bg-gray-0 px-4 py-10 dark:bg-gray-0-dark sm:p-8 lg:my-8">
-      <noscript>{t("emailLinkNoScript")}</noscript>
+    <main className="flex min-h-screen w-full flex-col">
+      <noscript className="p-4 text-center">{t("emailLinkNoScript")}</noscript>
       <EmailLinkVerify
         userId={user_id ?? ""}
         token={token ?? ""}

@@ -356,7 +356,7 @@ export default function LaborAutomationHubPage() {
               of governments and organizations at everyone else&apos;s expense.
             </ActivityCard>
             <ContentParagraph small>
-              With only 13% of workers using AI daily as of early 2026, the
+              With only 15% of workers using AI daily as of May 2026, the
               workplace is still in the early stages of an adoption curve that
               could fundamentally change how most Americans do their jobs within
               a decade. But forecasters note that some people may only think
@@ -780,7 +780,7 @@ export default function LaborAutomationHubPage() {
             <ContentParagraph>
               The healthcare sector (employing 13% of Washington residents) is
               forecasted to grow through 2027, largely unaffected by AI in this
-              timeframe. Aerospace (employing 2%) is expected to see minor
+              timeframe. Aerospace (employing 2%) is expected to see similar
               growth in the short-term, while technology (employing 10%) is
               expected to stay roughly flat, largely consistent with historical
               trends. These forecasts are short-term, leading to minimal

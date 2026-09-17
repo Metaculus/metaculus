@@ -25,7 +25,17 @@ const AuthProvider: FC<
   }>
 > = ({ user: initialUser, children, locale }) => {
   const [user, setUser] = useState<CurrentUser | null>(initialUser);
+  const [syncedUser, setSyncedUser] = useState<CurrentUser | null>(initialUser);
   const posthog = usePostHog();
+
+  // Adjust during render rather than in an effect: child effects run before
+  // parent effects, so a page mounting right after logout would otherwise
+  // read the signed-out user as still signed in for one commit — which is how
+  // the tutorial popped up on the storefront after logging out.
+  if (initialUser !== syncedUser) {
+    setSyncedUser(initialUser);
+    setUser(initialUser);
+  }
 
   useEffect(() => {
     if (initialUser) {
@@ -42,8 +52,6 @@ const AuthProvider: FC<
         posthog.reset();
       }
     }
-
-    setUser(initialUser);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialUser, posthog]);
 

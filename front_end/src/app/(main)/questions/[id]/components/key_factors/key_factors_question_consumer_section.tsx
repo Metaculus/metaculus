@@ -17,7 +17,6 @@ import {
 import KeyFactorDetailOverlay from "./key_factor_detail_overlay";
 import KeyFactorsCarousel from "./key_factors_carousel";
 import KeyFactorsConsumerCarousel from "./key_factors_consumer_carousel";
-import { useShouldHideKeyFactors } from "./use_should_hide_key_factors";
 import { useQuestionLayout } from "../question_layout/question_layout_context";
 
 type Props = {
@@ -33,14 +32,11 @@ const KeyFactorsQuestionConsumerSection: FC<Props> = ({ post }) => {
     openKeyFactorOverlay,
     closeKeyFactorOverlay,
   } = useQuestionLayout();
-  const shouldHideKeyFactors = useShouldHideKeyFactors();
 
   const { items: topItems, totalCount } = useTopKeyFactorsCarouselItems({
     keyFactors,
     limit: MAX_TOP_KEY_FACTORS,
   });
-
-  if (shouldHideKeyFactors) return null;
 
   if (post.status === PostStatus.RESOLVED) return null;
 

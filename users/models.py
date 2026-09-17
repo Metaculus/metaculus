@@ -221,6 +221,11 @@ class User(TimeStampedModel, AbstractUser):
                 models.Func("username", function="UPPER"),
                 name="upper_username_idx",
             ),
+            models.Index(
+                fields=["id"],
+                name="user_is_staff_idx",
+                condition=models.Q(is_staff=True),
+            ),
         ]
         constraints = [
             models.CheckConstraint(

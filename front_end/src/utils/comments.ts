@@ -17,6 +17,7 @@ export function parseComment(
     created_at: comment.created_at,
     text_edited_at: comment.text_edited_at,
     is_soft_deleted: comment.is_soft_deleted,
+    is_text_archived: comment.is_text_archived,
     included_forecast: comment.included_forecast,
     is_private: comment.is_private,
     vote_score: comment.vote_score,

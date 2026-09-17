@@ -46,7 +46,7 @@ export function isBotUserAgent(userAgent: string): boolean {
   return BOT_UA_REGEX.test(userAgent);
 }
 
-function getPostHogDistinctIdFromCookie(
+export function getPostHogDistinctIdFromCookie(
   request: NextRequest,
   posthogKey: string
 ): string | null {

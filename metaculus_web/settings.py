@@ -429,6 +429,12 @@ AWS_QUERYSTRING_AUTH = False
 AWS_STORAGE_BUCKET_POST_VERSION_HISTORY = os.environ.get(
     "AWS_STORAGE_BUCKET_POST_VERSION_HISTORY"
 )
+# S3 bucket holding the `comments_text/` prefix of archived comment texts.
+# Comment text archiving will be disabled if this isn’t set. There is
+# deliberately no fallback to another bucket: the archive is the only copy of
+# the text, so a missing setting must disable the feature rather than silently
+# write somewhere unintended.
+AWS_STORAGE_BUCKET_COMMENTS_TEXT = os.environ.get("AWS_STORAGE_BUCKET_COMMENTS_TEXT")
 
 # Cloudflare captcha
 # https://developers.cloudflare.com/turnstile/get-started/server-side-validation/
@@ -603,6 +609,13 @@ LOCALE_PATHS = (os.path.join(os.path.dirname(__file__), "locale"),)
 
 GOOGLE_TRANSLATE_SERVICE_ACCOUNT_KEY = os.environ.get(
     "GOOGLE_TRANSLATE_SERVICE_ACCOUNT_KEY", None
+)
+
+# Machine translation of new/edited content. When disabled, the whole
+# translation machinery stays in place (already translated content is still
+# served), but no new content is sent to the translation service.
+AUTOMATIC_TRANSLATIONS_ENABLED = (
+    os.environ.get("AUTOMATIC_TRANSLATIONS_ENABLED", "false").lower() == "true"
 )
 
 CAMPAIGN_USER_REGISTRATION_HOOK_KEY_URL_PAIR = os.environ.get(

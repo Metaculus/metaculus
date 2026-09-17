@@ -3,11 +3,11 @@
 import { faPercent } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useTranslations } from "next-intl";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import BaseModal from "@/components/base_modal";
 import ForecastMaker from "@/components/forecast_maker";
-import MobileAccordionModal from "@/components/forecast_maker/continuous_group_accordion/group_forecast_accordion_modal";
+import BottomDrawer from "@/components/ui/bottom_drawer";
 import Button from "@/components/ui/button";
 import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
@@ -26,16 +26,22 @@ const QuestionPredictButton: React.FC<Props> = ({ post, className }) => {
   const [isOpen, setIsOpen] = useState(false);
   const isDesktop = useBreakpoint("sm");
   const { user } = useAuth();
-  const { setCurrentModal } = useModal();
+  const { currentModal } = useModal();
+
+  // Only one surface at a time: when the maker's gate opens a global modal
+  // (email capture, signup), dismiss the maker instead of stacking under it
+  useEffect(() => {
+    if (currentModal) {
+      setIsOpen(false);
+    }
+  }, [currentModal]);
 
   const handleClick = () => {
-    if (!user) {
-      setCurrentModal({ type: "signin" });
+    if (user?.is_bot) {
       return;
     }
-    if (user.is_bot) {
-      return;
-    }
+    // Logged-out users get the forecast maker too; its submit button gates
+    // into the email-capture drawer carrying the drafted forecast
     setIsOpen(true);
   };
 
@@ -51,16 +57,21 @@ const QuestionPredictButton: React.FC<Props> = ({ post, className }) => {
       </Button>
 
       {!isDesktop ? (
-        <MobileAccordionModal
-          isOpen={isOpen}
-          onClose={() => setIsOpen(false)}
+        <BottomDrawer
+          open={isOpen}
+          onOpenChange={(open) => {
+            if (!open) setIsOpen(false);
+          }}
           title={post.question?.title ?? ""}
+          titleClassName="text-lg font-semibold leading-6"
         >
-          <ForecastMaker
-            post={post}
-            onPredictionSubmit={() => setIsOpen(false)}
-          />
-        </MobileAccordionModal>
+          <div className="pt-3">
+            <ForecastMaker
+              post={post}
+              onPredictionSubmit={() => setIsOpen(false)}
+            />
+          </div>
+        </BottomDrawer>
       ) : (
         <BaseModal
           isOpen={isOpen}

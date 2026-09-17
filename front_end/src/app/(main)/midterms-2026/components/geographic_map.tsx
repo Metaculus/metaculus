@@ -3,6 +3,7 @@
 import { CustomProjection } from "@visx/geo";
 import { geoAlbersUsa } from "d3-geo";
 import type { Feature as GeoFeature, Geometry } from "geojson";
+import { useTranslations } from "next-intl";
 import {
   CSSProperties,
   FC,
@@ -23,7 +24,6 @@ import type {
 } from "topojson-specification";
 
 import { MIDTERMS_COLORS, STATE_NAMES } from "../constants";
-import MapLegend from "./map_legend";
 import MapTooltipPortal from "./map_tooltip_portal";
 import StateTooltipContent from "./state_tooltip";
 import { SenateRaceWithQuestion } from "../helpers/post_utils";
@@ -88,8 +88,10 @@ const FIPS_TO_ABBR: Record<string, string> = {
 
 type Props = {
   races: SenateRaceWithQuestion[];
-  /** Tabs slot (rendered absolute top-left). */
+  /** Tabs slot (rendered top-left of the header overlay). */
   tabsSlot?: ReactNode;
+  /** Optional summary line, centered between the tabs and the legend. */
+  summarySlot?: ReactNode;
 };
 
 type HoverState = {
@@ -107,12 +109,21 @@ const MAP_VIEWBOX_HEIGHT = 540;
 const MAP_SCALE = 1000;
 const MAP_TRANSLATE: [number, number] = [400, 270];
 
-// Light-mode default/hover opacities for uncontested states.
-const UNCONTESTED_OPACITY_DEFAULT = 0.75;
+// Rest opacity for states with no forecast. Light mode halves it: the toss-up
+// fill is a warm grey-beige that sits close enough to the uncontested grey that a
+// genuinely balanced race reads as an unforecast one. Letting the grey recede
+// further into the card separates them. Dark mode already does, so it keeps the
+// original value.
+const UNCONTESTED_OPACITY_DEFAULT_DARK = 0.75;
+const UNCONTESTED_OPACITY_DEFAULT_LIGHT = 0.375;
 const UNCONTESTED_OPACITY_HOVER = 1;
 
-const GeographicMap: FC<Props> = ({ races, tabsSlot }) => {
+const GeographicMap: FC<Props> = ({ races, tabsSlot, summarySlot }) => {
+  const t = useTranslations();
   const isDark = useIsDark();
+  const uncontestedOpacity = isDark
+    ? UNCONTESTED_OPACITY_DEFAULT_DARK
+    : UNCONTESTED_OPACITY_DEFAULT_LIGHT;
 
   const strokeColor = isDark
     ? MIDTERMS_COLORS.cardBgDark
@@ -232,13 +243,20 @@ const GeographicMap: FC<Props> = ({ races, tabsSlot }) => {
       ref={containerRef}
       className="geo-map-container relative h-full w-full"
     >
-      {tabsSlot && (
-        <div className="absolute left-5 top-5 z-10 md:left-10 md:top-10">
-          {tabsSlot}
+      {/* Header overlay: tabs on the left, summary on the right. Absolutely
+          positioned as one row so a wrapping summary grows over the map instead
+          of pushing it down, while the gap keeps it clear of the tabs.
+          The summary occupies the corner the party legend used to; its own
+          alignment comes from the className the caller passes, since this cell
+          can't override a class the summary sets on itself. */}
+      {/* Flush to the container: the map column's own padding provides the inset,
+          so the summary clears the dividing rule by the same 40px as everything
+          else. */}
+      <div className="absolute inset-x-0 top-0 z-10 flex items-start gap-6 md:gap-10">
+        {tabsSlot && <div className="shrink-0">{tabsSlot}</div>}
+        <div className="pointer-events-none min-w-0 flex-1 pt-1.5">
+          {summarySlot}
         </div>
-      )}
-      <div className="absolute right-5 top-5 z-10 md:right-10 md:top-12 lg:right-0">
-        <MapLegend />
       </div>
       <div className="h-full w-full">
         <svg
@@ -254,22 +272,38 @@ const GeographicMap: FC<Props> = ({ races, tabsSlot }) => {
               parsed.map(({ feature: geo, path: dAttr }, i) => {
                 const abbr = FIPS_TO_ABBR[String(geo.id ?? "")];
                 const race = abbr ? racesByState.get(abbr) : undefined;
-                const isContested = race !== undefined;
-                const isHovered = hovered?.abbr === abbr;
+                // Three kinds of state, not two. A race with a question opens
+                // it; a safe seat is painted for its party but leads nowhere;
+                // everything else — an unrated race and a state with no 2026
+                // contest alike — stays grey. `href` rather than the presence of
+                // a race is what makes a state interactive, so a race whose
+                // question failed to load no longer offers a dead click.
+                const canOpen = race?.href != null;
+                const safeParty = race?.rating ?? null;
+                // `abbr` is undefined for the territories the topology carries
+                // but the abbreviation map does not. Without the guard those
+                // compare undefined === undefined against an empty hover state
+                // and render permanently hovered.
+                const isHovered = abbr != null && hovered?.abbr === abbr;
 
-                const fillColor = isContested
-                  ? getStateColor(race?.demWinPct ?? null)
-                  : isHovered
-                    ? uncontestedHoverFill
-                    : uncontestedFill;
+                // Safe seats take the spectrum endpoint, so they read exactly as
+                // a ~99% forecast would. The tooltip is what tells them apart.
+                const fillColor = safeParty
+                  ? getStateColor(safeParty === "D" ? 100 : 0)
+                  : race?.demWinPct != null
+                    ? getStateColor(race.demWinPct)
+                    : isHovered
+                      ? uncontestedHoverFill
+                      : uncontestedFill;
+                // Anything painted a party color behaves like a forecast state
+                // for stroke, opacity and hover feedback.
+                const isFilled = safeParty != null || race?.demWinPct != null;
 
                 const stateName = abbr ? STATE_NAMES[abbr] ?? abbr : "";
                 // Mouse enter/leave is wired on every state with a known
-                // abbreviation — contested AND uncontested — so all of
-                // them get a hover fill swap. The tooltip + click +
-                // keyboard handlers are still contested-only; for
-                // uncontested states `hoveredRace` is undefined so the
-                // tooltip block below short-circuits.
+                // abbreviation, so all of them get a hover fill swap. Whether a
+                // tooltip appears is decided by `hoveredRace` below: present for
+                // all three race kinds, absent for a state with no 2026 contest.
                 const hoverHandlers = abbr
                   ? {
                       onMouseEnter: (e: MouseEvent<SVGPathElement>) =>
@@ -277,11 +311,13 @@ const GeographicMap: FC<Props> = ({ races, tabsSlot }) => {
                       onMouseLeave: handleLeave,
                     }
                   : {};
-                const interactiveProps = isContested
+                const interactiveProps = canOpen
                   ? {
                       tabIndex: 0,
                       role: "button",
-                      "aria-label": `${stateName} — view forecast question`,
+                      "aria-label": t("midtermsHubViewForecastAria", {
+                        state: stateName,
+                      }),
                       "aria-haspopup": "dialog" as const,
                       ...hoverHandlers,
                       onFocus: (e: FocusEvent<SVGPathElement>) =>
@@ -299,23 +335,23 @@ const GeographicMap: FC<Props> = ({ races, tabsSlot }) => {
                 // collapse to a single inline style toggled off it.
                 const style: CSSProperties = isHovered
                   ? {
-                      fill: isContested ? fillColor : uncontestedHoverFill,
+                      fill: isFilled ? fillColor : uncontestedHoverFill,
                       stroke: strokeColor,
-                      strokeWidth: isContested ? 2 : 1.5,
+                      strokeWidth: isFilled ? 2 : 1.5,
                       outline: "none",
-                      cursor: isContested ? "pointer" : "default",
-                      opacity: isContested ? 1 : UNCONTESTED_OPACITY_HOVER,
+                      cursor: canOpen ? "pointer" : "default",
+                      opacity: isFilled ? 1 : UNCONTESTED_OPACITY_HOVER,
                       transition:
                         "fill 150ms ease-out, opacity 150ms ease-out, filter 150ms ease-out",
-                      filter: isContested ? "brightness(0.9)" : undefined,
+                      filter: isFilled ? "brightness(0.9)" : undefined,
                     }
                   : {
                       fill: fillColor,
                       stroke: strokeColor,
                       strokeWidth: 1.5,
                       outline: "none",
-                      cursor: isContested ? "pointer" : "default",
-                      opacity: isContested ? 1 : UNCONTESTED_OPACITY_DEFAULT,
+                      cursor: canOpen ? "pointer" : "default",
+                      opacity: isFilled ? 1 : uncontestedOpacity,
                       transition:
                         "fill 150ms ease-out, opacity 150ms ease-out, filter 150ms ease-out",
                     };

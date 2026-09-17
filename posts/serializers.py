@@ -298,8 +298,9 @@ class PostFilterSerializer(SerializerKeyLookupMixin, serializers.Serializer):
             return [v.strip() for v in value[0].split(",")]
         return value
 
-    def validate_order_by(self, value: str):
-        if value.lstrip("-") in self.Order:
+    def validate_order_by(self, value: str | None):
+        # An empty `order_by=` query param arrives as None (allow_null=True)
+        if value and value.lstrip("-") in self.Order:
             return value
 
         return
@@ -329,8 +330,8 @@ class OldQuestionFilterSerializer(SerializerKeyLookupMixin, serializers.Serializ
     def validate_project(self, value):
         return validate_tournaments(lookup_values=[str(value)])
 
-    def validate_order_by(self, value: str):
-        order_by = value.lstrip("-")
+    def validate_order_by(self, value: str | None):
+        order_by = value.lstrip("-") if value else ""
         if order_by == "hotness":
             return "activity"
         if order_by in PostFilterSerializer.Order:

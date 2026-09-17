@@ -8,7 +8,7 @@ from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
-from rest_framework.serializers import DateTimeField
+from rest_framework.serializers import BooleanField, DateTimeField
 
 
 from comments.serializers.common import CommentWriteSerializer
@@ -80,7 +80,15 @@ def resolve_api_view(request, pk: int):
     actual_resolve_time = DateTimeField().run_validation(
         request.data.get("actual_resolve_time")
     )
-    resolve_question(question, resolution, actual_resolve_time)
+    # Scoring runs inside this request by default, so that a failure or a timeout
+    # undoes the resolution. Opting in to `score_as_task` hands scoring back to a
+    # background task, which resolves immediately but reports nothing here.
+    score_as_task = BooleanField().run_validation(
+        request.data.get("score_as_task", False)
+    )
+    resolve_question(
+        question, resolution, actual_resolve_time, score_as_task=score_as_task
+    )
 
     return Response({"post_id": question.get_post().pk})
 

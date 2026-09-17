@@ -1,5 +1,6 @@
 import logging
-from datetime import datetime, timezone as dt_timezone, timedelta
+from datetime import datetime, timedelta
+from datetime import timezone as dt_timezone
 
 import numpy as np
 from django.utils import timezone
@@ -11,11 +12,11 @@ from questions.constants import UnsuccessfulResolutionType
 from questions.models import (
     DEFAULT_INBOUND_OUTCOME_COUNT,
     QUESTION_CONTINUOUS_TYPES,
-    Question,
-    Conditional,
-    GroupOfQuestions,
     AggregateForecast,
+    Conditional,
     Forecast,
+    GroupOfQuestions,
+    Question,
 )
 from questions.serializers.aggregate_forecasts import serialize_question_aggregations
 from questions.services.multiple_choice_handlers import get_all_options_from_history
@@ -26,9 +27,9 @@ from utils.the_math.formulas import (
     unscaled_location_to_scaled_location,
 )
 from utils.the_math.measures import (
+    get_difference_display,
     percent_point_function,
     prediction_difference_for_sorting,
-    get_difference_display,
 )
 
 logger = logging.getLogger(__name__)
@@ -40,6 +41,7 @@ class QuestionSerializer(serializers.ModelSerializer):
     resolution = serializers.SerializerMethodField()
     spot_scoring_time = serializers.SerializerMethodField()
     all_options_ever = serializers.SerializerMethodField()
+    inbound_outcome_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Question
@@ -80,10 +82,15 @@ class QuestionSerializer(serializers.ModelSerializer):
             "group_rank",
         )
 
+    def get_inbound_outcome_count(self, question: Question) -> int | None:
+        if question.type in QUESTION_CONTINUOUS_TYPES:
+            return question.get_inbound_outcome_count()
+
     def get_scaling(self, question: Question):
         continuous_range = None
         nominal_min = question.range_min
         nominal_max = question.range_max
+        inbound_outcome_count = self.get_inbound_outcome_count(question)
         if question.type in QUESTION_CONTINUOUS_TYPES:
 
             def format_value(val):
@@ -93,11 +100,7 @@ class QuestionSerializer(serializers.ModelSerializer):
 
             # locations where CDF is evaluated
             continuous_range = []
-            for x in np.linspace(
-                0,
-                1,
-                (question.inbound_outcome_count or DEFAULT_INBOUND_OUTCOME_COUNT) + 1,
-            ):
+            for x in np.linspace(0, 1, inbound_outcome_count + 1):
                 val = unscaled_location_to_scaled_location(x, question)
                 continuous_range.append(format_value(val))
             if question.type == Question.QuestionType.DISCRETE:
@@ -111,7 +114,7 @@ class QuestionSerializer(serializers.ModelSerializer):
             "zero_point": question.zero_point,
             "open_upper_bound": question.open_upper_bound,
             "open_lower_bound": question.open_lower_bound,
-            "inbound_outcome_count": question.inbound_outcome_count,
+            "inbound_outcome_count": inbound_outcome_count,
             "continuous_range": continuous_range,
         }
 
@@ -217,6 +220,14 @@ class QuestionWriteSerializer(serializers.ModelSerializer):
                 errors.append("Range Max is required for continuous questions")
             if data.get("range_min") is None:
                 errors.append("Range Min is required for continuous questions")
+            inbound_outcome_count = data.get("inbound_outcome_count")
+            if inbound_outcome_count is None:
+                errors.append(
+                    "Inbound Outcome Count is required for continuous questions "
+                    f"(default: {DEFAULT_INBOUND_OUTCOME_COUNT})"
+                )
+            elif inbound_outcome_count < 1:
+                errors.append("Inbound Outcome Count must be positive")
 
         if errors:
             raise serializers.ValidationError(errors)
@@ -272,11 +283,19 @@ class ConditionalWriteSerializer(serializers.ModelSerializer):
         model = Conditional
         fields = ("condition_id", "condition_child_id")
 
-    def validate_condition_id(self, value):
-        question = Question.objects.filter(pk=value).first()
+    def _get_viewable_question(self, question_id: int) -> Question:
+        question = Question.objects.filter(
+            pk=question_id,
+            post__in=Post.objects.filter_permission(user=self.context.get("user")),
+        ).first()
 
         if not question:
-            raise ValidationError("Condition does not exist")
+            raise ValidationError("Question ID does not exist")
+
+        return question
+
+    def validate_condition_id(self, value):
+        question = self._get_viewable_question(value)
 
         if question.type != Question.QuestionType.BINARY:
             raise ValidationError("Condition can only be binary question")
@@ -284,10 +303,7 @@ class ConditionalWriteSerializer(serializers.ModelSerializer):
         return value
 
     def validate_condition_child_id(self, value):
-        question = Question.objects.filter(pk=value).first()
-
-        if not question:
-            raise ValidationError("Condition Child does not exist")
+        self._get_viewable_question(value)
 
         return value
 
@@ -451,9 +467,9 @@ class ForecastWriteSerializer(serializers.ModelSerializer):
         if probability_yes is None:
             raise serializers.ValidationError("probability_yes is required")
         probability_yes = float(probability_yes)
-        if probability_yes < 0.001 or probability_yes > 0.999:
+        if not (probability_yes >= 0.001 and probability_yes <= 0.999):
             raise serializers.ValidationError(
-                "probability_yes should be between 0.001 and 0.999"
+                "probability_yes should be between 0.001 and 0.999 (inclusive)"
             )
         return probability_yes
 

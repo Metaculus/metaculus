@@ -3,6 +3,8 @@
 import { useTranslations } from "next-intl";
 import { FC } from "react";
 
+import cn from "@/utils/core/cn";
+
 import { MIDTERMS_COLORS, STATE_NAMES } from "../constants";
 import { SenateRaceWithQuestion } from "../helpers/post_utils";
 
@@ -15,9 +17,21 @@ const StateTooltipContent: FC<Props> = ({ race, demWinPct }) => {
   const t = useTranslations();
   const stateName = STATE_NAMES[race.state] ?? race.name;
 
-  const isDem = demWinPct != null && demWinPct >= 50;
-  const probLabel =
-    demWinPct == null
+  // Three kinds of race share this tooltip. A safe seat states its rating and
+  // stops — there is no question to open. An unrated one says so plainly, in
+  // grey rather than a party color, since naming a side is exactly what it
+  // cannot do. Only a race with a forecast invites a click.
+  const safeParty = race.rating;
+  const isDem = safeParty
+    ? safeParty === "D"
+    : demWinPct != null && demWinPct >= 50;
+  const hasSide = safeParty != null || demWinPct != null;
+
+  const label = safeParty
+    ? safeParty === "D"
+      ? t("midtermsHubSafeDem")
+      : t("midtermsHubSafeRep")
+    : demWinPct == null
       ? t("midtermsHubNoForecast")
       : isDem
         ? t("midtermsHubDemPct", { pct: demWinPct })
@@ -30,19 +44,28 @@ const StateTooltipContent: FC<Props> = ({ race, demWinPct }) => {
       </h4>
       <div className="text-sm tabular-nums">
         <span
-          className="font-semibold"
-          style={{
-            color: isDem
-              ? MIDTERMS_COLORS.demPrimary
-              : MIDTERMS_COLORS.repPrimary,
-          }}
+          className={cn(
+            "font-semibold",
+            !hasSide && "text-gray-700 dark:text-gray-700-dark"
+          )}
+          style={
+            hasSide
+              ? {
+                  color: isDem
+                    ? MIDTERMS_COLORS.demPrimary
+                    : MIDTERMS_COLORS.repPrimary,
+                }
+              : undefined
+          }
         >
-          {probLabel}
+          {label}
         </span>
       </div>
-      <p className="m-0 text-xs text-gray-700 underline decoration-gray-400 underline-offset-2 dark:text-gray-700-dark dark:decoration-gray-400-dark">
-        {t("midtermsHubClickToView")}
-      </p>
+      {race.href && (
+        <p className="m-0 text-xs text-gray-700 underline decoration-gray-400 underline-offset-2 dark:text-gray-700-dark dark:decoration-gray-400-dark">
+          {t("midtermsHubClickToView")}
+        </p>
+      )}
     </div>
   );
 };

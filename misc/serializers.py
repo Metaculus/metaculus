@@ -19,6 +19,7 @@ class AdTileSerializer(serializers.ModelSerializer):
             "cta_text",
             "url",
             "exposure_rate",
+            "placements",
             "project_id",
         )
 

@@ -1031,7 +1031,12 @@ class PostUserSnapshot(models.Model):
                 fields=["user", "-private_note_updated_at"],
                 name="posts_postuser_notes_idx",
                 condition=~Q(private_note=""),
-            )
+            ),
+            models.Index(
+                fields=["post", "user"],
+                name="posts_postuser_forecasted_idx",
+                condition=Q(last_forecast_date__isnull=False),
+            ),
         ]
 
     @classmethod

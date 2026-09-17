@@ -53,6 +53,19 @@ function someQuestionIn(
 export const shouldPostShowScores = (post: PostWithForecasts) =>
   someQuestionIn(post, shouldQuestionShowScores);
 
+/**
+ * A question that resolved successfully but has no community scores. Expected
+ * only while scoring is still running (or after it failed), so it is worth
+ * pointing admins at the Django admin action that re-triggers it.
+ */
+const isQuestionMissingScores = (question: QuestionWithForecasts) =>
+  !isNil(question.resolution) &&
+  !isUnsuccessfullyResolved(question.resolution) &&
+  !shouldQuestionShowScores(question); // has no scores
+
+export const isPostMissingScores = (post: PostWithForecasts) =>
+  someQuestionIn(post, isQuestionMissingScores);
+
 export const shouldPostShowUserScores = (post: PostWithForecasts) =>
   someQuestionIn(post, shouldQuestionShowUserScores);
 

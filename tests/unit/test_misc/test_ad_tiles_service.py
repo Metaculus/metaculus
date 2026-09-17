@@ -115,3 +115,15 @@ def test_combined_tiles_excludes_dismissed_ad(user1):
 
     assert all(t["id"] != ad_tile_dismiss_id(ad) for t in tiles)
     get_feed_project_tiles.clear_cache()
+
+
+def test_combined_tiles_expose_ad_placements(user1):
+    cache.clear()
+    get_feed_project_tiles.clear_cache()
+    factory_ad_tile(title="News only", placements=["news_feed"])
+
+    tiles = get_combined_feed_tiles(user1)
+    ad_tiles = [t for t in tiles if t["type"] == "ad"]
+
+    assert ad_tiles[0]["ad"]["placements"] == ["news_feed"]
+    get_feed_project_tiles.clear_cache()
