@@ -17,14 +17,20 @@ export function getInitiativesByPlacement(
 ): Initiative[] {
   return initiativesPageData.initiatives
     .filter((initiative) => initiative.placements.includes(placement))
-    .sort((a, b) => a.order - b.order);
+    .sort((a, b) =>
+      placement === "inventory"
+        ? (a.inventoryOrder ?? a.order) - (b.inventoryOrder ?? b.order)
+        : a.order - b.order
+    );
 }
 
 export function getFeaturedInitiatives(): FeaturedInitiative[] {
   return initiativesPageData.initiatives
     .filter(
       (initiative): initiative is FeaturedInitiative =>
-        initiative.placements.includes("featured") && !!initiative.feature
+        initiative.placements.includes("featured") &&
+        !!initiative.feature &&
+        !!initiative.brand
     )
     .sort((a, b) => a.feature.order - b.feature.order);
 }

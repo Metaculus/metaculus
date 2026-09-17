@@ -40,14 +40,18 @@ export type Initiative = {
   url: string;
   logo?: string;
   artwork?: string;
-  brand: InitiativeBrand;
+  brand?: InitiativeBrand;
   categoryId?: string;
   order: number;
+  inventoryOrder?: number;
   placements: InitiativePlacement[];
   feature?: InitiativeFeature;
 };
 
-export type FeaturedInitiative = Initiative & { feature: InitiativeFeature };
+export type FeaturedInitiative = Initiative & {
+  brand: InitiativeBrand;
+  feature: InitiativeFeature;
+};
 
 export type TestimonialAccent = "blue" | "purple";
 

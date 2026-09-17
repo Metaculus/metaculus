@@ -35,7 +35,8 @@
       "brand": { "color": "#4BA79E" },
       "categoryId": "ai",
       "order": 1,
-      "placements": ["hero", "featured"],
+      "inventoryOrder": 1,
+      "placements": ["hero", "featured", "inventory"],
       "feature": {
         "order": 1,
         "headingKey": "initiativeFutureEvalFeatureHeading",
@@ -50,7 +51,8 @@
       "brand": { "color": "#2C77B4" },
       "categoryId": "policy",
       "order": 2,
-      "placements": ["hero", "featured"],
+      "inventoryOrder": 3,
+      "placements": ["hero", "featured", "inventory"],
       "feature": {
         "order": 3,
         "headingKey": "initiativeMidtermsFeatureHeading",
@@ -84,7 +86,8 @@
       "brand": { "color": "#AF6994" },
       "categoryId": "ai",
       "order": 5,
-      "placements": ["hero", "featured"],
+      "inventoryOrder": 2,
+      "placements": ["hero", "featured", "inventory"],
       "feature": {
         "order": 2,
         "headingKey": "initiativeLaborHubFeatureHeading",

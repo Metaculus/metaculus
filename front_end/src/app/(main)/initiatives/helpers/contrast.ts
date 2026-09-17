@@ -1,6 +1,8 @@
 const LIGHT_FOREGROUND = "#ffffff";
 const DARK_FOREGROUND = "#283441";
 
+export const DEFAULT_INITIATIVE_COLOR = "#2f4155";
+
 function toLinear(channel: number): number {
   const value = channel / 255;
   return value <= 0.03928

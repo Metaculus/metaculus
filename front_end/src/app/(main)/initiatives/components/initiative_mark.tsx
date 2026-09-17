@@ -4,7 +4,10 @@ import { CSSProperties, FC } from "react";
 import cn from "@/utils/core/cn";
 
 import { resolveAssetSource } from "../helpers/assets";
-import { getReadableForeground } from "../helpers/contrast";
+import {
+  DEFAULT_INITIATIVE_COLOR,
+  getReadableForeground,
+} from "../helpers/contrast";
 import { Initiative } from "../types";
 
 type Props = {
@@ -15,6 +18,7 @@ type Props = {
 
 const InitiativeMark: FC<Props> = ({ initiative, name, className }) => {
   const { logo, brand } = initiative;
+  const color = brand?.color ?? DEFAULT_INITIATIVE_COLOR;
   const logoSource = logo ? resolveAssetSource(logo) : null;
 
   return (
@@ -25,8 +29,8 @@ const InitiativeMark: FC<Props> = ({ initiative, name, className }) => {
       )}
       style={
         {
-          "--initiative-brand": brand.color,
-          "--initiative-mark-foreground": getReadableForeground(brand.color),
+          "--initiative-brand": color,
+          "--initiative-mark-foreground": getReadableForeground(color),
         } as CSSProperties
       }
     >
