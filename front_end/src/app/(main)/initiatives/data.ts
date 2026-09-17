@@ -3,8 +3,11 @@ import {
   FeaturedInitiative,
   Initiative,
   InitiativePlacement,
+  InitiativesInventoryFilter,
   InitiativesPageData,
 } from "./types";
+
+export const ALL_INITIATIVES_FILTER_ID = "all";
 
 export const initiativesPageData =
   rawInitiativesPageData as InitiativesPageData;
@@ -24,4 +27,14 @@ export function getFeaturedInitiatives(): FeaturedInitiative[] {
         initiative.placements.includes("featured") && !!initiative.feature
     )
     .sort((a, b) => a.feature.order - b.feature.order);
+}
+
+export function getInventoryFilters(): InitiativesInventoryFilter[] {
+  return [
+    {
+      id: ALL_INITIATIVES_FILTER_ID,
+      labelKey: "initiativesInventoryFilterAll",
+    },
+    ...(initiativesPageData.categories ?? []),
+  ];
 }

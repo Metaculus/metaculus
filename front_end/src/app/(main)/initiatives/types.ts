@@ -7,6 +7,18 @@ export type InitiativeBrand = {
   color: string;
 };
 
+export type InitiativeCategory = {
+  id: string;
+  labelKey: TranslationKey;
+};
+
+export type InitiativesInventoryFilter = {
+  id: string;
+  labelKey: TranslationKey;
+};
+
+export type InitiativesInventoryView = "list" | "grid";
+
 export type InitiativePartner = {
   logo: string;
   nameKey: TranslationKey;
@@ -75,5 +87,6 @@ export type InitiativesHero = {
 export type InitiativesPageData = {
   hero: InitiativesHero;
   testimonials?: InitiativesTestimonial[];
+  categories?: InitiativeCategory[];
   initiatives: Initiative[];
 };

@@ -2540,5 +2540,13 @@
   "initiativeFutureEvalFeatureDescription": "FutureEval mide la capacidad de los agentes de IA para predecir resultados futuros en diversos sectores.",
   "initiativeMidtermsFeatureHeading": "Seguimiento de las elecciones intermedias de EE. UU. de 2026",
   "initiativeMidtermsFeatureDescription": "Pronósticos de la comunidad de Metaculus sobre las contiendas disputadas y las políticas que moldearán el futuro.",
-  "initiativesTestimonialsTitle": "Lo que dicen nuestros socios"
+  "initiativesTestimonialsTitle": "Lo que dicen nuestros socios",
+  "initiativesInventoryTitle": "Todas las iniciativas",
+  "initiativesInventoryFilterLabel": "Filtrar iniciativas",
+  "initiativesInventoryFilterAll": "Todas",
+  "initiativesInventoryViewLabel": "Vista",
+  "initiativesInventoryViewList": "Lista",
+  "initiativesInventoryViewGrid": "Cuadrícula",
+  "initiativesCategoryHealthBio": "Salud y biología",
+  "initiativesCategoryScience": "Ciencia"
 }

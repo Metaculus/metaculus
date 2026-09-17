@@ -2542,5 +2542,13 @@
   "initiativeFutureEvalFeatureDescription": "FutureEval 衡量 AI 智能体预测各行业未来结果的能力。",
   "initiativeMidtermsFeatureHeading": "2026 年美国中期选举追踪",
   "initiativeMidtermsFeatureDescription": "Metaculus 社区对竞争激烈的选举以及由此塑造的政策的预测。",
-  "initiativesTestimonialsTitle": "合作伙伴怎么说"
+  "initiativesTestimonialsTitle": "合作伙伴怎么说",
+  "initiativesInventoryTitle": "全部项目",
+  "initiativesInventoryFilterLabel": "筛选项目",
+  "initiativesInventoryFilterAll": "全部",
+  "initiativesInventoryViewLabel": "视图",
+  "initiativesInventoryViewList": "列表",
+  "initiativesInventoryViewGrid": "网格",
+  "initiativesCategoryHealthBio": "健康与生物",
+  "initiativesCategoryScience": "科学"
 }

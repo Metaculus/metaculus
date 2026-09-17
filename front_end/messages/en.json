@@ -2529,5 +2529,13 @@
   "initiativeFutureEvalFeatureDescription": "FutureEval measures the ability of AI agents to predict future outcomes in various industries.",
   "initiativeMidtermsFeatureHeading": "2026 US Midterms Tracker",
   "initiativeMidtermsFeatureDescription": "Forecasts from the Metaculus community on contested races and the policies they will shape.",
-  "initiativesTestimonialsTitle": "What our partners say"
+  "initiativesTestimonialsTitle": "What our partners say",
+  "initiativesInventoryTitle": "All initiatives",
+  "initiativesInventoryFilterLabel": "Filter initiatives",
+  "initiativesInventoryFilterAll": "All",
+  "initiativesInventoryViewLabel": "View",
+  "initiativesInventoryViewList": "List",
+  "initiativesInventoryViewGrid": "Grid",
+  "initiativesCategoryHealthBio": "Health & Bio",
+  "initiativesCategoryScience": "Science"
 }

@@ -19,6 +19,12 @@
       }
     ]
   },
+  "categories": [
+    { "id": "health-bio", "labelKey": "initiativesCategoryHealthBio" },
+    { "id": "ai", "labelKey": "initiativesCategoryAI" },
+    { "id": "science", "labelKey": "initiativesCategoryScience" },
+    { "id": "policy", "labelKey": "initiativesCategoryPolicy" }
+  ],
   "initiatives": [
     {
       "id": "futureeval",

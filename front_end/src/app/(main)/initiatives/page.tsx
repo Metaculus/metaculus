@@ -3,6 +3,7 @@ import { getTranslations } from "next-intl/server";
 
 import FeaturedSection from "./sections/featured";
 import HeroSection from "./sections/hero";
+import InventorySection from "./sections/inventory";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations();
@@ -19,7 +20,10 @@ export default function InitiativesPage() {
       <div className="mx-auto w-full max-w-7xl">
         <HeroSection />
       </div>
-      <FeaturedSection />
+      <div className="flex flex-col gap-[110px] bg-gray-0 dark:bg-gray-0-dark">
+        <FeaturedSection />
+        <InventorySection />
+      </div>
     </main>
   );
 }
