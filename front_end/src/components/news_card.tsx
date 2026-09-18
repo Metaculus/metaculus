@@ -53,12 +53,12 @@ const NewsCard: FC<Props> = ({ post }) => {
             {post.title}
           </h2>
           {/*
-            Fixed-height summary slot (48px = 2 lines at text-base). Whatever
-            is rendered inside is truncated by CSS: `line-clamp-2` adds the
+            Fixed-height summary slot (72px = 3 lines at text-base). Whatever
+            is rendered inside is truncated by CSS: `line-clamp-3` adds the
             ellipsis and `overflow-hidden` clips anything the clamp can't
             handle (e.g. multiple blocks in a custom Feed Tile Summary).
           */}
-          <div ref={ref} className="mb-3 h-12 overflow-hidden">
+          <div ref={ref} className="mb-3 h-[72px] overflow-hidden">
             {!!width && (
               <MarkdownEditor
                 mode="read"
@@ -67,10 +67,10 @@ const NewsCard: FC<Props> = ({ post }) => {
                   getMarkdownSummary({
                     markdown: post.notebook.markdown,
                     width,
-                    height: 48,
+                    height: 72,
                   })
                 }
-                contentEditableClassName="line-clamp-2 font-serif !text-gray-700 !dark:text-gray-700-dark *:m-0"
+                contentEditableClassName="line-clamp-3 font-serif !text-gray-700 !dark:text-gray-700-dark *:m-0"
                 withUgcLinks
               />
             )}
