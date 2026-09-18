@@ -12,10 +12,7 @@ export type InitiativeCategory = {
   labelKey: TranslationKey;
 };
 
-export type InitiativesInventoryFilter = {
-  id: string;
-  labelKey: TranslationKey;
-};
+export type InitiativesInventoryFilter = InitiativeCategory;
 
 export type InitiativesInventoryView = "list" | "grid";
 
@@ -36,7 +33,9 @@ export type InitiativeFeature = {
 export type Initiative = {
   id: string;
   nameKey: TranslationKey;
-  taglineKey: TranslationKey;
+  taglineKey?: TranslationKey;
+  inventoryNameKey?: TranslationKey;
+  inventoryDescriptionKey?: TranslationKey;
   url: string;
   logo?: string;
   artwork?: string;
@@ -60,15 +59,6 @@ export type InitiativesTestimonial = {
   quoteKey: TranslationKey;
   authorKey: TranslationKey;
   roleKey: TranslationKey;
-  avatar?: string;
-  accent?: TestimonialAccent;
-};
-
-export type TestimonialContent = {
-  id: string;
-  quote: string;
-  author: string;
-  role: string;
   avatar?: string;
   accent?: TestimonialAccent;
 };

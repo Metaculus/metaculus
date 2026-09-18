@@ -84,6 +84,7 @@
       "id": "midterms",
       "nameKey": "initiativeMidtermsName",
       "taglineKey": "initiativeMidtermsTagline",
+      "inventoryNameKey": "initiativeMidtermsFeatureHeading",
       "url": "/midterms-2026/",
       "brand": { "color": "#2C77B4" },
       "categoryId": "policy",
@@ -100,19 +101,25 @@
       "id": "case-studies",
       "nameKey": "initiativeCaseStudiesName",
       "taglineKey": "initiativeCaseStudiesTagline",
+      "inventoryDescriptionKey": "initiativeCaseStudiesInventoryDescription",
       "url": "/services/",
-      "brand": { "color": "#d7c3af" },
+      "brand": { "color": "#C0B7AD" },
+      "categoryId": "policy",
       "order": 3,
-      "placements": ["hero"]
+      "inventoryOrder": 4,
+      "placements": ["hero", "inventory"]
     },
     {
       "id": "radiant",
       "nameKey": "initiativeRadiantName",
       "taglineKey": "initiativeRadiantTagline",
+      "inventoryDescriptionKey": "initiativeRadiantInventoryDescription",
       "url": "/notebooks/42293/map-the-future-before-you-build-it/",
       "brand": { "color": "#f95700" },
+      "categoryId": "ai",
       "order": 4,
-      "placements": ["hero"]
+      "inventoryOrder": 5,
+      "placements": ["hero", "inventory"]
     },
     {
       "id": "labor-hub",
@@ -145,111 +152,111 @@
     {
       "id": "frontiers-disease-prevention",
       "nameKey": "initiativeFrontiersDiseaseName",
-      "taglineKey": "initiativeFrontiersDiseaseDescription",
+      "inventoryDescriptionKey": "initiativeFrontiersDiseaseDescription",
       "url": "/notebooks/43979/frontiers-in-disease-prevention-findings/",
       "brand": { "color": "#B5793A" },
       "categoryId": "health-bio",
-      "order": 4,
+      "order": 6,
       "placements": ["inventory"]
     },
     {
       "id": "global-health-monitor",
       "nameKey": "initiativeGlobalHealthMonitorName",
-      "taglineKey": "initiativeGlobalHealthMonitorDescription",
+      "inventoryDescriptionKey": "initiativeGlobalHealthMonitorDescription",
       "url": "/tournament/global-health-monitor-26-27/",
       "brand": { "color": "#4E8C5A" },
       "categoryId": "health-bio",
-      "order": 5,
+      "order": 7,
       "placements": ["inventory"]
     },
     {
       "id": "us-democracy-threat-index",
       "nameKey": "initiativeDemocracyThreatName",
-      "taglineKey": "initiativeDemocracyThreatDescription",
+      "inventoryDescriptionKey": "initiativeDemocracyThreatDescription",
       "url": "/index/us-democracy-threat/",
       "brand": { "color": "#A0493F" },
       "categoryId": "policy",
-      "order": 6,
+      "order": 8,
       "placements": ["inventory"]
     },
     {
       "id": "research-agencies-outlook",
       "nameKey": "initiativeResearchAgenciesName",
-      "taglineKey": "initiativeResearchAgenciesDescription",
+      "inventoryDescriptionKey": "initiativeResearchAgenciesDescription",
       "url": "/notebooks/39977/report-pro-forecasters-expect-steady-nih-and-nsf-funding/",
       "brand": { "color": "#5B5FA8" },
       "categoryId": "science",
-      "order": 7,
+      "order": 9,
       "placements": ["inventory"]
     },
     {
       "id": "ai-diffusion-index",
       "nameKey": "initiativeAIDiffusionName",
-      "taglineKey": "initiativeAIDiffusionDescription",
+      "inventoryDescriptionKey": "initiativeAIDiffusionDescription",
       "url": "/index/diffusion-index/",
       "brand": { "color": "#9C4F6B" },
       "categoryId": "ai",
-      "order": 8,
+      "order": 10,
       "placements": ["inventory"]
     },
     {
       "id": "agi-2030-readiness-index",
       "nameKey": "initiativeAGIReadinessName",
-      "taglineKey": "initiativeAGIReadinessDescription",
+      "inventoryDescriptionKey": "initiativeAGIReadinessDescription",
       "url": "/index/agi-readiness-index/",
       "brand": { "color": "#2F7FA0" },
-      "categoryId": "ai",
-      "order": 9,
-      "placements": ["inventory"]
-    },
-    {
-      "id": "cdc-expert-elicitation",
-      "nameKey": "initiativeCDCExpertElicitationName",
-      "taglineKey": "initiativeCDCExpertElicitationDescription",
-      "url": "https://www.cdc.gov/cfa-qualitative-assessments/php/data-research/season-outlook25-26-dec-update.html",
-      "brand": { "color": "#7A8B3A" },
-      "categoryId": "health-bio",
-      "order": 10,
-      "placements": ["inventory"]
-    },
-    {
-      "id": "threshold-2030",
-      "nameKey": "initiativeThreshold2030Name",
-      "taglineKey": "initiativeThreshold2030Description",
-      "url": "/notebooks/30299/threshold-2030-modeling-ai-economic-futures/",
-      "brand": { "color": "#3E8E7E" },
       "categoryId": "ai",
       "order": 11,
       "placements": ["inventory"]
     },
     {
-      "id": "scale-is-all-you-need",
-      "nameKey": "initiativeScaleIsAllYouNeedName",
-      "taglineKey": "initiativeScaleIsAllYouNeedDescription",
-      "url": "/notebooks/27413/scale-is-all-you-need-a-synthetic-biology-workshop-with-astera/",
-      "brand": { "color": "#C2553F" },
+      "id": "cdc-expert-elicitation",
+      "nameKey": "initiativeCDCExpertElicitationName",
+      "inventoryDescriptionKey": "initiativeCDCExpertElicitationDescription",
+      "url": "https://www.cdc.gov/cfa-qualitative-assessments/php/data-research/season-outlook25-26-dec-update.html",
+      "brand": { "color": "#7A8B3A" },
       "categoryId": "health-bio",
       "order": 12,
       "placements": ["inventory"]
     },
     {
+      "id": "threshold-2030",
+      "nameKey": "initiativeThreshold2030Name",
+      "inventoryDescriptionKey": "initiativeThreshold2030Description",
+      "url": "/notebooks/30299/threshold-2030-modeling-ai-economic-futures/",
+      "brand": { "color": "#3E8E7E" },
+      "categoryId": "ai",
+      "order": 13,
+      "placements": ["inventory"]
+    },
+    {
+      "id": "scale-is-all-you-need",
+      "nameKey": "initiativeScaleIsAllYouNeedName",
+      "inventoryDescriptionKey": "initiativeScaleIsAllYouNeedDescription",
+      "url": "/notebooks/27413/scale-is-all-you-need-a-synthetic-biology-workshop-with-astera/",
+      "brand": { "color": "#C2553F" },
+      "categoryId": "health-bio",
+      "order": 14,
+      "placements": ["inventory"]
+    },
+    {
       "id": "fro-casting",
       "nameKey": "initiativeFroCastingName",
-      "taglineKey": "initiativeFroCastingDescription",
+      "inventoryDescriptionKey": "initiativeFroCastingDescription",
       "url": "/notebooks/19150/fro-casting-to-support-a-new-research-model/",
       "brand": { "color": "#8E5BA6" },
       "categoryId": "science",
-      "order": 13,
+      "order": 15,
       "placements": ["inventory"]
     },
     {
       "id": "ai-nuclear-landscape",
       "nameKey": "initiativeAINuclearLandscapeName",
-      "taglineKey": "initiativeAINuclearLandscapeDescription",
+      "inventoryDescriptionKey": "initiativeAINuclearLandscapeDescription",
       "url": "https://securityandtechnology.org/virtual-library/report/forecasting-the-ai-and-nuclear-landscape/",
       "brand": { "color": "#3F6E9E" },
       "categoryId": "policy",
-      "order": 14,
+      "order": 16,
       "placements": ["inventory"]
     }
   ]

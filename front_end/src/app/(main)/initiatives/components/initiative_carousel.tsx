@@ -54,32 +54,43 @@ const ActiveInitiativeLink: FC<ActiveInitiativeLinkProps> = ({
       aria-label={t("initiativesCarouselVisitInitiative", { name })}
       aria-hidden={!isActive}
       tabIndex={isActive ? undefined : -1}
-      className={`group col-start-1 row-start-1 max-w-xs justify-self-center text-center no-underline ${isActive ? "" : "invisible"}`}
+      className={cn(
+        "group col-start-1 row-start-1 max-w-xs justify-self-center text-center no-underline",
+        !isActive && "invisible"
+      )}
     >
       <span className="block text-[24px] font-medium leading-[110%] tracking-[-0.48px] text-blue-900 dark:text-blue-900-dark">
         {name}
       </span>
-      <span className="mt-3 block text-balance text-[18px] font-normal leading-[140%] text-blue-900 dark:text-blue-900-dark">
-        {t(initiative.taglineKey)}{" "}
-        <FontAwesomeIcon
-          icon={faArrowRight}
-          aria-hidden="true"
-          className="h-3 w-3 align-baseline transition-transform group-hover:translate-x-1 group-focus-visible:translate-x-1 motion-reduce:transition-none"
-        />
-      </span>
+      {initiative.taglineKey && (
+        <span className="mt-3 block text-balance text-[18px] font-normal leading-[140%] text-blue-900 dark:text-blue-900-dark">
+          {t(initiative.taglineKey)}{" "}
+          <FontAwesomeIcon
+            icon={faArrowRight}
+            aria-hidden="true"
+            className="h-3 w-3 align-baseline transition-transform group-hover:translate-x-1 group-focus-visible:translate-x-1 motion-reduce:transition-none"
+          />
+        </span>
+      )}
     </Link>
   );
 };
 
-const InitiativeDetails: FC<{
+type InitiativeDetailsProps = {
   initiatives: Initiative[];
   selectedIndex: number;
   className?: string;
-}> = ({ initiatives, selectedIndex, className }) => {
+};
+
+const InitiativeDetails: FC<InitiativeDetailsProps> = ({
+  initiatives,
+  selectedIndex,
+  className,
+}) => {
   const t = useTranslations();
 
   return (
-    <div className={`grid w-full grid-cols-1 ${className ?? ""}`}>
+    <div className={cn("grid w-full grid-cols-1", className)}>
       {initiatives.map((initiative, index) => (
         <ActiveInitiativeLink
           key={initiative.id}

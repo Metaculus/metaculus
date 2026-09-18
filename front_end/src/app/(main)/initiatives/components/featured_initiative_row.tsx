@@ -20,32 +20,29 @@ const FeaturedInitiativeRow: FC<Props> = ({ initiative, artworkSide }) => {
   const t = useTranslations();
   const { feature } = initiative;
   const name = t(initiative.nameKey);
-  const artwork = resolveAssetSource(
-    initiative.artwork ?? INITIATIVE_FALLBACK_ARTWORK
-  );
 
   return (
     <article
       className={cn(
-        "grid grid-cols-1 gap-12 md:gap-6",
+        "grid grid-cols-1 gap-12 xl:gap-6",
         artworkSide === "start"
-          ? "md:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]"
-          : "md:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]"
+          ? "xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]"
+          : "xl:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]"
       )}
     >
       <div
         className={cn(
           "relative aspect-[1800/1310] w-full overflow-hidden",
-          artworkSide === "start" ? "md:col-start-1" : "md:col-start-2"
+          artworkSide === "start" ? "xl:col-start-1" : "xl:col-start-2"
         )}
         style={{ backgroundColor: initiative.brand.color }}
       >
         <Image
-          src={artwork.src}
+          src={initiative.artwork ?? INITIATIVE_FALLBACK_ARTWORK}
           unoptimized
           alt=""
           fill
-          sizes="(min-width: 1024px) 640px, (min-width: 768px) calc((100vw - 64px) * 2 / 3), (min-width: 640px) calc(100vw - 32px), 100vw"
+          sizes="(min-width: 1280px) 66vw, 100vw"
           className="object-cover"
         />
       </div>
@@ -54,8 +51,8 @@ const FeaturedInitiativeRow: FC<Props> = ({ initiative, artworkSide }) => {
         className={cn(
           "flex min-w-0 flex-col items-start justify-between gap-8 text-left",
           artworkSide === "start"
-            ? "md:col-start-2 md:row-start-1"
-            : "md:col-start-1 md:row-start-1"
+            ? "xl:col-start-2 xl:row-start-1"
+            : "xl:col-start-1 xl:row-start-1"
         )}
       >
         <div className="flex flex-col items-start gap-6">

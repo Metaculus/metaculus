@@ -28,7 +28,6 @@ type Props = {
   view: InitiativesInventoryView;
   onViewChange: (view: InitiativesInventoryView) => void;
   resultsId?: string;
-  className?: string;
 };
 
 const InventoryToolbar: FC<Props> = ({
@@ -38,17 +37,16 @@ const InventoryToolbar: FC<Props> = ({
   view,
   onViewChange,
   resultsId,
-  className,
 }) => {
   const t = useTranslations();
 
   return (
-    <div className={cn("flex items-center", className)}>
+    <div className="flex items-center">
       <div className="min-w-0 flex-1 overflow-x-auto pb-[3px] no-scrollbar">
         <div
           role="group"
           aria-label={t("initiativesInventoryFilterLabel")}
-          className="flex w-max min-w-full gap-4 border-b border-blue-400 dark:border-blue-400-dark"
+          className="flex w-max min-w-full gap-4 border-b border-[#C8D3D7] dark:border-blue-400-dark"
         >
           {filters.map(({ id, labelKey }) => {
             const isActive = id === activeFilterId;
@@ -77,7 +75,7 @@ const InventoryToolbar: FC<Props> = ({
       <div
         role="group"
         aria-label={t("initiativesInventoryViewLabel")}
-        className="flex shrink-0 items-start rounded-lg border border-[#C8D3D7] bg-[#F8FDFD] p-[3px] dark:border-blue-400-dark dark:bg-blue-100-dark max-[768px]:hidden"
+        className="hidden shrink-0 items-start rounded-lg border border-[#C8D3D7] bg-[#F8FDFD] p-[3px] dark:border-blue-400-dark dark:bg-blue-100-dark min-[769px]:flex"
       >
         {VIEW_OPTIONS.map(({ value, labelKey, Icon }) => {
           const isActive = value === view;

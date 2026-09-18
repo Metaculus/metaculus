@@ -22,7 +22,7 @@ const HeroSection = async () => {
           {t(hero.eyebrowKey)}
         </p>
 
-        <h1 className="m-0 max-w-[764px] text-balance  text-[44px] font-medium leading-[100%] tracking-[-1.7px] text-blue-900 dark:text-blue-900-dark md:text-[60px] md:tracking-[-2.8px]">
+        <h1 className="m-0 max-w-[764px] text-balance text-[44px] font-medium leading-[100%] tracking-[-1.7px] text-blue-900 dark:text-blue-900-dark md:text-[60px] md:tracking-[-2.8px]">
           {t(hero.headingKey)}
         </h1>
       </div>

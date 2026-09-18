@@ -1,7 +1,9 @@
-const LIGHT_FOREGROUND = "#ffffff";
-const DARK_FOREGROUND = "#283441";
+import { METAC_COLORS } from "@/constants/colors";
 
-export const DEFAULT_INITIATIVE_COLOR = "#2f4155";
+const LIGHT_FOREGROUND = METAC_COLORS.gray["0"].DEFAULT;
+const DARK_FOREGROUND = METAC_COLORS.blue["900"].DEFAULT;
+
+export const DEFAULT_INITIATIVE_COLOR = METAC_COLORS.blue["800"].DEFAULT;
 
 function toLinear(channel: number): number {
   const value = channel / 255;

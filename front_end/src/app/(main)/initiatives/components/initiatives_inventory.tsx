@@ -14,43 +14,41 @@ import {
 } from "../types";
 
 const RESULTS_ID = "initiatives-inventory-results";
+const DESKTOP_VIEW_QUERY = "(min-width: 769px)";
 
 type Props = {
   initiatives: Initiative[];
   filters: InitiativesInventoryFilter[];
-  initialFilterId: string;
+  allFilterId: string;
 };
 
-const MOBILE_LIST_QUERY = "(max-width: 768px)";
-
 const subscribeToViewport = (callback: () => void) => {
-  const mediaQuery = window.matchMedia(MOBILE_LIST_QUERY);
+  const mediaQuery = window.matchMedia(DESKTOP_VIEW_QUERY);
   mediaQuery.addEventListener("change", callback);
   return () => mediaQuery.removeEventListener("change", callback);
 };
 
-const getMobileSnapshot = () => window.matchMedia(MOBILE_LIST_QUERY).matches;
-const getServerSnapshot = () => false;
+const getDesktopSnapshot = () => window.matchMedia(DESKTOP_VIEW_QUERY).matches;
+const getServerSnapshot = () => true;
 
 const InitiativesInventory: FC<Props> = ({
   initiatives,
   filters,
-  initialFilterId,
+  allFilterId,
 }) => {
   const t = useTranslations();
-  const [activeFilterId, setActiveFilterId] = useState(initialFilterId);
+  const [activeFilterId, setActiveFilterId] = useState(allFilterId);
   const [desktopView, setDesktopView] =
     useState<InitiativesInventoryView>("grid");
-  const isMobile = useSyncExternalStore(
+  const isDesktop = useSyncExternalStore(
     subscribeToViewport,
-    getMobileSnapshot,
+    getDesktopSnapshot,
     getServerSnapshot
   );
-  const view = isMobile ? "list" : desktopView;
+  const view = isDesktop ? desktopView : "list";
   const visibleInitiatives = initiatives.filter(
     (initiative) =>
-      activeFilterId === initialFilterId ||
-      initiative.categoryId === activeFilterId
+      activeFilterId === allFilterId || initiative.categoryId === activeFilterId
   );
 
   return (
@@ -67,7 +65,7 @@ const InitiativesInventory: FC<Props> = ({
         id={RESULTS_ID}
         className={cn(
           "m-0 mt-8 grid list-none grid-cols-1 gap-8 p-0",
-          view === "grid" && "md:grid-cols-2 xl:grid-cols-3"
+          view === "grid" && "min-[769px]:grid-cols-2 xl:grid-cols-3"
         )}
       >
         {visibleInitiatives.map((initiative) => (

@@ -22,10 +22,10 @@ type Props = {
 
 const InitiativeInventoryCard: FC<Props> = ({ initiative, view }) => {
   const t = useTranslations();
-  const name = t(initiative.nameKey);
+  const name = t(initiative.inventoryNameKey ?? initiative.nameKey);
   const color = initiative.brand?.color ?? DEFAULT_INITIATIVE_COLOR;
   const descriptionKey =
-    initiative.feature?.descriptionKey ?? initiative.taglineKey;
+    initiative.inventoryDescriptionKey ?? initiative.feature?.descriptionKey;
   return (
     <li className="min-w-0 list-none">
       <Link
@@ -33,7 +33,7 @@ const InitiativeInventoryCard: FC<Props> = ({ initiative, view }) => {
         className={cn(
           "group block min-w-0 no-underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blue-800 dark:focus-visible:outline-blue-800-dark",
           view === "list" &&
-            "lg:grid lg:grid-cols-[minmax(0,420px)_minmax(0,1fr)] lg:gap-8"
+            "min-[769px]:grid min-[769px]:grid-cols-[minmax(0,420px)_minmax(0,1fr)] min-[769px]:gap-8"
         )}
       >
         <div
@@ -59,7 +59,7 @@ const InitiativeInventoryCard: FC<Props> = ({ initiative, view }) => {
                 name={name}
                 className="size-10 shrink-0 rounded-none"
               />
-              <span className="min-w-0 max-w-[220px] break-words text-center text-[21.067px] font-semibold leading-[29.494px] text-white">
+              <span className="min-w-0 max-w-[220px] break-words text-center text-[21.067px] font-semibold leading-[29.494px]">
                 {name}
               </span>
             </div>
@@ -69,16 +69,18 @@ const InitiativeInventoryCard: FC<Props> = ({ initiative, view }) => {
         <div
           className={cn(
             "flex flex-col items-start pt-5",
-            view === "list" && "lg:pt-0"
+            view === "list" && "min-[769px]:pt-0"
           )}
         >
-          <h3 className="m-0 mt-2 text-[22px] font-medium leading-[115%] tracking-tight text-blue-900 dark:text-blue-900-dark">
+          <h3 className="m-0 mt-2 self-stretch text-[26px] font-medium leading-[110%] tracking-[-1.56px] text-blue-900 dark:text-blue-900-dark">
             {name}
           </h3>
-          <p className="m-0 mt-4 text-sm leading-6 text-blue-800 dark:text-blue-800-dark">
-            {t(descriptionKey)}
-          </p>
-          <span className="mt-5 inline-flex items-center gap-1.5 text-sm font-medium text-blue-900 dark:text-blue-900-dark">
+          {descriptionKey && (
+            <p className="m-0 mt-4 self-stretch text-[15px] font-normal leading-6 text-blue-800 dark:text-blue-800-dark">
+              {t(descriptionKey)}
+            </p>
+          )}
+          <span className="mt-6 inline-flex items-center gap-1.5 text-sm font-semibold leading-[14px] text-blue-900 dark:text-blue-900-dark">
             {t("explore")}
             <FontAwesomeIcon
               icon={faArrowRight}

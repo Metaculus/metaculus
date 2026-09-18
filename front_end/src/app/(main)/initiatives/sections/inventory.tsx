@@ -14,7 +14,7 @@ const InventorySection = () => {
     <section
       id="initiatives-inventory"
       aria-labelledby="initiatives-inventory-title"
-      className="scroll-mt-nav bg-gray-0 dark:bg-gray-0-dark"
+      className="scroll-mt-nav"
     >
       <div className="mx-auto w-full max-w-[1404px] px-5 pb-12 md:px-12 xl:pb-[120px]">
         <h2 id="initiatives-inventory-title" className="sr-only">
@@ -24,7 +24,7 @@ const InventorySection = () => {
         <InitiativesInventory
           initiatives={getInitiativesByPlacement("inventory")}
           filters={getInventoryFilters()}
-          initialFilterId={ALL_INITIATIVES_FILTER_ID}
+          allFilterId={ALL_INITIATIVES_FILTER_ID}
         />
       </div>
     </section>
