@@ -52,7 +52,13 @@ const NewsCard: FC<Props> = ({ post }) => {
           <h2 className="mt-0 line-clamp-2 font-serif text-2xl font-bold text-blue-900 dark:text-blue-900-dark">
             {post.title}
           </h2>
-          <div ref={ref} className="mb-3 h-12">
+          {/*
+            Fixed-height summary slot (48px = 2 lines at text-base). Whatever
+            is rendered inside is truncated by CSS: `line-clamp-2` adds the
+            ellipsis and `overflow-hidden` clips anything the clamp can't
+            handle (e.g. multiple blocks in a custom Feed Tile Summary).
+          */}
+          <div ref={ref} className="mb-3 h-12 overflow-hidden">
             {!!width && (
               <MarkdownEditor
                 mode="read"
@@ -64,7 +70,7 @@ const NewsCard: FC<Props> = ({ post }) => {
                     height: 48,
                   })
                 }
-                contentEditableClassName="font-serif !text-gray-700 !dark:text-gray-700-dark *:m-0"
+                contentEditableClassName="line-clamp-2 font-serif !text-gray-700 !dark:text-gray-700-dark *:m-0"
                 withUgcLinks
               />
             )}
