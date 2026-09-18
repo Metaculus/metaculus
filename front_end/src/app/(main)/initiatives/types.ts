@@ -88,8 +88,17 @@ export type InitiativesHero = {
   actions: InitiativesHeroAction[];
 };
 
+export type InitiativesProgramCta = {
+  eyebrowKey: TranslationKey;
+  headingKey: TranslationKey;
+  descriptionKey: TranslationKey;
+  pitchLabelKey: TranslationKey;
+  pitchHref?: string;
+};
+
 export type InitiativesPageData = {
   hero: InitiativesHero;
+  programCta: InitiativesProgramCta;
   testimonials?: InitiativesTestimonial[];
   categories?: InitiativeCategory[];
   initiatives: Initiative[];

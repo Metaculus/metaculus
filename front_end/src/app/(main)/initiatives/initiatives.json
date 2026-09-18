@@ -19,6 +19,13 @@
       }
     ]
   },
+  "programCta": {
+    "eyebrowKey": "initiativesProgramCtaEyebrow",
+    "headingKey": "initiativesProgramCtaHeading",
+    "descriptionKey": "initiativesProgramCtaDescription",
+    "pitchLabelKey": "initiativesProgramCtaPitch",
+    "pitchHref": "/services/#contact-us"
+  },
   "categories": [
     { "id": "health-bio", "labelKey": "initiativesCategoryHealthBio" },
     { "id": "ai", "labelKey": "initiativesCategoryAI" },

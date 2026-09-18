@@ -4,6 +4,7 @@ import { getTranslations } from "next-intl/server";
 import FeaturedSection from "./sections/featured";
 import HeroSection from "./sections/hero";
 import InventorySection from "./sections/inventory";
+import ProgramCtaSection from "./sections/program_cta";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations();
@@ -24,6 +25,7 @@ export default function InitiativesPage() {
         <FeaturedSection />
         <InventorySection />
       </div>
+      <ProgramCtaSection />
     </main>
   );
 }
