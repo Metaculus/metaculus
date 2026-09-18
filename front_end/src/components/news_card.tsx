@@ -53,12 +53,14 @@ const NewsCard: FC<Props> = ({ post }) => {
             {post.title}
           </h2>
           {/*
-            Fixed-height summary slot (72px = 3 lines at text-base). Whatever
-            is rendered inside is truncated by CSS: `line-clamp-3` adds the
-            ellipsis and `overflow-hidden` clips anything the clamp can't
-            handle (e.g. multiple blocks in a custom Feed Tile Summary).
+            Fixed-height summary slot: 2 lines (48px) on mobile, 3 lines
+            (72px) from `sm` up. Whatever is rendered inside is truncated by
+            CSS: `line-clamp-*` adds the ellipsis and `overflow-hidden` clips
+            anything the clamp can't handle (e.g. multiple blocks in a custom
+            Feed Tile Summary). The fallback summary is generated for the
+            larger 3-line slot; on mobile the clamp trims it to 2 lines.
           */}
-          <div ref={ref} className="mb-3 h-[72px] overflow-hidden">
+          <div ref={ref} className="mb-3 h-12 overflow-hidden sm:h-[72px]">
             {!!width && (
               <MarkdownEditor
                 mode="read"
@@ -70,7 +72,7 @@ const NewsCard: FC<Props> = ({ post }) => {
                     height: 72,
                   })
                 }
-                contentEditableClassName="line-clamp-3 font-serif !text-gray-700 !dark:text-gray-700-dark *:m-0"
+                contentEditableClassName="line-clamp-2 font-serif !text-gray-700 !dark:text-gray-700-dark *:m-0 sm:line-clamp-3"
                 withUgcLinks
               />
             )}
