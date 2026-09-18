@@ -53,6 +53,10 @@ from .utils import get_post_slug
 
 logger = logging.getLogger(__name__)
 
+# Feed tiles render only a short summary of a notebook,
+# so list responses (`include_descriptions=False`) don't need the full article body
+NOTEBOOK_PREVIEW_MARKDOWN_MAX_LENGTH = 2000
+
 
 class NotebookSerializer(serializers.ModelSerializer):
     class Meta:
@@ -65,6 +69,34 @@ class NotebookSerializer(serializers.ModelSerializer):
             "edited_at",
             "feed_tile_summary",
         )
+
+
+def _truncate_markdown(markdown: str, max_length: int) -> str:
+    if len(markdown) <= max_length:
+        return markdown
+
+    truncated = markdown[:max_length]
+
+    # Cut on the last whitespace to avoid splitting a word or markdown token
+    parts = truncated.rsplit(maxsplit=1)
+
+    return parts[0] if len(parts) > 1 else truncated
+
+
+def serialize_notebook(notebook: Notebook, include_descriptions: bool = False) -> dict:
+    serialized_data = NotebookSerializer(notebook).data
+    markdown = serialized_data["markdown"] or ""
+
+    # Reading time estimation should be based on the full article,
+    # even when the markdown is truncated below
+    serialized_data["markdown_word_count"] = len(markdown.split())
+
+    if not include_descriptions:
+        serialized_data["markdown"] = _truncate_markdown(
+            markdown, NOTEBOOK_PREVIEW_MARKDOWN_MAX_LENGTH
+        )
+
+    return serialized_data
 
 
 class PostReadSerializer(serializers.ModelSerializer):
@@ -406,7 +438,9 @@ def serialize_post(
         )
 
     if post.notebook:
-        serialized_data["notebook"] = NotebookSerializer(post.notebook).data
+        serialized_data["notebook"] = serialize_notebook(
+            post.notebook, include_descriptions=include_descriptions
+        )
 
     # Permissions
     serialized_data["user_permission"] = post.user_permission

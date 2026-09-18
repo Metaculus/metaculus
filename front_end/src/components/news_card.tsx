@@ -82,7 +82,7 @@ const NewsCard: FC<Props> = ({ post }) => {
             <CircleDivider className="mx-2" />
             <span>
               {t("estimatedReadingTime", {
-                minutes: estimateReadingTime(post.notebook.markdown),
+                minutes: estimateReadingTime(post.notebook.markdown_word_count),
               })}
             </span>
           </div>

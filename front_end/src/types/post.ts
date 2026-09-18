@@ -110,7 +110,10 @@ export type Notebook = {
   id: number;
   created_at: string;
   edited_at: string;
+  // Truncated to a short preview in list responses
   markdown: string;
+  // Word count of the full markdown, even when the markdown is truncated
+  markdown_word_count: number;
   image_url: string;
   feed_tile_summary: string;
 };

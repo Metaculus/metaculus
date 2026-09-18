@@ -7,12 +7,13 @@ from rest_framework import status
 from rest_framework.reverse import reverse
 
 from posts.models import Post, PostUserSnapshot, PostSubscription
+from posts.serializers import NOTEBOOK_PREVIEW_MARKDOWN_MAX_LENGTH
 from projects.models import Project
 from projects.permissions import ObjectPermission
 from projects.services.common import get_site_main_project
 from questions.models import Question
 from tests.unit.test_comments.factories import factory_comment
-from tests.unit.test_posts.factories import factory_post
+from tests.unit.test_posts.factories import factory_post, factory_notebook
 from tests.unit.test_projects.factories import factory_project
 from tests.unit.test_questions.conftest import *  # noqa
 from tests.unit.test_questions.factories import create_question
@@ -296,6 +297,27 @@ def test_posts_list__filters(user1, user1_client):
         )
         == 0
     )
+
+
+def test_posts_list__notebook_markdown_truncated(user1, user1_client):
+    url = reverse("post-list")
+    markdown = " ".join(["word"] * 1000)
+    factory_post(author=user1, notebook=factory_notebook(markdown=markdown))
+
+    # Feed responses only include a truncated preview of the article
+    results = user1_client.get(f"{url}?include_descriptions=false").data["results"]
+    assert len(results) == 1
+    notebook = results[0]["notebook"]
+    assert notebook["markdown"].startswith("word word")
+    assert len(notebook["markdown"]) <= NOTEBOOK_PREVIEW_MARKDOWN_MAX_LENGTH
+    assert len(notebook["markdown"]) < len(markdown)
+    # Reading time estimation is still based on the full article
+    assert notebook["markdown_word_count"] == 1000
+
+    # Full markdown is still available when descriptions are requested
+    results = user1_client.get(f"{url}?include_descriptions=true").data["results"]
+    assert results[0]["notebook"]["markdown"] == markdown
+    assert results[0]["notebook"]["markdown_word_count"] == 1000
 
 
 def test_post_detail(anon_client, user1, user1_client):

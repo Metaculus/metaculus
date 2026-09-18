@@ -120,7 +120,9 @@ const IndividualNotebookPage: FC<{
             <CircleDivider className="mx-1" />
             <span className="whitespace-nowrap">
               {t("estimatedReadingTime", {
-                minutes: estimateReadingTime(postData.notebook.markdown),
+                minutes: estimateReadingTime(
+                  postData.notebook.markdown_word_count
+                ),
               })}
             </span>
           </div>
