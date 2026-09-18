@@ -103,6 +103,105 @@
           }
         ]
       }
+    },
+    {
+      "id": "frontiers-disease-prevention",
+      "nameKey": "initiativeFrontiersDiseaseName",
+      "taglineKey": "initiativeFrontiersDiseaseDescription",
+      "url": "/notebooks/43979/frontiers-in-disease-prevention-findings/",
+      "categoryId": "health-bio",
+      "order": 4,
+      "placements": ["inventory"]
+    },
+    {
+      "id": "global-health-monitor",
+      "nameKey": "initiativeGlobalHealthMonitorName",
+      "taglineKey": "initiativeGlobalHealthMonitorDescription",
+      "url": "/tournament/global-health-monitor-26-27/",
+      "categoryId": "health-bio",
+      "order": 5,
+      "placements": ["inventory"]
+    },
+    {
+      "id": "us-democracy-threat-index",
+      "nameKey": "initiativeDemocracyThreatName",
+      "taglineKey": "initiativeDemocracyThreatDescription",
+      "url": "/index/us-democracy-threat/",
+      "categoryId": "policy",
+      "order": 6,
+      "placements": ["inventory"]
+    },
+    {
+      "id": "research-agencies-outlook",
+      "nameKey": "initiativeResearchAgenciesName",
+      "taglineKey": "initiativeResearchAgenciesDescription",
+      "url": "/notebooks/39977/report-pro-forecasters-expect-steady-nih-and-nsf-funding/",
+      "categoryId": "science",
+      "order": 7,
+      "placements": ["inventory"]
+    },
+    {
+      "id": "ai-diffusion-index",
+      "nameKey": "initiativeAIDiffusionName",
+      "taglineKey": "initiativeAIDiffusionDescription",
+      "url": "/index/diffusion-index/",
+      "categoryId": "ai",
+      "order": 8,
+      "placements": ["inventory"]
+    },
+    {
+      "id": "agi-2030-readiness-index",
+      "nameKey": "initiativeAGIReadinessName",
+      "taglineKey": "initiativeAGIReadinessDescription",
+      "url": "/index/agi-readiness-index/",
+      "categoryId": "ai",
+      "order": 9,
+      "placements": ["inventory"]
+    },
+    {
+      "id": "cdc-expert-elicitation",
+      "nameKey": "initiativeCDCExpertElicitationName",
+      "taglineKey": "initiativeCDCExpertElicitationDescription",
+      "url": "https://www.cdc.gov/cfa-qualitative-assessments/php/data-research/season-outlook25-26-dec-update.html",
+      "categoryId": "health-bio",
+      "order": 10,
+      "placements": ["inventory"]
+    },
+    {
+      "id": "threshold-2030",
+      "nameKey": "initiativeThreshold2030Name",
+      "taglineKey": "initiativeThreshold2030Description",
+      "url": "/notebooks/30299/threshold-2030-modeling-ai-economic-futures/",
+      "categoryId": "ai",
+      "order": 11,
+      "placements": ["inventory"]
+    },
+    {
+      "id": "scale-is-all-you-need",
+      "nameKey": "initiativeScaleIsAllYouNeedName",
+      "taglineKey": "initiativeScaleIsAllYouNeedDescription",
+      "url": "/notebooks/27413/scale-is-all-you-need-a-synthetic-biology-workshop-with-astera/",
+      "categoryId": "health-bio",
+      "order": 12,
+      "placements": ["inventory"]
+    },
+    {
+      "id": "fro-casting",
+      "nameKey": "initiativeFroCastingName",
+      "taglineKey": "initiativeFroCastingDescription",
+      "url": "/notebooks/19150/fro-casting-to-support-a-new-research-model/",
+      "categoryId": "science",
+      "order": 13,
+      "placements": ["inventory"]
+    },
+    {
+      "id": "ai-nuclear-landscape",
+      "nameKey": "initiativeAINuclearLandscapeName",
+      "taglineKey": "initiativeAINuclearLandscapeDescription",
+      "url": "https://securityandtechnology.org/virtual-library/report/forecasting-the-ai-and-nuclear-landscape/",
+      "categoryId": "policy",
+      "order": 14,
+      "placements": ["inventory"]
     }
   ]
 }
