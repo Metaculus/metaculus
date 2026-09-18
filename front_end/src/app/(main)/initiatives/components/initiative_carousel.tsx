@@ -10,10 +10,13 @@ import {
   KeyboardEvent,
   useCallback,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
 } from "react";
+
+import cn from "@/utils/core/cn";
 
 import InitiativeMark from "./initiative_mark";
 import {
@@ -158,7 +161,7 @@ const InitiativeCarousel: FC<Props> = ({
 
   useEffect(() => () => window.clearTimeout(resumeTimerRef.current), []);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!emblaApi) return;
 
     const update = () => {
@@ -325,7 +328,12 @@ const InitiativeCarousel: FC<Props> = ({
       onBlur={scheduleAutoplayResume}
       onKeyDown={handleKeyDown}
     >
-      <div className="relative mx-auto w-full max-w-[635px] md:max-w-[1100px] xl:max-w-[1180px]">
+      <div
+        className={cn(
+          "relative mx-auto w-full max-w-[635px] transition-opacity duration-300 motion-reduce:transition-none md:max-w-[1100px] xl:max-w-[1180px]",
+          !emblaApi && "opacity-0"
+        )}
+      >
         <div ref={emblaRef} className="overflow-hidden py-4">
           <ul className="flex [touch-action:pan-y_pinch-zoom]">
             {slides.map(({ initiative, realIndex, isRepeat }, index) => {

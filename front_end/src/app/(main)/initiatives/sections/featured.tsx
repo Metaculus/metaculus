@@ -24,7 +24,7 @@ const FeaturedSection = () => {
       aria-labelledby="initiatives-featured-title"
       className="scroll-mt-nav bg-gray-0 dark:bg-gray-0-dark"
     >
-      <div className="mx-auto w-full max-w-5xl px-5 pt-12 md:px-12 xl:pt-[120px]">
+      <div className="mx-auto w-full max-w-[1404px] px-5 pt-12 md:px-12 xl:pt-[120px]">
         <h2 id="initiatives-featured-title" className="sr-only">
           {t("initiativesFeaturedTitle")}
         </h2>

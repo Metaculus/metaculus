@@ -31,7 +31,6 @@ const InitiativeInventoryCard: FC<Props> = ({
   const color = initiative.brand?.color ?? DEFAULT_INITIATIVE_COLOR;
   const descriptionKey =
     initiative.feature?.descriptionKey ?? initiative.taglineKey;
-
   return (
     <li className="min-w-0 list-none">
       <Link
@@ -44,7 +43,7 @@ const InitiativeInventoryCard: FC<Props> = ({
       >
         <div
           aria-hidden="true"
-          className="relative flex aspect-[3/2] min-w-0 items-center justify-center gap-2 overflow-hidden"
+          className="relative flex aspect-[3/2] min-w-0 items-center justify-center gap-2 overflow-hidden px-6"
           style={{
             backgroundColor: color,
             color: getReadableForeground(color),
@@ -58,13 +57,17 @@ const InitiativeInventoryCard: FC<Props> = ({
             sizes="(min-width: 1280px) 420px, (min-width: 768px) 50vw, 100vw"
             className="pointer-events-none object-cover"
           />
-          <div className="relative flex items-center gap-2 text-lg font-medium">
-            <InitiativeMark
-              initiative={initiative}
-              name={name}
-              className="size-10 rounded-none"
-            />
-            <span>{name}</span>
+          <div className="relative flex w-full justify-center">
+            <div className="flex w-fit max-w-full items-center gap-2">
+              <InitiativeMark
+                initiative={initiative}
+                name={name}
+                className="size-10 shrink-0 rounded-none"
+              />
+              <span className="min-w-0 max-w-[220px] break-words text-center text-[21.067px] font-semibold leading-[29.494px] text-white">
+                {name}
+              </span>
+            </div>
           </div>
         </div>
 
