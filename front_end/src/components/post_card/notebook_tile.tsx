@@ -40,14 +40,14 @@ const NotebookTile: FC<Props> = ({ post }) => {
         {!!width && (
           <MarkdownEditor
             mode="read"
-            markdown={
-              notebook.feed_tile_summary ||
-              getMarkdownSummary({
-                markdown: notebook.markdown,
-                width: textWidth,
-                height: hasImage ? NOTEBOOK_THUMBNAIL_HEIGHT : 80,
-              })
-            }
+            markdown={getMarkdownSummary({
+              // A custom feed tile summary can be arbitrarily long, so
+              // truncate it to the tile size the same way we do for the
+              // auto-generated summary.
+              markdown: notebook.feed_tile_summary || notebook.markdown,
+              width: textWidth,
+              height: hasImage ? NOTEBOOK_THUMBNAIL_HEIGHT : 80,
+            })}
             contentEditableClassName={
               hasImage
                 ? "!m-0 *:m-0 !text-sm !leading-5 !text-gray-800 !dark:text-gray-800-dark"

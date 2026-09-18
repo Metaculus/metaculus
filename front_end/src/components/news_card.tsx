@@ -52,18 +52,19 @@ const NewsCard: FC<Props> = ({ post }) => {
           <h2 className="mt-0 line-clamp-2 font-serif text-2xl font-bold text-blue-900 dark:text-blue-900-dark">
             {post.title}
           </h2>
-          <div ref={ref} className="mb-3 h-12">
+          <div ref={ref} className="mb-3 h-12 overflow-hidden">
             {!!width && (
               <MarkdownEditor
                 mode="read"
-                markdown={
-                  post.notebook.feed_tile_summary ||
-                  getMarkdownSummary({
-                    markdown: post.notebook.markdown,
-                    width,
-                    height: 48,
-                  })
-                }
+                markdown={getMarkdownSummary({
+                  // A custom feed tile summary can be arbitrarily long, so
+                  // truncate it to the tile size the same way we do for the
+                  // auto-generated summary.
+                  markdown:
+                    post.notebook.feed_tile_summary || post.notebook.markdown,
+                  width,
+                  height: 48,
+                })}
                 contentEditableClassName="font-serif !text-gray-700 !dark:text-gray-700-dark *:m-0"
                 withUgcLinks
               />
