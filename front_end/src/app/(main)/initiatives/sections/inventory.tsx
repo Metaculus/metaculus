@@ -16,7 +16,7 @@ const InventorySection = () => {
       aria-labelledby="initiatives-inventory-title"
       className="scroll-mt-nav bg-gray-0 dark:bg-gray-0-dark"
     >
-      <div className="mx-auto w-full max-w-[1404px] px-5 pb-20 md:px-12">
+      <div className="mx-auto w-full max-w-[1404px] px-5 pb-12 md:px-12 xl:pb-[120px]">
         <h2 id="initiatives-inventory-title" className="sr-only">
           {t("initiativesInventoryTitle")}
         </h2>

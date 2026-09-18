@@ -26,6 +26,36 @@
     "pitchLabelKey": "initiativesProgramCtaPitch",
     "pitchHref": "/services/#contact-us"
   },
+  "testimonials": [
+    {
+      "id": "brendan-nyhan",
+      "quoteKey": "initiativesTestimonialBrendanQuote",
+      "authorKey": "initiativesTestimonialBrendanAuthor",
+      "roleKey": "initiativesTestimonialBrendanRole",
+      "accent": "blue"
+    },
+    {
+      "id": "ilya-zakharov",
+      "quoteKey": "initiativesTestimonialIlyaQuote",
+      "authorKey": "initiativesTestimonialIlyaAuthor",
+      "roleKey": "initiativesTestimonialIlyaRole",
+      "accent": "purple"
+    },
+    {
+      "id": "ray-kennedy",
+      "quoteKey": "initiativesTestimonialRayQuote",
+      "authorKey": "initiativesTestimonialRayAuthor",
+      "roleKey": "initiativesTestimonialRayRole",
+      "accent": "blue"
+    },
+    {
+      "id": "kiko-llaneras",
+      "quoteKey": "initiativesTestimonialKikoQuote",
+      "authorKey": "initiativesTestimonialKikoAuthor",
+      "roleKey": "initiativesTestimonialKikoRole",
+      "accent": "purple"
+    }
+  ],
   "categories": [
     { "id": "health-bio", "labelKey": "initiativesCategoryHealthBio" },
     { "id": "ai", "labelKey": "initiativesCategoryAI" },
@@ -99,6 +129,7 @@
         "order": 2,
         "headingKey": "initiativeLaborHubFeatureHeading",
         "descriptionKey": "initiativeLaborHubFeatureDescription",
+        "badgeKey": "initiativesBadgeNew",
         "partners": [
           {
             "logo": "/partners/renaissance-philanthropy-logo.svg",
@@ -116,6 +147,7 @@
       "nameKey": "initiativeFrontiersDiseaseName",
       "taglineKey": "initiativeFrontiersDiseaseDescription",
       "url": "/notebooks/43979/frontiers-in-disease-prevention-findings/",
+      "brand": { "color": "#B5793A" },
       "categoryId": "health-bio",
       "order": 4,
       "placements": ["inventory"]
@@ -125,6 +157,7 @@
       "nameKey": "initiativeGlobalHealthMonitorName",
       "taglineKey": "initiativeGlobalHealthMonitorDescription",
       "url": "/tournament/global-health-monitor-26-27/",
+      "brand": { "color": "#4E8C5A" },
       "categoryId": "health-bio",
       "order": 5,
       "placements": ["inventory"]
@@ -134,6 +167,7 @@
       "nameKey": "initiativeDemocracyThreatName",
       "taglineKey": "initiativeDemocracyThreatDescription",
       "url": "/index/us-democracy-threat/",
+      "brand": { "color": "#A0493F" },
       "categoryId": "policy",
       "order": 6,
       "placements": ["inventory"]
@@ -143,6 +177,7 @@
       "nameKey": "initiativeResearchAgenciesName",
       "taglineKey": "initiativeResearchAgenciesDescription",
       "url": "/notebooks/39977/report-pro-forecasters-expect-steady-nih-and-nsf-funding/",
+      "brand": { "color": "#5B5FA8" },
       "categoryId": "science",
       "order": 7,
       "placements": ["inventory"]
@@ -152,6 +187,7 @@
       "nameKey": "initiativeAIDiffusionName",
       "taglineKey": "initiativeAIDiffusionDescription",
       "url": "/index/diffusion-index/",
+      "brand": { "color": "#9C4F6B" },
       "categoryId": "ai",
       "order": 8,
       "placements": ["inventory"]
@@ -161,6 +197,7 @@
       "nameKey": "initiativeAGIReadinessName",
       "taglineKey": "initiativeAGIReadinessDescription",
       "url": "/index/agi-readiness-index/",
+      "brand": { "color": "#2F7FA0" },
       "categoryId": "ai",
       "order": 9,
       "placements": ["inventory"]
@@ -170,6 +207,7 @@
       "nameKey": "initiativeCDCExpertElicitationName",
       "taglineKey": "initiativeCDCExpertElicitationDescription",
       "url": "https://www.cdc.gov/cfa-qualitative-assessments/php/data-research/season-outlook25-26-dec-update.html",
+      "brand": { "color": "#7A8B3A" },
       "categoryId": "health-bio",
       "order": 10,
       "placements": ["inventory"]
@@ -179,6 +217,7 @@
       "nameKey": "initiativeThreshold2030Name",
       "taglineKey": "initiativeThreshold2030Description",
       "url": "/notebooks/30299/threshold-2030-modeling-ai-economic-futures/",
+      "brand": { "color": "#3E8E7E" },
       "categoryId": "ai",
       "order": 11,
       "placements": ["inventory"]
@@ -188,6 +227,7 @@
       "nameKey": "initiativeScaleIsAllYouNeedName",
       "taglineKey": "initiativeScaleIsAllYouNeedDescription",
       "url": "/notebooks/27413/scale-is-all-you-need-a-synthetic-biology-workshop-with-astera/",
+      "brand": { "color": "#C2553F" },
       "categoryId": "health-bio",
       "order": 12,
       "placements": ["inventory"]
@@ -197,6 +237,7 @@
       "nameKey": "initiativeFroCastingName",
       "taglineKey": "initiativeFroCastingDescription",
       "url": "/notebooks/19150/fro-casting-to-support-a-new-research-model/",
+      "brand": { "color": "#8E5BA6" },
       "categoryId": "science",
       "order": 13,
       "placements": ["inventory"]
@@ -206,6 +247,7 @@
       "nameKey": "initiativeAINuclearLandscapeName",
       "taglineKey": "initiativeAINuclearLandscapeDescription",
       "url": "https://securityandtechnology.org/virtual-library/report/forecasting-the-ai-and-nuclear-landscape/",
+      "brand": { "color": "#3F6E9E" },
       "categoryId": "policy",
       "order": 14,
       "placements": ["inventory"]

@@ -5,10 +5,10 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { FC } from "react";
 
-import { TranslationKey } from "@/types/translations";
 import cn from "@/utils/core/cn";
 
 import InitiativeMark from "./initiative_mark";
+import { INITIATIVE_FALLBACK_ARTWORK } from "../helpers/assets";
 import {
   DEFAULT_INITIATIVE_COLOR,
   getReadableForeground,
@@ -18,14 +18,9 @@ import { Initiative, InitiativesInventoryView } from "../types";
 type Props = {
   initiative: Initiative;
   view: InitiativesInventoryView;
-  categoryLabelKey?: TranslationKey;
 };
 
-const InitiativeInventoryCard: FC<Props> = ({
-  initiative,
-  view,
-  categoryLabelKey,
-}) => {
+const InitiativeInventoryCard: FC<Props> = ({ initiative, view }) => {
   const t = useTranslations();
   const name = t(initiative.nameKey);
   const color = initiative.brand?.color ?? DEFAULT_INITIATIVE_COLOR;
@@ -50,7 +45,7 @@ const InitiativeInventoryCard: FC<Props> = ({
           }}
         >
           <Image
-            src="/images/initiatives/inventory-fallback.png"
+            src={INITIATIVE_FALLBACK_ARTWORK}
             alt=""
             fill
             unoptimized
@@ -77,14 +72,6 @@ const InitiativeInventoryCard: FC<Props> = ({
             view === "list" && "lg:pt-0"
           )}
         >
-          <p className="m-0 flex items-center gap-2 text-xs text-blue-700 dark:text-blue-700-dark">
-            <span
-              aria-hidden="true"
-              className="size-1.5 shrink-0"
-              style={{ backgroundColor: color }}
-            />
-            {categoryLabelKey ? t(categoryLabelKey) : name}
-          </p>
           <h3 className="m-0 mt-2 text-[22px] font-medium leading-[115%] tracking-tight text-blue-900 dark:text-blue-900-dark">
             {name}
           </h3>

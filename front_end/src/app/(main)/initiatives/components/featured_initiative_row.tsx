@@ -5,7 +5,10 @@ import { FC } from "react";
 import Button from "@/components/ui/button";
 import cn from "@/utils/core/cn";
 
-import { resolveAssetSource } from "../helpers/assets";
+import {
+  INITIATIVE_FALLBACK_ARTWORK,
+  resolveAssetSource,
+} from "../helpers/assets";
 import { FeaturedInitiative } from "../types";
 
 type Props = {
@@ -17,15 +20,9 @@ const FeaturedInitiativeRow: FC<Props> = ({ initiative, artworkSide }) => {
   const t = useTranslations();
   const { feature } = initiative;
   const name = t(initiative.nameKey);
-  const label =
-    initiative.categoryId === "ai"
-      ? t("initiativesCategoryAI")
-      : initiative.categoryId === "policy"
-        ? t("initiativesCategoryPolicy")
-        : name;
-  const artwork = initiative.artwork
-    ? resolveAssetSource(initiative.artwork)
-    : null;
+  const artwork = resolveAssetSource(
+    initiative.artwork ?? INITIATIVE_FALLBACK_ARTWORK
+  );
 
   return (
     <article
@@ -43,16 +40,14 @@ const FeaturedInitiativeRow: FC<Props> = ({ initiative, artworkSide }) => {
         )}
         style={{ backgroundColor: initiative.brand.color }}
       >
-        {artwork && (
-          <Image
-            src={artwork.src}
-            unoptimized
-            alt=""
-            fill
-            sizes="(min-width: 1024px) 640px, (min-width: 768px) calc((100vw - 64px) * 2 / 3), (min-width: 640px) calc(100vw - 32px), 100vw"
-            className="object-cover"
-          />
-        )}
+        <Image
+          src={artwork.src}
+          unoptimized
+          alt=""
+          fill
+          sizes="(min-width: 1024px) 640px, (min-width: 768px) calc((100vw - 64px) * 2 / 3), (min-width: 640px) calc(100vw - 32px), 100vw"
+          className="object-cover"
+        />
       </div>
 
       <div
@@ -64,19 +59,11 @@ const FeaturedInitiativeRow: FC<Props> = ({ initiative, artworkSide }) => {
         )}
       >
         <div className="flex flex-col items-start gap-6">
-          <p className="m-0 flex items-center gap-2 text-xs font-medium text-blue-700 dark:text-blue-700-dark md:mb-2">
-            <span
-              aria-hidden="true"
-              className="size-1.5"
-              style={{ backgroundColor: initiative.brand.color }}
-            />
-            {label}
-            {feature.badgeKey && (
-              <span className="rounded-sm border border-blue-400 px-1 text-[10px] font-semibold uppercase leading-4 text-blue-700 dark:border-blue-400-dark dark:text-blue-700-dark">
-                {t(feature.badgeKey)}
-              </span>
-            )}
-          </p>
+          {feature.badgeKey && (
+            <span className="flex items-center justify-center gap-2 bg-blue-400 px-1.5 py-1 text-xs font-medium uppercase leading-3 tracking-[1px] text-blue-700 dark:bg-blue-400-dark dark:text-blue-700-dark md:mb-2">
+              {t(feature.badgeKey)}
+            </span>
+          )}
 
           <h3 className="m-0 text-[32px] font-medium leading-[110%] tracking-[-1.92px] text-blue-900 dark:text-blue-900-dark">
             {t(feature.headingKey)}

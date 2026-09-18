@@ -66,7 +66,7 @@ const InitiativesInventory: FC<Props> = ({
       <ul
         id={RESULTS_ID}
         className={cn(
-          "m-0 mt-8 grid list-none grid-cols-1 gap-x-6 gap-y-10 p-0",
+          "m-0 mt-8 grid list-none grid-cols-1 gap-8 p-0",
           view === "grid" && "md:grid-cols-2 xl:grid-cols-3"
         )}
       >
@@ -75,10 +75,6 @@ const InitiativesInventory: FC<Props> = ({
             key={initiative.id}
             initiative={initiative}
             view={view}
-            categoryLabelKey={
-              filters.find((filter) => filter.id === initiative.categoryId)
-                ?.labelKey
-            }
           />
         ))}
         {visibleInitiatives.length === 0 && (

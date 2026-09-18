@@ -28,6 +28,7 @@ const InitiativesTestimonials: FC<Props> = ({
   if (testimonials.length === 0) return null;
 
   const headingId = `${id}-title`;
+  const shouldScroll = testimonials.length > 3;
 
   return (
     <section
@@ -47,7 +48,9 @@ const InitiativesTestimonials: FC<Props> = ({
         tabIndex={0}
         className={cn(
           "-mx-5 my-0 flex w-[calc(100%+2.5rem)] snap-x snap-mandatory scroll-px-5 list-none gap-12 overflow-x-auto px-5 py-0 no-scrollbar focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-800 dark:focus-visible:ring-blue-800-dark md:-mx-12 md:w-[calc(100%+6rem)] md:scroll-px-12 md:px-12",
-          "lg:mx-0 lg:grid lg:w-full lg:snap-none lg:grid-cols-3 lg:overflow-visible lg:px-0"
+          shouldScroll
+            ? "lg:mx-0 lg:w-full lg:scroll-px-0 lg:px-0"
+            : "lg:mx-0 lg:grid lg:w-full lg:snap-none lg:grid-cols-3 lg:overflow-visible lg:px-0"
         )}
       >
         {testimonials.map(
@@ -57,7 +60,10 @@ const InitiativesTestimonials: FC<Props> = ({
             return (
               <li
                 key={testimonialId}
-                className="flex w-[min(367px,85vw)] shrink-0 snap-start lg:w-auto"
+                className={cn(
+                  "flex w-[min(367px,85vw)] shrink-0 snap-start",
+                  shouldScroll ? "lg:w-[calc((100%-6rem)/3)]" : "lg:w-auto"
+                )}
               >
                 <figure className="m-0 flex w-full flex-col justify-between gap-10">
                   <blockquote
