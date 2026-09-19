@@ -92,7 +92,12 @@ class LeaderboardSerializer(serializers.Serializer):
 
     def get_max_coverage(self, obj: Leaderboard):
         if self.context.get("include_max_coverage", False):
-            return sum(
+            # The maximum attainable coverage over all successfully resolved
+            # questions, weighted by question weight. Questions that close early
+            # (e.g. resolve before their scheduled close time) contribute less
+            # than their full weight, so the leaderboard reports coverage against
+            # what was actually attainable rather than the full question window.
+            questions = (
                 obj.get_questions()
                 .filter(resolution__isnull=False)
                 .exclude(
@@ -101,7 +106,15 @@ class LeaderboardSerializer(serializers.Serializer):
                         UnsuccessfulResolutionType.AMBIGUOUS,
                     ]
                 )
-                .values_list("question_weight", flat=True)
+                .only(
+                    "open_time",
+                    "scheduled_close_time",
+                    "actual_close_time",
+                    "question_weight",
+                )
+            )
+            return sum(
+                q.get_attainable_coverage() * q.question_weight for q in questions
             )
 
     def get_is_primary_leaderboard(self, obj: Leaderboard):
@@ -113,6 +126,7 @@ class LeaderboardSerializer(serializers.Serializer):
 class ContributionSerializer(serializers.Serializer):
     score = serializers.FloatField()
     coverage = serializers.FloatField(required=False)
+    attainable_coverage = serializers.FloatField(required=False, allow_null=True)
     question_type = serializers.CharField(source="question.type", required=False)
     question_resolution = serializers.CharField(
         source="question.resolution", required=False
