@@ -22,7 +22,7 @@ const STAFF_PICKS = [
   {
     name: "Iran War",
     emoji: "💥",
-    url: "/questions/?topic=2026-iran-war&for_main_feed=false",
+    url: "/questions/?topic=2026-iran-war",
   },
   {
     name: "Metaculus Cup",
@@ -32,7 +32,7 @@ const STAFF_PICKS = [
   {
     name: "Top Questions",
     emoji: "❓",
-    url: "/questions/?topic=top-50&for_main_feed=false",
+    url: "/questions/?topic=top-50",
   },
   {
     name: "Current Events",
@@ -42,22 +42,22 @@ const STAFF_PICKS = [
   {
     name: "Artificial Intelligence",
     emoji: "🤖",
-    url: "/questions/?categories=artificial-intelligence&for_main_feed=false",
+    url: "/questions/?categories=artificial-intelligence",
   },
   {
     name: "Geopolitics",
     emoji: "🌍",
-    url: "/questions/?categories=geopolitics&for_main_feed=false",
+    url: "/questions/?categories=geopolitics",
   },
   {
     name: "Economy and Business",
     emoji: "💼",
-    url: "/questions/?categories=economy-business&for_main_feed=false",
+    url: "/questions/?categories=economy-business",
   },
   {
     name: "Space",
     emoji: "🚀",
-    url: "/questions/?categories=space&for_main_feed=false",
+    url: "/questions/?categories=space",
   },
 ];
 
