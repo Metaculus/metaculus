@@ -154,6 +154,7 @@ type BasePost = {
   status: PostStatus;
   resolved: boolean;
   user_permission: ProjectPermissions;
+  is_pinned?: boolean;
   comment_count?: number;
   forecasts_count?: number;
   subscriptions?: Array<PostSubscription & { created_at: string }>;
