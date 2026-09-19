@@ -5,6 +5,28 @@
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" type="text/css" href="//unpkg.com/swagger-ui-dist@3/swagger-ui.css"/>
+    <style>
+        .metac-copy-request-url-btn {
+            margin-left: 8px;
+            padding: 4px 10px;
+            font-size: 12px;
+            font-family: inherit;
+            font-weight: 600;
+            color: #3b4151;
+            background: #fff;
+            border: 1px solid #d9d9d9;
+            border-radius: 4px;
+            cursor: pointer;
+            vertical-align: middle;
+        }
+        .metac-copy-request-url-btn:hover {
+            background: #f5f5f5;
+        }
+        .metac-copy-request-url-btn.copied {
+            color: #49cc90;
+            border-color: #49cc90;
+        }
+    </style>
 </head>
 <body>
 <div id="swagger-ui"></div>
@@ -46,6 +68,69 @@
         ],
         plugins: [InjectServerPlugin]
     })
+
+    // Add a copy-to-clipboard button next to each "Request URL" heading rendered
+    // by Swagger UI after "Try it out". Swagger UI v3 does not ship one.
+    function addCopyButtonToRequestUrl(heading) {
+        if (heading.dataset.metacCopyButtonAdded === "true") return;
+        heading.dataset.metacCopyButtonAdded = "true";
+
+        const urlEl = heading.nextElementSibling;
+        if (!urlEl) return;
+
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "metac-copy-request-url-btn";
+        button.textContent = "Copy";
+        button.addEventListener("click", async () => {
+            const text = (urlEl.textContent || "").trim();
+            try {
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    await navigator.clipboard.writeText(text);
+                } else {
+                    const ta = document.createElement("textarea");
+                    ta.value = text;
+                    ta.style.position = "fixed";
+                    ta.style.opacity = "0";
+                    document.body.appendChild(ta);
+                    ta.select();
+                    document.execCommand("copy");
+                    document.body.removeChild(ta);
+                }
+                button.textContent = "Copied!";
+                button.classList.add("copied");
+                setTimeout(() => {
+                    button.textContent = "Copy";
+                    button.classList.remove("copied");
+                }, 1500);
+            } catch (e) {
+                button.textContent = "Failed";
+                setTimeout(() => {
+                    button.textContent = "Copy";
+                }, 1500);
+            }
+        });
+        heading.appendChild(button);
+    }
+
+    function scanForRequestUrls(root) {
+        const headings = (root || document).querySelectorAll(".request-url h4");
+        headings.forEach(addCopyButtonToRequestUrl);
+    }
+
+    const observer = new MutationObserver((mutations) => {
+        for (const m of mutations) {
+            for (const node of m.addedNodes) {
+                if (node.nodeType !== 1) continue;
+                if (node.matches && node.matches(".request-url")) {
+                    scanForRequestUrls(node.parentNode);
+                } else {
+                    scanForRequestUrls(node);
+                }
+            }
+        }
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
 </script>
 </body>
 </html>
