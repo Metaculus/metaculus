@@ -30,8 +30,8 @@ const ClosedTournamentTimeline: FC<Props> = async ({
     latestScheduledResolutionTimestamp = addDays(dateNowTimestamp, 1).getTime();
   }
 
-  const endDateTimestamp = tournament.close_date
-    ? new Date(tournament.close_date).getTime()
+  const endDateTimestamp = tournament.winners_announced_date
+    ? new Date(tournament.winners_announced_date).getTime()
     : addWeeks(
         isAllQuestionsResolved
           ? latestActualResolutionTimestamp

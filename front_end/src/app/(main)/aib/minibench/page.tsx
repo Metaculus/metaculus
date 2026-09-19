@@ -86,7 +86,7 @@ export default async function MiniBenchPage() {
                   name={tournament.name}
                   questionsCount={tournament.questions_count}
                   closeDate={
-                    tournament.forecasting_end_date || tournament.close_date
+                    tournament.close_date || tournament.winners_announced_date
                   }
                   showCloseDate={
                     tournament.type !== TournamentType.QuestionSeries
