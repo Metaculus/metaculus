@@ -131,6 +131,8 @@ def multiple_choice_rename_option(
             timestr,
             [new_option if opt == old_option else opt for opt in options],
         )
+    if question.options_colors and old_option in question.options_colors:
+        question.options_colors[new_option] = question.options_colors.pop(old_option)
 
     return question
 
