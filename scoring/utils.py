@@ -94,7 +94,7 @@ def get_question_scores(
 
 def score_question(
     question: Question,
-    resolution: str,
+    resolution: str | None,
     spot_scoring_time: datetime | None = None,
     score_types: list[str] | None = None,
     aggregation_methods: list[AggregationMethod] | None = None,

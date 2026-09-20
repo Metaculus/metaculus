@@ -765,11 +765,6 @@ class QuestionAdmin(CustomTranslationAdmin, DynamicArrayMixin):
         from scoring.utils import score_question
 
         for question in queryset:
-            if not question.resolution or question.resolution in (
-                UnsuccessfulResolutionType.AMBIGUOUS,
-                UnsuccessfulResolutionType.ANNULLED,
-            ):
-                continue
             score_question(
                 question=question,
                 resolution=question.resolution,
@@ -783,11 +778,6 @@ class QuestionAdmin(CustomTranslationAdmin, DynamicArrayMixin):
         from scoring.utils import score_question
 
         for question in queryset:
-            if not question.resolution or question.resolution in (
-                UnsuccessfulResolutionType.AMBIGUOUS,
-                UnsuccessfulResolutionType.ANNULLED,
-            ):
-                continue
             score_question(
                 question=question,
                 resolution=question.resolution,
