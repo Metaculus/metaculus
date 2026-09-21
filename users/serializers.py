@@ -7,6 +7,7 @@ from rest_framework.exceptions import ValidationError
 from comments.models import KeyFactor
 from projects.models import Project
 from scoring.models import LeaderboardEntry
+from misc.utils import get_global_api_access_level, get_project_api_access_levels
 from users.constants import forbidden_usernames
 from users.models import User, UserCampaignRegistration
 from users.services.bots_management import get_max_bots
@@ -80,6 +81,7 @@ class UserPrivateSerializer(UserPublicSerializer):
     has_password = serializers.SerializerMethodField()
     metaculus_news_subscription = serializers.SerializerMethodField()
     max_bots = serializers.SerializerMethodField()
+    api_access_tier = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -139,6 +141,9 @@ class UserPrivateSerializer(UserPublicSerializer):
     def get_max_bots(self, user: User) -> int | None:
         return get_max_bots(user)
 
+    def get_api_access_tier(self, user: User) -> str:
+        return get_global_api_access_level(user)
+
 
 class UserPrivateDataAccessSerializer(UserPrivateSerializer):
     project_data_access = serializers.SerializerMethodField()
@@ -147,12 +152,7 @@ class UserPrivateDataAccessSerializer(UserPrivateSerializer):
         fields = UserPrivateSerializer.Meta.fields + ("project_data_access",)
 
     def get_project_data_access(self, user: User):
-        entries = (
-            user.data_accesses.filter(project_id__isnull=False)
-            .values("project_id", "api_access_tier")
-            .distinct()
-        )
-        return list(entries)
+        return get_project_api_access_levels(user)
 
 
 class UserUpdateProfileSerializer(serializers.ModelSerializer):
