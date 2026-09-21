@@ -11,7 +11,7 @@ export default function TermsOfUse() {
     <PageWrapper>
       <div className="prose [&amp;_a:hover]:text-blue-800 [&amp;_a:hover]:underline [&amp;_a:hover]:dark:text-blue-200 [&amp;_a]:text-blue-700 [&amp;_a]:dark:text-blue-400 [&amp;_code]:rounded [&amp;_code]:border [&amp;_code]:border-blue-400 [&amp;_code]:bg-white [&amp;_code]:p-0.5 [&amp;_code]:dark:border-blue-700 [&amp;_code]:dark:bg-blue-900 [&amp;_code]:md:bg-blue-200 [&amp;_code]:dark:md:bg-blue-800 [&amp;_h1]:mb-4 [&amp;_hr]:border-gray-300 [&amp;_hr]:dark:border-blue-700 [&amp;_li]:text-sm [&amp;_li]:md:text-base [&amp;_p]:text-sm [&amp;_p]:text-gray-700 [&amp;_p]:dark:text-gray-400 [&amp;_p]:md:text-base [&amp;_pre]:overflow-x-auto [&amp;_pre]:rounded [&amp;_pre]:border [&amp;_pre]:border-blue-400 [&amp;_pre]:bg-white [&amp;_pre]:p-3 [&amp;_pre]:dark:border-blue-700 [&amp;_pre]:dark:bg-blue-900 [&amp;_pre]:md:bg-blue-200 [&amp;_pre]:dark:md:bg-blue-800 container mx-auto my-0 max-w-4xl rounded bg-transparent p-3.5 pt-2 dark:bg-blue-900 dark:bg-transparent md:my-10 md:bg-white md:px-6 md:py-4 dark:md:bg-blue-900">
         <h1 className="mb-6 text-3xl font-bold">Termos e Condições de Uso</h1>
-        <p className="mb-4">Atualizado: 8 de maio de 2024</p>
+        <p className="mb-4">Atualizado: 21 de setembro de 2026</p>
         <p className="mb-4 font-bold">BEM-VINDO A METACULUS!</p>
         <p className="mb-4 font-bold">
           IMPORTANTE! POR FAVOR CUIDADO TENHA ESTES TERMOS DE USO, COMO AFFETAR
@@ -20,9 +20,13 @@ export default function TermsOfUse() {
         <p className="mb-4">
           Os seguintes termos e condições, juntamente com quaisquer documentos
           que incorporem expressamente por referência (coletivamente,
-          &quot;Termos de Uso&quot;) se aplicam ao site Metaculus.com, incluindo
-          qualquer conteúdo, funcionalidade e serviços oferecidos no ou através
-          do site Metaculus.com (o &quot;Serviço&quot; ou &quot;Site&quot; ou
+          &quot;Termos de Uso&quot;) se aplicam ao site Metaculus.com e seus
+          subdomínios, incluindo qualquer conteúdo, funcionalidade e serviços
+          oferecidos neles ou por meio deles, e à API da Metaculus, aos
+          servidores MCP, ao Radiant e a qualquer outro produto ou recurso da
+          Metaculus disponibilizado por meio de plataformas, aplicativos ou
+          assistentes de IA de terceiros, em cada caso onde e como quer que
+          sejam acessados (o &quot;Serviço&quot; ou &quot;Site&quot; ou
           &quot;Site&quot;), seja como convidado ou usuário registrado. A
           Metaculus, Inc. é referida nestes Termos de Uso como
           <strong>Metaculus (pe) de Meta</strong>
@@ -62,8 +66,9 @@ export default function TermsOfUse() {
               https://www.metaculus.com/privacy-policy/
             </a>
             , incorporados aqui por referência. Se você não concordar com os
-            Termos de Uso da Política de Privacidade, você não está autorizado a
-            acessar ou usar o Serviço e deve cessar todo esse uso imediatamente.
+            Termos de Uso ou a Política de Privacidade, você não está autorizado
+            a acessar ou usar o Serviço e deve cessar todo esse uso
+            imediatamente.
           </strong>
         </p>
         <p className="mb-4 font-bold">
@@ -87,23 +92,24 @@ export default function TermsOfUse() {
           conta Metaculus para uso do Serviço. Você não pode criar ou usar mais
           de uma conta, e você não pode compartilhar sua conta ou qualquer um
           dos Serviços com outras pessoas. Um pai ou responsável pode criar uma
-          conta para o benefício de um menor, mas caso contrário, você não pode
-          criar uma conta para ninguém, a menos que expressamente autorizado
-          pela Metaculus. Todas as informações que você fornecer para criar uma
-          conta devem ser precisas e completas. Você não pode se passar por
-          qualquer outra pessoa ou usar um nome que não seja seu. É sua
-          responsabilidade atualizar as informações da sua conta para mantê-las
-          atualizadas e precisas. Quando você configura uma conta, também deve
-          escolher uma senha. Você é o único responsável por manter a
-          confidencialidade da sua senha e por todo e qualquer uso da sua conta.
-          Você concorda em não usar a conta, nome de usuário ou senha de outro
-          usuário a qualquer momento, nem divulgar sua senha a terceiros. Você
-          concorda que não venderá, compartilhará ou transferirá sua associação
-          ou quaisquer direitos de associação. Você concorda em notificar a
-          Metaculus imediatamente se suspeitar de qualquer uso não autorizado de
-          sua conta ou acesso à sua senha. A Metaculus tem o direito de encerrar
-          sua conta por qualquer motivo a nosso exclusivo critério, sem aviso
-          prévio e sem responsabilidade.
+          conta para o benefício de um menor que atenda ao requisito de idade
+          abaixo, mas caso contrário, você não pode criar uma conta para
+          ninguém, a menos que expressamente autorizado pela Metaculus. Todas as
+          informações que você fornecer para criar uma conta devem ser precisas
+          e completas. Você não pode se passar por qualquer outra pessoa ou usar
+          um nome que não seja seu. É sua responsabilidade atualizar as
+          informações da sua conta para mantê-las atualizadas e precisas. Quando
+          você configura uma conta, também deve escolher uma senha. Você é o
+          único responsável por manter a confidencialidade da sua senha e por
+          todo e qualquer uso da sua conta. Você concorda em não usar a conta,
+          nome de usuário ou senha de outro usuário a qualquer momento, nem
+          divulgar sua senha a terceiros. Você concorda que não venderá,
+          compartilhará ou transferirá sua associação ou quaisquer direitos de
+          associação. Você concorda em notificar a Metaculus imediatamente se
+          suspeitar de qualquer uso não autorizado de sua conta ou acesso à sua
+          senha. A Metaculus tem o direito de encerrar sua conta por qualquer
+          motivo a nosso exclusivo critério, sem aviso prévio e sem
+          responsabilidade.
         </p>
         <h2
           className="mb-4 mt-8 scroll-mt-nav text-2xl font-bold"
@@ -112,8 +118,8 @@ export default function TermsOfUse() {
           Requisitos de idade e residência; EUA Jurisdição de futebol
         </h2>
         <p className="mb-4">
-          O Serviço é oferecido e está disponível para indivíduos com 13 anos ou
-          mais. Se você tem entre 13 anos e idade de maioridade onde mora, deve
+          O Serviço é oferecido e está disponível para indivíduos com 16 anos ou
+          mais. Se você tem entre 16 anos e idade de maioridade onde mora, deve
           revisar estes Termos de Uso com seus pais ou responsáveis para
           confirmar que você e seus pais ou responsáveis entendem e concordam
           com isso. O Serviço não se destina ou está autorizado para
@@ -174,35 +180,38 @@ export default function TermsOfUse() {
           Sujeito à sua conformidade com estes Termos de Uso, a Metaculus
           concede a você uma licença limitada, pessoal, não exclusiva, não
           comercial, revogável e intransferível para visualizar o Conteúdo da
-          Metaculus. Você só pode usar o Serviço para seu uso pessoal. Você
-          concorda em não visualizar, copiar ou obter conteúdo ou informações do
-          Serviço por meios automatizados (como scripts, bots, spiders, crawlers
-          ou scrapers) ou usar outras tecnologias ou processos de mineração de
-          dados para enquadrar, mascarar, extrair dados ou outros materiais do
-          Conteúdo do Metaculus (exceto como pode ser resultado do uso padrão do
-          mecanismo de pesquisa ou do navegador da Internet), a menos que
-          formalmente autorizado pela Metaculus sob acordo escrito separado.
-          Nenhum material do Serviço pode ser copiado, reproduzido, modificado,
-          republicado, baixado, carregado, publicado, transmitido ou distribuído
-          de qualquer forma ou por qualquer meio sem a permissão prévia por
-          escrito da Metaculus ou expressamente previsto nestes Termos de Uso.
-          Você não pode usar o Serviço, qualquer Conteúdo do Metaculus ou
-          qualquer Conteúdo do Usuário acessado através do Serviço para treinar
-          ou criar ou desenvolver qualquer modelo ou algoritmo de inteligência
-          artificial ou aprendizado de máquina sem a permissão prévia por
-          escrito da Metaculus. Quando você baixa ou usa o Conteúdo Metaculus
-          conforme autorizado por estes Termos de Uso, você deve: (a) manter
-          intactos todos os avisos de direitos autorais e outros avisos de
-          propriedade; (b) não fazer modificações no Conteúdo do Metaculus; e
-          (c) não copiar ou adaptar qualquer código objeto associado ao Serviço
-          ou engenheiro reverso, modificar ou tentar descobrir qualquer
-          código-fonte associado ao Serviço, nem permitir ou ajudar qualquer
-          terceiro (se em seu benefício) para fazê-lo. Todos os direitos não
-          expressamente concedidos aqui são reservados. A Metaculus pode impor
-          limites razoáveis ao seu escopo de acesso ao Conteúdo do Metaculus,
-          incluindo limites de tempo ou número de materiais acessados ou
-          máquinas usadas para acessar tal Conteúdo, para impedir o acesso não
-          autorizado de terceiros ou o uso desse Conteúdo.
+          Metaculus. Exceto conforme permitido por termos adicionais que a
+          Metaculus publique para recursos específicos (incluindo o Suplemento
+          de Termos de Produtos de IA da Metaculus), você só pode usar o Serviço
+          para seu uso pessoal. Você concorda em não visualizar, copiar ou obter
+          conteúdo ou informações do Serviço por meios automatizados (como
+          scripts, bots, spiders, crawlers ou scrapers) ou usar outras
+          tecnologias ou processos de mineração de dados para enquadrar,
+          mascarar, extrair dados ou outros materiais do Conteúdo do Metaculus
+          (exceto como pode ser resultado do uso padrão do mecanismo de pesquisa
+          ou do navegador da Internet), a menos que formalmente autorizado pela
+          Metaculus sob acordo escrito separado. Nenhum material do Serviço pode
+          ser copiado, reproduzido, modificado, republicado, baixado, carregado,
+          publicado, transmitido ou distribuído de qualquer forma ou por
+          qualquer meio sem a permissão prévia por escrito da Metaculus ou
+          expressamente previsto nestes Termos de Uso. Você não pode usar o
+          Serviço, qualquer Conteúdo do Metaculus ou qualquer Conteúdo do
+          Usuário acessado através do Serviço para treinar ou criar ou
+          desenvolver qualquer modelo ou algoritmo de inteligência artificial ou
+          aprendizado de máquina sem a permissão prévia por escrito da
+          Metaculus. Quando você baixa ou usa o Conteúdo Metaculus conforme
+          autorizado por estes Termos de Uso, você deve: (a) manter intactos
+          todos os avisos de direitos autorais e outros avisos de propriedade;
+          (b) não fazer modificações no Conteúdo do Metaculus; e (c) não copiar
+          ou adaptar qualquer código objeto associado ao Serviço ou engenheiro
+          reverso, modificar ou tentar descobrir qualquer código-fonte associado
+          ao Serviço, nem permitir ou ajudar qualquer terceiro (se em seu
+          benefício) para fazê-lo. Todos os direitos não expressamente
+          concedidos aqui são reservados. A Metaculus pode impor limites
+          razoáveis ao seu escopo de acesso ao Conteúdo do Metaculus, incluindo
+          limites de tempo ou número de materiais acessados ou máquinas usadas
+          para acessar tal Conteúdo, para impedir o acesso não autorizado de
+          terceiros ou o uso desse Conteúdo.
         </p>
         <h2
           className="mb-4 mt-8 scroll-mt-nav text-2xl font-bold"
@@ -393,6 +402,21 @@ export default function TermsOfUse() {
           Você concorda em aceitar as interpretações e decisões finais do
           Metaculus em relação a tais assuntos.
         </p>
+        <p className="mb-4">
+          O conteúdo que você envia ao Radiant, e o conteúdo que o Radiant gera
+          para você, são regidos pelo Suplemento de Termos de Produtos de IA da
+          Metaculus (Metaculus AI Products Terms Supplement), disponível em{" "}
+          <a
+            href="https://www.metaculus.com/ai-products-terms/"
+            className="text-blue-600 hover:underline"
+          >
+            https://www.metaculus.com/ai-products-terms/
+          </a>
+          , que é incorporado a estes Termos de Uso e prevalece em caso de
+          conflito com esta seção. Esse conteúdo não se torna Conteúdo do
+          Usuário, a menos que você opte por compartilhá-lo na plataforma
+          Metaculus, conforme descrito no Suplemento.
+        </p>
         <h2
           className="mb-4 mt-8 scroll-mt-nav text-2xl font-bold"
           id="acceptable-use"
@@ -509,7 +533,10 @@ export default function TermsOfUse() {
           </li>
           <li>
             qualquer uso automatizado do Serviço, como, mas não limitado a,
-            usando scripts para enviar mensagens ou postagens;
+            usando scripts para enviar mensagens ou postagens (exceto por meio
+            de, e sujeito aos termos de, uma API, servidor MCP ou outra
+            interface automatizada fornecida pela Metaculus, inclusive conforme
+            permitido pelo Suplemento de Termos de Produtos de IA da Metaculus);
           </li>
           <li>
             uso do Serviço, qualquer Conteúdo do Metaculus ou qualquer Conteúdo
@@ -633,7 +660,9 @@ export default function TermsOfUse() {
           Pode haver links do Serviço, ou de comunicações que você recebe do
           Serviço, para sites de terceiros ou recursos on-line. O Serviço também
           pode incluir conteúdo de terceiros que não controlamos, mantemos ou
-          endossamos.
+          endossamos. Esta seção também se aplica a assistentes, agentes e
+          plataformas de IA de terceiros por meio dos quais os recursos da
+          Metaculus, incluindo o Radiant, possam ser acessados.
         </p>
         <p className="mb-4">
           A funcionalidade no Serviço também pode permitir interações entre o
@@ -1131,7 +1160,8 @@ export default function TermsOfUse() {
         <p className="mb-4">
           O Metaculus pode modificar os Termos de Uso, incluindo as políticas
           vinculadas aqui contidas de tempos em tempos, sem aviso prévio, embora
-          você receba aviso por e-mail de revisões substanciais destes Termos.
+          nós o notifiquemos sobre revisões substanciais destes Termos por
+          e-mail ou por meio de um aviso ou solicitação de aceitação no Serviço.
           Ao usar nosso Serviço depois de atualizarmos os termos (ou nos
           envolvermos em outra conduta que possamos razoavelmente especificar),
           você concorda em ficar vinculado pela versão atual dos Termos de Uso,

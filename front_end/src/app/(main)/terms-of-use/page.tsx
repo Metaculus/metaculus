@@ -19,7 +19,7 @@ export default async function TermsOfUse() {
     <PageWrapper>
       <h1 className="mb-6 text-3xl font-bold">Terms of Use</h1>
 
-      <p className="mb-4">Last Modified: Jun 13, 2025</p>
+      <p className="mb-4">Last Modified: September 21, 2026</p>
 
       <p className="mb-4 font-bold">Welcome to Metaculus!</p>
 
@@ -31,9 +31,12 @@ export default async function TermsOfUse() {
       <p className="mb-4">
         The following terms and conditions, together with any documents they
         expressly incorporate by reference (collectively, &quot;Terms of
-        Use&quot;) apply to the Metaculus.com website including any content,
-        functionality, and services offered on or through the Metaculus.com
-        website (the &quot;Service&quot; or &quot;Services&quot; or
+        Use&quot;) apply to the Metaculus.com website and its subdomains,
+        including any content, functionality, and services offered on or through
+        them, and the Metaculus API, MCP servers, Radiant, and any other
+        Metaculus product or feature made available through third-party
+        platforms, applications, or AI assistants, in each case wherever and
+        however accessed (the &quot;Service&quot; or &quot;Services&quot; or
         &quot;Site&quot; or &quot;Website&quot;), whether as a guest or
         registered user. Metaculus, Inc. is referred to in these Terms of Use as{" "}
         <strong>Metaculus</strong>, <strong>Metaculus Website</strong>,{" "}
@@ -64,7 +67,7 @@ export default async function TermsOfUse() {
             https://www.metaculus.com/privacy-policy/
           </a>
           , incorporated herein by reference. If you do not agree to the Terms
-          of Use of the Privacy Policy, you are not authorized to access or use
+          of Use or the Privacy Policy, you are not authorized to access or use
           the Service and you must cease all such use immediately.
         </strong>
       </p>
@@ -91,21 +94,26 @@ export default async function TermsOfUse() {
         account for use of the Service. You may not create or use more than one
         account, and you may not share your account or any of the Service with
         others. A parent or guardian may create an account for the benefit of a
-        minor, but otherwise you may not create an account for anyone unless
-        expressly authorized by Metaculus. All information you provide to create
-        an account must be accurate and complete. You may not impersonate any
-        other person or use a name that is not your own. It is your
-        responsibility to update your account information to keep it current and
-        accurate. When you set up an account, you must also choose a password.
-        You are solely responsible for maintaining the confidentiality of your
-        password, and for any and all use of your account. You agree not to use
-        the account, username, or password of another user at any time, nor to
-        disclose your password to any third party. You agree you will not sell
-        or share or otherwise transfer your membership or any membership rights.
-        You agree to notify Metaculus immediately if you suspect any
-        unauthorized use of your account or access to your password. Metaculus
-        has the right to terminate, suspend, or limit your account for any
-        reason at our sole discretion without notice and without liability.
+        minor who meets the age requirement below, but otherwise you may not
+        create an account for anyone unless expressly authorized by Metaculus.
+        All information you provide to create an account must be accurate and
+        complete. You may not impersonate any other person or use a name that is
+        not your own. It is your responsibility to update your account
+        information to keep it current and accurate. When you set up an account,
+        you must also choose a password. You are solely responsible for
+        maintaining the confidentiality of your password, and for any and all
+        use of your account. You agree not to use the account, username, or
+        password of another user at any time, nor to disclose your password to
+        any third party. You agree you will not sell or share or otherwise
+        transfer your membership or any membership rights. You agree to notify
+        Metaculus immediately if you suspect any unauthorized use of your
+        account or access to your password. These obligations apply equally to
+        any API keys, tokens, or other credentials issued for your account and
+        to any third-party application, platform, or AI agent that you connect
+        to your account, and you are responsible for all activity conducted
+        through them. Metaculus has the right to terminate, suspend, or limit
+        your account for any reason at our sole discretion without notice and
+        without liability.
       </p>
 
       <h2
@@ -115,28 +123,29 @@ export default async function TermsOfUse() {
         Age and Residence Requirements; U.S. Jurisdiction
       </h2>
       <p className="mb-4">
-        The Service is offered and is available to individuals age 13 and over.
-        If you are between the ages of 13 and the age of majority where you
+        The Service is offered and is available to individuals age 16 and over.
+        If you are between the ages of 16 and the age of majority where you
         live, you must review these Terms of Use with your parent or guardian to
         confirm that you and your parent or guardian understand and agree to it.
         The Service is not intended or authorized for distribution or use in any
         jurisdiction or country where such distribution or use would be contrary
         to law or regulation or which would subject Metaculus to any
         registration requirement within such jurisdiction or country. By using
-        this Website, you represent and warrant that you of legal age to form a
-        binding contract with Metaculus, are not on any list of restricted
-        persons with whom it is unlawful for a U.S. company to do business.
-        Metaculus operates the Service in the United States. Metaculus makes no
-        representations or warranties that the Service is appropriate for use or
-        access in other locations. Anyone using or accessing the Service from
-        other locations does so on their own initiative and is responsible for
-        compliance with United States&apos; and local laws regarding online
-        conduct and acceptable content, if and to the extent such laws are
-        applicable. We reserve the right to limit the availability of the
-        Service and/or the provision of any content, program, product, service
-        or other feature to any person, geographic area, or jurisdiction, at any
-        time and in our sole discretion, and to limit the quantities of any such
-        content, program, product, service or other feature that we provide.
+        this Website, you represent and warrant that you are of legal age to
+        form a binding contract with Metaculus, are not on any list of
+        restricted persons with whom it is unlawful for a U.S. company to do
+        business. Metaculus operates the Service in the United States. Metaculus
+        makes no representations or warranties that the Service is appropriate
+        for use or access in other locations. Anyone using or accessing the
+        Service from other locations does so on their own initiative and is
+        responsible for compliance with United States&apos; and local laws
+        regarding online conduct and acceptable content, if and to the extent
+        such laws are applicable. We reserve the right to limit the availability
+        of the Service and/or the provision of any content, program, product,
+        service or other feature to any person, geographic area, or
+        jurisdiction, at any time and in our sole discretion, and to limit the
+        quantities of any such content, program, product, service or other
+        feature that we provide.
       </p>
 
       <h2
@@ -180,22 +189,25 @@ export default async function TermsOfUse() {
       <p className="mb-4">
         Subject to your compliance with these Terms of Use, Metaculus grants you
         a limited, personal, non-exclusive, non-commercial, revocable and
-        non-transferable license to view the Metaculus Content. You may only use
-        the Service for your own personal use. You agree not to view, copy, or
-        procure content or information from the Service by automated means (such
-        as scripts, bots, spiders, crawlers, or scrapers), or to use other data
-        mining technology or processes to frame, mask, extract data or other
-        materials from the Metaculus Content, except as may be a result of
-        standard search engine or Internet browser usage or through and subject
-        to the terms of an API provided by Metaculus (which Metaculus may choose
-        to provide from time to time), or unless formally authorized by
-        Metaculus under separate written agreement. No materials from the
-        Service may be copied, reproduced, modified, republished, downloaded,
-        uploaded, posted, transmitted, or distributed in any form or by any
-        means without Metaculus&apos;s prior written permission or as expressly
-        provided in these Terms of Use or in any license granted by Metaculus.
-        You may not use the Service, any Metaculus Content, or any User Content
-        accessed through the Service to train or otherwise create or develop any
+        non-transferable license to view the Metaculus Content. Except as
+        permitted by additional terms that Metaculus publishes for particular
+        features (including the Metaculus AI Products Terms Supplement), you may
+        only use the Service for your own personal use. You agree not to view,
+        copy, or procure content or information from the Service by automated
+        means (such as scripts, bots, spiders, crawlers, or scrapers), or to use
+        other data mining technology or processes to frame, mask, extract data
+        or other materials from the Metaculus Content, except as may be a result
+        of standard search engine or Internet browser usage or through and
+        subject to the terms of an API provided by Metaculus (including the
+        Radiant API and MCP server, which Metaculus may choose to provide from
+        time to time), or unless formally authorized by Metaculus under separate
+        written agreement. No materials from the Service may be copied,
+        reproduced, modified, republished, downloaded, uploaded, posted,
+        transmitted, or distributed in any form or by any means without
+        Metaculus&apos;s prior written permission or as expressly provided in
+        these Terms of Use or in any license granted by Metaculus. You may not
+        use the Service, any Metaculus Content, or any User Content accessed
+        through the Service to train or otherwise create or develop any
         artificial intelligence or machine learning model or algorithm without
         Metaculus&apos;s prior written permission. When you download or use the
         Metaculus Content as authorized by these Terms of Use, you must: (a)
@@ -266,12 +278,14 @@ export default async function TermsOfUse() {
         with respect to your information in compliance with the Privacy Policy.
       </p>
       <p className="mb-4">
-        When you submit, post, upload, embed, display, communicate, link to,
-        email or otherwise distribute or publish any question, prediction,
-        review, problem, suggestion, idea, solution, question, answer, feedback,
-        message, image, video, text, profile data or other material (&quot;User
-        Content&quot;) to Metaculus, any Metaculus employee or contractor, or a
-        Metaculus website,{" "}
+        Except for content that the Metaculus AI Products Terms Supplement or
+        other terms presented at the time of submission designate as private or
+        as not constituting User Content, when you submit, post, upload, embed,
+        display, communicate, link to, email or otherwise distribute or publish
+        any question, prediction, review, problem, suggestion, idea, solution,
+        question, answer, feedback, message, image, video, text, profile data or
+        other material (&quot;User Content&quot;) to Metaculus, any Metaculus
+        employee or contractor, or a Metaculus website,{" "}
         <strong>
           you grant Metaculus and our affiliates, licensees, distributors,
           agents, representatives and other entities or individuals authorized
@@ -376,6 +390,20 @@ export default async function TermsOfUse() {
         the Site, even if they may be subject to different interpretations or
         resolutions. You agree to accept the interpretations and final decisions
         of Metaculus regarding such matters.
+      </p>
+      <p className="mb-4">
+        Content you submit to Radiant, and content Radiant generates for you,
+        are governed by the Metaculus AI Products Terms Supplement at{" "}
+        <a
+          href="https://www.metaculus.com/ai-products-terms/"
+          className="text-blue-600 hover:underline"
+        >
+          https://www.metaculus.com/ai-products-terms/
+        </a>
+        , which is incorporated into these Terms of Use and controls in the
+        event of conflict with this section. Such content does not become User
+        Content unless you elect to share it to the Metaculus platform as
+        described in the Metaculus AI Products Terms Supplement.
       </p>
 
       <h2
@@ -491,7 +519,9 @@ export default async function TermsOfUse() {
         <li>
           any automated use of the Service, such as, but not limited to, using
           scripts to send messages or posts (except through and subject to the
-          terms of an API provided by Metaculus);
+          terms of an API, MCP server, or other automated interface provided by
+          Metaculus, including as permitted by the Metaculus AI Products Terms
+          Supplement);
         </li>
         <li>
           use of the Service, any Metaculus Content, or any User Content
@@ -604,7 +634,9 @@ export default async function TermsOfUse() {
         There may be links from the Service, or from communications you receive
         from the Service, to third party websites or online features. The
         Service also may include third party content that we do not control,
-        maintain or endorse.
+        maintain or endorse. This section also applies to third-party AI
+        assistants, agents, and platforms through which Metaculus features,
+        including Radiant, may be accessed.
       </p>
       <p className="mb-4">
         Functionality on the Service may also permit interactions between the
@@ -1052,7 +1084,7 @@ export default async function TermsOfUse() {
         Changes. If Metaculus changes this Legal Disputes section, you may
         reject any such change by sending us written notice (including by email
         to legal@metaculus.com) within 30 days of the date such change became
-        effective, as indicated in the &quot;Last Updated&quot; date. By
+        effective, as indicated in the &quot;Last Modified&quot; date. By
         rejecting any change, you are agreeing that you will resolve any Dispute
         between you and Metaculus in accordance with the provisions of this
         Section as of the date you first accepted the terms of these Terms of
@@ -1070,8 +1102,9 @@ export default async function TermsOfUse() {
         When using the Service, you are subject to any posted policies or rules
         applicable to features you use through the Service, including without
         limitation the GENERAL POLICIES, FAQ/Help, Rules for Competitions on
-        Metaculus, and all policies referenced in the General Policies or
-        elsewhere in this Agreement (&quot;<strong>Additional Terms</strong>
+        Metaculus, the Metaculus AI Products Terms Supplement, and all policies
+        referenced in the General Policies or elsewhere in this Agreement
+        (&quot;<strong>Additional Terms</strong>
         &quot;). All such policies or rules are hereby incorporated into these
         Terms of Use. These policies may change from time to time.
       </p>
@@ -1102,17 +1135,17 @@ export default async function TermsOfUse() {
       </h2>
       <p className="mb-4">
         Metaculus may modify the Terms of Use including the linked policies
-        contained herein from time to time, without prior notice, though you
-        will receive email notice of substantial revisions to these Terms. By
-        using our Service after we have updated the terms (or engaging in such
-        other conduct as we may reasonably specify), you agree to be bound by
-        the then-current version of the Terms of Use, including any changes we
-        may have made since the last time you used our Service. It is therefore
-        important that you review the Terms of Use regularly to ensure you are
-        aware of any such changes. The updated Terms of Use will be effective as
-        of the time of posting, or such later date as may be specified in the
-        updated Terms of Use, and will apply to your use of the Service from
-        that point forward.
+        contained herein from time to time, without prior notice, though we will
+        notify you of substantial revisions to these Terms by email or by a
+        notice or acceptance prompt on the Service. By using our Service after
+        we have updated the terms (or engaging in such other conduct as we may
+        reasonably specify), you agree to be bound by the then-current version
+        of the Terms of Use, including any changes we may have made since the
+        last time you used our Service. It is therefore important that you
+        review the Terms of Use regularly to ensure you are aware of any such
+        changes. The updated Terms of Use will be effective as of the time of
+        posting, or such later date as may be specified in the updated Terms of
+        Use, and will apply to your use of the Service from that point forward.
       </p>
 
       <h2
