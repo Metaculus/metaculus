@@ -22,7 +22,7 @@ const CARD_ACCENT_COLORS = {
   platform: "#a1bdd6", // light blue
   business: "#bf9cd8", // purple
   futureeval: "#5EA29B", // teal
-  radiant: "#F2C59A", // warm beige
+  radiant: "#FF9165", // radiant orange
   laborhub: "#F29A9A", // rose
 } as const;
 
