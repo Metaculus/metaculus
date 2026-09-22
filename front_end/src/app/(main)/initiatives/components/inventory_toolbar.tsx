@@ -46,7 +46,7 @@ const InventoryToolbar: FC<Props> = ({
         <div
           role="group"
           aria-label={t("initiativesInventoryFilterLabel")}
-          className="flex w-max min-w-full gap-4 border-b border-[#C8D3D7] dark:border-blue-400-dark"
+          className="flex w-max min-w-full gap-4 border-b border-[var(--inventory-line)] [--inventory-line:#C8D3D7] dark:[--inventory-line:theme(colors.blue.400.dark)] min-[769px]:[border-image:linear-gradient(to_right,var(--inventory-line)_calc(100%-83px),transparent_calc(100%-33px))_1]"
         >
           {filters.map(({ id, labelKey }) => {
             const isActive = id === activeFilterId;

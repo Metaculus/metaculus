@@ -10,6 +10,7 @@ export type InitiativeBrand = {
 export type InitiativeCategory = {
   id: string;
   labelKey: TranslationKey;
+  color?: string;
 };
 
 export type InitiativesInventoryFilter = InitiativeCategory;

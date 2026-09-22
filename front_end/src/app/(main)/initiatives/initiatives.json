@@ -57,10 +57,22 @@
     }
   ],
   "categories": [
-    { "id": "health-bio", "labelKey": "initiativesCategoryHealthBio" },
-    { "id": "ai", "labelKey": "initiativesCategoryAI" },
-    { "id": "science", "labelKey": "initiativesCategoryScience" },
-    { "id": "policy", "labelKey": "initiativesCategoryPolicy" }
+    {
+      "id": "health-bio",
+      "labelKey": "initiativesCategoryHealthBio",
+      "color": "#4E8C5A"
+    },
+    { "id": "ai", "labelKey": "initiativesCategoryAI", "color": "#AF6994" },
+    {
+      "id": "science",
+      "labelKey": "initiativesCategoryScience",
+      "color": "#5592C4"
+    },
+    {
+      "id": "policy",
+      "labelKey": "initiativesCategoryPolicy",
+      "color": "#A0493F"
+    }
   ],
   "initiatives": [
     {
@@ -68,8 +80,9 @@
       "nameKey": "initiativeFutureEvalName",
       "taglineKey": "initiativeFutureEvalTagline",
       "url": "/futureeval/",
-      "artwork": "/images/initiatives/futureeval-featured.png",
-      "brand": { "color": "#4BA79E" },
+      "logo": "/images/initiatives/logos/futureeval.svg",
+      "artwork": "/images/initiatives/key-arts/futureeval.jpg",
+      "brand": { "color": "#00A99E" },
       "categoryId": "ai",
       "order": 1,
       "inventoryOrder": 1,
@@ -86,7 +99,8 @@
       "taglineKey": "initiativeMidtermsTagline",
       "inventoryNameKey": "initiativeMidtermsFeatureHeading",
       "url": "/midterms-2026/",
-      "brand": { "color": "#2C77B4" },
+      "logo": "/images/initiatives/logos/midterms.svg",
+      "artwork": "/images/initiatives/key-arts/midterms.jpg",
       "categoryId": "policy",
       "order": 2,
       "inventoryOrder": 3,
@@ -103,8 +117,8 @@
       "taglineKey": "initiativeCaseStudiesTagline",
       "inventoryDescriptionKey": "initiativeCaseStudiesInventoryDescription",
       "url": "/services/",
-      "brand": { "color": "#C0B7AD" },
-      "categoryId": "policy",
+      "logo": "/images/initiatives/logos/case-studies.svg",
+      "brand": { "color": "#A9C0D6" },
       "order": 3,
       "inventoryOrder": 4,
       "placements": ["hero", "inventory"]
@@ -115,7 +129,8 @@
       "taglineKey": "initiativeRadiantTagline",
       "inventoryDescriptionKey": "initiativeRadiantInventoryDescription",
       "url": "/notebooks/42293/map-the-future-before-you-build-it/",
-      "brand": { "color": "#f95700" },
+      "logo": "/images/initiatives/logos/radiant.svg",
+      "brand": { "color": "#FF4A00" },
       "categoryId": "ai",
       "order": 4,
       "inventoryOrder": 5,
@@ -126,8 +141,8 @@
       "nameKey": "initiativeLaborHubName",
       "taglineKey": "initiativeLaborHubTagline",
       "url": "/labor-hub/",
-      "artwork": "/images/initiatives/labor-hub-featured.png",
-      "brand": { "color": "#AF6994" },
+      "logo": "/images/initiatives/logos/labor-hub.svg",
+      "artwork": "/images/initiatives/key-arts/labor-hub.jpg",
       "categoryId": "ai",
       "order": 5,
       "inventoryOrder": 2,
@@ -154,7 +169,6 @@
       "nameKey": "initiativeFrontiersDiseaseName",
       "inventoryDescriptionKey": "initiativeFrontiersDiseaseDescription",
       "url": "/notebooks/43979/frontiers-in-disease-prevention-findings/",
-      "brand": { "color": "#B5793A" },
       "categoryId": "health-bio",
       "order": 6,
       "placements": ["inventory"]
@@ -164,7 +178,6 @@
       "nameKey": "initiativeGlobalHealthMonitorName",
       "inventoryDescriptionKey": "initiativeGlobalHealthMonitorDescription",
       "url": "/tournament/global-health-monitor-26-27/",
-      "brand": { "color": "#4E8C5A" },
       "categoryId": "health-bio",
       "order": 7,
       "placements": ["inventory"]
@@ -174,7 +187,6 @@
       "nameKey": "initiativeDemocracyThreatName",
       "inventoryDescriptionKey": "initiativeDemocracyThreatDescription",
       "url": "/index/us-democracy-threat/",
-      "brand": { "color": "#A0493F" },
       "categoryId": "policy",
       "order": 8,
       "placements": ["inventory"]
@@ -184,7 +196,6 @@
       "nameKey": "initiativeResearchAgenciesName",
       "inventoryDescriptionKey": "initiativeResearchAgenciesDescription",
       "url": "/notebooks/39977/report-pro-forecasters-expect-steady-nih-and-nsf-funding/",
-      "brand": { "color": "#5B5FA8" },
       "categoryId": "science",
       "order": 9,
       "placements": ["inventory"]
@@ -194,7 +205,6 @@
       "nameKey": "initiativeAIDiffusionName",
       "inventoryDescriptionKey": "initiativeAIDiffusionDescription",
       "url": "/index/diffusion-index/",
-      "brand": { "color": "#9C4F6B" },
       "categoryId": "ai",
       "order": 10,
       "placements": ["inventory"]
@@ -204,7 +214,6 @@
       "nameKey": "initiativeAGIReadinessName",
       "inventoryDescriptionKey": "initiativeAGIReadinessDescription",
       "url": "/index/agi-readiness-index/",
-      "brand": { "color": "#2F7FA0" },
       "categoryId": "ai",
       "order": 11,
       "placements": ["inventory"]
@@ -214,7 +223,6 @@
       "nameKey": "initiativeCDCExpertElicitationName",
       "inventoryDescriptionKey": "initiativeCDCExpertElicitationDescription",
       "url": "https://www.cdc.gov/cfa-qualitative-assessments/php/data-research/season-outlook25-26-dec-update.html",
-      "brand": { "color": "#7A8B3A" },
       "categoryId": "health-bio",
       "order": 12,
       "placements": ["inventory"]
@@ -224,7 +232,6 @@
       "nameKey": "initiativeThreshold2030Name",
       "inventoryDescriptionKey": "initiativeThreshold2030Description",
       "url": "/notebooks/30299/threshold-2030-modeling-ai-economic-futures/",
-      "brand": { "color": "#3E8E7E" },
       "categoryId": "ai",
       "order": 13,
       "placements": ["inventory"]
@@ -234,7 +241,6 @@
       "nameKey": "initiativeScaleIsAllYouNeedName",
       "inventoryDescriptionKey": "initiativeScaleIsAllYouNeedDescription",
       "url": "/notebooks/27413/scale-is-all-you-need-a-synthetic-biology-workshop-with-astera/",
-      "brand": { "color": "#C2553F" },
       "categoryId": "health-bio",
       "order": 14,
       "placements": ["inventory"]
@@ -244,7 +250,6 @@
       "nameKey": "initiativeFroCastingName",
       "inventoryDescriptionKey": "initiativeFroCastingDescription",
       "url": "/notebooks/19150/fro-casting-to-support-a-new-research-model/",
-      "brand": { "color": "#8E5BA6" },
       "categoryId": "science",
       "order": 15,
       "placements": ["inventory"]
@@ -254,7 +259,6 @@
       "nameKey": "initiativeAINuclearLandscapeName",
       "inventoryDescriptionKey": "initiativeAINuclearLandscapeDescription",
       "url": "https://securityandtechnology.org/virtual-library/report/forecasting-the-ai-and-nuclear-landscape/",
-      "brand": { "color": "#3F6E9E" },
       "categoryId": "policy",
       "order": 16,
       "placements": ["inventory"]

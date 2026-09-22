@@ -1,18 +1,12 @@
-import { faArrowRight } from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Image from "next/image";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { FC } from "react";
+import { CSSProperties, FC } from "react";
 
 import cn from "@/utils/core/cn";
 
-import InitiativeMark from "./initiative_mark";
-import { INITIATIVE_FALLBACK_ARTWORK } from "../helpers/assets";
-import {
-  DEFAULT_INITIATIVE_COLOR,
-  getReadableForeground,
-} from "../helpers/contrast";
+import { resolveAssetSource } from "../helpers/assets";
+import { DEFAULT_INITIATIVE_COLOR } from "../helpers/contrast";
 import { Initiative, InitiativesInventoryView } from "../types";
 
 type Props = {
@@ -26,69 +20,62 @@ const InitiativeInventoryCard: FC<Props> = ({ initiative, view }) => {
   const color = initiative.brand?.color ?? DEFAULT_INITIATIVE_COLOR;
   const descriptionKey =
     initiative.inventoryDescriptionKey ?? initiative.feature?.descriptionKey;
+  const logo = initiative.logo ? resolveAssetSource(initiative.logo) : null;
+  const isList = view === "list";
+
   return (
-    <li className="min-w-0 list-none">
+    <li className="min-w-0 list-none @container">
       <Link
         href={initiative.url}
         className={cn(
-          "group block min-w-0 no-underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blue-800 dark:focus-visible:outline-blue-800-dark",
-          view === "list" &&
-            "min-[769px]:grid min-[769px]:grid-cols-[minmax(0,420px)_minmax(0,1fr)] min-[769px]:gap-8"
+          "flex h-full flex-col no-underline transition-shadow duration-200 ease-out focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blue-800 motion-reduce:transition-none dark:focus-visible:outline-blue-800-dark",
+          "hover:[box-shadow:inset_0_0_0_6px_var(--initiative-tile-gap),0_0_0_4px_color-mix(in_srgb,var(--initiative-brand)_50%,transparent)] active:[box-shadow:inset_0_0_0_6px_var(--initiative-tile-gap),0_0_0_4px_var(--initiative-brand)]",
+          isList
+            ? "gap-1 p-5"
+            : "min-h-[66.667cqw] justify-between gap-8 p-6 md:p-8"
         )}
+        style={
+          {
+            "--initiative-brand": color,
+            backgroundColor: color,
+            color: "#FFF",
+          } as CSSProperties
+        }
       >
         <div
-          aria-hidden="true"
-          className="relative flex aspect-[3/2] min-w-0 items-center justify-center gap-2 overflow-hidden px-6"
-          style={{
-            backgroundColor: color,
-            color: getReadableForeground(color),
-          }}
-        >
-          <Image
-            src={INITIATIVE_FALLBACK_ARTWORK}
-            alt=""
-            fill
-            unoptimized
-            sizes="(min-width: 1280px) 420px, (min-width: 768px) 50vw, 100vw"
-            className="pointer-events-none object-cover"
-          />
-          <div className="relative flex w-full justify-center">
-            <div className="flex w-fit max-w-full items-center gap-2">
-              <InitiativeMark
-                initiative={initiative}
-                name={name}
-                className="size-10 shrink-0 rounded-none"
-              />
-              <span className="min-w-0 max-w-[220px] break-words text-center text-[21.067px] font-semibold leading-[29.494px]">
-                {name}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        <div
           className={cn(
-            "flex flex-col items-start pt-5",
-            view === "list" && "min-[769px]:pt-0"
+            "flex",
+            isList ? "items-center gap-3" : "items-start justify-between gap-6"
           )}
         >
-          <h3 className="m-0 mt-2 self-stretch text-[26px] font-medium leading-[110%] tracking-[-1.56px] text-blue-900 dark:text-blue-900-dark">
+          <h3
+            className={cn(
+              "m-0 text-2xl font-semibold leading-[140%] tracking-[-1.44px] text-inherit"
+            )}
+          >
             {name}
           </h3>
-          {descriptionKey && (
-            <p className="m-0 mt-4 self-stretch text-[15px] font-normal leading-6 text-blue-800 dark:text-blue-800-dark">
-              {t(descriptionKey)}
-            </p>
-          )}
-          <span className="mt-6 inline-flex items-center gap-1.5 text-sm font-semibold leading-[14px] text-blue-900 dark:text-blue-900-dark">
-            {t("explore")}
-            <FontAwesomeIcon
-              icon={faArrowRight}
-              aria-hidden="true"
-              className="h-3 w-3 transition-transform group-hover:translate-x-1 group-focus-visible:translate-x-1 motion-reduce:transition-none"
+          {logo && (
+            <Image
+              src={logo.src}
+              unoptimized={logo.unoptimized}
+              alt=""
+              width={42}
+              height={42}
+              draggable={false}
+              className={cn(
+                "shrink-0",
+                isList ? "order-first size-5" : "size-[42px]"
+              )}
             />
-          </span>
+          )}
         </div>
+
+        {descriptionKey && (
+          <p className="m-0 text-base font-normal leading-6">
+            {t(descriptionKey)}
+          </p>
+        )}
       </Link>
     </li>
   );

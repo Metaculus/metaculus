@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { FC } from "react";
 
@@ -30,9 +31,12 @@ const FeaturedInitiativeRow: FC<Props> = ({ initiative, artworkSide }) => {
           : "xl:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]"
       )}
     >
-      <div
+      <Link
+        href={initiative.url}
+        tabIndex={-1}
+        aria-hidden="true"
         className={cn(
-          "relative aspect-[1800/1310] w-full overflow-hidden",
+          "relative block aspect-[1800/1310] w-full overflow-hidden",
           artworkSide === "start" ? "xl:col-start-1" : "xl:col-start-2"
         )}
         style={{ backgroundColor: initiative.brand.color }}
@@ -45,7 +49,7 @@ const FeaturedInitiativeRow: FC<Props> = ({ initiative, artworkSide }) => {
           sizes="(min-width: 1280px) 66vw, 100vw"
           className="object-cover"
         />
-      </div>
+      </Link>
 
       <div
         className={cn(

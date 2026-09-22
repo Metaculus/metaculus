@@ -12,7 +12,7 @@ const HeroSection = async () => {
   const heroInitiatives = getInitiativesByPlacement("hero");
 
   return (
-    <section className="flex flex-col items-center gap-8 px-5 pb-10 pt-14 text-center md:px-12 xl:pb-20">
+    <section className="flex flex-col items-center gap-6 px-5 pb-10 pt-8 text-center md:gap-8 md:px-12 md:pt-14 xl:pb-20">
       <div className="flex flex-col items-center gap-6">
         <p className="m-0 flex items-center gap-2 text-xs font-medium uppercase tracking-[0.12em] text-blue-700 dark:text-blue-700-dark">
           <span
@@ -53,7 +53,7 @@ const HeroSection = async () => {
       )}
 
       {heroInitiatives.length > 0 && (
-        <div className="-mx-5 mt-4 w-[calc(100%+2.5rem)] md:-mx-12 md:mt-12 md:w-[calc(100%+6rem)]">
+        <div className="-mx-5 w-[calc(100%+2.5rem)] md:-mx-12 md:mt-12 md:w-[calc(100%+6rem)]">
           <InitiativeCarousel
             initiatives={heroInitiatives}
             initialInitiativeId={hero.initialInitiativeId}

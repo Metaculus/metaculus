@@ -41,6 +41,7 @@ const InitiativeMark: FC<Props> = ({ initiative, name, className }) => {
           alt=""
           fill
           sizes="200px"
+          draggable={false}
           className="object-contain p-[30%]"
         />
       ) : (

@@ -64,7 +64,7 @@ const InitiativesInventory: FC<Props> = ({
       <ul
         id={RESULTS_ID}
         className={cn(
-          "m-0 mt-8 grid list-none grid-cols-1 gap-8 p-0",
+          "m-0 mt-8 grid list-none grid-cols-1 gap-8 p-0 [--initiative-tile-gap:theme(colors.gray.0.DEFAULT)] dark:[--initiative-tile-gap:theme(colors.gray.0.dark)]",
           view === "grid" && "min-[769px]:grid-cols-2 xl:grid-cols-3"
         )}
       >
