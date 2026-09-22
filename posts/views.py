@@ -24,6 +24,7 @@ from posts.serializers import (
     get_subscription_serializer_by_type,
     PostRelatedArticleSerializer,
     PostUpdateSerializer,
+    StaffOverrideQuerySerializer,
     serialize_private_notes_many,
 )
 from posts.services.common import (
@@ -55,6 +56,8 @@ from projects.models import Project
 from projects.permissions import ObjectPermission
 from projects.services.common import get_project_permission_for_user
 from questions.serializers.common import QuestionApproveSerializer
+from users.models import User
+from users.services.bots_management import resolve_staff_override_target
 from utils.csv_utils import export_data_for_questions
 from utils.files import validate_and_upload_image
 from utils.paginator import CountlessLimitOffsetPagination, LimitOffsetPagination
@@ -66,6 +69,27 @@ spam_error = ValidationError(
     "support@metaculus.com if you believe this was a mistake.",
     code="SPAM_DETECTED",
 )
+
+
+def get_acting_user(request: Request) -> User:
+    """
+    Returns the account the request should be evaluated as: the requester, or
+    the target of `is_staff_override` together with `user_id` or `username`.
+    """
+
+    serializer = StaffOverrideQuerySerializer(data=request.query_params)
+    serializer.is_valid(raise_exception=True)
+    data = serializer.validated_data
+
+    if not data["is_staff_override"]:
+        return request.user
+
+    return resolve_staff_override_target(
+        request.user,
+        user_id=data.get("user_id"),
+        username=data.get("username"),
+        path=request.path,
+    )
 
 
 @api_view(["GET"])
@@ -97,18 +121,20 @@ def posts_list_api_view(request):
         or 3
     )
 
+    user = get_acting_user(request)
+
     # Apply filtering
     filters_serializer = PostFilterSerializer(data=request.query_params)
     filters_serializer.is_valid(raise_exception=True)
 
-    qs = get_posts_feed(qs, user=request.user, **filters_serializer.validated_data)
+    qs = get_posts_feed(qs, user=user, **filters_serializer.validated_data)
     # Paginating queryset
     posts = paginator.paginate_queryset(qs, request)
 
     data = serialize_post_many(
         posts,
         with_cp=with_cp,
-        current_user=request.user,
+        current_user=user,
         group_cutoff=group_cutoff,
         with_key_factors=True,
         include_descriptions=include_descriptions,
@@ -228,7 +254,8 @@ def post_detail_oldapi_view(request: Request, pk):
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def post_detail(request: Request, pk):
-    user = request.user if request.user.is_authenticated else None
+    acting_user = get_acting_user(request)
+    user = acting_user if acting_user.is_authenticated else None
 
     # Extra params
     with_cp = serializers.BooleanField(allow_null=True).run_validation(
@@ -238,7 +265,7 @@ def post_detail(request: Request, pk):
     qs = Post.objects.filter_permission(user=user).filter(pk=pk)
     posts = serialize_post_many(
         qs,
-        current_user=request.user,
+        current_user=acting_user,
         with_cp=with_cp,
         with_subscriptions=True,
         with_key_factors=True,
