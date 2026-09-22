@@ -342,7 +342,7 @@ const InitiativeCarousel: FC<Props> = ({
     >
       <div
         className={cn(
-          "relative mx-auto w-full max-w-[635px] select-none transition-opacity duration-300 [--initiative-tile-gap:theme(colors.blue.200.DEFAULT)] [-webkit-tap-highlight-color:transparent] motion-reduce:transition-none dark:[--initiative-tile-gap:theme(colors.blue.200.dark)] md:max-w-[1100px] xl:max-w-[1180px]",
+          "relative mx-auto w-full max-w-[635px] select-none transition-opacity duration-300 [-webkit-tap-highlight-color:transparent] motion-reduce:transition-none md:max-w-[1100px] xl:max-w-[1180px]",
           !emblaApi && "opacity-0"
         )}
       >
@@ -390,7 +390,7 @@ const InitiativeCarousel: FC<Props> = ({
                       <InitiativeMark
                         initiative={initiative}
                         name={name}
-                        className="size-[120px] transition-shadow duration-200 ease-out hover:[box-shadow:inset_0_0_0_6px_var(--initiative-tile-gap),0_0_0_4px_color-mix(in_srgb,var(--initiative-brand)_50%,transparent)] active:[box-shadow:inset_0_0_0_6px_var(--initiative-tile-gap),0_0_0_4px_var(--initiative-brand)] motion-reduce:transition-none md:size-[200px]"
+                        className="size-[120px] md:size-[200px]"
                       />
                     </button>
                   </div>
