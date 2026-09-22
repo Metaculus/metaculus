@@ -9,6 +9,10 @@ from users.models import User
 logger = logging.getLogger(__name__)
 
 
+def get_user_metadata(user: User) -> dict:
+    return user.metadata if isinstance(user.metadata, dict) else {}
+
+
 def get_user_bots(user: User):
     return User.objects.filter(bot_owner=user).order_by("-is_primary_bot", "created_at")
 
@@ -24,7 +28,7 @@ def get_max_bots(user: User) -> int | None:
     if user.is_superuser:
         return None
 
-    limit = (user.metadata or {}).get("max_bots")
+    limit = get_user_metadata(user).get("max_bots")
 
     if isinstance(limit, bool) or not isinstance(limit, int) or limit < 0:
         return DEFAULT_MAX_BOTS
@@ -59,7 +63,7 @@ def create_bot(*, bot_owner: User, username: str, **kwargs) -> User:
 
 
 def is_metac_bot(user: User) -> bool:
-    bot_details = (user.metadata or {}).get("bot_details")
+    bot_details = get_user_metadata(user).get("bot_details")
 
     return (
         user.is_bot
@@ -74,7 +78,7 @@ def can_act_as_metac_bots(user: User) -> bool:
     admins give a non-superuser service account access to the metac bots.
     """
 
-    return (user.metadata or {}).get("can_act_as_metac_bots") is True
+    return get_user_metadata(user).get("can_act_as_metac_bots") is True
 
 
 def resolve_staff_override_target(

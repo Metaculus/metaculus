@@ -56,6 +56,9 @@ class TestResolveStaffOverrideTarget:
             # Deactivated metac bot
             (False, False, {"bot_details": {"metac_bot": True}}),
             (True, False, {"bot_details": {"metac_bot": True}}),
+            # Malformed metadata
+            (True, True, ["bot_details"]),
+            (True, True, "bot_details"),
         ],
     )
     def test_runner_denied_for_other_targets(
@@ -81,7 +84,14 @@ class TestResolveStaffOverrideTarget:
 
     @pytest.mark.parametrize(
         "metadata",
-        [None, {}, {"can_act_as_metac_bots": False}, {"can_act_as_metac_bots": 1}],
+        [
+            None,
+            {},
+            {"can_act_as_metac_bots": False},
+            {"can_act_as_metac_bots": 1},
+            ["can_act_as_metac_bots"],
+            "can_act_as_metac_bots",
+        ],
     )
     def test_account_without_capability_denied(self, user1, metac_bot, metadata):
         user1.metadata = metadata
