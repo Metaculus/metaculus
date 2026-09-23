@@ -6,7 +6,7 @@ from freezegun import freeze_time
 from misc.models import PostArticle
 from misc.services.itn import (
     assign_article_clusters,
-    generate_related_articles_for_post,
+    rebuild_related_articles_for_post,
 )
 from questions.models import Question
 from tests.unit.test_misc.factories import factory_itn_article
@@ -76,14 +76,14 @@ def _post(vector):
 
 
 @freeze_time("2025-04-10")
-def test_generate_related_articles_for_post_rebuilds_matches():
+def test_rebuild_related_articles_for_post_rebuilds_matches():
     post = _post([1, 0, 0])
     near = _article([1, 0.1, 0], (2025, 4, 4))
     far = _article([0, 1, 0], (2025, 4, 9))
     # Matched from the post's previous vector
     PostArticle.objects.create(post=post, article=far, distance=0.1)
 
-    generate_related_articles_for_post(post)
+    rebuild_related_articles_for_post(post)
 
     matches = list(PostArticle.objects.filter(post=post))
     assert [m.article_id for m in matches] == [near.pk]
@@ -91,11 +91,11 @@ def test_generate_related_articles_for_post_rebuilds_matches():
     assert matches[0].created_at == near.created_at
 
 
-def test_generate_related_articles_for_post_without_vector_clears_matches():
+def test_rebuild_related_articles_for_post_without_vector_clears_matches():
     post = _post(None)
     article = _article([1, 0, 0], (2025, 4, 4))
     PostArticle.objects.create(post=post, article=article, distance=0.1)
 
-    generate_related_articles_for_post(post)
+    rebuild_related_articles_for_post(post)
 
     assert not PostArticle.objects.filter(post=post).exists()

@@ -39,7 +39,7 @@ def generate_post_content_for_embedding_vectorization(post: Post):
     # A group keeps its description, resolution criteria and fine print on the
     # group itself; its subquestions usually leave those fields empty. Without
     # this, a group post is embedded from its titles alone.
-    if post.group_of_questions:
+    if post.group_of_questions_id:
         group = post.group_of_questions
         group_chunks = [group.description, group.resolution_criteria, group.fine_print]
         group_content = "\n".join([x for x in group_chunks if x]) or None
