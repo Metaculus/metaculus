@@ -6,8 +6,14 @@ from posts.services.search import (
     SearchUnavailable,
     gather_search_results,
     perform_post_search,
+    generate_post_content_for_embedding_vectorization,
 )
+from questions.models import Question
 from tests.unit.test_posts.factories import factory_post
+from tests.unit.test_questions.factories import (
+    create_question,
+    factory_group_of_questions,
+)
 
 
 def test_gather_search_results_returns_google_results_when_embedding_fails(
@@ -119,3 +125,55 @@ def test_perform_post_search_returns_empty_when_google_succeeds_with_no_results(
     assert not qs.exists()
     # qs must expose `rank` so downstream `.filter(Q(rank__gte=...))` works
     assert not qs.filter(Q(rank__gte=0.3)).exists()
+
+
+def test_generate_post_content_for_embedding_vectorization__group(user1):
+    # Groups keep their text on the group; subquestions leave it empty
+    post = factory_post(
+        author=user1,
+        title="Will these clouds buy Chinese AI chips?",
+        group_of_questions=factory_group_of_questions(
+            description="Background",
+            resolution_criteria="Criteria",
+            fine_print="Fine print",
+        ),
+    )
+    for label in ("AWS", "Azure"):
+        create_question(
+            title=f"Will these clouds buy Chinese AI chips? ({label})",
+            question_type=Question.QuestionType.BINARY,
+            group=post.group_of_questions,
+            description="",
+            resolution_criteria="",
+            fine_print="",
+        )
+
+    chunks = generate_post_content_for_embedding_vectorization(post).split("\n\n")
+
+    assert chunks[:2] == [
+        "Will these clouds buy Chinese AI chips?",
+        "Background\nCriteria\nFine print",
+    ]
+    assert sorted(chunks[2:]) == [
+        "Will these clouds buy Chinese AI chips? (AWS)",
+        "Will these clouds buy Chinese AI chips? (Azure)",
+    ]
+
+
+def test_generate_post_content_for_embedding_vectorization__question(user1):
+    post = factory_post(
+        author=user1,
+        title="Post",
+        question=create_question(
+            title="Question",
+            question_type=Question.QuestionType.BINARY,
+            description="Description",
+            resolution_criteria="Criteria",
+            fine_print="",
+        ),
+    )
+
+    assert (
+        generate_post_content_for_embedding_vectorization(post)
+        == "Post\n\nQuestion\nDescription\nCriteria"
+    )

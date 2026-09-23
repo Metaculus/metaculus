@@ -88,6 +88,20 @@ def test_update_post__run_post_indexing(user1, user2, mocker):
     mock_run_post_indexing.assert_called_once()
 
 
+def test_update_post__run_post_indexing__group_text(user1, mocker):
+    mock_run_post_indexing = mocker.patch("posts.tasks.run_post_indexing.send")
+
+    post = factory_post(
+        author=user1,
+        title="Group",
+        group_of_questions=factory_group_of_questions(description="Old background"),
+    )
+
+    # Group-level text is embedded, so editing it reindexes the post
+    update_post(post, group_of_questions={"description": "New background"})
+    mock_run_post_indexing.assert_called_once()
+
+
 @freeze_time("2024-01-01")
 def test_update_post__actual_close_time(user1, user2, mocker):
     mocker.patch("posts.tasks.run_post_indexing.send")

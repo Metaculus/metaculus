@@ -258,32 +258,45 @@ def generate_related_posts_for_article(article: ITNArticle):
 
 def generate_related_articles_for_post(post: Post):
     """
-    Generates related ITN Articles for the given Post and saves them in the PostArticle cache table.
-    Takes only 20 relevant objects
+    Rebuilds the PostArticle cache rows for the given Post from its current
+    embedding vector.
+
+    Matches computed from a previous vector are dropped: otherwise they keep
+    feeding news hotness until their articles age out. The post is then matched
+    against every stored article, as generate_related_posts_for_article matches
+    articles against posts.
     """
 
     # Skip generation for notebooks
     if post.notebook_id:
         return
 
+    PostArticle.objects.filter(post=post).delete()
+
+    if post.embedding_vector is None:
+        return
+
     relevant_articles = (
-        ITNArticle.objects.annotate(
-            distance=CosineDistance("embedding_vector", post.embedding_vector)
-        )
-        .filter(
-            distance__lte=MAX_RELEVANT_DISTANCE,
-            # Take only fresh news
-            created_at__gte=timezone.now() - timedelta(days=2),
-        )
-        .order_by("distance")[:20]
+        ITNArticle.objects.filter(embedding_vector__isnull=False)
+        .annotate(distance=CosineDistance("embedding_vector", post.embedding_vector))
+        .filter(distance__lte=MAX_RELEVANT_DISTANCE)
+        .only("id", "created_at")
     )
 
     PostArticle.objects.bulk_create(
         [
-            PostArticle(article=article, post=post, distance=article.distance)
+            PostArticle(
+                article=article,
+                post=post,
+                distance=article.distance,
+                # News hotness decays by match age, so date by the article or
+                # re-indexing would score week-old coverage as new
+                created_at=article.created_at,
+            )
             for article in relevant_articles
         ],
         ignore_conflicts=True,
+        batch_size=100,
     )
 
 
