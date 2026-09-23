@@ -39,6 +39,11 @@ const WHEEL_IDLE_RESET = 200;
 const VISIBLE_ITEMS = 5;
 const MIN_LOOP_SLIDES = VISIBLE_ITEMS + 1;
 
+// A mask rather than colour overlays, so the edges fade into whatever
+// background sits behind the carousel.
+const EDGE_FADE =
+  "linear-gradient(to right, transparent, black 2.5rem, black calc(100% - 2.5rem), transparent)";
+
 type ActiveInitiativeLinkProps = {
   initiative: Initiative;
   name: string;
@@ -384,7 +389,11 @@ const InitiativeCarousel: FC<Props> = ({
           !emblaApi && "opacity-0"
         )}
       >
-        <div ref={emblaRef} className="overflow-hidden py-4">
+        <div
+          ref={emblaRef}
+          className="overflow-hidden py-4"
+          style={{ maskImage: EDGE_FADE, WebkitMaskImage: EDGE_FADE }}
+        >
           <ul className="flex [touch-action:pan-y_pinch-zoom]">
             {slides.map(({ initiative, realIndex, isRepeat }, index) => {
               const name = t(initiative.nameKey);
@@ -437,8 +446,6 @@ const InitiativeCarousel: FC<Props> = ({
             })}
           </ul>
         </div>
-        <div className="pointer-events-none absolute inset-y-0 left-0 w-10 bg-gradient-to-r from-blue-200 to-transparent dark:from-blue-200-dark" />
-        <div className="pointer-events-none absolute inset-y-0 right-0 w-10 bg-gradient-to-l from-blue-200 to-transparent dark:from-blue-200-dark" />
       </div>
 
       <div

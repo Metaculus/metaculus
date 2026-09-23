@@ -18,8 +18,14 @@ export async function generateMetadata(): Promise<Metadata> {
 export default function InitiativesPage() {
   return (
     <main className="bg-blue-200 dark:bg-blue-200-dark">
-      <div className="mx-auto w-full max-w-7xl">
-        <HeroSection />
+      <div className="relative">
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-x-0 bottom-0 h-[45%] bg-gradient-to-b from-blue-200 to-gray-0 dark:from-blue-200-dark dark:to-gray-0-dark"
+        />
+        <div className="relative mx-auto w-full max-w-7xl">
+          <HeroSection />
+        </div>
       </div>
       <div className="flex flex-col gap-[110px] bg-gray-0 dark:bg-gray-0-dark">
         <FeaturedSection />
