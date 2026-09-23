@@ -27,7 +27,7 @@ const HeroSection = async () => {
         </h1>
       </div>
 
-      <p className="m-0 w-full max-w-[676px] text-sm font-normal leading-[160%] text-blue-900 dark:text-blue-900-dark md:text-[18px]">
+      <p className="m-0 w-full max-w-[676px] text-balance text-sm font-normal leading-[160%] text-blue-900 dark:text-blue-900-dark md:text-[18px]">
         {t(hero.descriptionKey)}
       </p>
 
