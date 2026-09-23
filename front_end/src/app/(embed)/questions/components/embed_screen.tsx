@@ -13,6 +13,7 @@ import {
 } from "@/utils/questions/helpers";
 
 import EmbedQuestionCard from "./embed_question_card";
+import { CONDITIONAL_EMBED_HEIGHT } from "../constants/embed_size";
 import { EmbedTheme } from "../constants/embed_theme";
 import { EmbedSize } from "../helpers/embed_chart_height";
 
@@ -48,7 +49,10 @@ function getOtherSize(containerWidth: number): EmbedSize {
 
 function getSizeForPost(post: PostWithForecasts, containerWidth: number) {
   if (isConditionalPost(post)) {
-    return { width: Math.min(550, Math.max(360, containerWidth)), height: 380 };
+    return {
+      width: Math.min(550, Math.max(360, containerWidth)),
+      height: CONDITIONAL_EMBED_HEIGHT,
+    };
   }
   const isBinaryOrContinuous =
     !!post.question &&

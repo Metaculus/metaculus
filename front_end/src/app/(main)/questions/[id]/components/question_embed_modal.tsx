@@ -2,6 +2,7 @@
 
 import { FC, useEffect, useMemo, useRef, useState } from "react";
 
+import { CONDITIONAL_EMBED_HEIGHT } from "@/app/(embed)/questions/constants/embed_size";
 import EmbedModal from "@/components/embed_modal";
 import { ContinuousQuestionTypes } from "@/constants/questions";
 import useEmbedModalContext from "@/contexts/embed_modal_context";
@@ -13,6 +14,7 @@ type Props = {
   postTitle?: string;
   questionType?: QuestionType;
   isFanChart?: boolean;
+  isConditional?: boolean;
 };
 
 const QuestionEmbedModal: FC<Props> = ({
@@ -20,6 +22,7 @@ const QuestionEmbedModal: FC<Props> = ({
   postTitle,
   questionType,
   isFanChart,
+  isConditional,
 }) => {
   const embedUrl = useEmbedUrl(`/questions/embed/${postId}`);
   const { isOpen, updateIsOpen } = useEmbedModalContext();
@@ -48,6 +51,9 @@ const QuestionEmbedModal: FC<Props> = ({
   const embedWidth = 550;
   const effectiveWidth = Math.min(modalWidth, embedWidth);
   const embedHeight = useMemo(() => {
+    if (isConditional) {
+      return CONDITIONAL_EMBED_HEIGHT;
+    }
     if (isBinaryOrContinuous) {
       return effectiveWidth < 418 ? 390 : 360;
     }
@@ -55,7 +61,7 @@ const QuestionEmbedModal: FC<Props> = ({
       return effectiveWidth < 480 ? 290 : 360;
     }
     return effectiveWidth < 418 ? 290 : 270;
-  }, [effectiveWidth, isBinaryOrContinuous, isFanChart]);
+  }, [effectiveWidth, isBinaryOrContinuous, isFanChart, isConditional]);
 
   if (!embedUrl) return null;
 

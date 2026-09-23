@@ -14,7 +14,10 @@ import { GroupOfQuestionsGraphType } from "@/types/post";
 import { TournamentType } from "@/types/projects";
 import { InterfaceType } from "@/types/users";
 import cn from "@/utils/core/cn";
-import { isGroupOfQuestionsPost } from "@/utils/questions/helpers";
+import {
+  isConditionalPost,
+  isGroupOfQuestionsPost,
+} from "@/utils/questions/helpers";
 
 import NotebookRedirect from "../components/notebook_redirect";
 import QuestionEmbedModal from "../components/question_embed_modal";
@@ -109,6 +112,7 @@ const IndividualQuestionPage: FC<{
                 postTitle={postData.title}
                 questionType={postData.question?.type}
                 isFanChart={isFanChart}
+                isConditional={isConditionalPost(postData)}
               />
             </PostSubscriptionProvider>
           </HideCPProvider>
