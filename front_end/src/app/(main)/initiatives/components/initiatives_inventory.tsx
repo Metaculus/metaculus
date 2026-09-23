@@ -81,7 +81,7 @@ const InitiativesInventory: FC<Props> = ({
   return (
     <div
       ref={rootRef}
-      className="[--initiative-tile-gap:theme(colors.gray.0.DEFAULT)] dark:[--initiative-tile-gap:theme(colors.gray.0.dark)]"
+      className="flow-root [--initiative-tile-gap:theme(colors.gray.0.DEFAULT)] dark:[--initiative-tile-gap:theme(colors.gray.0.dark)]"
     >
       <InventoryToolbar
         filters={filters}
@@ -96,7 +96,7 @@ const InitiativesInventory: FC<Props> = ({
       {isList ? (
         <ul
           id={RESULTS_ID}
-          className="m-0 grid list-none grid-cols-1 gap-3 p-0 pt-12 sm:pt-16"
+          className="m-0 grid list-none grid-cols-1 gap-3 p-0 pt-14 sm:pt-16"
         >
           {visibleInitiatives.map((initiative) => (
             <li key={initiative.id} className="min-w-0">
