@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { FC } from "react";
+import { FC, Ref } from "react";
 
 import cn from "@/utils/core/cn";
 
@@ -28,6 +28,9 @@ type Props = {
   view: InitiativesInventoryView;
   onViewChange: (view: InitiativesInventoryView) => void;
   resultsId?: string;
+  showFilters?: boolean;
+  containerRef?: Ref<HTMLDivElement>;
+  className?: string;
 };
 
 const InventoryToolbar: FC<Props> = ({
@@ -37,45 +40,53 @@ const InventoryToolbar: FC<Props> = ({
   view,
   onViewChange,
   resultsId,
+  showFilters = true,
+  containerRef,
+  className,
 }) => {
   const t = useTranslations();
 
   return (
-    <div className="flex items-center">
-      <div className="min-w-0 flex-1 overflow-x-auto pb-[3px] no-scrollbar">
-        <div
-          role="group"
-          aria-label={t("initiativesInventoryFilterLabel")}
-          className="flex w-max min-w-full gap-4 border-b border-[var(--inventory-line)] [--inventory-line:#C8D3D7] dark:[--inventory-line:theme(colors.blue.400.dark)] min-[769px]:[border-image:linear-gradient(to_right,var(--inventory-line)_calc(100%-83px),transparent_calc(100%-33px))_1]"
-        >
-          {filters.map(({ id, labelKey }) => {
-            const isActive = id === activeFilterId;
+    <div
+      ref={containerRef}
+      className={cn("flex items-center max-[768px]:gap-3", className)}
+    >
+      {showFilters && (
+        <div className="min-w-0 flex-1 overflow-x-auto pb-[3px] no-scrollbar">
+          <div
+            role="group"
+            aria-label={t("initiativesInventoryFilterLabel")}
+            className="flex w-max min-w-full gap-4 border-b border-[var(--inventory-line)] [--inventory-line:#C8D3D7] dark:[--inventory-line:theme(colors.blue.400.dark)] min-[769px]:[border-image:linear-gradient(to_right,var(--inventory-line)_calc(100%-83px),transparent_calc(100%-33px))_1]"
+          >
+            {filters.map(({ id, labelKey }) => {
+              const isActive = id === activeFilterId;
 
-            return (
-              <button
-                key={id}
-                type="button"
-                aria-pressed={isActive}
-                aria-controls={resultsId}
-                onClick={() => onFilterChange(id)}
-                className={cn(
-                  "-mb-[3px] shrink-0 whitespace-nowrap border-b-2 py-4 font-sans text-sm font-medium not-italic leading-[14px] text-blue-800 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-800 dark:text-blue-800-dark dark:focus-visible:ring-blue-800-dark",
-                  isActive
-                    ? "border-blue-900 dark:border-blue-900-dark"
-                    : "border-transparent hover:border-blue-500 dark:hover:border-blue-500-dark"
-                )}
-              >
-                {t(labelKey)}
-              </button>
-            );
-          })}
+              return (
+                <button
+                  key={id}
+                  type="button"
+                  aria-pressed={isActive}
+                  aria-controls={resultsId}
+                  onClick={() => onFilterChange(id)}
+                  className={cn(
+                    "-mb-[3px] shrink-0 whitespace-nowrap border-b-2 py-4 font-sans text-sm font-medium not-italic leading-[14px] text-blue-800 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-800 dark:text-blue-800-dark dark:focus-visible:ring-blue-800-dark",
+                    isActive
+                      ? "border-blue-900 dark:border-blue-900-dark"
+                      : "border-transparent hover:border-blue-500 dark:hover:border-blue-500-dark"
+                  )}
+                >
+                  {t(labelKey)}
+                </button>
+              );
+            })}
+          </div>
         </div>
-      </div>
+      )}
 
       <div
         role="group"
         aria-label={t("initiativesInventoryViewLabel")}
-        className="hidden shrink-0 items-start rounded-lg border border-[#C8D3D7] bg-[#F8FDFD] p-[3px] dark:border-blue-400-dark dark:bg-blue-100-dark min-[769px]:flex"
+        className="ml-auto flex shrink-0 items-start rounded-lg border border-[#C8D3D7] bg-[#F8FDFD] p-[3px] dark:border-blue-400-dark dark:bg-blue-100-dark"
       >
         {VIEW_OPTIONS.map(({ value, labelKey, Icon }) => {
           const isActive = value === view;
@@ -95,7 +106,7 @@ const InventoryToolbar: FC<Props> = ({
               )}
             >
               <Icon className="size-3.5 shrink-0" />
-              {t(labelKey)}
+              <span className="max-md:sr-only">{t(labelKey)}</span>
             </button>
           );
         })}
