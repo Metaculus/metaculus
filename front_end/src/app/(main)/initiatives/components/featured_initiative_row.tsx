@@ -6,10 +6,8 @@ import { FC } from "react";
 import Button from "@/components/ui/button";
 import cn from "@/utils/core/cn";
 
-import {
-  INITIATIVE_FALLBACK_ARTWORK,
-  resolveAssetSource,
-} from "../helpers/assets";
+import MaskedLogo from "./masked_logo";
+import { INITIATIVE_FALLBACK_ARTWORK } from "../helpers/assets";
 import { FeaturedInitiative } from "../types";
 
 type Props = {
@@ -92,15 +90,14 @@ const FeaturedInitiativeRow: FC<Props> = ({ initiative, artworkSide }) => {
             </p>
             <ul className="m-0 flex list-none flex-wrap items-center gap-x-6 gap-y-3 p-0">
               {feature.partners.map((partner) => {
-                const logo = resolveAssetSource(partner.logo);
                 const image = (
-                  <Image
-                    src={logo.src}
-                    unoptimized={logo.unoptimized}
+                  <MaskedLogo
+                    src={partner.logo}
                     alt={t(partner.nameKey)}
                     width={240}
                     height={80}
-                    className="h-8 w-auto opacity-50 dark:invert"
+                    className="bg-blue-700 dark:bg-blue-700-dark"
+                    imageClassName="h-9 w-auto"
                   />
                 );
 

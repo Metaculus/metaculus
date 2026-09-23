@@ -24,7 +24,7 @@ const FeaturedSection = () => {
           {t("initiativesFeaturedTitle")}
         </h2>
 
-        <div className="divide-y divide-[#213043] [&>*:first-child]:pt-0 [&>*:last-child]:pb-0 [&>*]:pb-16 [&>*]:pt-8 xl:[&>section]:pb-[110px]">
+        <div className="divide-y divide-[#C8D3D7] dark:divide-blue-400-dark [&>*:first-child]:pt-0 [&>*:last-child]:pb-0 [&>*]:pb-16 [&>*]:pt-8 xl:[&>section]:pb-[110px]">
           {leading.map((initiative) => (
             <FeaturedInitiativeRow
               key={initiative.id}
