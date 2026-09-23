@@ -135,21 +135,21 @@ def test_generate_post_content_for_embedding_vectorization__group(user1):
     # Groups keep their text on the group; subquestions leave it empty
     post = factory_post(
         author=user1,
-        title="Will these clouds buy Chinese AI chips?",
+        title_original="Will these clouds buy Chinese AI chips?",
         group_of_questions=factory_group_of_questions(
-            description="Background",
-            resolution_criteria="Criteria",
-            fine_print="Fine print",
+            description_original="Background",
+            resolution_criteria_original="Criteria",
+            fine_print_original="Fine print",
         ),
     )
     for label in ("AWS", "Azure"):
         create_question(
-            title=f"Will these clouds buy Chinese AI chips? ({label})",
+            title_original=f"Will these clouds buy Chinese AI chips? ({label})",
             question_type=Question.QuestionType.BINARY,
             group=post.group_of_questions,
-            description="",
-            resolution_criteria="",
-            fine_print="",
+            description_original="",
+            resolution_criteria_original="",
+            fine_print_original="",
         )
 
     chunks = generate_post_content_for_embedding_vectorization(post).split("\n\n")
@@ -168,13 +168,13 @@ def test_generate_post_content_for_embedding_vectorization__group(user1):
 def test_generate_post_content_for_embedding_vectorization__question(user1):
     post = factory_post(
         author=user1,
-        title="Post",
+        title_original="Post",
         question=create_question(
-            title="Question",
+            title_original="Question",
             question_type=Question.QuestionType.BINARY,
-            description="Description",
-            resolution_criteria="Criteria",
-            fine_print="",
+            description_original="Description",
+            resolution_criteria_original="Criteria",
+            fine_print_original="",
         ),
     )
 
