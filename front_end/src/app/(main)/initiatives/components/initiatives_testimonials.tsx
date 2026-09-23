@@ -61,7 +61,7 @@ const InitiativesTestimonials: FC<Props> = ({ testimonials }) => {
                 <figure className="m-0 flex w-full flex-col justify-between gap-10 xl:gap-12">
                   <blockquote
                     className={cn(
-                      "m-0 max-w-[367px] border-l-2 pl-5 text-left text-[20px] font-normal leading-[140%] tracking-[-0.4px] text-blue-900 dark:text-blue-900-dark",
+                      "m-0 max-w-[367px] border-l-2 pl-5 text-left text-[20px] font-normal leading-[140%] tracking-[-0.005em] text-blue-900 dark:text-blue-900-dark",
                       ACCENT_BORDER[accent ?? "blue"]
                     )}
                   >

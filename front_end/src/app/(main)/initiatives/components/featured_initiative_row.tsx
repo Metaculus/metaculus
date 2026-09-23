@@ -64,7 +64,7 @@ const FeaturedInitiativeRow: FC<Props> = ({ initiative, artworkSide }) => {
             </span>
           )}
 
-          <h3 className="m-0 text-[32px] font-medium leading-[110%] tracking-[-1.92px] text-blue-900 dark:text-blue-900-dark">
+          <h3 className="m-0 text-[32px] font-medium leading-[110%] tracking-[-0.025em] text-blue-900 dark:text-blue-900-dark">
             {t(feature.headingKey)}
           </h3>
 

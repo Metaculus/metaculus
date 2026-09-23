@@ -72,7 +72,7 @@ const ActiveInitiativeLink: FC<ActiveInitiativeLinkProps> = ({
           "var(--initiative-detail-visibility)" as CSSProperties["visibility"],
       }}
     >
-      <span className="block text-[20px] font-medium leading-[110%] tracking-[-0.4px] text-blue-900 dark:text-blue-900-dark md:text-[24px] md:tracking-[-0.48px]">
+      <span className="block text-[20px] font-medium leading-[110%] tracking-[-0.01em] text-blue-900 dark:text-blue-900-dark md:text-[24px] md:tracking-[-0.015em]">
         {name}
       </span>
       {initiative.taglineKey && (

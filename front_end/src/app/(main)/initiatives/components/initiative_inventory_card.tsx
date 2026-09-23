@@ -50,7 +50,7 @@ const InitiativeInventoryCard: FC<Props> = ({
           isList ? "items-center gap-3" : "items-start justify-between gap-6"
         )}
       >
-        <Title className="m-0 text-2xl font-semibold leading-[140%] tracking-[-1.44px] text-inherit">
+        <Title className="m-0 text-2xl font-semibold leading-[140%] tracking-[-0.02em] text-inherit">
           {name}
         </Title>
         {initiative.logo && (

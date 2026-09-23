@@ -15,7 +15,7 @@ const ProgramCtaSection = () => {
         <p className="m-0 text-[11px] font-normal uppercase leading-[13.2px] tracking-[1.98px] text-gray-200/70">
           {t(programCta.eyebrowKey)}
         </p>
-        <h2 className="m-0 max-w-[420px] text-balance text-[40px] font-medium leading-[110%] tracking-[-1.2px] text-white dark:text-white">
+        <h2 className="m-0 max-w-[420px] text-balance text-[40px] font-medium leading-[110%] tracking-[-0.03em] text-white dark:text-white">
           {t(programCta.headingKey)}
         </h2>
         <p className="m-0 max-w-[480px] text-base font-normal leading-[24.768px] text-gray-200/80">
