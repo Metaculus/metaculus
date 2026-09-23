@@ -4,8 +4,8 @@ export const DESIGN_MARK_SIZE = 200;
 
 const STEPS = [
   { scale: 1, blur: 0, opacity: 1, shift: 0 },
-  { scale: 0.72, blur: 10, opacity: 0.72, shift: 0 },
-  { scale: 0.52, blur: 15, opacity: 0.45, shift: 48 },
+  { scale: 0.72, blur: 7.5, opacity: 0.72, shift: 0 },
+  { scale: 0.52, blur: 11.25, opacity: 0.45, shift: 48 },
 ];
 
 type Emphasis = {
@@ -60,4 +60,46 @@ export function applyEmphasis(
   element.style.setProperty("--initiative-scale", scale);
   element.style.setProperty("--initiative-opacity", opacity);
   element.style.setProperty("--initiative-shift", shift);
+}
+
+const DETAIL_SHIFT = 16;
+
+type DetailEmphasis = {
+  opacity: string;
+  shift: string;
+  visibility: string;
+};
+
+// Outgoing details fade out over the first half of a slide change and incoming
+// ones fade in over the second half, so the two never overlap.
+function getDetailEmphasis(distance: number): DetailEmphasis {
+  const opacity = Math.max(0, 1 - Math.abs(distance) * 2);
+  const shift = Math.max(-1, Math.min(1, distance)) * DETAIL_SHIFT;
+
+  return {
+    opacity: opacity.toFixed(3),
+    shift: `${shift.toFixed(2)}px`,
+    visibility: opacity > 0 ? "visible" : "hidden",
+  };
+}
+
+export function getDetailEmphasisStyle(distance: number): CSSProperties {
+  const { opacity, shift, visibility } = getDetailEmphasis(distance);
+
+  return {
+    "--initiative-detail-opacity": opacity,
+    "--initiative-detail-shift": shift,
+    "--initiative-detail-visibility": visibility,
+  } as CSSProperties;
+}
+
+export function applyDetailEmphasis(
+  element: HTMLElement,
+  distance: number
+): void {
+  const { opacity, shift, visibility } = getDetailEmphasis(distance);
+
+  element.style.setProperty("--initiative-detail-opacity", opacity);
+  element.style.setProperty("--initiative-detail-shift", shift);
+  element.style.setProperty("--initiative-detail-visibility", visibility);
 }

@@ -6,8 +6,10 @@ import useEmblaCarousel from "embla-carousel-react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import {
+  CSSProperties,
   FC,
   KeyboardEvent,
+  Ref,
   useCallback,
   useEffect,
   useLayoutEffect,
@@ -20,8 +22,10 @@ import cn from "@/utils/core/cn";
 
 import InitiativeMark from "./initiative_mark";
 import {
+  applyDetailEmphasis,
   applyEmphasis,
   DESIGN_MARK_SIZE,
+  getDetailEmphasisStyle,
   getEmphasisStyle,
 } from "../helpers/emphasis";
 import { usePrefersReducedMotion } from "../helpers/use_prefers_reduced_motion";
@@ -39,12 +43,14 @@ type ActiveInitiativeLinkProps = {
   initiative: Initiative;
   name: string;
   isActive: boolean;
+  initialDistance: number;
 };
 
 const ActiveInitiativeLink: FC<ActiveInitiativeLinkProps> = ({
   initiative,
   name,
   isActive,
+  initialDistance,
 }) => {
   const t = useTranslations();
 
@@ -56,14 +62,21 @@ const ActiveInitiativeLink: FC<ActiveInitiativeLinkProps> = ({
       tabIndex={isActive ? undefined : -1}
       className={cn(
         "group col-start-1 row-start-1 max-w-xs justify-self-center text-center no-underline",
-        !isActive && "invisible"
+        !isActive && "pointer-events-none"
       )}
+      style={{
+        ...getDetailEmphasisStyle(initialDistance),
+        opacity: "var(--initiative-detail-opacity)",
+        transform: "translateX(var(--initiative-detail-shift))",
+        visibility:
+          "var(--initiative-detail-visibility)" as CSSProperties["visibility"],
+      }}
     >
-      <span className="block text-[24px] font-medium leading-[110%] tracking-[-0.48px] text-blue-900 dark:text-blue-900-dark">
+      <span className="block text-[20px] font-medium leading-[110%] tracking-[-0.4px] text-blue-900 dark:text-blue-900-dark md:text-[24px] md:tracking-[-0.48px]">
         {name}
       </span>
       {initiative.taglineKey && (
-        <span className="mt-3 block text-balance text-[18px] font-normal leading-[140%] text-blue-900 dark:text-blue-900-dark">
+        <span className="mt-2 block text-balance text-sm font-light leading-[140%] text-blue-900 opacity-80 dark:text-blue-900-dark md:mt-3 md:text-base">
           {t(initiative.taglineKey)}{" "}
           <FontAwesomeIcon
             icon={faArrowRight}
@@ -79,24 +92,32 @@ const ActiveInitiativeLink: FC<ActiveInitiativeLinkProps> = ({
 type InitiativeDetailsProps = {
   initiatives: Initiative[];
   selectedIndex: number;
+  startIndex: number;
+  containerRef?: Ref<HTMLDivElement>;
   className?: string;
 };
 
 const InitiativeDetails: FC<InitiativeDetailsProps> = ({
   initiatives,
   selectedIndex,
+  startIndex,
+  containerRef,
   className,
 }) => {
   const t = useTranslations();
 
   return (
-    <div className={cn("grid w-full grid-cols-1", className)}>
+    <div
+      ref={containerRef}
+      className={cn("grid w-full grid-cols-1", className)}
+    >
       {initiatives.map((initiative, index) => (
         <ActiveInitiativeLink
           key={initiative.id}
           initiative={initiative}
           name={t(initiative.nameKey)}
           isActive={index === selectedIndex}
+          initialDistance={index - startIndex}
         />
       ))}
     </div>
@@ -154,6 +175,7 @@ const InitiativeCarousel: FC<Props> = ({
   const [isAutoplayPaused, setIsAutoplayPaused] = useState(false);
   const [isPointerDown, setIsPointerDown] = useState(false);
   const resumeTimerRef = useRef<number | undefined>(undefined);
+  const detailsRef = useRef<HTMLDivElement>(null);
 
   const autoplayEnabled =
     !prefersReducedMotion && !isAutoplayPaused && !isPointerDown;
@@ -179,10 +201,13 @@ const InitiativeCarousel: FC<Props> = ({
     const update = () => {
       const viewportRect = emblaApi.rootNode().getBoundingClientRect();
       const viewportCenter = viewportRect.left + viewportRect.width / 2;
+      const detailDistances = new Array<number>(initiatives.length).fill(
+        Infinity
+      );
 
-      for (const slide of emblaApi.slideNodes()) {
+      emblaApi.slideNodes().forEach((slide, index) => {
         const visual = slide.firstElementChild;
-        if (!(visual instanceof HTMLElement)) continue;
+        if (!(visual instanceof HTMLElement)) return;
 
         const mark = visual.firstElementChild;
         const markSize =
@@ -190,12 +215,24 @@ const InitiativeCarousel: FC<Props> = ({
 
         const slideRect = slide.getBoundingClientRect();
         const slideCenter = slideRect.left + slideRect.width / 2;
-        applyEmphasis(
-          visual,
-          (slideCenter - viewportCenter) / (slide.offsetWidth || 1),
-          markSize / DESIGN_MARK_SIZE
-        );
-      }
+        const distance =
+          (slideCenter - viewportCenter) / (slide.offsetWidth || 1);
+        applyEmphasis(visual, distance, markSize / DESIGN_MARK_SIZE);
+
+        const realIndex = index % initiatives.length;
+        const closest = detailDistances[realIndex] ?? Infinity;
+        if (Math.abs(distance) < Math.abs(closest)) {
+          detailDistances[realIndex] = distance;
+        }
+      });
+
+      const details = detailsRef.current?.children;
+      detailDistances.forEach((distance, realIndex) => {
+        const detail = details?.[realIndex];
+        if (detail instanceof HTMLElement) {
+          applyDetailEmphasis(detail, distance);
+        }
+      });
     };
 
     update();
@@ -212,7 +249,7 @@ const InitiativeCarousel: FC<Props> = ({
         .off("resize", update)
         .off("reInit", update);
     };
-  }, [emblaApi]);
+  }, [emblaApi, initiatives.length]);
 
   useEffect(() => {
     if (!emblaApi) return;
@@ -322,7 +359,8 @@ const InitiativeCarousel: FC<Props> = ({
         <InitiativeDetails
           initiatives={initiatives}
           selectedIndex={selectedIndex}
-          className="mt-6"
+          startIndex={startIndex}
+          className="mt-4 md:mt-6"
         />
       </div>
     );
@@ -406,11 +444,13 @@ const InitiativeCarousel: FC<Props> = ({
       <div
         aria-live={autoplayEnabled ? "off" : "polite"}
         aria-atomic="true"
-        className="mt-6 w-full"
+        className="mt-4 w-full md:mt-6"
       >
         <InitiativeDetails
           initiatives={initiatives}
           selectedIndex={selectedIndex}
+          startIndex={startIndex}
+          containerRef={detailsRef}
         />
       </div>
     </div>

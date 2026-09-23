@@ -12,8 +12,8 @@ const HeroSection = async () => {
   const heroInitiatives = getInitiativesByPlacement("hero");
 
   return (
-    <section className="flex flex-col items-center gap-6 px-5 pb-10 pt-8 text-center md:gap-8 md:px-12 md:pt-14 xl:pb-20">
-      <div className="flex flex-col items-center gap-6">
+    <section className="flex flex-col items-center gap-4 px-5 pb-10 pt-6 text-center md:gap-8 md:px-12 md:pt-14 xl:pb-20">
+      <div className="flex flex-col items-center gap-4 md:gap-6">
         <p className="m-0 flex items-center gap-2 text-xs font-medium uppercase tracking-[0.12em] text-blue-700 dark:text-blue-700-dark">
           <span
             aria-hidden="true"
@@ -22,12 +22,12 @@ const HeroSection = async () => {
           {t(hero.eyebrowKey)}
         </p>
 
-        <h1 className="m-0 max-w-[764px] text-balance text-[44px] font-medium leading-[100%] tracking-[-1.7px] text-blue-900 dark:text-blue-900-dark md:text-[60px] md:tracking-[-2.8px]">
+        <h1 className="m-0 max-w-[764px] text-balance text-[36px] font-medium leading-[100%] tracking-[-1.2px] text-blue-900 dark:text-blue-900-dark md:text-[60px] md:tracking-[-2.8px]">
           {t(hero.headingKey)}
         </h1>
       </div>
 
-      <p className="m-0 w-full max-w-[676px] text-base font-normal leading-[160%] text-blue-900 dark:text-blue-900-dark md:text-[18px]">
+      <p className="m-0 w-full max-w-[676px] text-sm font-normal leading-[160%] text-blue-900 dark:text-blue-900-dark md:text-[18px]">
         {t(hero.descriptionKey)}
       </p>
 
