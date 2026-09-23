@@ -34,7 +34,7 @@ const InitiativeInventoryCard: FC<Props> = ({
         "flex h-full flex-col bg-[color-mix(in_srgb,var(--initiative-color)_15%,transparent)] text-[var(--initiative-accent)] no-underline transition-[box-shadow,background-color] duration-200 ease-out hover:bg-[color-mix(in_srgb,var(--initiative-color)_20%,transparent)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blue-800 motion-reduce:transition-none dark:text-white dark:focus-visible:outline-blue-800-dark",
         "hover:[box-shadow:0_0_0_6px_var(--initiative-tile-gap),0_0_0_10px_color-mix(in_srgb,var(--initiative-color)_50%,transparent)] active:[box-shadow:0_0_0_6px_var(--initiative-tile-gap),0_0_0_10px_var(--initiative-color)]",
         isList
-          ? "gap-1 p-5"
+          ? "gap-1 p-4 sm:p-5"
           : "min-h-[66.667cqw] justify-between gap-8 p-6 md:p-8"
       )}
       style={
@@ -50,7 +50,12 @@ const InitiativeInventoryCard: FC<Props> = ({
           isList ? "items-center gap-3" : "items-start justify-between gap-6"
         )}
       >
-        <Title className="m-0 text-2xl font-semibold leading-[140%] tracking-[-0.02em] text-inherit">
+        <Title
+          className={cn(
+            "m-0 text-2xl font-semibold leading-[140%] tracking-[-0.02em] text-inherit",
+            isList && "max-sm:text-base max-sm:tracking-normal"
+          )}
+        >
           {name}
         </Title>
         {initiative.logo && (
@@ -69,7 +74,12 @@ const InitiativeInventoryCard: FC<Props> = ({
       </div>
 
       {descriptionKey && (
-        <p className="m-0 text-base font-normal leading-6">
+        <p
+          className={cn(
+            "m-0 text-base font-normal leading-6",
+            isList && "max-sm:text-sm"
+          )}
+        >
           {t(descriptionKey)}
         </p>
       )}
