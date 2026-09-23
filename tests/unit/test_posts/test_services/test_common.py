@@ -96,6 +96,11 @@ def test_update_post__run_post_indexing__group_text(user1, mocker):
         title="Group",
         group_of_questions=factory_group_of_questions(description="Old background"),
     )
+    create_question(
+        title="Subquestion",
+        question_type=Question.QuestionType.BINARY,
+        group=post.group_of_questions,
+    )
 
     # Group-level text is embedded, so editing it reindexes the post
     update_post(post, group_of_questions={"description": "New background"})

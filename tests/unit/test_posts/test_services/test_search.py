@@ -1,5 +1,7 @@
 from asgiref.sync import async_to_sync
+from django.conf import settings
 from django.db.models import Q
+from django.utils.translation import override
 
 from posts.models import Post
 from posts.services.search import (
@@ -127,6 +129,8 @@ def test_perform_post_search_returns_empty_when_google_succeeds_with_no_results(
     assert not qs.filter(Q(rank__gte=0.3)).exists()
 
 
+# Content is embedded in the original language, as update_post does
+@override(settings.ORIGINAL_LANGUAGE_CODE)
 def test_generate_post_content_for_embedding_vectorization__group(user1):
     # Groups keep their text on the group; subquestions leave it empty
     post = factory_post(
@@ -160,6 +164,7 @@ def test_generate_post_content_for_embedding_vectorization__group(user1):
     ]
 
 
+@override(settings.ORIGINAL_LANGUAGE_CODE)
 def test_generate_post_content_for_embedding_vectorization__question(user1):
     post = factory_post(
         author=user1,
