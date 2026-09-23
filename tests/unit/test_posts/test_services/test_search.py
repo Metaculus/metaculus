@@ -7,8 +7,8 @@ from posts.models import Post
 from posts.services.search import (
     SearchUnavailable,
     gather_search_results,
-    perform_post_search,
     generate_post_content_for_embedding_vectorization,
+    perform_post_search,
 )
 from questions.models import Question
 from tests.unit.test_posts.factories import factory_post
@@ -129,22 +129,21 @@ def test_perform_post_search_returns_empty_when_google_succeeds_with_no_results(
     assert not qs.filter(Q(rank__gte=0.3)).exists()
 
 
-# Content is embedded in the original language, as update_post does
+# update_post builds this content in the original language
 @override(settings.ORIGINAL_LANGUAGE_CODE)
 def test_generate_post_content_for_embedding_vectorization__group(user1):
-    # Groups keep their text on the group; subquestions leave it empty
     post = factory_post(
         author=user1,
-        title_original="Will these clouds buy Chinese AI chips?",
+        title_original="Group",
         group_of_questions=factory_group_of_questions(
-            description_original="Background",
+            description_original="Description",
             resolution_criteria_original="Criteria",
             fine_print_original="Fine print",
         ),
     )
-    for label in ("AWS", "Azure"):
+    for label in ("A", "B"):
         create_question(
-            title_original=f"Will these clouds buy Chinese AI chips? ({label})",
+            title_original=f"Group ({label})",
             question_type=Question.QuestionType.BINARY,
             group=post.group_of_questions,
             description_original="",
@@ -154,14 +153,8 @@ def test_generate_post_content_for_embedding_vectorization__group(user1):
 
     chunks = generate_post_content_for_embedding_vectorization(post).split("\n\n")
 
-    assert chunks[:2] == [
-        "Will these clouds buy Chinese AI chips?",
-        "Background\nCriteria\nFine print",
-    ]
-    assert sorted(chunks[2:]) == [
-        "Will these clouds buy Chinese AI chips? (AWS)",
-        "Will these clouds buy Chinese AI chips? (Azure)",
-    ]
+    assert chunks[:2] == ["Group", "Description\nCriteria"]
+    assert sorted(chunks[2:]) == ["Group (A)", "Group (B)"]
 
 
 @override(settings.ORIGINAL_LANGUAGE_CODE)
@@ -174,7 +167,7 @@ def test_generate_post_content_for_embedding_vectorization__question(user1):
             question_type=Question.QuestionType.BINARY,
             description_original="Description",
             resolution_criteria_original="Criteria",
-            fine_print_original="",
+            fine_print_original="Fine print",
         ),
     )
 

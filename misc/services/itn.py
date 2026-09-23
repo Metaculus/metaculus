@@ -289,12 +289,9 @@ def generate_related_articles_for_post(post: Post):
 
 def rebuild_related_articles_for_post(post: Post):
     """
-    Replaces the post's PostArticle rows after its embedding vector was regenerated.
-
-    Rows matched from the previous vector are dropped, and the post is matched
-    against every stored article as generate_related_posts_for_article would have.
-    Rows are dated by the article: news hotness decays by row age, so dating them
-    now would score week-old coverage as new.
+    Replaces the post's PostArticle rows after its embedding vector is regenerated,
+    matching it against every stored article as generate_related_posts_for_article
+    does. Rows are dated by the article, since news hotness decays by row age.
     """
 
     if post.notebook_id:

@@ -30,26 +30,27 @@ class SearchUnavailable(APIException):
 def generate_post_content_for_embedding_vectorization(post: Post):
     """
     Generates a composed Post content to be indexed by openai
+
+    Fine print is left out on purpose: it's definitions and edge cases, which
+    pull posts away from the ITN news articles matched against this vector.
     """
 
     question_chunks = []
     group_content = None
     notebook_content = None
 
-    # A group keeps its description, resolution criteria and fine print on the
-    # group itself; its subquestions usually leave those fields empty. Without
-    # this, a group post is embedded from its titles alone.
+    # Group subquestions leave these empty; the text lives on the group
     if post.group_of_questions_id:
         group = post.group_of_questions
-        group_chunks = [group.description, group.resolution_criteria, group.fine_print]
-        group_content = "\n".join([x for x in group_chunks if x]) or None
+        group_content = "\n".join(
+            [x for x in [group.description, group.resolution_criteria] if x]
+        )
 
     for question in post.get_questions():
         chunks = [
             question.title,
             question.description,
             question.resolution_criteria,
-            question.fine_print,
         ]
         question_chunks.append("\n".join([x for x in chunks if x]))
 
