@@ -5,7 +5,7 @@ import { CSSProperties, FC } from "react";
 import cn from "@/utils/core/cn";
 
 import MaskedLogo from "./masked_logo";
-import { getAccessibleAccent, INITIATIVE_TILE_TINT } from "../helpers/contrast";
+import { getAccessibleAccent } from "../helpers/contrast";
 import { Initiative, InitiativesInventoryView } from "../types";
 
 type Props = {
@@ -31,7 +31,7 @@ const InitiativeInventoryCard: FC<Props> = ({
     <Link
       href={initiative.url}
       className={cn(
-        "flex h-full flex-col text-[var(--initiative-accent)] no-underline transition-shadow duration-200 ease-out focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blue-800 motion-reduce:transition-none dark:text-white dark:focus-visible:outline-blue-800-dark",
+        "flex h-full flex-col bg-[color-mix(in_srgb,var(--initiative-color)_15%,transparent)] text-[var(--initiative-accent)] no-underline transition-[box-shadow,background-color] duration-200 ease-out hover:bg-[color-mix(in_srgb,var(--initiative-color)_20%,transparent)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blue-800 motion-reduce:transition-none dark:text-white dark:focus-visible:outline-blue-800-dark",
         "hover:[box-shadow:0_0_0_6px_var(--initiative-tile-gap),0_0_0_10px_color-mix(in_srgb,var(--initiative-color)_50%,transparent)] active:[box-shadow:0_0_0_6px_var(--initiative-tile-gap),0_0_0_10px_var(--initiative-color)]",
         isList
           ? "gap-1 p-5"
@@ -41,7 +41,6 @@ const InitiativeInventoryCard: FC<Props> = ({
         {
           "--initiative-color": color,
           "--initiative-accent": getAccessibleAccent(color),
-          backgroundColor: `color-mix(in srgb, ${color} ${INITIATIVE_TILE_TINT * 100}%, transparent)`,
         } as CSSProperties
       }
     >

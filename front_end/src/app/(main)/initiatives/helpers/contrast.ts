@@ -4,9 +4,10 @@ const LIGHT_FOREGROUND = METAC_COLORS.gray["0"].DEFAULT;
 const DARK_FOREGROUND = METAC_COLORS.blue["900"].DEFAULT;
 const TILE_SURFACE = METAC_COLORS.gray["0"].DEFAULT;
 const MIN_ACCENT_CONTRAST = 4.5;
+// The inventory card's hover tint, the darkest its tile gets.
+const TILE_TINT = 0.2;
 
 export const DEFAULT_INITIATIVE_COLOR = METAC_COLORS.blue["800"].DEFAULT;
-export const INITIATIVE_TILE_TINT = 0.15;
 
 type Rgb = [number, number, number];
 
@@ -74,7 +75,7 @@ export function getReadableForeground(backgroundColor: string): string {
 const accentCache = new Map<string, string>();
 
 // Darkens a category colour until it reads at WCAG AA on its own light tile
-// (the colour at INITIATIVE_TILE_TINT over the page surface).
+// (the colour at TILE_TINT over the page surface).
 export function getAccessibleAccent(color: string): string {
   const cached = accentCache.get(color);
   if (cached) return cached;
@@ -83,7 +84,7 @@ export function getAccessibleAccent(color: string): string {
   const surface = parseHex(TILE_SURFACE);
   if (!rgb || !surface) return color;
 
-  const tile = mix(rgb, surface, INITIATIVE_TILE_TINT);
+  const tile = mix(rgb, surface, TILE_TINT);
   let accent = rgb;
   for (
     let step = 1;

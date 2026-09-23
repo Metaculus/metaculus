@@ -3,8 +3,6 @@
 import { useTranslations } from "next-intl";
 import { FC, useMemo, useRef, useState } from "react";
 
-import cn from "@/utils/core/cn";
-
 import InitiativeInventoryCard from "./initiative_inventory_card";
 import InventoryCategoryCarousel from "./inventory_category_carousel";
 import InventoryToolbar from "./inventory_toolbar";
@@ -92,18 +90,13 @@ const InitiativesInventory: FC<Props> = ({
         view={view}
         onViewChange={handleViewChange}
         resultsId={RESULTS_ID}
-        showFilters={isList}
         containerRef={toolbarRef}
-        className={cn(
-          isList &&
-            "sticky top-header z-10 -mx-2.5 bg-gray-0 px-2.5 dark:bg-gray-0-dark"
-        )}
       />
 
       {isList ? (
         <ul
           id={RESULTS_ID}
-          className="m-0 mt-8 grid list-none grid-cols-1 gap-8 p-0"
+          className="m-0 grid list-none grid-cols-1 gap-3 p-0 pt-12 sm:pt-16"
         >
           {visibleInitiatives.map((initiative) => (
             <li key={initiative.id} className="min-w-0">
@@ -121,7 +114,7 @@ const InitiativesInventory: FC<Props> = ({
           )}
         </ul>
       ) : (
-        <div id={RESULTS_ID} className="mt-8 flex flex-col gap-12 md:gap-16">
+        <div id={RESULTS_ID} className="flex flex-col gap-12 md:gap-16">
           {categories.map(({ category, items }) => (
             <InventoryCategoryCarousel
               key={category.id}

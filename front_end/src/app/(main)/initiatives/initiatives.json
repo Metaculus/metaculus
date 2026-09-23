@@ -115,13 +115,11 @@
       "id": "case-studies",
       "nameKey": "initiativeCaseStudiesName",
       "taglineKey": "initiativeCaseStudiesTagline",
-      "inventoryDescriptionKey": "initiativeCaseStudiesInventoryDescription",
       "url": "/services/",
       "logo": "/images/initiatives/logos/case-studies.svg",
       "brand": { "color": "#A9C0D6" },
       "order": 3,
-      "inventoryOrder": 4,
-      "placements": ["hero", "inventory"]
+      "placements": ["hero"]
     },
     {
       "id": "radiant",
