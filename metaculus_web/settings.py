@@ -512,6 +512,7 @@ SENTRY_SAMPLE_RATE = float(os.environ.get("SENTRY_SAMPLE_RATE", 0.15))
 
 def traces_sampler(sampling_context):
     exclude_endpoints = [
+        "/api/healthcheck/",
         "/api/get-bulletins",
         "/api/auth/verify_token",
         "/api/auth/social",
@@ -528,7 +529,7 @@ def traces_sampler(sampling_context):
 
         # Reduced sampling for high-volume endpoints
         if url == "/api/users/me/":
-            return 0.05
+            return 0.005
 
         if method in ("POST", "PATCH", "PUT", "DELETE"):
             # High-volume write endpoints - use reduced rates
