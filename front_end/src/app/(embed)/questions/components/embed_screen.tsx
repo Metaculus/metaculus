@@ -48,7 +48,7 @@ function getOtherSize(containerWidth: number): EmbedSize {
 
 function getSizeForPost(post: PostWithForecasts, containerWidth: number) {
   if (isConditionalPost(post)) {
-    return { width: Math.min(550, Math.max(360, containerWidth)), height: 420 };
+    return { width: Math.min(550, Math.max(360, containerWidth)), height: 380 };
   }
   const isBinaryOrContinuous =
     !!post.question &&

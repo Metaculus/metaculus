@@ -9,6 +9,7 @@ type Props = {
   label?: string;
   resolved?: boolean;
   href?: Href;
+  compact?: boolean;
 };
 
 const ConditionalCard: FC<PropsWithChildren<Props>> = ({
@@ -16,12 +17,14 @@ const ConditionalCard: FC<PropsWithChildren<Props>> = ({
   label,
   resolved,
   href,
+  compact,
   children,
 }) => {
   const CardContent = (
     <div
       className={cn(
         "ConditionalSummary-card flex min-h-20 flex-col gap-2 border p-3",
+        compact && "min-h-0 gap-1 px-3 py-2.5",
         resolved
           ? "border-purple-800 dark:border-purple-800"
           : "border-blue-500 dark:border-blue-500-dark"
@@ -32,7 +35,14 @@ const ConditionalCard: FC<PropsWithChildren<Props>> = ({
           {label}
         </span>
       )}
-      <h4 className="ConditionalSummary-card-heading m-0">{title}</h4>
+      <h4
+        className={cn(
+          "ConditionalSummary-card-heading m-0",
+          compact && "text-sm font-medium"
+        )}
+      >
+        {title}
+      </h4>
       {children}
     </div>
   );
