@@ -5,6 +5,7 @@ import ConsumerPostCard from "@/components/consumer_post_card";
 import { HideCPContext } from "@/contexts/cp_context";
 import { ConditionalPost, PostStatus } from "@/types/post";
 import { QuestionType, QuestionWithNumericForecasts } from "@/types/question";
+import { getPostShortTitle } from "@/utils/questions/helpers";
 
 import CompactConditionalTile from "../compact_conditional_tile";
 
@@ -153,5 +154,18 @@ describe("conditional dispatch", () => {
     for (const forecast of screen.getAllByTestId("branch-forecast")) {
       expect(forecast).toHaveAttribute("data-color", "#123456");
     }
+  });
+});
+
+describe("getPostShortTitle", () => {
+  it("names a conditional by its outcome, not its prefixed short title", () => {
+    const post = conditional();
+    Object.assign(post, { short_title: "Conditional What is the outcome?" });
+    expect(getPostShortTitle(post)).toBe("What is the outcome?");
+
+    Object.assign(post.conditional.condition_child, {
+      short_title: "Outcome?",
+    });
+    expect(getPostShortTitle(post)).toBe("Outcome?");
   });
 });
