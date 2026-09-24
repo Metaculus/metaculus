@@ -8,6 +8,7 @@ import cn from "@/utils/core/cn";
 
 import InitiativeQuoteFigure from "./initiative_quote";
 import MaskedLogo from "./masked_logo";
+import { getFeaturedAnchorId } from "../helpers/anchors";
 import { INITIATIVE_FALLBACK_ARTWORK } from "../helpers/assets";
 import { FeaturedInitiative } from "../types";
 
@@ -23,8 +24,9 @@ const FeaturedInitiativeRow: FC<Props> = ({ initiative, artworkSide }) => {
 
   return (
     <article
+      id={getFeaturedAnchorId(initiative) ?? undefined}
       className={cn(
-        "grid grid-cols-1 gap-12 xl:gap-6",
+        "grid scroll-mt-[calc(var(--top-chrome-height,3rem)+2rem)] grid-cols-1 gap-12 xl:gap-6",
         artworkSide === "start"
           ? "xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]"
           : "xl:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]"

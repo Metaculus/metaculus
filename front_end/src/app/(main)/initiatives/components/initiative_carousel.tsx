@@ -1,9 +1,10 @@
 "use client";
 
-import { faArrowRight } from "@fortawesome/free-solid-svg-icons";
+import { faArrowDown, faArrowRight } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import useEmblaCarousel from "embla-carousel-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import {
   CSSProperties,
@@ -21,6 +22,7 @@ import {
 import cn from "@/utils/core/cn";
 
 import InitiativeMark from "./initiative_mark";
+import { getFeaturedAnchorId, scrollToAnchor } from "../helpers/anchors";
 import {
   applyDetailEmphasis,
   applyEmphasis,
@@ -58,11 +60,17 @@ const ActiveInitiativeLink: FC<ActiveInitiativeLinkProps> = ({
   initialDistance,
 }) => {
   const t = useTranslations();
+  const anchorId = getFeaturedAnchorId(initiative);
 
   return (
     <Link
-      href={initiative.url}
-      aria-label={t("initiativesCarouselVisitInitiative", { name })}
+      href={anchorId ? `#${anchorId}` : initiative.url}
+      aria-label={
+        anchorId ? undefined : t("initiativesCarouselVisitInitiative", { name })
+      }
+      onClick={(event) => {
+        if (anchorId && scrollToAnchor(anchorId)) event.preventDefault();
+      }}
       aria-hidden={!isActive}
       tabIndex={isActive ? undefined : -1}
       className={cn(
@@ -84,9 +92,14 @@ const ActiveInitiativeLink: FC<ActiveInitiativeLinkProps> = ({
         <span className="mt-2 block text-balance text-sm font-light leading-[140%] text-blue-900 opacity-80 dark:text-blue-900-dark md:mt-3 md:text-base">
           {t(initiative.taglineKey)}{" "}
           <FontAwesomeIcon
-            icon={faArrowRight}
+            icon={anchorId ? faArrowDown : faArrowRight}
             aria-hidden="true"
-            className="h-3 w-3 align-baseline transition-transform group-hover:translate-x-1 group-focus-visible:translate-x-1 motion-reduce:transition-none"
+            className={cn(
+              "h-3 w-3 align-baseline transition-transform motion-reduce:transition-none",
+              anchorId
+                ? "group-hover:translate-y-0.5 group-focus-visible:translate-y-0.5"
+                : "group-hover:translate-x-1 group-focus-visible:translate-x-1"
+            )}
           />
         </span>
       )}
@@ -139,6 +152,7 @@ const InitiativeCarousel: FC<Props> = ({
   initialInitiativeId,
 }) => {
   const t = useTranslations();
+  const router = useRouter();
   const prefersReducedMotion = usePrefersReducedMotion();
   const requestedStartIndex = initiatives.findIndex(
     ({ id }) => id === initialInitiativeId
@@ -352,6 +366,20 @@ const InitiativeCarousel: FC<Props> = ({
     }
   };
 
+  // The centred tile acts like its caption: it jumps to the project's featured
+  // section when there is one and opens the project otherwise.
+  const handleSlideClick = (index: number, initiative: Initiative) => {
+    if (!emblaApi) return;
+    if (index !== emblaApi.selectedScrollSnap()) {
+      emblaApi.scrollTo(index);
+      return;
+    }
+
+    const anchorId = getFeaturedAnchorId(initiative);
+    if (anchorId && scrollToAnchor(anchorId)) return;
+    router.push(initiative.url);
+  };
+
   const activeInitiative = initiatives[selectedIndex] ?? initiatives[0];
   if (!activeInitiative) return null;
 
@@ -441,7 +469,7 @@ const InitiativeCarousel: FC<Props> = ({
                         name,
                       })}
                       aria-current={!isRepeat && realIndex === selectedIndex}
-                      onClick={() => emblaApi?.scrollTo(index)}
+                      onClick={() => handleSlideClick(index, initiative)}
                       className="block rounded-[22%] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-800 focus-visible:ring-offset-2 dark:focus-visible:ring-blue-800-dark dark:focus-visible:ring-offset-blue-200-dark"
                     >
                       <InitiativeMark

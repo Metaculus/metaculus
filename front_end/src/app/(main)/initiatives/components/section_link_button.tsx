@@ -6,6 +6,8 @@ import { FC, MouseEvent, ReactNode } from "react";
 
 import Button, { ButtonVariant } from "@/components/ui/button";
 
+import { scrollToAnchor } from "../helpers/anchors";
+
 type Props = {
   href: string;
   variant: ButtonVariant;
@@ -20,17 +22,7 @@ const SectionLinkButton: FC<Props> = ({
   children,
 }) => {
   const handleClick = (event: MouseEvent<HTMLElement>) => {
-    const target = document.getElementById(href.slice(1));
-    if (!target) return;
-
-    event.preventDefault();
-    const prefersReducedMotion = window.matchMedia(
-      "(prefers-reduced-motion: reduce)"
-    ).matches;
-    target.scrollIntoView({
-      block: "start",
-      behavior: prefersReducedMotion ? "auto" : "smooth",
-    });
+    if (scrollToAnchor(href.slice(1))) event.preventDefault();
   };
 
   return (
