@@ -178,12 +178,18 @@ const InitiativeCarousel: FC<Props> = ({
 
   const [selectedIndex, setSelectedIndex] = useState(startIndex);
   const [isAutoplayPaused, setIsAutoplayPaused] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+  const [isFocusWithin, setIsFocusWithin] = useState(false);
   const [isPointerDown, setIsPointerDown] = useState(false);
   const resumeTimerRef = useRef<number | undefined>(undefined);
   const detailsRef = useRef<HTMLDivElement>(null);
 
   const autoplayEnabled =
-    !prefersReducedMotion && !isAutoplayPaused && !isPointerDown;
+    !prefersReducedMotion &&
+    !isAutoplayPaused &&
+    !isHovered &&
+    !isFocusWithin &&
+    !isPointerDown;
 
   const pauseAutoplay = useCallback(() => {
     window.clearTimeout(resumeTimerRef.current);
@@ -377,10 +383,14 @@ const InitiativeCarousel: FC<Props> = ({
       aria-roledescription="carousel"
       aria-label={t("initiativesCarouselLabel")}
       className="flex w-full flex-col items-center"
-      onMouseEnter={pauseAutoplay}
-      onMouseLeave={scheduleAutoplayResume}
-      onFocus={pauseAutoplay}
-      onBlur={scheduleAutoplayResume}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      onFocus={() => setIsFocusWithin(true)}
+      onBlur={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+          setIsFocusWithin(false);
+        }
+      }}
       onKeyDown={handleKeyDown}
     >
       <div
