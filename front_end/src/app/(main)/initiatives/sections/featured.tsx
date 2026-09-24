@@ -22,7 +22,7 @@ const FeaturedSection = () => {
 
         <div
           id="initiatives-featured"
-          className="scroll-mt-[calc(var(--top-chrome-height,3rem)+2rem)] divide-y divide-[#C8D3D7] dark:divide-blue-400-dark [&>*:first-child]:pt-0 [&>*:last-child]:pb-0 [&>*]:pb-16 [&>*]:pt-8 xl:[&>section]:pb-[110px]"
+          className="scroll-mt-[calc(var(--top-chrome-height,3rem)+2rem)] divide-y divide-[#C8D3D7] dark:divide-blue-400-dark [&>*:first-child]:pt-0 [&>*:last-child]:pb-0 [&>*]:pb-16 [&>*]:pt-8 [&>section]:pt-16 xl:[&>section]:py-[110px]"
         >
           {leading.map((initiative) => (
             <FeaturedInitiativeRow

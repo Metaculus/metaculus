@@ -21,13 +21,12 @@ const InitiativesTestimonials: FC<Props> = ({ testimonials }) => {
     <section
       id="initiatives-testimonials"
       aria-labelledby="initiatives-testimonials-title"
-      className="flex flex-col items-center gap-10 xl:gap-20"
+      className="flex flex-col items-center gap-8 xl:gap-12"
     >
       <h3
         id="initiatives-testimonials-title"
-        className="m-0 flex items-center gap-2.5 text-center text-base font-medium leading-[14px] text-blue-900 dark:text-blue-900-dark"
+        className="m-0 text-balance text-center text-[32px] font-medium leading-[110%] tracking-[-0.025em] text-blue-900 dark:text-blue-900-dark"
       >
-        <span aria-hidden="true" className="size-2 shrink-0 bg-[#2C77B4]" />
         {t("initiativesTestimonialsTitle")}
       </h3>
 
