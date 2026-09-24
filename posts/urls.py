@@ -15,6 +15,11 @@ urlpatterns = [
     ),
     path("posts/<int:pk>/", views.post_detail, name="post-detail"),
     path("posts/<int:pk>/boost/", views.activity_boost_api_view, name="post-boost"),
+    path(
+        "posts/<int:pk>/toggle-pin/",
+        views.post_toggle_pin_api_view,
+        name="post-toggle-pin",
+    ),
     path("posts/<int:pk>/repost/", views.repost_api_view, name="post-repost"),
     path("posts/<int:pk>/approve/", views.post_approve_api_view, name="post-approve"),
     path(

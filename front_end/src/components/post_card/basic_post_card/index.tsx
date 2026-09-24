@@ -1,5 +1,7 @@
 "use client";
 
+import { faThumbtack } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { isNil } from "lodash";
 import Link from "next/link";
 import { FC, PropsWithChildren } from "react";
@@ -56,7 +58,7 @@ const BasicPostCard: FC<PropsWithChildren<Props>> = ({
         )}
       <div
         className={cn(
-          "flex flex-col overflow-hidden rounded bg-gray-0 px-5 py-4 transition-colors @container dark:bg-gray-0-dark",
+          "relative flex flex-col overflow-hidden rounded bg-gray-0 px-5 py-4 transition-colors @container dark:bg-gray-0-dark",
           { regular: "border", highlighted: "border border-l-4" }[
             borderVariant
           ],
@@ -67,6 +69,13 @@ const BasicPostCard: FC<PropsWithChildren<Props>> = ({
           }[borderColor]
         )}
       >
+        {post.is_pinned && (
+          <FontAwesomeIcon
+            icon={faThumbtack}
+            className="absolute right-2 top-2 text-blue-500 dark:text-blue-500-dark"
+            aria-label="Pinned"
+          />
+        )}
         <Link
           href={getPostLink(post)}
           prefetch={false}
