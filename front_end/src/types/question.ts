@@ -288,6 +288,7 @@ export type Question = {
   options?: string[];
   options_history?: [string, string[]][];
   options_order?: MultipleChoiceOptionsOrder;
+  options_colors?: Record<string, string> | null;
   group_variable?: string;
   group_rank?: number;
   // Continuous only
@@ -305,6 +306,7 @@ export type Question = {
   fine_print: string | null;
   resolution_criteria: string | null;
   label: string;
+  label_color?: string | null;
   unit: string;
   author_username: string;
   post_id: number;
@@ -333,6 +335,7 @@ export type EditableQuestionFields = Pick<
   | "description"
   | "options"
   | "options_order"
+  | "options_colors"
   | "group_variable"
   | "group_rank"
   | "scaling"
@@ -342,6 +345,7 @@ export type EditableQuestionFields = Pick<
   | "fine_print"
   | "resolution_criteria"
   | "label"
+  | "label_color"
   | "unit"
   | "post_id"
   | "display_divergences"
