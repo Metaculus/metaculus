@@ -78,9 +78,26 @@ const ProjectLeaderboardTable: FC<Props> = ({
       ? undefined
       : leaderboardDetails.max_coverage;
 
+  const withRankCI = useMemo(
+    () =>
+      leaderboardDetails.entries.some(
+        (entry) => !isNil(entry.rank_ci_lower) && !isNil(entry.rank_ci_upper)
+      ),
+    [leaderboardDetails.entries]
+  );
+  const withScoreCI = useMemo(
+    () =>
+      leaderboardDetails.entries.some(
+        (entry) => !isNil(entry.ci_lower) && !isNil(entry.ci_upper)
+      ),
+    [leaderboardDetails.entries]
+  );
+
   const getColumnCount = () => {
     let count = 3;
+    if (withRankCI) count += 1;
     if (isAdvanced) count += 2;
+    if (isAdvanced && withScoreCI) count += 1;
     if (!!leaderboardDetails.prize_pool) {
       count += isAdvanced ? 3 : 1;
     }
@@ -98,9 +115,19 @@ const ProjectLeaderboardTable: FC<Props> = ({
             <TableHeader className="sticky left-0 w-0 max-w-[16rem] text-left">
               {getColumnName("forecaster", columnRenames)}
             </TableHeader>
+            {withRankCI && (
+              <TableHeader className="text-right">
+                {getColumnName("rankConfidenceInterval", columnRenames)}
+              </TableHeader>
+            )}
             <TableHeader className="text-right">
               {getColumnName("totalScore", columnRenames)}
             </TableHeader>
+            {isAdvanced && withScoreCI && (
+              <TableHeader className="text-right">
+                {getColumnName("scoreConfidenceInterval", columnRenames)}
+              </TableHeader>
+            )}
             {isAdvanced && (
               <>
                 <TableHeader className=" text-right">
@@ -145,6 +172,8 @@ const ProjectLeaderboardTable: FC<Props> = ({
               userId={userId}
               maxCoverage={maxCoverage}
               withPrizePool={!!leaderboardDetails.prize_pool}
+              withRankCI={withRankCI}
+              withScoreCI={withScoreCI}
               isAdvanced={isAdvanced}
             />
           )}
@@ -156,6 +185,8 @@ const ProjectLeaderboardTable: FC<Props> = ({
                   userId={userId}
                   maxCoverage={maxCoverage}
                   withPrizePool={!!leaderboardDetails.prize_pool}
+                  withRankCI={withRankCI}
+                  withScoreCI={withScoreCI}
                   isAdvanced={isAdvanced}
                 />
               ))

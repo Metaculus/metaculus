@@ -349,6 +349,8 @@
   "score": "Puntaje",
   "coverage": "Cobertura",
   "totalScore": "Puntaje Total",
+  "rankConfidenceInterval": "IC 95% del rango",
+  "scoreConfidenceInterval": "IC 95% del puntaje",
   "totalTake": "Ganancia Total",
   "weightedAverageScore": "Puntaje Promedio Ponderado",
   "hIndex": "Índice H",

@@ -347,6 +347,8 @@
   "average": "平均",
   "score": "數",
   "totalScore": "總分",
+  "rankConfidenceInterval": "排名 95% 置信区间",
+  "scoreConfidenceInterval": "分数 95% 置信区间",
   "weightedAverageScore": "加權平均分",
   "hIndex": "h指數",
   "upvotes": "點贊",

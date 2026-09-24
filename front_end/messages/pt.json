@@ -369,6 +369,8 @@
   "coverage": "Cobertura",
   "totalCoverage": "Cobertura Total",
   "totalScore": "Pontuação Total",
+  "rankConfidenceInterval": "IC 95% da posição",
+  "scoreConfidenceInterval": "IC 95% da pontuação",
   "totalTake": "Total Recebido",
   "weightedAverageScore": "Pontuação Média Ponderada",
   "hIndex": "Índice H",
