@@ -36,8 +36,6 @@ def get_sitemap_posts() -> list[dict]:
         "short_title",
         "notebook_id",
         "edited_at",
-        "actual_close_time",
-        "actual_resolve_time",
         "published_at",
         "html_metadata_json",
         "default_project__slug",
@@ -61,20 +59,7 @@ def get_sitemap_posts() -> list[dict]:
                 }
             },
             "html_metadata_json": row["html_metadata_json"],
-            # Latest visible change: content edit or a lifecycle transition
-            # (close/resolve). Excludes CP, which changes too often to trust.
-            "lastmod": max(
-                filter(
-                    None,
-                    [
-                        row["edited_at"],
-                        row["actual_close_time"],
-                        row["actual_resolve_time"],
-                    ],
-                ),
-                default=None,
-            )
-            or row["published_at"],
+            "lastmod": row["edited_at"] or row["published_at"],
         }
         for row in rows
     ]
