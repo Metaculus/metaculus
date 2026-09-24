@@ -42,13 +42,6 @@
       "accent": "purple"
     },
     {
-      "id": "ray-kennedy",
-      "quoteKey": "initiativesTestimonialRayQuote",
-      "authorKey": "initiativesTestimonialRayAuthor",
-      "roleKey": "initiativesTestimonialRayRole",
-      "accent": "blue"
-    },
-    {
       "id": "kiko-llaneras",
       "quoteKey": "initiativesTestimonialKikoQuote",
       "authorKey": "initiativesTestimonialKikoAuthor",
@@ -107,21 +100,36 @@
       "inventoryOrder": 3,
       "placements": ["hero", "featured", "inventory"],
       "feature": {
-        "order": 3,
+        "order": 4,
         "headingKey": "initiativeMidtermsFeatureHeading",
         "descriptionKey": "initiativeMidtermsFeatureDescription",
         "ctaKey": "initiativeMidtermsFeatureCta"
       }
     },
     {
-      "id": "case-studies",
-      "nameKey": "initiativeCaseStudiesName",
-      "taglineKey": "initiativeCaseStudiesTagline",
-      "url": "/services/",
-      "logo": "/images/initiatives/logos/case-studies.svg",
-      "brand": { "color": "#A9C0D6" },
+      "id": "frontiers-disease-prevention",
+      "nameKey": "initiativeFrontiersDiseaseName",
+      "taglineKey": "initiativeFrontiersDiseaseTagline",
+      "inventoryNameKey": "initiativeFrontiersDiseaseFeatureHeading",
+      "url": "/notebooks/43979/frontiers-in-disease-prevention-findings/",
+      "logo": "/images/initiatives/logos/disease-prevention.svg",
+      "artwork": "/images/initiatives/key-arts/disease-prevention.jpg",
+      "brand": { "color": "#E9B48D" },
+      "categoryId": "health-bio",
       "order": 3,
-      "placements": ["hero"]
+      "placements": ["hero", "featured", "inventory"],
+      "feature": {
+        "order": 3,
+        "headingKey": "initiativeFrontiersDiseaseFeatureHeading",
+        "descriptionKey": "initiativeFrontiersDiseaseDescription",
+        "ctaKey": "initiativeFrontiersDiseaseFeatureCta",
+        "badgeKey": "initiativesBadgeNew",
+        "quote": {
+          "quoteKey": "initiativeFrontiersDiseaseQuote",
+          "authorKey": "initiativeFrontiersDiseaseQuoteAuthor",
+          "roleKey": "initiativeFrontiersDiseaseQuoteRole"
+        }
+      }
     },
     {
       "id": "radiant",
@@ -171,15 +179,7 @@
         ]
       }
     },
-    {
-      "id": "frontiers-disease-prevention",
-      "nameKey": "initiativeFrontiersDiseaseName",
-      "inventoryDescriptionKey": "initiativeFrontiersDiseaseDescription",
-      "url": "/notebooks/43979/frontiers-in-disease-prevention-findings/",
-      "categoryId": "health-bio",
-      "order": 6,
-      "placements": ["inventory"]
-    },
+
     {
       "id": "global-health-monitor",
       "nameKey": "initiativeGlobalHealthMonitorName",
