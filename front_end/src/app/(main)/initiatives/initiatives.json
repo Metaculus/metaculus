@@ -90,7 +90,8 @@
       "feature": {
         "order": 1,
         "headingKey": "initiativeFutureEvalFeatureHeading",
-        "descriptionKey": "initiativeFutureEvalFeatureDescription"
+        "descriptionKey": "initiativeFutureEvalFeatureDescription",
+        "ctaKey": "initiativeFutureEvalFeatureCta"
       }
     },
     {
@@ -108,7 +109,8 @@
       "feature": {
         "order": 3,
         "headingKey": "initiativeMidtermsFeatureHeading",
-        "descriptionKey": "initiativeMidtermsFeatureDescription"
+        "descriptionKey": "initiativeMidtermsFeatureDescription",
+        "ctaKey": "initiativeMidtermsFeatureCta"
       }
     },
     {
@@ -149,7 +151,14 @@
         "order": 2,
         "headingKey": "initiativeLaborHubFeatureHeading",
         "descriptionKey": "initiativeLaborHubFeatureDescription",
+        "ctaKey": "initiativeLaborHubFeatureCta",
         "badgeKey": "initiativesBadgeNew",
+        "quote": {
+          "quoteKey": "initiativeLaborHubQuote",
+          "authorKey": "initiativeLaborHubQuoteAuthor",
+          "roleKey": "initiativeLaborHubQuoteRole",
+          "accent": "purple"
+        },
         "partners": [
           {
             "logo": "/partners/renaissance-philanthropy-logo.svg",

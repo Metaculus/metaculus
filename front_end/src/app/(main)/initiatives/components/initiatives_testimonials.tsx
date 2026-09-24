@@ -1,16 +1,10 @@
-import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { FC } from "react";
 
 import cn from "@/utils/core/cn";
 
-import { resolveAssetSource } from "../helpers/assets";
-import { InitiativesTestimonial, TestimonialAccent } from "../types";
-
-const ACCENT_BORDER: Record<TestimonialAccent, string> = {
-  blue: "border-[#2C77B4]",
-  purple: "border-purple-700 dark:border-purple-700-dark",
-};
+import InitiativeQuoteFigure from "./initiative_quote";
+import { InitiativesTestimonial } from "../types";
 
 type Props = {
   testimonials: InitiativesTestimonial[];
@@ -46,59 +40,17 @@ const InitiativesTestimonials: FC<Props> = ({ testimonials }) => {
             : "xl:mx-0 xl:grid xl:w-full xl:snap-none xl:grid-cols-3 xl:overflow-visible xl:px-0"
         )}
       >
-        {testimonials.map(
-          ({ id, quoteKey, authorKey, roleKey, avatar, accent }) => {
-            const avatarSource = avatar ? resolveAssetSource(avatar) : null;
-
-            return (
-              <li
-                key={id}
-                className={cn(
-                  "flex w-[min(367px,85vw)] shrink-0 snap-start",
-                  shouldScroll ? "xl:w-[calc((100%-6rem)/3)]" : "xl:w-auto"
-                )}
-              >
-                <figure className="m-0 flex w-full flex-col justify-between gap-10 xl:gap-12">
-                  <blockquote
-                    lang="en"
-                    className={cn(
-                      "m-0 max-w-[367px] border-l-2 pl-5 text-left text-[20px] font-normal leading-[140%] tracking-[-0.005em] text-blue-900 dark:text-blue-900-dark",
-                      ACCENT_BORDER[accent ?? "blue"]
-                    )}
-                  >
-                    {t(quoteKey)}
-                  </blockquote>
-
-                  <figcaption className="flex min-h-11 items-center gap-3 text-left">
-                    {avatarSource ? (
-                      <Image
-                        src={avatarSource.src}
-                        unoptimized={avatarSource.unoptimized}
-                        alt=""
-                        width={44}
-                        height={44}
-                        className="size-11 shrink-0 rounded-full object-cover"
-                      />
-                    ) : (
-                      <span
-                        aria-hidden="true"
-                        className="size-11 shrink-0 rounded-full bg-blue-300 dark:bg-blue-300-dark"
-                      />
-                    )}
-                    <span className="flex min-w-0 flex-col gap-0.5">
-                      <span className="text-sm font-semibold leading-[16.8px] text-blue-900 dark:text-blue-900-dark">
-                        {t(authorKey)}
-                      </span>
-                      <span className="text-[12.5px] font-normal leading-[16.25px] text-blue-700 dark:text-blue-700-dark">
-                        {t(roleKey)}
-                      </span>
-                    </span>
-                  </figcaption>
-                </figure>
-              </li>
-            );
-          }
-        )}
+        {testimonials.map((testimonial) => (
+          <li
+            key={testimonial.id}
+            className={cn(
+              "flex w-[min(367px,85vw)] shrink-0 snap-start",
+              shouldScroll ? "xl:w-[calc((100%-6rem)/3)]" : "xl:w-auto"
+            )}
+          >
+            <InitiativeQuoteFigure quote={testimonial} size="lg" />
+          </li>
+        ))}
       </ul>
     </section>
   );

@@ -6,6 +6,7 @@ import { FC } from "react";
 import Button from "@/components/ui/button";
 import cn from "@/utils/core/cn";
 
+import InitiativeQuoteFigure from "./initiative_quote";
 import MaskedLogo from "./masked_logo";
 import { INITIATIVE_FALLBACK_ARTWORK } from "../helpers/assets";
 import { FeaturedInitiative } from "../types";
@@ -72,14 +73,22 @@ const FeaturedInitiativeRow: FC<Props> = ({ initiative, artworkSide }) => {
             {t(feature.descriptionKey)}
           </p>
 
+          {feature.quote && (
+            <InitiativeQuoteFigure quote={feature.quote} size="md" />
+          )}
+
           <Button
             href={initiative.url}
             variant="secondary"
             size="sm"
-            aria-label={t("initiativesFeaturedLearnMoreAbout", { name })}
+            aria-label={
+              feature.ctaKey
+                ? undefined
+                : t("initiativesFeaturedLearnMoreAbout", { name })
+            }
             className="h-9 rounded-md border-[rgba(33,48,67,0.40)] bg-transparent px-3.5 py-0 font-semibold leading-[14px] text-blue-900 dark:border-blue-500-dark dark:bg-transparent dark:text-blue-900-dark"
           >
-            {t("initiativesFeaturedLearnMore")}
+            {t(feature.ctaKey ?? "initiativesFeaturedLearnMore")}
           </Button>
         </div>
 

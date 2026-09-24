@@ -23,11 +23,23 @@ export type InitiativePartner = {
   url?: string;
 };
 
+export type QuoteAccent = "blue" | "purple";
+
+export type InitiativeQuote = {
+  quoteKey: TranslationKey;
+  authorKey: TranslationKey;
+  roleKey: TranslationKey;
+  avatar?: string;
+  accent?: QuoteAccent;
+};
+
 export type InitiativeFeature = {
   order: number;
   headingKey: TranslationKey;
   descriptionKey: TranslationKey;
+  ctaKey?: TranslationKey;
   badgeKey?: TranslationKey;
+  quote?: InitiativeQuote;
   partners?: InitiativePartner[];
 };
 
@@ -53,15 +65,8 @@ export type FeaturedInitiative = Initiative & {
   feature: InitiativeFeature;
 };
 
-export type TestimonialAccent = "blue" | "purple";
-
-export type InitiativesTestimonial = {
+export type InitiativesTestimonial = InitiativeQuote & {
   id: string;
-  quoteKey: TranslationKey;
-  authorKey: TranslationKey;
-  roleKey: TranslationKey;
-  avatar?: string;
-  accent?: TestimonialAccent;
 };
 
 export type InitiativesHeroAction = {
