@@ -214,6 +214,93 @@ class TestPostCreate:
         assert Post.objects.filter(id=post_id).filter_permission(user=user1).exists()
 
 
+class TestPostCreateAuthorOverride:
+    url = reverse("post-create")
+
+    @staticmethod
+    def payload(**kwargs) -> dict:
+        return {
+            "title": "Question Post",
+            "default_project": get_site_main_project().pk,
+            "question": {
+                "title": "Question Post",
+                "description": "Question description",
+                "type": "binary",
+                "possibilities": {"type": "binary"},
+                "open_time": "2024-04-01T00:00:00Z",
+                "scheduled_close_time": "2024-05-01T00:00:00Z",
+                "scheduled_resolve_time": "2024-05-02T00:00:00Z",
+            },
+            **kwargs,
+        }
+
+    def test_superuser_override_by_username(self, user_admin_client, user2):
+        response = user_admin_client.post(
+            self.url,
+            self.payload(is_staff_override=True, author_username=user2.username),
+            format="json",
+        )
+
+        assert response.status_code == status.HTTP_201_CREATED
+        assert Post.objects.get(pk=response.data["id"]).author == user2
+        assert response.data["author_username"] == user2.username
+
+    def test_superuser_override_by_author_id(self, user_admin_client, user2):
+        response = user_admin_client.post(
+            self.url,
+            self.payload(is_staff_override=True, author_id=user2.id),
+            format="json",
+        )
+
+        assert response.status_code == status.HTTP_201_CREATED
+        assert Post.objects.get(pk=response.data["id"]).author == user2
+        assert response.data["author_id"] == user2.id
+
+    def test_non_superuser_cannot_use_staff_override(self, user1_client, user2):
+        response = user1_client.post(
+            self.url,
+            self.payload(is_staff_override=True, author_id=user2.id),
+            format="json",
+        )
+
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert not Post.objects.exists()
+
+    def test_author_without_staff_override_flag(self, user_admin_client, user2):
+        response = user_admin_client.post(
+            self.url, self.payload(author_username=user2.username), format="json"
+        )
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert not Post.objects.exists()
+
+    def test_staff_override_without_author(self, user_admin_client):
+        response = user_admin_client.post(
+            self.url, self.payload(is_staff_override=True), format="json"
+        )
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert not Post.objects.exists()
+
+    def test_superuser_override_unknown_username(self, user_admin_client):
+        response = user_admin_client.post(
+            self.url,
+            self.payload(is_staff_override=True, author_username="does_not_exist"),
+            format="json",
+        )
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert not Post.objects.exists()
+
+    def test_superuser_without_override_authors_self(
+        self, user_admin, user_admin_client
+    ):
+        response = user_admin_client.post(self.url, self.payload(), format="json")
+
+        assert response.status_code == status.HTTP_201_CREATED
+        assert response.data["author_id"] == user_admin.id
+
+
 class TestPostUpdate:
     def test_dont_clear_tags(self, user1, user1_client):
         category = factory_project(type=Project.ProjectTypes.CATEGORY)
