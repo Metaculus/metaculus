@@ -206,7 +206,7 @@ const FutureEvalTournamentOverview: React.FC = () => {
       description:
         "Our primary tournament with ~4-month seasons starting every January, May, and September, each with 300–500 questions across all formats.",
       primary: true,
-      href: "/tournament/summer-futureeval-2026/",
+      href: "/tournament/fall-futureeval-2026/",
     },
     {
       icon: faBolt,
