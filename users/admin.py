@@ -470,7 +470,7 @@ class UserSpamActivityAdmin(admin.ModelAdmin):
         "content_link",
     ]
     search_fields = ["user__username", "user__id", "user__email"]
-    list_filter = ["user"]
+    list_filter = [AutocompleteFilterFactory("User", "user")]
 
     def content_link(self, obj):
         match obj.content_type:
