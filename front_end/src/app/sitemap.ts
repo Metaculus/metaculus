@@ -1,5 +1,6 @@
 import { MetadataRoute } from "next";
 
+import { JOBS_DATA } from "@/app/(main)/labor-hub/data";
 import ServerMiscApi from "@/services/api/misc/misc.server";
 import { getPostLink, getProjectLink } from "@/utils/navigation";
 import { getPublicSettings } from "@/utils/public_settings.server";
@@ -38,6 +39,8 @@ const STATIC_PATHS = [
   "/help/scores-faq/",
   "/help/prediction-resources/",
   "/help/question-checklist/",
+  "/labor-hub/",
+  "/labor-hub/jobs/",
 ];
 
 /**
@@ -67,8 +70,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // elsewhere; otherwise the target itself is a static path below.
   const rootPaths = PUBLIC_LANDING_PAGE_URL === "/" ? ["/"] : [];
 
+  // Derived from JOBS_DATA so the sitemap tracks the job set that drives the
+  // /labor-hub/jobs/[slug] pages.
+  const laborHubJobPaths = JOBS_DATA.map(
+    (job) => `/labor-hub/jobs/${job.slug}/`
+  );
+
   return [
-    ...[...rootPaths, ...STATIC_PATHS].map((path) => ({
+    ...[...rootPaths, ...STATIC_PATHS, ...laborHubJobPaths].map((path) => ({
       url: absoluteUrl(PUBLIC_APP_URL, path),
     })),
     ...projects.map((project) => ({
