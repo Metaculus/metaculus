@@ -23,23 +23,33 @@ const InitiativeQuoteFigure: FC<Props> = ({ quote, size, className }) => {
   const { quoteKey, authorKey, roleKey, avatar, accent } = quote;
   const avatarSource = avatar ? resolveAssetSource(avatar) : null;
   const isLarge = size === "lg";
+  const accentBorder = ACCENT_BORDER[accent ?? "blue"];
 
+  // "lg" is a standalone testimonial; "md" sits inside a featured card, so it
+  // becomes its own subtle card with one text size throughout.
   return (
     <figure
       className={cn(
         "m-0 flex w-full flex-col",
-        isLarge ? "justify-between gap-10 xl:gap-12" : "gap-4",
+        isLarge
+          ? "justify-between gap-10 xl:gap-12"
+          : cn(
+              "gap-3 border-l-2 bg-blue-200 p-4 dark:bg-blue-100-dark",
+              accentBorder
+            ),
         className
       )}
     >
       <blockquote
         lang="en"
         className={cn(
-          "m-0 border-l-2 pl-5 text-left font-normal text-blue-900 dark:text-blue-900-dark",
+          "m-0 text-left font-normal text-blue-900 dark:text-blue-900-dark",
           isLarge
-            ? "max-w-[367px] text-[20px] leading-[140%] tracking-[-0.005em]"
-            : "text-[17px] leading-[27.2px]",
-          ACCENT_BORDER[accent ?? "blue"]
+            ? cn(
+                "max-w-[367px] border-l-2 pl-5 text-[20px] leading-[140%] tracking-[-0.005em]",
+                accentBorder
+              )
+            : "text-sm leading-[22px]"
         )}
       >
         {t(quoteKey)}
@@ -69,10 +79,20 @@ const InitiativeQuoteFigure: FC<Props> = ({ quote, size, className }) => {
           )
         )}
         <span className="flex min-w-0 flex-col gap-0.5">
-          <span className="text-sm font-semibold leading-[16.8px] text-blue-900 dark:text-blue-900-dark">
+          <span
+            className={cn(
+              "text-sm font-semibold text-blue-900 dark:text-blue-900-dark",
+              isLarge ? "leading-[16.8px]" : "leading-5"
+            )}
+          >
             {t(authorKey)}
           </span>
-          <span className="text-[12.5px] font-normal leading-[16.25px] text-blue-700 dark:text-blue-700-dark">
+          <span
+            className={cn(
+              "font-normal text-blue-700 dark:text-blue-700-dark",
+              isLarge ? "text-[12.5px] leading-[16.25px]" : "text-sm leading-5"
+            )}
+          >
             {t(roleKey)}
           </span>
         </span>
