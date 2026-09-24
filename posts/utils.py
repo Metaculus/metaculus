@@ -29,5 +29,9 @@ def check_can_edit_post(post: Post, user: User):
     raise PermissionDenied("You do not have permission to edit an approved post")
 
 
+def build_post_slug(short_title: str | None, title: str | None) -> str:
+    return slugify(short_title or title or "")
+
+
 def get_post_slug(post: Post) -> str:
-    return slugify(post.short_title or post.title or "")
+    return build_post_slug(post.short_title, post.title)
