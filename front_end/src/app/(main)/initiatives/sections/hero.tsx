@@ -4,6 +4,7 @@ import Button from "@/components/ui/button";
 import cn from "@/utils/core/cn";
 
 import InitiativeCarousel from "../components/initiative_carousel";
+import SectionLinkButton from "../components/section_link_button";
 import { getInitiativesByPlacement, initiativesPageData } from "../data";
 
 const HeroSection = async () => {
@@ -33,22 +34,35 @@ const HeroSection = async () => {
 
       {hero.actions.length > 0 && (
         <div className="flex flex-wrap items-center justify-center gap-3">
-          {hero.actions.map((action) => (
-            <Button
-              key={action.id}
-              href={action.href}
-              variant={action.variant}
-              size="md"
-              className={cn(
-                "h-[42px] rounded-md px-[18px] py-0 text-sm leading-[14px]",
-                action.variant === "primary" && "text-white",
-                action.variant === "secondary" &&
-                  "border-[rgba(33,48,67,0.40)] bg-transparent font-semibold text-blue-900 dark:border-blue-500-dark dark:bg-transparent dark:text-blue-900-dark"
-              )}
-            >
-              {t(action.labelKey)}
-            </Button>
-          ))}
+          {hero.actions.map((action) => {
+            const className = cn(
+              "h-[42px] rounded-md px-[18px] py-0 text-sm leading-[14px]",
+              action.variant === "primary" && "text-white",
+              action.variant === "secondary" &&
+                "border-[rgba(33,48,67,0.40)] bg-transparent font-semibold text-blue-900 dark:border-blue-500-dark dark:bg-transparent dark:text-blue-900-dark"
+            );
+
+            return action.href.startsWith("#") ? (
+              <SectionLinkButton
+                key={action.id}
+                href={action.href}
+                variant={action.variant}
+                className={className}
+              >
+                {t(action.labelKey)}
+              </SectionLinkButton>
+            ) : (
+              <Button
+                key={action.id}
+                href={action.href}
+                variant={action.variant}
+                size="md"
+                className={className}
+              >
+                {t(action.labelKey)}
+              </Button>
+            );
+          })}
         </div>
       )}
 

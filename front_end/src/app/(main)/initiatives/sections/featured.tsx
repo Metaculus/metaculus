@@ -14,17 +14,16 @@ const FeaturedSection = () => {
   const trailing = featured.slice(2);
 
   return (
-    <section
-      id="initiatives-featured"
-      aria-labelledby="initiatives-featured-title"
-      className="scroll-mt-nav"
-    >
+    <section aria-labelledby="initiatives-featured-title">
       <div className="mx-auto w-full max-w-[1404px] px-5 pt-12 md:px-12 xl:pt-[120px]">
         <h2 id="initiatives-featured-title" className="sr-only">
           {t("initiativesFeaturedTitle")}
         </h2>
 
-        <div className="divide-y divide-[#C8D3D7] dark:divide-blue-400-dark [&>*:first-child]:pt-0 [&>*:last-child]:pb-0 [&>*]:pb-16 [&>*]:pt-8 xl:[&>section]:pb-[110px]">
+        <div
+          id="initiatives-featured"
+          className="scroll-mt-[calc(var(--top-chrome-height,3rem)+2rem)] divide-y divide-[#C8D3D7] dark:divide-blue-400-dark [&>*:first-child]:pt-0 [&>*:last-child]:pb-0 [&>*]:pb-16 [&>*]:pt-8 xl:[&>section]:pb-[110px]"
+        >
           {leading.map((initiative) => (
             <FeaturedInitiativeRow
               key={initiative.id}
