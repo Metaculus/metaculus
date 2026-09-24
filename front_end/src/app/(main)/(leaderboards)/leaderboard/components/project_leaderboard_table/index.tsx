@@ -13,6 +13,7 @@ import {
 
 import TableHeader from "./table_header";
 import TableRow from "./table_row";
+import ConfidenceIntervalTooltip from "../confidence_interval_tooltip";
 import UnfinalizedPrizeTooltip from "../prize_unfinalized_tooltip";
 
 type Props = {
@@ -117,7 +118,9 @@ const ProjectLeaderboardTable: FC<Props> = ({
             </TableHeader>
             {withRankCI && (
               <TableHeader className="text-right">
-                {getColumnName("rankConfidenceInterval", columnRenames)}
+                <ConfidenceIntervalTooltip
+                  label={getColumnName("rankConfidenceInterval", columnRenames)}
+                />
               </TableHeader>
             )}
             <TableHeader className="text-right">
@@ -125,7 +128,12 @@ const ProjectLeaderboardTable: FC<Props> = ({
             </TableHeader>
             {isAdvanced && withScoreCI && (
               <TableHeader className="text-right">
-                {getColumnName("scoreConfidenceInterval", columnRenames)}
+                <ConfidenceIntervalTooltip
+                  label={getColumnName(
+                    "scoreConfidenceInterval",
+                    columnRenames
+                  )}
+                />
               </TableHeader>
             )}
             {isAdvanced && (

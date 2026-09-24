@@ -371,6 +371,7 @@
   "totalScore": "Pontuação Total",
   "rankConfidenceInterval": "IC 95% da posição",
   "scoreConfidenceInterval": "IC 95% da pontuação",
+  "confidenceIntervalTooltip": "Intervalo de confiança de 95%, estimado por bootstrap sobre as perguntas do torneio.",
   "totalTake": "Total Recebido",
   "weightedAverageScore": "Pontuação Média Ponderada",
   "hIndex": "Índice H",

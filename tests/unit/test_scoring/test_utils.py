@@ -233,6 +233,34 @@ class TestAssignConfidenceIntervals:
         assert by_user[4].rank_ci_lower == 2
         assert by_user[4].rank_ci_upper == 3
 
+    def test_intervals_are_deterministic_for_a_leaderboard(self):
+        scores = self._make_scores(
+            {q: [(1, 10.0 + q), (2, 5.0 - q), (3, float(q % 4))] for q in range(1, 9)}
+        )
+        leaderboard = Leaderboard(
+            id=7, score_type=LeaderboardScoreTypes.PEER_TOURNAMENT
+        )
+        runs = []
+        for _ in range(2):
+            entries = generate_entries_from_scores(scores, [], leaderboard)
+            assign_ranks_(entries, leaderboard)
+            assign_confidence_intervals_(
+                entries, scores, leaderboard, bootstrap_count=200
+            )
+            runs.append(
+                sorted(
+                    (
+                        e.user_id,
+                        e.ci_lower,
+                        e.ci_upper,
+                        e.rank_ci_lower,
+                        e.rank_ci_upper,
+                    )
+                    for e in entries
+                )
+            )
+        assert runs[0] == runs[1]
+
     def test_unsupported_score_type_is_skipped(self):
         scores = self._make_scores({1: [(1, 10.0)]})
         leaderboard = Leaderboard(score_type=LeaderboardScoreTypes.MANUAL)

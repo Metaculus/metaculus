@@ -527,7 +527,7 @@ def assign_ranks_(
             rank += 1
 
 
-LEADERBOARD_BOOTSTRAP_SAMPLES = 1000
+LEADERBOARD_BOOTSTRAP_SAMPLES = 5000
 
 
 def assign_confidence_intervals_(
@@ -543,6 +543,10 @@ def assign_confidence_intervals_(
     every resample the same way `generate_entries_from_scores` does, and ranks
     are recomputed the same way `assign_ranks_` does (excluded entries do not
     take ranks), so `assign_exclusions_` must have been run first.
+
+    The generator is seeded with the leaderboard id by default so that
+    recomputing a leaderboard whose scores did not change yields identical
+    intervals instead of Monte Carlo jitter.
     """
     if not entries or not scores or bootstrap_count <= 0:
         return
@@ -583,7 +587,7 @@ def assign_confidence_intervals_(
     # Resampling questions with replacement is equivalent to drawing
     # multinomial counts per question, which lets every bootstrap sample be
     # computed with a single matrix product.
-    rng = np.random.default_rng(seed)
+    rng = np.random.default_rng(leaderboard.id if seed is None else seed)
     resample_counts = rng.multinomial(
         question_count,
         np.full(question_count, 1 / question_count),

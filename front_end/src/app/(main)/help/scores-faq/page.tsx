@@ -1119,6 +1119,17 @@ export default async function ScoresFAQ() {
         redistributed to forecasters with higher scores. Tournaments that end
         before 1st of June, 2025 still do not give prizes below 10$.
       </p>
+      <p>
+        Tournament leaderboards also show a 95% confidence interval for your
+        Rank and, in the advanced view, for your total Score. These intervals
+        are bootstrapped: the tournament&apos;s questions are resampled with
+        replacement thousands of times, everyone&apos;s total score and rank are
+        recomputed on each resample, and the interval spans the 2.5th to 97.5th
+        percentiles of those results. It measures how much your standing depends
+        on which questions happened to be in the tournament, so it is wider when
+        you forecast few questions or when your score rests on a few large
+        results. Intervals are recomputed every time the leaderboard updates.
+      </p>
 
       <hr />
       <h2 className="scroll-mt-nav" id="legacy-tournament-scores">
