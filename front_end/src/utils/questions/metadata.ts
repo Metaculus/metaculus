@@ -2,13 +2,19 @@ import "server-only";
 import { Metadata } from "next";
 
 import { Post } from "@/types/post";
-import { BotLeaderboardStatus } from "@/types/projects";
+import { BotLeaderboardStatus, Tournament } from "@/types/projects";
 import { getValidString } from "@/utils/formatters/string";
 import { getPostLink } from "@/utils/navigation";
 import { getPublicSettings } from "@/utils/public_settings.server";
 
+// getPostLink's parameter already carries id/slug/projects/notebook; this adds
+// the SEO metadata and the one project field getPostLink itself doesn't read.
 type SeoPost = Parameters<typeof getPostLink>[0] &
-  Pick<Post, "projects" | "html_metadata_json">;
+  Pick<Post, "html_metadata_json"> & {
+    projects?: {
+      default_project?: Pick<Tournament, "bot_leaderboard_status"> | null;
+    } | null;
+  };
 
 /**
  * Bot-only posts duplicate their human counterparts, which lets Google pick the
@@ -20,6 +26,22 @@ function isBotsOnlyPost(post: SeoPost) {
     post.projects?.default_project?.bot_leaderboard_status ===
     BotLeaderboardStatus.BotsOnly
   );
+}
+
+/**
+ * Single source of truth for "should Google index this URL?".
+ *
+ * The sitemap and the page's own robots/canonical tags MUST agree — a sitemap
+ * entry for a noindex page is a Search Console error, so both derive from here.
+ */
+export function isIndexablePost(post: SeoPost) {
+  // An explicit canonical points somewhere else; that target belongs in the
+  // sitemap instead of this post.
+  if (getValidString(post.html_metadata_json?.canonical_url)) {
+    return false;
+  }
+
+  return !isBotsOnlyPost(post);
 }
 
 /**

@@ -1,6 +1,13 @@
 import { ContactSubjectType } from "@/constants/contact";
 import { ApiService } from "@/services/api/api_service";
-import { CombinedFeedTile } from "@/types/projects";
+import { FetchOptions } from "@/types/fetch";
+import { SitemapPost } from "@/types/post";
+import { CombinedFeedTile, SitemapProject } from "@/types/projects";
+
+export type SitemapPayload = {
+  posts: SitemapPost[];
+  projects: SitemapProject[];
+};
 
 export type ContactForm = {
   email: string;
@@ -30,6 +37,10 @@ export type BulletinItem = {
 };
 
 class MiscApi extends ApiService {
+  async getSitemap(fetchOptions?: FetchOptions): Promise<SitemapPayload> {
+    return await this.get<SitemapPayload>("/sitemap/", fetchOptions);
+  }
+
   async getBulletins(): Promise<BulletinItem[]> {
     const resp = await this.get<{
       bulletins: BulletinItem[];
