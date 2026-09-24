@@ -136,7 +136,7 @@
       "nameKey": "initiativeRadiantName",
       "taglineKey": "initiativeRadiantTagline",
       "inventoryDescriptionKey": "initiativeRadiantInventoryDescription",
-      "url": "/notebooks/42293/map-the-future-before-you-build-it/",
+      "url": "https://radiant.metaculus.com/",
       "logo": "/images/initiatives/logos/radiant.svg",
       "brand": { "color": "#FF4A00" },
       "categoryId": "ai",
