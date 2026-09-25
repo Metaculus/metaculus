@@ -20,6 +20,7 @@ type Props = {
   onViewChange: (view: InitiativesInventoryView) => void;
   resultsId?: string;
   containerRef: RefObject<HTMLDivElement | null>;
+  categoryTitle?: string;
 };
 
 // Floats over the inventory instead of taking a row: the negative margins
@@ -34,9 +35,11 @@ const InventoryToolbar: FC<Props> = ({
   onViewChange,
   resultsId,
   containerRef,
+  categoryTitle,
 }) => {
   const t = useTranslations();
   const railRef = useRef<HTMLDivElement>(null);
+  const titleRef = useRef<HTMLParagraphElement>(null);
   const sentinelRef = useRef<HTMLDivElement>(null);
   const [canScrollRail, setCanScrollRail] = useState(false);
   const [isStuck, setIsStuck] = useState(false);
@@ -97,6 +100,23 @@ const InventoryToolbar: FC<Props> = ({
     };
   }, [updateRailFade, view]);
 
+  useEffect(() => {
+    const title = titleRef.current;
+    if (
+      !title ||
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    ) {
+      return;
+    }
+    title.animate(
+      [
+        { opacity: 0, transform: "translateY(4px)" },
+        { opacity: 1, transform: "none" },
+      ],
+      { duration: 200, easing: "ease-out" }
+    );
+  }, [categoryTitle]);
+
   return (
     <>
       <div ref={sentinelRef} aria-hidden="true" className="h-0" />
@@ -141,6 +161,16 @@ const InventoryToolbar: FC<Props> = ({
               })}
             </div>
           </div>
+        )}
+
+        {view === "grid" && isStuck && categoryTitle && (
+          <p
+            ref={titleRef}
+            aria-hidden="true"
+            className="m-0 min-w-0 truncate text-base font-medium leading-5 text-blue-900 dark:text-blue-900-dark sm:hidden"
+          >
+            {categoryTitle}
+          </p>
         )}
 
         <LayoutSwitcher

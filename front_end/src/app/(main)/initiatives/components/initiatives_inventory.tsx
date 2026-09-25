@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { FC, useMemo, useRef, useState } from "react";
+import { FC, useEffect, useMemo, useRef, useState } from "react";
 
 import InitiativeInventoryCard from "./initiative_inventory_card";
 import InventoryCategoryCarousel from "./inventory_category_carousel";
@@ -31,7 +31,44 @@ const InitiativesInventory: FC<Props> = ({
   const [view, setView] = useState<InitiativesInventoryView>("grid");
   const rootRef = useRef<HTMLDivElement>(null);
   const toolbarRef = useRef<HTMLDivElement>(null);
+  const [stuckCategoryId, setStuckCategoryId] = useState<string | null>(null);
   const isList = view === "list";
+
+  // Tracks the last category title that has scrolled fully under the toolbar,
+  // so the mobile bar can keep showing which category the reader is in.
+  useEffect(() => {
+    const root = rootRef.current;
+    const toolbar = toolbarRef.current;
+    if (isList || !root || !toolbar) return;
+
+    let frame = 0;
+    const update = () => {
+      frame = 0;
+      const edge = toolbar.getBoundingClientRect().bottom;
+      let current: string | null = null;
+      root
+        .querySelectorAll<HTMLElement>("[data-category-title]")
+        .forEach((title) => {
+          if (title.getBoundingClientRect().bottom <= edge) {
+            current = title.dataset.categoryTitle ?? null;
+          }
+        });
+      setStuckCategoryId(current);
+    };
+    const scheduleUpdate = () => {
+      if (!frame) frame = window.requestAnimationFrame(update);
+    };
+
+    scheduleUpdate();
+    window.addEventListener("scroll", scheduleUpdate, { passive: true });
+    window.addEventListener("resize", scheduleUpdate);
+
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.removeEventListener("scroll", scheduleUpdate);
+      window.removeEventListener("resize", scheduleUpdate);
+    };
+  }, [isList]);
 
   const categoryColors = useMemo(
     () =>
@@ -52,6 +89,10 @@ const InitiativesInventory: FC<Props> = ({
       items: initiatives.filter(({ categoryId }) => categoryId === category.id),
     }))
     .filter(({ items }) => items.length > 0);
+
+  const stuckCategory = categories.find(
+    ({ category }) => category.id === stuckCategoryId
+  )?.category;
 
   const visibleInitiatives = initiatives.filter(
     (initiative) =>
@@ -91,6 +132,7 @@ const InitiativesInventory: FC<Props> = ({
         onViewChange={handleViewChange}
         resultsId={RESULTS_ID}
         containerRef={toolbarRef}
+        categoryTitle={stuckCategory && t(stuckCategory.labelKey)}
       />
 
       {isList ? (

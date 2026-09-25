@@ -26,6 +26,7 @@ const InventoryCategoryCarousel: FC<Props> = ({
     <section aria-labelledby={titleId} className="flex flex-col gap-4 md:gap-6">
       <h3
         id={titleId}
+        data-category-title={category.id}
         className="m-0 flex min-h-[34px] items-center text-2xl font-medium leading-[110%] tracking-[-0.015em] text-blue-900 dark:text-blue-900-dark sm:min-h-[38px] md:text-[32px] md:tracking-[-0.025em]"
       >
         {t(category.labelKey)}
