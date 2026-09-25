@@ -2,7 +2,7 @@ from posts.services.sitemap import get_sitemap_posts
 from projects.services.sitemap import get_sitemap_projects
 from utils.cache import cache_get_or_set
 
-SITEMAP_CACHE_KEY = "sitemap:v1"
+SITEMAP_CACHE_KEY = "sitemap:v2"
 SITEMAP_CACHE_TIMEOUT = 6 * 3600
 
 
