@@ -13,10 +13,8 @@ def get_sitemap_posts_qs():
     """
 
     return (
-        Post.objects.filter(
-            curation_status=Post.CurationStatus.APPROVED,
-            published_at__isnull=False,
-        )
+        Post.objects.filter_published()
+        .filter_public()
         .exclude(default_project__visibility=Project.Visibility.UNLISTED)
         .order_by("id")
     )
