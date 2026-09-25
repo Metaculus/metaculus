@@ -114,7 +114,7 @@ const InventoryToolbar: FC<Props> = ({
             ref={railRef}
             role="group"
             aria-label={t("initiativesInventoryFilterLabel")}
-            className="pointer-events-auto min-w-0 overflow-x-auto no-scrollbar"
+            className="pointer-events-auto min-w-0 overflow-x-auto no-scrollbar max-sm:-ml-5 max-sm:pl-5"
             style={
               canScrollRail
                 ? { maskImage: RAIL_FADE, WebkitMaskImage: RAIL_FADE }
