@@ -12,7 +12,10 @@ import { getPublicSettings } from "@/utils/public_settings.server";
 type SeoPost = Parameters<typeof getPostLink>[0] &
   Pick<Post, "html_metadata_json"> & {
     projects?: {
-      default_project?: Pick<Tournament, "bot_leaderboard_status"> | null;
+      default_project?: Pick<
+        Tournament,
+        "bot_leaderboard_status" | "name"
+      > | null;
     } | null;
   };
 
@@ -25,6 +28,20 @@ function isBotsOnlyPost(post: SeoPost) {
   return (
     post.projects?.default_project?.bot_leaderboard_status ===
     BotLeaderboardStatus.BotsOnly
+  );
+}
+
+// Lowercase; matched as substrings of the default project name.
+const NOINDEX_DEFAULT_PROJECT_KEYWORDS = [
+  "futureeval",
+  "ai forecasting benchmark tournament",
+  "minibench",
+];
+
+function isNoindexProjectPost(post: SeoPost) {
+  const projectName = post.projects?.default_project?.name?.toLowerCase() ?? "";
+  return NOINDEX_DEFAULT_PROJECT_KEYWORDS.some((keyword) =>
+    projectName.includes(keyword)
   );
 }
 
@@ -41,14 +58,14 @@ export function isIndexablePost(post: SeoPost) {
     return false;
   }
 
-  return !isBotsOnlyPost(post);
+  return !isBotsOnlyPost(post) && !isNoindexProjectPost(post);
 }
 
 /**
  * A canonical pointing at another URL combined with noindex is contradictory:
  * Google may apply the noindex to the canonical target, deindexing the very
  * page we're pointing at. So an explicit override always suppresses the
- * bot-only noindex — never emit both.
+ * noindex — never emit both.
  *
  * Without an override the canonical is self-referencing: any slug resolves
  * under the /questions/[id]/[[...slug]] catch-all, so each variant would
@@ -67,8 +84,8 @@ export function getPostSeoMetadata(post: SeoPost): Metadata {
     alternates: { canonical: `${PUBLIC_APP_URL}${getPostLink(post)}` },
   };
 
-  if (isBotsOnlyPost(post)) {
-    metadata.robots = { index: false, follow: true };
+  if (!isIndexablePost(post)) {
+    metadata.robots = { index: false, follow: !isNoindexProjectPost(post) };
   }
 
   return metadata;
