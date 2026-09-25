@@ -37,6 +37,7 @@ def get_sitemap_posts() -> list[dict]:
         "published_at",
         "html_metadata_json",
         "default_project__slug",
+        "default_project__name_original",
         "default_project__type",
         "default_project__bot_leaderboard_status",
     )
@@ -50,6 +51,7 @@ def get_sitemap_posts() -> list[dict]:
             "projects": {
                 "default_project": {
                     "slug": row["default_project__slug"],
+                    "name": row["default_project__name_original"],
                     "type": row["default_project__type"],
                     "bot_leaderboard_status": row[
                         "default_project__bot_leaderboard_status"
