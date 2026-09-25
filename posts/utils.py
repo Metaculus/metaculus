@@ -1,5 +1,6 @@
+from django.conf import settings
 from django.template.defaultfilters import slugify
-from django.utils import timezone
+from django.utils import timezone, translation
 from rest_framework.exceptions import PermissionDenied
 
 from posts.models import Post
@@ -29,5 +30,11 @@ def check_can_edit_post(post: Post, user: User):
     raise PermissionDenied("You do not have permission to edit an approved post")
 
 
+def build_post_slug(short_title: str | None, title: str | None) -> str:
+    return slugify(short_title or title or "")
+
+
 def get_post_slug(post: Post) -> str:
-    return slugify(post.short_title or post.title or "")
+    # Locale-independent so a post has one URL (canonical + sitemap); keeps fallbacks.
+    with translation.override(settings.ORIGINAL_LANGUAGE_CODE):
+        return build_post_slug(post.short_title, post.title)

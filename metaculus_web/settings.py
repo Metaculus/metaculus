@@ -512,6 +512,7 @@ SENTRY_SAMPLE_RATE = float(os.environ.get("SENTRY_SAMPLE_RATE", 0.15))
 
 def traces_sampler(sampling_context):
     exclude_endpoints = [
+        "/api/healthcheck/",
         "/api/get-bulletins",
         "/api/auth/verify_token",
         "/api/auth/social",
@@ -528,7 +529,7 @@ def traces_sampler(sampling_context):
 
         # Reduced sampling for high-volume endpoints
         if url == "/api/users/me/":
-            return 0.05
+            return 0.005
 
         if method in ("POST", "PATCH", "PUT", "DELETE"):
             # High-volume write endpoints - use reduced rates
@@ -609,6 +610,13 @@ LOCALE_PATHS = (os.path.join(os.path.dirname(__file__), "locale"),)
 
 GOOGLE_TRANSLATE_SERVICE_ACCOUNT_KEY = os.environ.get(
     "GOOGLE_TRANSLATE_SERVICE_ACCOUNT_KEY", None
+)
+
+# Machine translation of new/edited content. When disabled, the whole
+# translation machinery stays in place (already translated content is still
+# served), but no new content is sent to the translation service.
+AUTOMATIC_TRANSLATIONS_ENABLED = (
+    os.environ.get("AUTOMATIC_TRANSLATIONS_ENABLED", "false").lower() == "true"
 )
 
 CAMPAIGN_USER_REGISTRATION_HOOK_KEY_URL_PAIR = os.environ.get(
