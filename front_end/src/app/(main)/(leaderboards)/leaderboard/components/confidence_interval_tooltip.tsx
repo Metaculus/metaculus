@@ -19,7 +19,20 @@ const ConfidenceIntervalTooltip: FC<Props> = ({ label }) => {
           placement={"right"}
           tooltipContent={
             <div>
-              <p className="m-0">{t("confidenceIntervalTooltip")}</p>
+              <p className="m-0">
+                {t.rich("confidenceIntervalTooltip", {
+                  link: (chunks) => (
+                    <a
+                      href="https://en.wikipedia.org/wiki/Bootstrapping_(statistics)"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-700 dark:text-blue-700-dark"
+                    >
+                      {chunks}
+                    </a>
+                  ),
+                })}
+              </p>
               <Link
                 href="/help/scores-faq/#tournaments-section"
                 className="mt-2 inline-block text-blue-700 dark:text-blue-700-dark"

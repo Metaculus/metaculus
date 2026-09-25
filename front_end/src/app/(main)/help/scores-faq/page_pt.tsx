@@ -2256,10 +2256,13 @@ export default function ScoresFAQ() {
           mas terminar em primeiro e não em segundo lugar é muitas vezes questão
           de sorte. Por isso, as tabelas de classificação dos torneios mostram
           um intervalo de confiança de 95% para cada Rank e, na visualização
-          avançada, para cada pontuação total. Para calculá-lo, reamostramos as
-          perguntas do torneio com reposição milhares de vezes, recalculamos a
-          pontuação e a classificação de todos em cada reamostragem e tomamos os
-          percentis 2,5 e 97,5.
+          avançada, para cada pontuação total. Para calculá-lo, usamos{" "}
+          <a href="https://en.wikipedia.org/wiki/Bootstrapping_(statistics)">
+            bootstrapping
+          </a>
+          : reamostramos as perguntas do torneio com reposição milhares de
+          vezes, recalculamos a pontuação e a classificação de todos em cada
+          reamostragem e tomamos os percentis 2,5 e 97,5.
         </p>
         {/* <hr> */}
         <h2 className="scroll-mt-nav" id="legacy-tournament-scores">

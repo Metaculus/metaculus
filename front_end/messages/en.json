@@ -546,7 +546,7 @@
   "totalScore": "Total Score",
   "rankConfidenceInterval": "Rank 95% CI",
   "scoreConfidenceInterval": "Score 95% CI",
-  "confidenceIntervalTooltip": "95% confidence interval, estimated by bootstrapping over the tournament's questions.",
+  "confidenceIntervalTooltip": "95% <link>bootstrapped</link> confidence interval",
   "totalTake": "Total Take",
   "weightedAverageScore": "Weighted Average Score",
   "hIndex": "H-Index",

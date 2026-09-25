@@ -397,7 +397,7 @@
   "totalScore": "總分",
   "rankConfidenceInterval": "排名 95% 信賴區間",
   "scoreConfidenceInterval": "分數 95% 信賴區間",
-  "confidenceIntervalTooltip": "95% 信賴區間，透過對錦標賽問題進行自助法（bootstrap）重抽樣估計。",
+  "confidenceIntervalTooltip": "95% <link>自助法（bootstrap）</link>信賴區間",
   "totalTake": "總收益",
   "weightedAverageScore": "加權平均分",
   "hIndex": "H 指數",

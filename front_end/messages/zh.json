@@ -349,7 +349,7 @@
   "totalScore": "總分",
   "rankConfidenceInterval": "排名 95% 置信区间",
   "scoreConfidenceInterval": "分数 95% 置信区间",
-  "confidenceIntervalTooltip": "95% 置信区间，通过对锦标赛问题进行自助法（bootstrap）重采样估计。",
+  "confidenceIntervalTooltip": "95% <link>自助法（bootstrap）</link>置信区间",
   "weightedAverageScore": "加權平均分",
   "hIndex": "h指數",
   "upvotes": "點贊",
