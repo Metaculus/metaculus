@@ -1,3 +1,5 @@
+import logging
+
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.views.decorators.cache import cache_page
@@ -62,6 +64,8 @@ from utils.files import validate_and_upload_image
 from utils.paginator import CountlessLimitOffsetPagination, LimitOffsetPagination
 from utils.tasks import email_data_task
 from utils.views import validate_data_request
+
+logger = logging.getLogger(__name__)
 
 spam_error = ValidationError(
     detail="This post seems to be spam. Please contact "
@@ -294,6 +298,13 @@ def post_create_api_view(request):
     serializer = PostWriteSerializer(data=request.data, context={"user": request.user})
     serializer.is_valid(raise_exception=True)
     post = create_post(**serializer.validated_data, author=author)
+    if override["is_staff_override"]:
+        logger.info(
+            "is_staff_override: user %s created post %s as user %s",
+            request.user.id,
+            post.id,
+            author.id,
+        )
 
     user_permission = get_post_permission_for_user(post, user=request.user)
     is_user_admin = user_permission == ObjectPermission.ADMIN
