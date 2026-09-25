@@ -78,6 +78,13 @@ const ProjectLeaderboardTable: FC<Props> = ({
     leaderboardDetails.score_type === "relative_legacy_tournament"
       ? undefined
       : leaderboardDetails.max_coverage;
+  // Peer scores are noisy enough that extra decimals are just visual noise
+  const scoreFractionDigits = [
+    "peer_tournament",
+    "spot_peer_tournament",
+  ].includes(leaderboardDetails.score_type)
+    ? 1
+    : 3;
 
   const withRankCI = useMemo(
     () =>
@@ -113,7 +120,7 @@ const ProjectLeaderboardTable: FC<Props> = ({
             <TableHeader className="sticky left-0 text-left">
               {getColumnName("rank", columnRenames)}
             </TableHeader>
-            <TableHeader className="sticky left-0 w-0 max-w-[16rem] text-left">
+            <TableHeader className="sticky left-0 w-0 max-w-[9rem] text-left sm:max-w-[16rem]">
               {getColumnName("forecaster", columnRenames)}
             </TableHeader>
             {withRankCI && (
@@ -182,6 +189,7 @@ const ProjectLeaderboardTable: FC<Props> = ({
               withPrizePool={!!leaderboardDetails.prize_pool}
               withRankCI={withRankCI}
               withScoreCI={withScoreCI}
+              scoreFractionDigits={scoreFractionDigits}
               isAdvanced={isAdvanced}
             />
           )}
@@ -195,6 +203,7 @@ const ProjectLeaderboardTable: FC<Props> = ({
                   withPrizePool={!!leaderboardDetails.prize_pool}
                   withRankCI={withRankCI}
                   withScoreCI={withScoreCI}
+                  scoreFractionDigits={scoreFractionDigits}
                   isAdvanced={isAdvanced}
                 />
               ))

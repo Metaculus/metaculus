@@ -18,6 +18,7 @@ type Props = {
   withPrizePool?: boolean;
   withRankCI?: boolean;
   withScoreCI?: boolean;
+  scoreFractionDigits?: number;
   isAdvanced?: boolean;
 };
 
@@ -43,6 +44,7 @@ const TableRow: FC<Props> = ({
   withPrizePool = true,
   withRankCI = false,
   withScoreCI = false,
+  scoreFractionDigits = 3,
   isAdvanced = false,
 }) => {
   const {
@@ -119,7 +121,7 @@ const TableRow: FC<Props> = ({
         )}
       </Td>
       <Td
-        className="sticky left-0 w-0 max-w-[16rem] text-left"
+        className="sticky left-0 w-0 max-w-[9rem] text-left sm:max-w-[16rem]"
         highlight={highlight}
       >
         <Link
@@ -138,7 +140,7 @@ const TableRow: FC<Props> = ({
         </Td>
       )}
       <Td className="text-right tabular-nums" highlight={highlight}>
-        {score.toFixed(3)}
+        {score.toFixed(scoreFractionDigits)}
       </Td>
       {isAdvanced && withScoreCI && (
         <Td className="text-right tabular-nums" highlight={highlight}>
@@ -160,7 +162,7 @@ const TableRow: FC<Props> = ({
           {isAdvanced && (
             <>
               <Td className="text-right tabular-nums" highlight={highlight}>
-                {take?.toFixed(3)}
+                {take?.toFixed(scoreFractionDigits)}
               </Td>
               <Td className="text-right tabular-nums" highlight={highlight}>
                 {percent_prize ? `${(percent_prize * 100).toFixed(1)}%` : "-"}
