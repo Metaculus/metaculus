@@ -277,6 +277,7 @@ class TestPostCreateAuthorOverride:
         )
 
         assert response.status_code == status.HTTP_201_CREATED
+        assert Post.objects.get(pk=response.data["id"]).author == user2
         assert response.data["author_id"] == user2.id
 
     def test_superuser_override_validates_project_as_requester(
