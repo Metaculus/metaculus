@@ -4,11 +4,13 @@ from django.utils import timezone
 from django.views.decorators.cache import cache_page
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.exceptions import PermissionDenied
+from rest_framework.exceptions import NotFound, PermissionDenied
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import AllowAny
 from rest_framework.request import Request
 from rest_framework.response import Response
+
+from utils.requests import is_internal_request
 
 from .models import Bulletin, BulletinViewedBy, ITNArticle, SidebarItem
 from .serializers import (
@@ -22,6 +24,7 @@ from .services.ad_tiles import (
     get_tile_object_by_id,
 )
 from .services.itn import remove_article
+from .services.sitemap import get_sitemap_payload
 from .services.stats import get_cached_site_stats
 from .utils import get_data_access_status
 
@@ -207,3 +210,13 @@ def get_data_access_status_api_view(request: Request):
         },
         status=status.HTTP_200_OK,
     )
+
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def sitemap_api_view(request: Request):
+    # Internal-only; feeds the Next.js /sitemap.xml generator.
+    if not is_internal_request(request):
+        raise NotFound()
+
+    return Response(get_sitemap_payload())
