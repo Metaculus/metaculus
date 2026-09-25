@@ -1120,15 +1120,17 @@ export default async function ScoresFAQ() {
         before 1st of June, 2025 still do not give prizes below 10$.
       </p>
       <p>
-        Tournament leaderboards also show a 95% confidence interval for your
-        Rank and, in the advanced view, for your total Score. These intervals
-        are bootstrapped: the tournament&apos;s questions are resampled with
-        replacement thousands of times, everyone&apos;s total score and rank are
-        recomputed on each resample, and the interval spans the 2.5th to 97.5th
-        percentiles of those results. It measures how much your standing depends
-        on which questions happened to be in the tournament, so it is wider when
-        you forecast few questions or when your score rests on a few large
-        results. Intervals are recomputed every time the leaderboard updates.
+        Forecasting scores are{" "}
+        <Link href="/notebooks/19335/comparing-two-forecasters-in-an-ideal-world/">
+          noisy
+        </Link>
+        . Being near the top of a leaderboard requires skill, but finishing
+        first rather than second is often largely luck. So tournament
+        leaderboards show a 95% confidence interval for each Rank and, in the
+        advanced view, for each total Score. To compute it, we resample the
+        tournament&apos;s questions with replacement thousands of times,
+        recompute everyone&apos;s score and rank on each resample, and take the
+        2.5th to 97.5th percentiles.
       </p>
 
       <hr />

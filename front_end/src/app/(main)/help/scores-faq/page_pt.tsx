@@ -2248,17 +2248,18 @@ export default function ScoresFAQ() {
           um torneio para ser notificado sobre novas perguntas.
         </p>
         <p>
-          As tabelas de classificação dos torneios também mostram um intervalo
-          de confiança de 95% para o seu Rank e, na visualização avançada, para
-          a sua pontuação total. Esses intervalos são calculados por bootstrap:
-          as perguntas do torneio são reamostradas com reposição milhares de
-          vezes, a pontuação total e a classificação de todos são recalculadas
-          em cada reamostragem, e o intervalo vai do percentil 2,5 ao percentil
-          97,5 desses resultados. Ele mede o quanto a sua posição depende de
-          quais perguntas fizeram parte do torneio, por isso é mais amplo quando
-          você previu poucas perguntas ou quando a sua pontuação depende de
-          poucos resultados grandes. Os intervalos são recalculados sempre que a
-          tabela de classificação é atualizada.
+          As pontuações de previsão são{" "}
+          <Link href="/notebooks/19335/comparing-two-forecasters-in-an-ideal-world/">
+            ruidosas
+          </Link>
+          . Estar perto do topo de uma tabela de classificação exige habilidade,
+          mas terminar em primeiro e não em segundo lugar é muitas vezes questão
+          de sorte. Por isso, as tabelas de classificação dos torneios mostram
+          um intervalo de confiança de 95% para cada Rank e, na visualização
+          avançada, para cada pontuação total. Para calculá-lo, reamostramos as
+          perguntas do torneio com reposição milhares de vezes, recalculamos a
+          pontuação e a classificação de todos em cada reamostragem e tomamos os
+          percentis 2,5 e 97,5.
         </p>
         {/* <hr> */}
         <h2 className="scroll-mt-nav" id="legacy-tournament-scores">
