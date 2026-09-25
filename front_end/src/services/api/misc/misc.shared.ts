@@ -38,7 +38,9 @@ export type BulletinItem = {
 
 class MiscApi extends ApiService {
   async getSitemap(fetchOptions?: FetchOptions): Promise<SitemapPayload> {
-    return await this.get<SitemapPayload>("/sitemap/", fetchOptions);
+    return await this.get<SitemapPayload>("/sitemap/", fetchOptions, {
+      forceLocale: "original",
+    });
   }
 
   async getBulletins(): Promise<BulletinItem[]> {
