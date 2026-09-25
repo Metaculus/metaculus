@@ -1,5 +1,6 @@
+from django.conf import settings
 from django.template.defaultfilters import slugify
-from django.utils import timezone
+from django.utils import timezone, translation
 from rest_framework.exceptions import PermissionDenied
 
 from posts.models import Post
@@ -34,4 +35,6 @@ def build_post_slug(short_title: str | None, title: str | None) -> str:
 
 
 def get_post_slug(post: Post) -> str:
-    return build_post_slug(post.short_title, post.title)
+    # Locale-independent so a post has one URL (canonical + sitemap); keeps fallbacks.
+    with translation.override(settings.ORIGINAL_LANGUAGE_CODE):
+        return build_post_slug(post.short_title, post.title)
