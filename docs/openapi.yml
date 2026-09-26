@@ -1280,7 +1280,7 @@ paths:
           schema:
             type: integer
             example: 123
-          description: Filters posts where the specified user has submitted a forecast on a question within the post.
+          description: Filters posts where the specified user has submitted a forecast on a question within the post. Must be your own user id, or the acting user's id when using `is_staff_override`.
         - in: query
           name: with_cp
           schema:
@@ -1306,7 +1306,25 @@ paths:
           schema:
             type: integer
             example: 123
-          description: Filters posts where the specified user has not submitted a forecast on a question within the post.
+          description: Filters posts where the specified user has not submitted a forecast on a question within the post. Must be your own user id, or the acting user's id when using `is_staff_override`.
+        - in: query
+          name: is_staff_override
+          schema:
+            type: boolean
+            default: false
+          description: "Staff only. Evaluate the whole request as the account given by `user_id` or `username`: visibility, `my_forecasts` and the `forecaster_id` / `not_forecaster_id` filters all describe that account. Superusers may act as any account; metac bot service accounts only as active metac bots. Requires exactly one of `user_id` or `username`."
+        - in: query
+          name: user_id
+          schema:
+            type: integer
+            example: 123
+          description: Id of the account to act as. Only valid with `is_staff_override=true`.
+        - in: query
+          name: username
+          schema:
+            type: string
+            example: metac-gpt-4o
+          description: Username of the account to act as. Only valid with `is_staff_override=true`.
         - in: query
           name: open_time__gt
           schema:
@@ -2035,6 +2053,24 @@ paths:
           schema:
             type: integer
           description: The ID of the post to retrieve
+        - in: query
+          name: is_staff_override
+          schema:
+            type: boolean
+            default: false
+          description: "Staff only. Evaluate the request as the account given by `user_id` or `username`, including visibility and `my_forecasts`. Superusers may act as any account; metac bot service accounts only as active metac bots. Requires exactly one of `user_id` or `username`."
+        - in: query
+          name: user_id
+          schema:
+            type: integer
+            example: 123
+          description: Id of the account to act as. Only valid with `is_staff_override=true`.
+        - in: query
+          name: username
+          schema:
+            type: string
+            example: metac-gpt-4o
+          description: Username of the account to act as. Only valid with `is_staff_override=true`.
       responses:
         '200':
           description: Post details
