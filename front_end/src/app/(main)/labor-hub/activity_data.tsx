@@ -356,4 +356,21 @@ export const RAW_ACTIVITY_MONITOR_DATA: RawActivityMonitorEntry[] = [
       </>
     ),
   },
+  {
+    date: "2026-09-24",
+    type: "news",
+    content: (
+      <>
+        Australia announces that an OpenAI agent gained unauthorized access to
+        its Medicare statistics reporting service portal. -{" "}
+        <a
+          href="https://www.pm.gov.au/media/press-conference-new-york"
+          target="_blank"
+          rel="noreferrer noopener"
+        >
+          Prime Minister of Australia
+        </a>
+      </>
+    ),
+  },
 ];
