@@ -1,3 +1,4 @@
+import { isNil } from "lodash";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { FC, PropsWithChildren } from "react";
@@ -15,14 +16,35 @@ type Props = {
   maxCoverage?: number;
   userId?: number;
   withPrizePool?: boolean;
+  withRankCI?: boolean;
+  withScoreCI?: boolean;
+  scoreFractionDigits?: number;
   isAdvanced?: boolean;
 };
+
+function formatInterval(
+  lower: number | null | undefined,
+  upper: number | null | undefined,
+  fractionDigits: number
+): string {
+  if (isNil(lower) || isNil(upper)) {
+    return "-";
+  }
+  const lowerLabel = lower.toFixed(fractionDigits);
+  const upperLabel = upper.toFixed(fractionDigits);
+  return lowerLabel === upperLabel
+    ? lowerLabel
+    : `${lowerLabel} \u2013 ${upperLabel}`;
+}
 
 const TableRow: FC<Props> = ({
   rowEntry,
   maxCoverage,
   userId,
   withPrizePool = true,
+  withRankCI = false,
+  withScoreCI = false,
+  scoreFractionDigits = 3,
   isAdvanced = false,
 }) => {
   const {
@@ -30,7 +52,11 @@ const TableRow: FC<Props> = ({
     aggregation_method,
     medal,
     rank,
+    rank_ci_lower,
+    rank_ci_upper,
     score,
+    ci_lower,
+    ci_upper,
     exclusion_status,
     coverage,
     contribution_count,
@@ -39,9 +65,9 @@ const TableRow: FC<Props> = ({
     prize,
   } = rowEntry;
   const t = useTranslations();
-  const highlight =
-    user?.id === userId ||
+  const isExcludedFromRanking =
     exclusion_status > ExclusionStatuses.EXCLUDE_PRIZE_ONLY;
+  const highlight = user?.id === userId || isExcludedFromRanking;
   const coveragePercent = coverage
     ? maxCoverage
       ? ((coverage / maxCoverage) * 100).toFixed(1) + "%"
@@ -83,7 +109,7 @@ const TableRow: FC<Props> = ({
               ))}
 
             <span className="flex-1 text-center">
-              {exclusion_status > ExclusionStatuses.EXCLUDE_PRIZE_ONLY ? (
+              {isExcludedFromRanking ? (
                 <>
                   <ExcludedEntryTooltip />
                 </>
@@ -95,7 +121,7 @@ const TableRow: FC<Props> = ({
         )}
       </Td>
       <Td
-        className="sticky left-0 w-0 max-w-[16rem] text-left"
+        className="sticky left-0 w-0 max-w-[9rem] text-left sm:max-w-[16rem]"
         highlight={highlight}
       >
         <Link
@@ -106,9 +132,21 @@ const TableRow: FC<Props> = ({
           {forecasterLabel}
         </Link>
       </Td>
+      {withRankCI && (
+        <Td className="text-right tabular-nums" highlight={highlight}>
+          {isExcludedFromRanking
+            ? "-"
+            : formatInterval(rank_ci_lower, rank_ci_upper, 0)}
+        </Td>
+      )}
       <Td className="text-right tabular-nums" highlight={highlight}>
-        {score.toFixed(3)}
+        {score.toFixed(scoreFractionDigits)}
       </Td>
+      {isAdvanced && withScoreCI && (
+        <Td className="text-right tabular-nums" highlight={highlight}>
+          {formatInterval(ci_lower, ci_upper, 1)}
+        </Td>
+      )}
       {isAdvanced && (
         <>
           <Td className="text-right tabular-nums" highlight={highlight}>
@@ -124,7 +162,7 @@ const TableRow: FC<Props> = ({
           {isAdvanced && (
             <>
               <Td className="text-right tabular-nums" highlight={highlight}>
-                {take?.toFixed(3)}
+                {take?.toFixed(scoreFractionDigits)}
               </Td>
               <Td className="text-right tabular-nums" highlight={highlight}>
                 {percent_prize ? `${(percent_prize * 100).toFixed(1)}%` : "-"}

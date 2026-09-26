@@ -1119,6 +1119,22 @@ export default async function ScoresFAQ() {
         redistributed to forecasters with higher scores. Tournaments that end
         before 1st of June, 2025 still do not give prizes below 10$.
       </p>
+      <p>
+        Forecasting scores are{" "}
+        <Link href="/notebooks/19335/comparing-two-forecasters-in-an-ideal-world/">
+          noisy
+        </Link>
+        . Being near the top of a leaderboard requires skill, but finishing
+        first rather than second is often largely luck. So tournament
+        leaderboards show a 95% confidence interval for each Rank and, in the
+        advanced view, for each total Score. To compute it, we use{" "}
+        <a href="https://en.wikipedia.org/wiki/Bootstrapping_(statistics)">
+          bootstrapping
+        </a>
+        : we resample the tournament&apos;s questions with replacement thousands
+        of times, recompute everyone&apos;s score and rank on each resample, and
+        take the 2.5th to 97.5th percentiles.
+      </p>
 
       <hr />
       <h2 className="scroll-mt-nav" id="legacy-tournament-scores">

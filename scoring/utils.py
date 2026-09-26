@@ -240,8 +240,10 @@ def generate_entries_from_scores(
 def generate_scoring_leaderboard_entries(
     questions: list[Question],
     leaderboard: Leaderboard,
+    scores: list[Score | ArchivedScore] | None = None,
 ) -> list[LeaderboardEntry]:
-    scores = retrieve_question_scores(questions, leaderboard)
+    if scores is None:
+        scores = retrieve_question_scores(questions, leaderboard)
     return generate_entries_from_scores(scores, questions, leaderboard)
 
 
@@ -414,6 +416,7 @@ def generate_project_leaderboard(
     project: Project,
     leaderboard: Leaderboard | None = None,
     questions: QuerySet[Question] | list[Question] | None = None,
+    scores: list[Score | ArchivedScore] | None = None,
 ) -> list[LeaderboardEntry]:
     """Calculates (does not save) LeaderboardEntries for a project."""
 
@@ -429,7 +432,7 @@ def generate_project_leaderboard(
     if leaderboard.score_type == LeaderboardScoreTypes.QUESTION_WRITING:
         return generate_question_writing_leaderboard_entries(questions, leaderboard)
     # We have a scoring based leaderboard
-    return generate_scoring_leaderboard_entries(questions, leaderboard)
+    return generate_scoring_leaderboard_entries(questions, leaderboard, scores=scores)
 
 
 def assign_exclusions_(
@@ -522,6 +525,110 @@ def assign_ranks_(
         prev_entry = entry
         if entry.exclusion_status <= ExclusionStatuses.EXCLUDE_PRIZE_ONLY:
             rank += 1
+
+
+LEADERBOARD_BOOTSTRAP_SAMPLES = 5000
+
+
+def assign_confidence_intervals_(
+    entries: list[LeaderboardEntry],
+    scores: list[Score | ArchivedScore],
+    leaderboard: Leaderboard,
+    bootstrap_count: int = LEADERBOARD_BOOTSTRAP_SAMPLES,
+    seed: int | None = None,
+):
+    """Sets 95% bootstrap confidence intervals for each entry's score and rank.
+
+    Questions are resampled with replacement, entry scores are recomputed for
+    every resample the same way `generate_entries_from_scores` does, and ranks
+    are recomputed the same way `assign_ranks_` does (excluded entries do not
+    take ranks), so `assign_exclusions_` must have been run first.
+
+    The generator is seeded with the leaderboard id by default so that
+    recomputing a leaderboard whose scores did not change yields identical
+    intervals instead of Monte Carlo jitter.
+    """
+    if not entries or not scores or bootstrap_count <= 0:
+        return
+    if leaderboard.score_type not in (
+        LeaderboardScoreTypes.PEER_TOURNAMENT,
+        LeaderboardScoreTypes.DEFAULT,
+        LeaderboardScoreTypes.SPOT_PEER_TOURNAMENT,
+        LeaderboardScoreTypes.SPOT_BASELINE_TOURNAMENT,
+        LeaderboardScoreTypes.BASELINE_GLOBAL,
+        LeaderboardScoreTypes.PEER_GLOBAL,
+        LeaderboardScoreTypes.PEER_GLOBAL_LEGACY,
+        LeaderboardScoreTypes.RELATIVE_LEGACY_TOURNAMENT,
+    ):
+        return
+
+    entry_index = {
+        (entry.user_id, entry.aggregation_method): i for i, entry in enumerate(entries)
+    }
+    question_ids = sorted({score.question_id for score in scores})
+    question_index = {question_id: j for j, question_id in enumerate(question_ids)}
+    entry_count, question_count = len(entries), len(question_ids)
+
+    score_matrix = np.zeros((entry_count, question_count))
+    coverage_matrix = np.zeros((entry_count, question_count))
+    count_matrix = np.zeros((entry_count, question_count))
+    question_weights = np.zeros(question_count)
+    for score in scores:
+        i = entry_index.get((score.user_id, score.aggregation_method))
+        if i is None:
+            continue
+        j = question_index[score.question_id]
+        weight = score.question.question_weight
+        question_weights[j] = weight
+        score_matrix[i, j] += score.score * weight
+        coverage_matrix[i, j] += score.coverage * weight
+        count_matrix[i, j] += 1
+
+    # Resampling questions with replacement is equivalent to drawing
+    # multinomial counts per question, which lets every bootstrap sample be
+    # computed with a single matrix product.
+    rng = np.random.default_rng(leaderboard.id if seed is None else seed)
+    resample_counts = rng.multinomial(
+        question_count,
+        np.full(question_count, 1 / question_count),
+        size=bootstrap_count,
+    ).T
+    boot_scores = score_matrix @ resample_counts
+    if leaderboard.score_type == LeaderboardScoreTypes.PEER_GLOBAL:
+        boot_scores /= np.maximum(30, coverage_matrix @ resample_counts)
+    elif leaderboard.score_type == LeaderboardScoreTypes.PEER_GLOBAL_LEGACY:
+        boot_scores /= np.maximum(40, count_matrix @ resample_counts)
+
+    if leaderboard.score_type == LeaderboardScoreTypes.RELATIVE_LEGACY_TOURNAMENT:
+        boot_max_coverage = np.maximum(question_weights @ resample_counts, 1e-9)
+        rank_keys = (coverage_matrix @ resample_counts) / boot_max_coverage
+        rank_keys *= np.exp(boot_scores)
+    else:
+        rank_keys = boot_scores
+
+    takes_rank = np.array(
+        [
+            entry.exclusion_status <= ExclusionStatuses.EXCLUDE_PRIZE_ONLY
+            for entry in entries
+        ]
+    )
+    boot_ranks = np.empty((entry_count, bootstrap_count), dtype=int)
+    for b in range(bootstrap_count):
+        keys = rank_keys[:, b]
+        ranked_keys = np.sort(keys[takes_rank])
+        boot_ranks[:, b] = 1 + (
+            ranked_keys.size - np.searchsorted(ranked_keys, keys, side="right")
+        )
+
+    score_ci_lower = np.percentile(boot_scores, 2.5, axis=1)
+    score_ci_upper = np.percentile(boot_scores, 97.5, axis=1)
+    rank_ci_lower = np.percentile(boot_ranks, 2.5, axis=1, method="lower")
+    rank_ci_upper = np.percentile(boot_ranks, 97.5, axis=1, method="higher")
+    for i, entry in enumerate(entries):
+        entry.ci_lower = float(score_ci_lower[i])
+        entry.ci_upper = float(score_ci_upper[i])
+        entry.rank_ci_lower = int(rank_ci_lower[i])
+        entry.rank_ci_upper = int(rank_ci_upper[i])
 
 
 def assign_prize_percentages_(
@@ -761,9 +868,13 @@ def process_entries_for_leaderboard_(
     project: Project,
     leaderboard: Leaderboard,
     force_finalize: bool = False,
+    scores: list[Score | ArchivedScore] | None = None,
 ):
     assign_exclusions_(entries, leaderboard)
     assign_ranks_(entries, leaderboard)
+    # Global leaderboards are too large to bootstrap and don't display CIs
+    if scores and project and project.type != Project.ProjectTypes.SITE_MAIN:
+        assign_confidence_intervals_(entries, scores, leaderboard)
 
     # assign prize percentages
     prize_pool = (
@@ -833,12 +944,28 @@ def update_project_leaderboard(
         logger.warning("%s is already finalized, not updating", str(leaderboard))
         return list(leaderboard.entries.all().order_by("rank"))
 
+    questions = None
+    scores = None
+    if leaderboard.score_type not in (
+        LeaderboardScoreTypes.COMMENT_INSIGHT,
+        LeaderboardScoreTypes.QUESTION_WRITING,
+    ):
+        leaderboard.project = project
+        questions = list(leaderboard.get_questions())
+        scores = retrieve_question_scores(questions, leaderboard)
+
     # new entries
-    new_entries = generate_project_leaderboard(project, leaderboard)
+    new_entries = generate_project_leaderboard(
+        project, leaderboard, questions=questions, scores=scores
+    )
 
     # process entries
     process_entries_for_leaderboard_(
-        new_entries, project, leaderboard, force_finalize=force_finalize
+        new_entries,
+        project,
+        leaderboard,
+        force_finalize=force_finalize,
+        scores=scores,
     )
     return new_entries
 

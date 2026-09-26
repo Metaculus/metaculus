@@ -13,6 +13,7 @@ import {
 
 import TableHeader from "./table_header";
 import TableRow from "./table_row";
+import ConfidenceIntervalTooltip from "../confidence_interval_tooltip";
 import UnfinalizedPrizeTooltip from "../prize_unfinalized_tooltip";
 
 type Props = {
@@ -77,10 +78,34 @@ const ProjectLeaderboardTable: FC<Props> = ({
     leaderboardDetails.score_type === "relative_legacy_tournament"
       ? undefined
       : leaderboardDetails.max_coverage;
+  // Peer scores are noisy enough that extra decimals are just visual noise
+  const scoreFractionDigits = [
+    "peer_tournament",
+    "spot_peer_tournament",
+  ].includes(leaderboardDetails.score_type)
+    ? 1
+    : 3;
+
+  const withRankCI = useMemo(
+    () =>
+      leaderboardDetails.entries.some(
+        (entry) => !isNil(entry.rank_ci_lower) && !isNil(entry.rank_ci_upper)
+      ),
+    [leaderboardDetails.entries]
+  );
+  const withScoreCI = useMemo(
+    () =>
+      leaderboardDetails.entries.some(
+        (entry) => !isNil(entry.ci_lower) && !isNil(entry.ci_upper)
+      ),
+    [leaderboardDetails.entries]
+  );
 
   const getColumnCount = () => {
     let count = 3;
+    if (withRankCI) count += 1;
     if (isAdvanced) count += 2;
+    if (isAdvanced && withScoreCI) count += 1;
     if (!!leaderboardDetails.prize_pool) {
       count += isAdvanced ? 3 : 1;
     }
@@ -95,12 +120,29 @@ const ProjectLeaderboardTable: FC<Props> = ({
             <TableHeader className="sticky left-0 text-left">
               {getColumnName("rank", columnRenames)}
             </TableHeader>
-            <TableHeader className="sticky left-0 w-0 max-w-[16rem] text-left">
+            <TableHeader className="sticky left-0 w-0 max-w-[9rem] text-left sm:max-w-[16rem]">
               {getColumnName("forecaster", columnRenames)}
             </TableHeader>
+            {withRankCI && (
+              <TableHeader className="text-right">
+                <ConfidenceIntervalTooltip
+                  label={getColumnName("rankConfidenceInterval", columnRenames)}
+                />
+              </TableHeader>
+            )}
             <TableHeader className="text-right">
               {getColumnName("totalScore", columnRenames)}
             </TableHeader>
+            {isAdvanced && withScoreCI && (
+              <TableHeader className="text-right">
+                <ConfidenceIntervalTooltip
+                  label={getColumnName(
+                    "scoreConfidenceInterval",
+                    columnRenames
+                  )}
+                />
+              </TableHeader>
+            )}
             {isAdvanced && (
               <>
                 <TableHeader className=" text-right">
@@ -145,6 +187,9 @@ const ProjectLeaderboardTable: FC<Props> = ({
               userId={userId}
               maxCoverage={maxCoverage}
               withPrizePool={!!leaderboardDetails.prize_pool}
+              withRankCI={withRankCI}
+              withScoreCI={withScoreCI}
+              scoreFractionDigits={scoreFractionDigits}
               isAdvanced={isAdvanced}
             />
           )}
@@ -156,6 +201,9 @@ const ProjectLeaderboardTable: FC<Props> = ({
                   userId={userId}
                   maxCoverage={maxCoverage}
                   withPrizePool={!!leaderboardDetails.prize_pool}
+                  withRankCI={withRankCI}
+                  withScoreCI={withScoreCI}
+                  scoreFractionDigits={scoreFractionDigits}
                   isAdvanced={isAdvanced}
                 />
               ))

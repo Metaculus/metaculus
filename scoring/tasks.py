@@ -177,11 +177,10 @@ def update_custom_leaderboard(
     else:
         leaderboard.score_type = score_type
     new_entries = generate_entries_from_scores(scores, questions, leaderboard)
-    leaderboard.score_type = LeaderboardScoreTypes.MANUAL
-
     process_entries_for_leaderboard_(
-        new_entries, project, leaderboard, force_finalize=False
+        new_entries, project, leaderboard, force_finalize=False, scores=scores
     )
+    leaderboard.score_type = LeaderboardScoreTypes.MANUAL
 
     logger.info(f"Updated leaderboard: {leaderboard.name} with id {leaderboard.id}")
     return
