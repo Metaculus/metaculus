@@ -1,13 +1,21 @@
 from asgiref.sync import async_to_sync
+from django.conf import settings
 from django.db.models import Q
+from django.utils.translation import override
 
 from posts.models import Post
 from posts.services.search import (
     SearchUnavailable,
     gather_search_results,
+    generate_post_content_for_embedding_vectorization,
     perform_post_search,
 )
+from questions.models import Question
 from tests.unit.test_posts.factories import factory_post
+from tests.unit.test_questions.factories import (
+    create_question,
+    factory_group_of_questions,
+)
 
 
 def test_gather_search_results_returns_google_results_when_embedding_fails(
@@ -119,3 +127,51 @@ def test_perform_post_search_returns_empty_when_google_succeeds_with_no_results(
     assert not qs.exists()
     # qs must expose `rank` so downstream `.filter(Q(rank__gte=...))` works
     assert not qs.filter(Q(rank__gte=0.3)).exists()
+
+
+# update_post builds this content in the original language
+@override(settings.ORIGINAL_LANGUAGE_CODE)
+def test_generate_post_content_for_embedding_vectorization__group(user1):
+    post = factory_post(
+        author=user1,
+        title_original="Group",
+        group_of_questions=factory_group_of_questions(
+            description_original="Description",
+            resolution_criteria_original="Criteria",
+            fine_print_original="Fine print",
+        ),
+    )
+    for label in ("A", "B"):
+        create_question(
+            title_original=f"Group ({label})",
+            question_type=Question.QuestionType.BINARY,
+            group=post.group_of_questions,
+            description_original="",
+            resolution_criteria_original="",
+            fine_print_original="",
+        )
+
+    chunks = generate_post_content_for_embedding_vectorization(post).split("\n\n")
+
+    assert chunks[:2] == ["Group", "Description\nCriteria"]
+    assert sorted(chunks[2:]) == ["Group (A)", "Group (B)"]
+
+
+@override(settings.ORIGINAL_LANGUAGE_CODE)
+def test_generate_post_content_for_embedding_vectorization__question(user1):
+    post = factory_post(
+        author=user1,
+        title_original="Post",
+        question=create_question(
+            title_original="Question",
+            question_type=Question.QuestionType.BINARY,
+            description_original="Description",
+            resolution_criteria_original="Criteria",
+            fine_print_original="Fine print",
+        ),
+    )
+
+    assert (
+        generate_post_content_for_embedding_vectorization(post)
+        == "Post\n\nQuestion\nDescription\nCriteria"
+    )
