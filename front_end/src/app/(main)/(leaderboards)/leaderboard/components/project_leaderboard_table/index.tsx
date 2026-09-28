@@ -115,7 +115,7 @@ const ProjectLeaderboardTable: FC<Props> = ({
       <table className="mb-0 w-full border-separate whitespace-nowrap">
         <thead>
           <tr>
-            <TableHeader className="sticky left-0 text-left">
+            <TableHeader className="sticky left-0 w-0 text-left">
               {getColumnName("rank", columnRenames)}
               {withRankCI && <ConfidenceIntervalTooltip />}
             </TableHeader>

@@ -89,7 +89,7 @@ const TableRow: FC<Props> = ({
 
   return (
     <tr>
-      <Td className="sticky left-0 text-left" highlight={highlight}>
+      <Td className="sticky left-0 w-0 text-left" highlight={highlight}>
         {!user &&
         (aggregation_method === "recency_weighted" ||
           aggregation_method === "unweighted") ? (
