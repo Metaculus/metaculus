@@ -4,21 +4,18 @@ import { FC } from "react";
 
 import Tooltip from "@/components/ui/tooltip";
 
-type Props = {
-  label: string;
-};
-
-const ConfidenceIntervalTooltip: FC<Props> = ({ label }) => {
+// Renders the "(95% CI ⓘ)" suffix appended to a column header
+const ConfidenceIntervalTooltip: FC = () => {
   const t = useTranslations();
   return (
-    <div className="inline-flex items-center justify-end">
-      <span className="mr-1">{label}</span>
-      <div className="relative w-4 text-blue-700 dark:text-blue-700-dark">
+    <span className="ml-1 inline-flex items-center text-xs">
+      (<span className="mr-1">{t("confidenceInterval95")}</span>
+      <span className="relative w-3 text-blue-700 dark:text-blue-700-dark">
         <Tooltip
           showDelayMs={200}
           placement={"right"}
           tooltipContent={
-            <div>
+            <div className="text-sm font-normal">
               <p className="m-0">
                 {t.rich("confidenceIntervalTooltip", {
                   link: (chunks) => (
@@ -41,14 +38,15 @@ const ConfidenceIntervalTooltip: FC<Props> = ({ label }) => {
               </Link>
             </div>
           }
-          className="absolute left-0 top-1/2 inline-flex -translate-y-1/2 items-center justify-center font-sans text-base leading-none"
+          className="absolute left-0 top-1/2 inline-flex -translate-y-1/2 items-center justify-center font-sans text-xs leading-none"
           variant="light"
           tooltipClassName="font-sans text-center"
         >
           <span className="leading-none">ⓘ</span>
         </Tooltip>
-      </div>
-    </div>
+      </span>
+      )
+    </span>
   );
 };
 

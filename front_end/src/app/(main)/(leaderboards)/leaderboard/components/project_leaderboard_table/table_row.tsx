@@ -22,20 +22,23 @@ type Props = {
   isAdvanced?: boolean;
 };
 
-function formatInterval(
-  lower: number | null | undefined,
-  upper: number | null | undefined,
-  fractionDigits: number
-): string {
+// Renders the " (lower–upper)" suffix shown after a rank or score
+const IntervalSuffix: FC<{
+  lower: number | null | undefined;
+  upper: number | null | undefined;
+  fractionDigits: number;
+}> = ({ lower, upper, fractionDigits }) => {
   if (isNil(lower) || isNil(upper)) {
-    return "-";
+    return null;
   }
-  const lowerLabel = lower.toFixed(fractionDigits);
-  const upperLabel = upper.toFixed(fractionDigits);
-  return lowerLabel === upperLabel
-    ? lowerLabel
-    : `${lowerLabel} \u2013 ${upperLabel}`;
-}
+  return (
+    <span className="ml-1 text-xs">
+      ({lower.toFixed(fractionDigits)}
+      {"\u2013"}
+      {upper.toFixed(fractionDigits)})
+    </span>
+  );
+};
 
 const TableRow: FC<Props> = ({
   rowEntry,
@@ -108,13 +111,22 @@ const TableRow: FC<Props> = ({
                 <MedalIcon type={medal} className="mr-2 inline-block size-4" />
               ))}
 
-            <span className="flex-1 text-center">
+            <span className="flex-1 text-center tabular-nums">
               {isExcludedFromRanking ? (
                 <>
                   <ExcludedEntryTooltip />
                 </>
               ) : (
-                rank
+                <>
+                  {rank}
+                  {withRankCI && (
+                    <IntervalSuffix
+                      lower={rank_ci_lower}
+                      upper={rank_ci_upper}
+                      fractionDigits={0}
+                    />
+                  )}
+                </>
               )}
             </span>
           </>
@@ -132,21 +144,16 @@ const TableRow: FC<Props> = ({
           {forecasterLabel}
         </Link>
       </Td>
-      {withRankCI && (
-        <Td className="text-right tabular-nums" highlight={highlight}>
-          {isExcludedFromRanking
-            ? "-"
-            : formatInterval(rank_ci_lower, rank_ci_upper, 0)}
-        </Td>
-      )}
       <Td className="text-right tabular-nums" highlight={highlight}>
         {score.toFixed(scoreFractionDigits)}
+        {isAdvanced && withScoreCI && (
+          <IntervalSuffix
+            lower={ci_lower}
+            upper={ci_upper}
+            fractionDigits={1}
+          />
+        )}
       </Td>
-      {isAdvanced && withScoreCI && (
-        <Td className="text-right tabular-nums" highlight={highlight}>
-          {formatInterval(ci_lower, ci_upper, 1)}
-        </Td>
-      )}
       {isAdvanced && (
         <>
           <Td className="text-right tabular-nums" highlight={highlight}>

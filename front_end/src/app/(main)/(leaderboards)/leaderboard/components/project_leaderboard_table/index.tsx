@@ -103,9 +103,7 @@ const ProjectLeaderboardTable: FC<Props> = ({
 
   const getColumnCount = () => {
     let count = 3;
-    if (withRankCI) count += 1;
     if (isAdvanced) count += 2;
-    if (isAdvanced && withScoreCI) count += 1;
     if (!!leaderboardDetails.prize_pool) {
       count += isAdvanced ? 3 : 1;
     }
@@ -119,30 +117,15 @@ const ProjectLeaderboardTable: FC<Props> = ({
           <tr>
             <TableHeader className="sticky left-0 text-left">
               {getColumnName("rank", columnRenames)}
+              {withRankCI && <ConfidenceIntervalTooltip />}
             </TableHeader>
             <TableHeader className="sticky left-0 w-0 max-w-[9rem] text-left sm:max-w-[16rem]">
               {getColumnName("forecaster", columnRenames)}
             </TableHeader>
-            {withRankCI && (
-              <TableHeader className="text-right">
-                <ConfidenceIntervalTooltip
-                  label={getColumnName("rankConfidenceInterval", columnRenames)}
-                />
-              </TableHeader>
-            )}
             <TableHeader className="text-right">
               {getColumnName("totalScore", columnRenames)}
+              {isAdvanced && withScoreCI && <ConfidenceIntervalTooltip />}
             </TableHeader>
-            {isAdvanced && withScoreCI && (
-              <TableHeader className="text-right">
-                <ConfidenceIntervalTooltip
-                  label={getColumnName(
-                    "scoreConfidenceInterval",
-                    columnRenames
-                  )}
-                />
-              </TableHeader>
-            )}
             {isAdvanced && (
               <>
                 <TableHeader className=" text-right">
