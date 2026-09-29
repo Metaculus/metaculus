@@ -35,6 +35,7 @@ export type InitiativeQuote = {
 
 export type InitiativeFeature = {
   order: number;
+  artworkSide: "start" | "end";
   headingKey: TranslationKey;
   descriptionKey: TranslationKey;
   ctaKey?: TranslationKey;

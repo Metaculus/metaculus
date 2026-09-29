@@ -22,7 +22,11 @@ import {
 import cn from "@/utils/core/cn";
 
 import InitiativeMark from "./initiative_mark";
-import { getFeaturedAnchorId, scrollToAnchor } from "../helpers/anchors";
+import {
+  getFeaturedAnchorId,
+  scrollToAnchor,
+  shouldHandleAnchorClick,
+} from "../helpers/anchors";
 import {
   applyDetailEmphasis,
   applyEmphasis,
@@ -69,7 +73,13 @@ const ActiveInitiativeLink: FC<ActiveInitiativeLinkProps> = ({
         anchorId ? undefined : t("initiativesCarouselVisitInitiative", { name })
       }
       onClick={(event) => {
-        if (anchorId && scrollToAnchor(anchorId)) event.preventDefault();
+        if (
+          anchorId &&
+          shouldHandleAnchorClick(event) &&
+          scrollToAnchor(anchorId)
+        ) {
+          event.preventDefault();
+        }
       }}
       aria-hidden={!isActive}
       tabIndex={isActive ? undefined : -1}

@@ -1,4 +1,6 @@
-import { Initiative } from "../types";
+import type { MouseEvent } from "react";
+
+import type { Initiative } from "../types";
 
 export function getFeaturedAnchorId(initiative: Initiative): string | null {
   return initiative.placements.includes("featured") && initiative.feature
@@ -17,5 +19,24 @@ export function scrollToAnchor(id: string): boolean {
     block: "start",
     behavior: prefersReducedMotion ? "auto" : "smooth",
   });
+
+  const fragment = `#${id}`;
+  if (window.location.hash !== fragment) {
+    window.history.pushState(null, "", fragment);
+  }
+
   return true;
+}
+
+export function shouldHandleAnchorClick(
+  event: MouseEvent<HTMLElement>
+): boolean {
+  return (
+    !event.defaultPrevented &&
+    event.button === 0 &&
+    !event.metaKey &&
+    !event.ctrlKey &&
+    !event.shiftKey &&
+    !event.altKey
+  );
 }

@@ -1,16 +1,14 @@
-import rawInitiativesPageData from "./initiatives.json";
+import initiativesPageData from "./initiatives_data";
 import {
   FeaturedInitiative,
   Initiative,
   InitiativePlacement,
   InitiativesInventoryFilter,
-  InitiativesPageData,
 } from "./types";
 
 export const ALL_INITIATIVES_FILTER_ID = "all";
 
-export const initiativesPageData =
-  rawInitiativesPageData as InitiativesPageData;
+export { initiativesPageData };
 
 const categoryColors = new Map(
   (initiativesPageData.categories ?? []).map(({ id, color }) => [id, color])

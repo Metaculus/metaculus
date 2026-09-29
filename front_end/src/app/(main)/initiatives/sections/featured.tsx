@@ -28,7 +28,7 @@ const FeaturedSection = () => {
             <FeaturedInitiativeRow
               key={initiative.id}
               initiative={initiative}
-              artworkSide="start"
+              artworkSide={initiative.feature.artworkSide}
             />
           ))}
 
@@ -40,7 +40,7 @@ const FeaturedSection = () => {
             <FeaturedInitiativeRow
               key={initiative.id}
               initiative={initiative}
-              artworkSide="end"
+              artworkSide={initiative.feature.artworkSide}
             />
           ))}
         </div>

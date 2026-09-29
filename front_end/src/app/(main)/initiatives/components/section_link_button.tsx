@@ -6,7 +6,7 @@ import { FC, MouseEvent, ReactNode } from "react";
 
 import Button, { ButtonVariant } from "@/components/ui/button";
 
-import { scrollToAnchor } from "../helpers/anchors";
+import { scrollToAnchor, shouldHandleAnchorClick } from "../helpers/anchors";
 
 type Props = {
   href: string;
@@ -22,7 +22,13 @@ const SectionLinkButton: FC<Props> = ({
   children,
 }) => {
   const handleClick = (event: MouseEvent<HTMLElement>) => {
-    if (scrollToAnchor(href.slice(1))) event.preventDefault();
+    if (
+      href.startsWith("#") &&
+      shouldHandleAnchorClick(event) &&
+      scrollToAnchor(href.slice(1))
+    ) {
+      event.preventDefault();
+    }
   };
 
   return (
