@@ -194,16 +194,30 @@ const EXTRA_SOURCE_PAGES = {
   cdcBirdFlu: "https://www.cdc.gov/bird-flu/situation-summary/index.html",
 };
 
+const HTML_ENTITIES: Record<string, string> = {
+  nbsp: " ",
+  amp: "&",
+  "#39": "'",
+  rsquo: "'",
+  lsquo: "'",
+  quot: '"',
+  ldquo: '"',
+  rdquo: '"',
+};
+
 function htmlToText(html: string) {
-  return html
-    .replace(/<(script|style|noscript|svg)[\s\S]*?<\/\1>/gi, " ")
-    .replace(/<[^>]+>/g, " ")
-    .replace(/&nbsp;/g, " ")
-    .replace(/&amp;/g, "&")
-    .replace(/&#39;|&rsquo;|&lsquo;/g, "'")
-    .replace(/&quot;|&ldquo;|&rdquo;/g, '"')
-    .replace(/\s+/g, " ")
-    .trim();
+  return (
+    html
+      .replace(/<(script|style|noscript|svg)\b[\s\S]*?<\/\1[^>]*>/gi, " ")
+      .replace(/<[^>]+>/g, " ")
+      // One pass, so "&amp;quot;" becomes "&quot;" rather than being unescaped twice.
+      .replace(
+        /&(nbsp|amp|#39|rsquo|lsquo|quot|ldquo|rdquo);/g,
+        (entity, name: string) => HTML_ENTITIES[name] ?? entity
+      )
+      .replace(/\s+/g, " ")
+      .trim()
+  );
 }
 
 // Plain text of the source pages the edition cites, so drafting needs no open web access.
