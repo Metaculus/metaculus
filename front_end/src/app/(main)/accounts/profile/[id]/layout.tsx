@@ -30,16 +30,25 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
   if (!isNumericId(params.id)) {
     return {};
   }
-  const profile = await ServerProfileApi.getProfileById(+params.id);
+  // Same request as the layout below, so Next.js dedupes it within the render.
+  // Stats are also cached server-side for 1h.
+  const profile = await ServerProfileApi.getProfileById(+params.id, {
+    includeStats: true,
+  });
 
   if (!profile) {
     return {};
   }
   const parsedBio = String(remark().use(strip).processSync(profile.bio));
 
+  // Profiles of accounts with no forecasts are thin pages (and often spam),
+  // so keep them out of search engine indexes.
+  const hasForecasts = (profile.forecasts_count ?? 0) > 0;
+
   return {
     title: `${profile.username}'s profile | Metaculus`,
     description: !!parsedBio ? parsedBio : defaultDescription,
+    ...(hasForecasts ? {} : { robots: { index: false, follow: false } }),
   };
 }
 
