@@ -190,6 +190,16 @@
       "placements": ["inventory"]
     },
     {
+      "id": "world-map",
+      "nameKey": "initiativeWorldMapName",
+      "inventoryDescriptionKey": "initiativeWorldMapDescription",
+      "url": "https://world-map.metaculus.com/",
+      "categoryId": "policy",
+      "order": 17,
+      "inventoryOrder": 4,
+      "placements": ["inventory"]
+    },
+    {
       "id": "us-democracy-threat-index",
       "nameKey": "initiativeDemocracyThreatName",
       "inventoryDescriptionKey": "initiativeDemocracyThreatDescription",
