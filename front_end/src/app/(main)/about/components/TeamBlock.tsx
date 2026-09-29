@@ -258,20 +258,6 @@ const people: Person[] = [
     ],
   },
   {
-    userId: 5,
-    name: "Carroll “Max” Wainwright",
-    position: "Founder & AI Advisor",
-    imgSrc: "https://cdn.metaculus.com/about/carroll_wainwright.webp",
-    introduction:
-      "Max is an AI Research Scientist at OpenAI where he focuses on technical aspects of AI safety. He earned his Ph.D. in theoretical physics from the University of California Santa Cruz, where he studied phase transitions in the very early universe.",
-    socials: [
-      {
-        link: "https://www.linkedin.com/in/carroll-wainwright-7690229a/",
-        platform: "LinkedIn",
-      },
-    ],
-  },
-  {
     userId: 100038,
     name: "David Levine",
     position: "Founder",
@@ -379,7 +365,6 @@ const groups: Groups = {
   ],
   board: [
     "Anthony Aguirre",
-    "Carroll “Max” Wainwright",
     "David Levine",
     "Joshua Elliott",
     "Peter Wildeford",

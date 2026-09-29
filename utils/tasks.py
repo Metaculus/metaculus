@@ -9,6 +9,7 @@ from django.core.mail import EmailMessage
 from questions.types import AggregationMethod
 from utils.dramatiq import task_concurrent_limit
 from utils.translation import (
+    automatic_translations_enabled,
     detect_and_update_content_language,
     queryset_filter_outdated_translations,
     update_translations_for_model,
@@ -28,7 +29,7 @@ logger = logging.getLogger(__name__)
     ttl=60_000,
 )
 def update_translations_task(app_label, model_name, pk):
-    if not settings.GOOGLE_TRANSLATE_SERVICE_ACCOUNT_KEY:
+    if not automatic_translations_enabled():
         return
 
     content_type = ContentType.objects.get(app_label=app_label, model=model_name)

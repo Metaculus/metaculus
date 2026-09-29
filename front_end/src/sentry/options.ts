@@ -17,8 +17,13 @@ export function buildSentryOptions<T extends BrowserOptions | NodeOptions>(
     tracesSampler: (ctx) => {
       const name = ctx.name;
 
-      // Completely exclude app-version health checks
-      if (name.includes("/app-version")) {
+      // Completely exclude app-version health checks and favicon requests
+      if (name.includes("/app-version") || name.includes("/favicon.ico")) {
+        return 0;
+      }
+
+      // Next.js <Link> prefetches make up ~80% of server render transactions
+      if (ctx.normalizedRequest?.headers?.["next-router-prefetch"] === "1") {
         return 0;
       }
 

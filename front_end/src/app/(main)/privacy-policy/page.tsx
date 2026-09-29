@@ -20,7 +20,7 @@ export default function PrivacyPolicy() {
       <h1 className="mb-6 text-3xl font-bold">Metaculus Privacy Policy</h1>
 
       <p className={styles.paragraph}>
-        <b>Effective Date:</b> Feb 14, 2025
+        <b>Effective Date:</b> September 21, 2026
       </p>
 
       <p className={styles.paragraph}>
@@ -39,9 +39,12 @@ export default function PrivacyPolicy() {
         <b>Privacy Policy&quot;</b>) to describe our practices regarding the
         personal data we may collect or that you may provide when you visit
         Metaculus.com or any subdomains thereof, including any content,
-        functionality, and services offered on or through Metaculus.com (the
-        &quot;<b>Service</b>&quot;). Certain features discussed in this Privacy
-        Policy may not be offered at any particular time.{" "}
+        functionality, and services offered on or through Metaculus.com, and the
+        Metaculus API, MCP servers, Radiant, and any other Metaculus product or
+        feature made available through third-party platforms, applications, or
+        AI assistants, in each case wherever and however accessed (the &quot;
+        <b>Service</b>&quot;). Certain features discussed in this Privacy Policy
+        may not be offered at any particular time.{" "}
       </p>
 
       <h3 className={styles.subsectionHeader}>
@@ -50,7 +53,15 @@ export default function PrivacyPolicy() {
 
       <p className={styles.paragraph}>
         This Privacy Policy applies to personal data we collect on or through
-        the Service.
+        the Service. Our AI Products Privacy Notice at{" "}
+        <a
+          href="https://www.metaculus.com/ai-products-privacy/"
+          className="text-blue-600 hover:underline"
+        >
+          https://www.metaculus.com/ai-products-privacy/
+        </a>{" "}
+        supplements this Privacy Policy with respect to Radiant, is incorporated
+        into it, and controls in the event of conflict with respect to Radiant.
       </p>
 
       <p className={styles.paragraph}>
@@ -241,6 +252,12 @@ export default function PrivacyPolicy() {
           Metaculus.com;
         </li>
         <li>
+          Questions, prompts, and other content you submit to AI-assisted
+          features such as Radiant, and the responses generated for you, which
+          are not public unless you choose to share them (see the AI Products
+          Privacy Notice);
+        </li>
+        <li>
           Information that is about you but individually does not identify you,
           such as some Usage Information; and/or
         </li>
@@ -363,7 +380,9 @@ export default function PrivacyPolicy() {
         discretion, be honored or refused. In some cases, we may remove only
         your personal data but maintain the rest of your User Content. Note that
         removal of public postings does not ensure complete or comprehensive
-        removal of the content or personal data posted.
+        removal of the content or personal data posted. Content you submit
+        privately to Radiant, and responses generated for you, may be deleted as
+        described in the AI Products Privacy Notice.
       </p>
 
       <p className={styles.paragraph}>
@@ -377,7 +396,10 @@ export default function PrivacyPolicy() {
           to voluntarily disclose personal data in your Profile or a Community
           Forum, or participate in the Service, that information will be
           considered public information and not personal data, and the
-          protections of this Privacy Policy will not apply.
+          protections of this Privacy Policy will not apply. This does not apply
+          to content you submit privately to Radiant, or to responses generated
+          for you, unless you choose to share that content to the Metaculus
+          platform, as described in the AI Products Privacy Notice.
         </b>
       </p>
 
@@ -840,6 +862,12 @@ export default function PrivacyPolicy() {
           the Service and elsewhere online;
         </li>
         <li>Process a transaction you initiate;</li>
+        <li>
+          Generate responses in AI-assisted features such as Radiant, including
+          by transmitting your inputs, together with relevant Metaculus data, to
+          AI model, routing, and research providers acting on our behalf, and
+          improve those features using de-identified or aggregated information;
+        </li>
         <li>Manage emails and notifications;</li>
         <li>Target advertising delivery;</li>
         <li>Manage marketing campaigns;</li>
@@ -941,7 +969,11 @@ export default function PrivacyPolicy() {
           <b>Service Providers:</b> We may share your personal data with
           contractors, service providers, and other third parties who provide
           services to us or you in connection with the Service to support our
-          business. For more information, see 
+          business, including AI model, routing, and research providers that
+          process content on our behalf to generate responses in AI-assisted
+          features such as Radiant (as described in the AI Products Privacy
+          Notice), payment processors, hosting providers, and analytics
+          providers. For more information, see 
           <a href="#choices-about-how-we-use">
             Choices About How We Use and Disclose Your Information
           </a>
