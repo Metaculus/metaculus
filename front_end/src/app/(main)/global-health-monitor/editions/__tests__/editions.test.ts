@@ -1,4 +1,4 @@
-import { EDITIONS, getPreviousEdition, NEXT_EDITION_ON } from "..";
+import { EDITIONS, getPreviousEdition } from "..";
 import { DISEASE_IDS } from "../../config/diseases";
 import { GHM_VALUES } from "../../config/questions";
 
@@ -17,10 +17,6 @@ describe("editions", () => {
       expect(Number.isNaN(Date.parse(edition.asOf))).toBe(false);
       expect(edition.asOf.startsWith(edition.slug)).toBe(true);
     });
-  });
-
-  it("schedules the next edition after the latest one", () => {
-    expect(NEXT_EDITION_ON > (EDITIONS[0]?.slug ?? "")).toBe(true);
   });
 
   it("has 1 to 6 takeaways with known leads and diseases", () => {

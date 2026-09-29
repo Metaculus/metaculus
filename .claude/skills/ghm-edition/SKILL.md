@@ -41,7 +41,8 @@ Writing rules:
 
 ## 3. Update the config
 
-- Put the new edition first in `EDITIONS` and move `NEXT_EDITION_ON` about a month later.
+- Put the new edition first in `EDITIONS`.
+- Section layout comes from `config/sections.ts`: 4+ cards get a carousel, fewer get text beside charts, and `layout: "column"` puts consecutive small sections side by side (up to three per row). Use `column` for diseases with one question and little news.
 - Remove the cards of questions that resolved before the previous edition from `config/sections.ts`. Keep their keys in `config/questions.ts`, because past editions use them.
 - Add new questions listed in `inputs.md`: value keys in `config/questions.ts` (match sub-questions by ID, never by label; set `tone` for good/bad colours) and cards in the right section. Flag anything you weren't sure how to place.
 

@@ -94,7 +94,7 @@ export function SectionCarousel({
       <div className="relative">
         <div
           ref={scrollRef}
-          className="-mx-5 flex snap-x snap-mandatory scroll-px-5 gap-4 overflow-x-auto px-5 pb-2 pt-4 [-ms-overflow-style:none] [scrollbar-width:none] md:mx-0 md:scroll-px-0 md:px-0 print:mx-0 print:grid print:grid-cols-2 print:overflow-visible print:px-0 [&::-webkit-scrollbar]:hidden"
+          className="-mx-5 flex snap-x snap-mandatory scroll-px-5 gap-4 overflow-x-auto overflow-y-hidden px-5 pb-2 pt-4 [-ms-overflow-style:none] [scrollbar-width:none] md:mx-0 md:scroll-px-0 md:px-0 print:mx-0 print:grid print:grid-cols-2 print:overflow-visible print:px-0 [&::-webkit-scrollbar]:hidden"
         >
           {slides.map((slide, index) => (
             <div

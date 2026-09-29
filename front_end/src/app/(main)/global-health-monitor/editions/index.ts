@@ -5,8 +5,6 @@ import { Edition } from "./types";
 // Newest first.
 export const EDITIONS: Edition[] = [EDITION_2026_09_17, EDITION_2026_08_28];
 
-export const NEXT_EDITION_ON = "2026-10-15";
-
 export function getLatestEdition(): Edition {
   const latest = EDITIONS[0];
   if (!latest) {

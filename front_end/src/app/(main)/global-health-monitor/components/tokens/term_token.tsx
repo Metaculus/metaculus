@@ -11,7 +11,7 @@ export function Term({ tip, children }: { tip: string; children: ReactNode }) {
   return (
     <TokenHoverCard
       content={<span className="[text-wrap:pretty]">{tip}</span>}
-      className="cursor-help border-b border-dashed border-current pb-px"
+      className="cursor-help border-b border-dashed border-orange-500 pb-px dark:border-orange-500-dark"
     >
       {children}
     </TokenHoverCard>

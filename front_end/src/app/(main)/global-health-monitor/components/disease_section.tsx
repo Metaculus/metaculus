@@ -1,4 +1,5 @@
 import { getTranslations } from "next-intl/server";
+import { ReactNode } from "react";
 
 import {
   ContentParagraph,
@@ -10,21 +11,23 @@ import {
 } from "@/app/(main)/labor-hub/components/section";
 import { GroupTimelineMarker } from "@/components/charts/primitives/timeline_markers/types";
 import { PostWithForecasts } from "@/types/post";
+import cn from "@/utils/core/cn";
 
 import { GhmQuestionCard } from "./ghm_question_card";
 import {
+  LatestData,
   ProQuoteCallout,
   ProSummary,
   SectionProse,
-  SourceSnapshotList,
 } from "./section_blocks";
 import { SectionCarousel } from "./section_carousel";
 import { DISEASE_NAME_KEYS } from "../config/diseases";
-import { getSectionLayout, SectionConfig } from "../config/sections";
+import { SectionConfig, SectionLayout } from "../config/sections";
 import { SectionEdition } from "../editions/types";
 
 export async function DiseaseSection({
   section,
+  layout,
   content,
   posts,
   editionLabel,
@@ -32,6 +35,7 @@ export async function DiseaseSection({
   activeMarkerId,
 }: {
   section: SectionConfig;
+  layout: SectionLayout;
   content: SectionEdition | undefined;
   posts: Map<number, PostWithForecasts>;
   editionLabel: string;
@@ -40,6 +44,7 @@ export async function DiseaseSection({
 }) {
   const t = await getTranslations();
   const title = t(DISEASE_NAME_KEYS[section.id]);
+  const isColumn = layout === "column";
 
   const cards = section.cards.map((card) => (
     <GhmQuestionCard
@@ -52,14 +57,14 @@ export async function DiseaseSection({
     />
   ));
   const prose = content ? (
-    <SectionProse>{content.body}</SectionProse>
+    <SectionProse small={isColumn}>{content.body}</SectionProse>
   ) : (
-    <ContentParagraph>
+    <ContentParagraph small={isColumn}>
       {t("globalHealthMonitorNotCovered", { date: editionLabel })}
     </ContentParagraph>
   );
-  const sources = content?.sources?.length ? (
-    <SourceSnapshotList sources={content.sources} />
+  const latestData = content?.sources?.length ? (
+    <LatestData sources={content.sources} />
   ) : null;
   const proSummary = content?.proSummary ? (
     <ProSummary>{content.proSummary}</ProSummary>
@@ -68,17 +73,29 @@ export async function DiseaseSection({
     <ProQuoteCallout quote={content.quote} />
   ) : null;
 
-  if (getSectionLayout(section) === "carousel") {
+  if (isColumn) {
+    return (
+      <div id={section.id} className="flex min-w-0 flex-col gap-4 md:gap-6">
+        <SectionHeader className="md:text-2xl">{title}</SectionHeader>
+        {cards}
+        {latestData}
+        {prose}
+        {proSummary}
+        {quote}
+      </div>
+    );
+  }
+
+  if (layout === "carousel") {
+    const hasAside = latestData || proSummary || quote;
     return (
       <SectionCard id={section.id}>
         <SectionHeader>{title}</SectionHeader>
         <div className="mt-4 grid grid-cols-1 gap-6 md:mt-8 lg:grid-cols-2 lg:gap-8 print:grid-cols-2">
-          <div className="flex flex-col gap-6">
-            {prose}
-            {sources}
-          </div>
-          {(proSummary || quote) && (
-            <div className="flex flex-col gap-4">
+          {prose}
+          {hasAside && (
+            <div className="flex min-w-0 flex-col gap-4">
+              {latestData}
               {proSummary}
               {quote}
             </div>
@@ -94,13 +111,37 @@ export async function DiseaseSection({
       <DualPaneSectionLeft>
         <SectionHeader>{title}</SectionHeader>
         {prose}
-        {sources}
         {proSummary}
       </DualPaneSectionLeft>
-      <DualPaneSectionRight>
-        {cards}
-        {quote}
-      </DualPaneSectionRight>
+      <div className="flex min-w-0 flex-col gap-6">
+        {latestData}
+        <DualPaneSectionRight>
+          {cards}
+          {quote}
+        </DualPaneSectionRight>
+      </div>
     </DualPaneSectionCard>
+  );
+}
+
+// Side-by-side "column" sections share one card.
+export function DiseaseSectionRow({
+  columns,
+  children,
+}: {
+  columns: number;
+  children: ReactNode;
+}) {
+  return (
+    <SectionCard
+      className={cn(
+        "grid grid-cols-1 gap-10 lg:gap-8 print:gap-6",
+        columns >= 3
+          ? "lg:grid-cols-3 print:grid-cols-3"
+          : "lg:grid-cols-2 print:grid-cols-2"
+      )}
+    >
+      {children}
+    </SectionCard>
   );
 }

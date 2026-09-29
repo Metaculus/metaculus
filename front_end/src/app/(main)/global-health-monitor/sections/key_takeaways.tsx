@@ -21,11 +21,13 @@ export async function KeyTakeawaysSection({
   edition,
   snapshot,
   latestSlug,
+  latestHref,
   posts,
 }: {
   edition: Edition;
   snapshot: GhmSnapshot;
   latestSlug: string;
+  latestHref: string;
   posts: Map<number, PostWithForecasts>;
 }) {
   const t = await getTranslations();
@@ -59,7 +61,7 @@ export async function KeyTakeawaysSection({
         />
       </div>
       {!snapshot.isLatest && (
-        <PastEditionBanner date={snapshot.edition.label} />
+        <PastEditionBanner date={snapshot.edition.label} href={latestHref} />
       )}
       <LinkedTimeline
         takeaways={edition.takeaways.map(({ id, diseases, lead, content }) => ({

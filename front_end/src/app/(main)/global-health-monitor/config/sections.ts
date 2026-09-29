@@ -1,7 +1,8 @@
 import { DiseaseId } from "./diseases";
 import { GHM_VALUES, GhmValueKey } from "./questions";
 
-export type SectionLayout = "carousel" | "dualPane";
+// "column" sections sit side by side in one row, like Midterms' Key Drivers.
+export type SectionLayout = "carousel" | "dualPane" | "column";
 
 export type SectionCardConfig = {
   postId: number;
@@ -68,9 +69,21 @@ export const SECTIONS: SectionConfig[] = [
     ],
   },
   { id: "chikungunya", cards: [{ postId: 45018, values: ["chikEea2026"] }] },
-  { id: "h5", cards: [{ postId: 45011, values: ["h5Pheic"] }] },
-  { id: "mpox", cards: [{ postId: 42530, values: ["mpoxUsCases"] }] },
-  { id: "hantavirus", cards: [{ postId: 43468, values: ["hantaPheic"] }] },
+  {
+    id: "h5",
+    layout: "column",
+    cards: [{ postId: 45011, values: ["h5Pheic"] }],
+  },
+  {
+    id: "mpox",
+    layout: "column",
+    cards: [{ postId: 42530, values: ["mpoxUsCases"] }],
+  },
+  {
+    id: "hantavirus",
+    layout: "column",
+    cards: [{ postId: 43468, values: ["hantaPheic"] }],
+  },
 ];
 
 const CAROUSEL_MIN_POSTS = 4;
@@ -80,6 +93,31 @@ export function getSectionLayout(section: SectionConfig): SectionLayout {
     section.layout ??
     (section.cards.length >= CAROUSEL_MIN_POSTS ? "carousel" : "dualPane")
   );
+}
+
+const MAX_COLUMNS_PER_ROW = 3;
+
+export type SectionRow =
+  | { kind: "section"; section: SectionConfig }
+  | { kind: "columns"; sections: SectionConfig[] };
+
+// Consecutive "column" sections share a row of up to three.
+export function getSectionRows(sections: SectionConfig[]): SectionRow[] {
+  const rows: SectionRow[] = [];
+  for (const section of sections) {
+    const lastRow = rows.at(-1);
+    if (getSectionLayout(section) !== "column") {
+      rows.push({ kind: "section", section });
+    } else if (
+      lastRow?.kind === "columns" &&
+      lastRow.sections.length < MAX_COLUMNS_PER_ROW
+    ) {
+      lastRow.sections.push(section);
+    } else {
+      rows.push({ kind: "columns", sections: [section] });
+    }
+  }
+  return rows;
 }
 
 export function getAllGhmPostIds(): number[] {

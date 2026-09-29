@@ -1,47 +1,59 @@
+import { faArrowUpRightFromSquare } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { getLocale, getTranslations } from "next-intl/server";
 import { ReactNode } from "react";
 
 import { ActivityCard } from "@/app/(main)/labor-hub/components/activity_card";
+import cn from "@/utils/core/cn";
 
 import { GHM_SOURCES } from "../config/sources";
 import { ProCommentRef, SourceSnapshot } from "../editions/types";
 import { formatEditionDate } from "../helpers/format";
 import { getCommentHref } from "../helpers/links";
 
-export async function SourceSnapshotList({
-  sources,
-}: {
-  sources: SourceSnapshot[];
-}) {
+// External figures (cases, deaths) with their source and as-of date.
+export async function LatestData({ sources }: { sources: SourceSnapshot[] }) {
   const t = await getTranslations();
   const locale = await getLocale();
 
   return (
-    <div className="break-inside-avoid">
-      <h3 className="mb-2 mt-0 text-sm font-medium uppercase tracking-wide text-olive-800 dark:text-olive-800-dark">
+    <div className="break-inside-avoid rounded-md border border-blue-400 bg-blue-100 p-4 dark:border-blue-400-dark dark:bg-blue-100-dark md:p-5">
+      <h3 className="mb-3 mt-0 text-xs font-bold uppercase tracking-wider text-blue-700 dark:text-blue-700-dark md:mb-4">
         {t("globalHealthMonitorLatestData")}
       </h3>
-      <ul className="m-0 grid list-none grid-cols-1 gap-2 p-0 sm:grid-cols-2">
+      <ul
+        className={cn(
+          "m-0 grid list-none grid-cols-1 gap-x-6 gap-y-5 p-0",
+          sources.length > 1 && "sm:grid-cols-2 print:grid-cols-2"
+        )}
+      >
         {sources.map((snapshot) => {
           const source = GHM_SOURCES[snapshot.source];
           return (
-            <li key={`${snapshot.source}-${snapshot.label}`}>
+            <li
+              key={`${snapshot.source}-${snapshot.label}`}
+              className="flex min-w-0 flex-col gap-1.5"
+            >
+              <span className="text-3xl font-bold leading-none tracking-tight text-blue-800 dark:text-blue-800-dark md:text-4xl">
+                {snapshot.value}
+              </span>
+              <span className="text-sm leading-snug text-blue-800 [text-wrap:pretty] dark:text-blue-800-dark">
+                {snapshot.label}
+              </span>
               <a
                 href={snapshot.url ?? source.url}
                 target="_blank"
                 rel="noreferrer"
-                className="flex h-full flex-col gap-0.5 rounded border border-olive-400 bg-olive-100 px-3 py-2 text-gray-800 no-underline transition-colors hover:border-olive-600 dark:border-olive-400-dark dark:bg-olive-100-dark dark:text-gray-800-dark dark:hover:border-olive-600-dark"
+                className="self-start text-xs text-blue-600 underline decoration-blue-400 underline-offset-2 hover:text-blue-800 hover:decoration-blue-700 dark:text-blue-600-dark dark:decoration-blue-400-dark dark:hover:text-blue-800-dark dark:hover:decoration-blue-700-dark"
               >
-                <span className="text-lg font-bold leading-tight">
-                  {snapshot.value}
-                </span>
-                <span className="text-xs leading-snug">{snapshot.label}</span>
-                <span className="text-xs text-gray-600 dark:text-gray-600-dark">
-                  {t("globalHealthMonitorSourceAsOf", {
-                    source: source.name,
-                    date: formatEditionDate(snapshot.asOf, locale),
-                  })}
-                </span>
+                {t("globalHealthMonitorSourceAsOf", {
+                  source: source.name,
+                  date: formatEditionDate(snapshot.asOf, locale),
+                })}
+                <FontAwesomeIcon
+                  icon={faArrowUpRightFromSquare}
+                  className="ml-1 size-2.5 print:hidden"
+                />
               </a>
             </li>
           );
@@ -82,9 +94,20 @@ export async function ProQuoteCallout({ quote }: { quote: ProCommentRef }) {
   );
 }
 
-export function SectionProse({ children }: { children: ReactNode }) {
+export function SectionProse({
+  children,
+  small = false,
+}: {
+  children: ReactNode;
+  small?: boolean;
+}) {
   return (
-    <div className="space-y-4 text-base text-blue-700 [text-wrap:pretty] dark:text-blue-700-dark md:text-lg [&_p]:my-0">
+    <div
+      className={cn(
+        "space-y-4 text-blue-700 [text-wrap:pretty] dark:text-blue-700-dark [&_p]:my-0",
+        small ? "text-sm md:text-base" : "text-base md:text-lg"
+      )}
+    >
       {children}
     </div>
   );
