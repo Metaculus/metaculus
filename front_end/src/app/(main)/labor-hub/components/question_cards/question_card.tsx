@@ -307,10 +307,13 @@ export function QuestionCard({
   showMoreButton = true,
   postIds = [],
   headerActions,
+  subheader,
   ...props
 }: Omit<ComponentProps<"div">, "title"> & {
   title?: ReactNode;
   subtitle?: string;
+  /** Optional content rendered between the title/subtitle and the card body. */
+  subheader?: ReactNode;
   subtitleClassName?: string;
   variant?: "secondary" | "primary" | "section";
   titleVariantOverride?: "secondary" | "primary" | "section";
@@ -443,6 +446,7 @@ export function QuestionCard({
           {subtitle}
         </p>
       )}
+      {subheader && <div className="mt-2 w-full">{subheader}</div>}
       <div className={cn("w-full", variant !== "section" && "mt-4")}>
         {children}
       </div>

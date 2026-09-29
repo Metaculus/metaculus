@@ -30,6 +30,7 @@ import { buildNumericChartData } from "./helpers";
 import NumericChart from "./numeric_chart";
 import { NewsAnnotation } from "./primitives/news_annotations/types";
 import { buildNewsAnnotations } from "./primitives/news_annotations/utils";
+import { GroupTimelineMarker } from "./primitives/timeline_markers/types";
 
 type Props = {
   aggregation: AggregateForecastHistory;
@@ -69,6 +70,8 @@ type Props = {
   hideCursorValueLabel?: boolean;
   suppressEmptyOverlay?: boolean;
   yDomainOptions?: TimelineYDomainOptions;
+  timelineMarkers?: GroupTimelineMarker[];
+  activeTimelineMarkerId?: string | null;
 };
 
 const NumericTimeline: FC<Props> = ({
@@ -109,6 +112,8 @@ const NumericTimeline: FC<Props> = ({
   hideCursorValueLabel,
   suppressEmptyOverlay,
   yDomainOptions,
+  timelineMarkers,
+  activeTimelineMarkerId,
 }) => {
   const locale = useLocale();
   const resolutionPoint = useMemo(() => {
@@ -267,6 +272,8 @@ const NumericTimeline: FC<Props> = ({
       onToggleNewsAnnotations={onToggleNewsAnnotations}
       hideCursorValueLabel={hideCursorValueLabel}
       suppressEmptyOverlay={suppressEmptyOverlay}
+      timelineMarkers={timelineMarkers}
+      activeTimelineMarkerId={activeTimelineMarkerId}
     />
   );
 };

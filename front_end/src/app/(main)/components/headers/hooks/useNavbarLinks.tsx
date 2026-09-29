@@ -63,6 +63,10 @@ const useNavbarLinks = ({
           label: "Labor Hub",
           href: "/labor-hub/",
         },
+        globalHealthMonitor: {
+          label: t("globalHealthMonitorNavLink"),
+          href: "/global-health-monitor/",
+        },
         communities: {
           label: t("communities"),
           href: "/questions/?communities=true",
@@ -185,7 +189,9 @@ const useNavbarLinks = ({
       LINKS.leaderboards,
       LINKS.trackRecord,
       LINKS.aggregationExplorer,
-      ...(PUBLIC_MINIMAL_UI ? [] : [LINKS.aiBenchmark, LINKS.laborHub]),
+      ...(PUBLIC_MINIMAL_UI
+        ? []
+        : [LINKS.aiBenchmark, LINKS.laborHub, LINKS.globalHealthMonitor]),
     ];
 
     // create question link is moved from navbar to desktop menu
@@ -217,6 +223,7 @@ const useNavbarLinks = ({
     LINKS.services,
     LINKS.news,
     LINKS.laborHub,
+    LINKS.globalHealthMonitor,
     LINKS.press,
     LINKS.trackRecord,
     PUBLIC_MINIMAL_UI,
@@ -250,7 +257,9 @@ const useNavbarLinks = ({
             LINKS.trackRecord,
             LINKS.journal,
             LINKS.aggregationExplorer,
-            ...(PUBLIC_MINIMAL_UI ? [] : [LINKS.aiBenchmark, LINKS.laborHub]),
+            ...(PUBLIC_MINIMAL_UI
+              ? []
+              : [LINKS.aiBenchmark, LINKS.laborHub, LINKS.globalHealthMonitor]),
           ]),
     ];
 
@@ -314,6 +323,7 @@ const useNavbarLinks = ({
     LINKS.aggregationExplorer,
     LINKS.aiBenchmark,
     LINKS.laborHub,
+    LINKS.globalHealthMonitor,
     LINKS.faq,
     LINKS.journal,
     LINKS.leaderboards,

@@ -15,6 +15,7 @@ import {
 } from "@floating-ui/react";
 import { faBell, faFilePdf } from "@fortawesome/free-regular-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 
@@ -26,13 +27,24 @@ import cn from "@/utils/core/cn";
 import { NewsletterSubscribePopover } from "./newsletter_subscribe_popover";
 import { ScrollspyButtonGroup } from "./scrollspy_button_group";
 
+const LABOR_HUB_PDF = {
+  url: "/labor-hub/pdf/",
+  fileName: "labor-automation-hub.pdf",
+};
+
 export default function LaborHubNavigation({
   sections,
   newsletterListKey,
+  pdf = LABOR_HUB_PDF,
+  showNewsletter = true,
 }: {
   sections: { id: string; label: string }[];
   newsletterListKey?: string;
+  /** PDF export endpoint and download name; null hides the button. */
+  pdf?: { url: string; fileName: string } | null;
+  showNewsletter?: boolean;
 }) {
+  const t = useTranslations();
   const [isSticky, setIsSticky] = useState(false);
   const [isNewsletterOpen, setIsNewsletterOpen] = useState(false);
   const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
@@ -81,14 +93,14 @@ export default function LaborHubNavigation({
     [refs]
   );
   const handlePdfDownload = useCallback(async () => {
-    if (isDownloadingPdf) {
+    if (isDownloadingPdf || !pdf) {
       return;
     }
 
     setIsDownloadingPdf(true);
 
     try {
-      const response = await fetch("/labor-hub/pdf/");
+      const response = await fetch(pdf.url);
 
       if (!response.ok) {
         const contentType = response.headers.get("content-type") ?? "";
@@ -112,18 +124,18 @@ export default function LaborHubNavigation({
       const downloadLink = document.createElement("a");
 
       downloadLink.href = objectUrl;
-      downloadLink.download = "labor-automation-hub.pdf";
+      downloadLink.download = pdf.fileName;
       document.body.appendChild(downloadLink);
       downloadLink.click();
       downloadLink.remove();
       URL.revokeObjectURL(objectUrl);
     } catch (error) {
       console.error("Failed to download Labor Hub PDF", error);
-      toast.error("Failed to download the PDF. Please try again.");
+      toast.error(t("hubPdfDownloadFailed"));
     } finally {
       setIsDownloadingPdf(false);
     }
-  }, [isDownloadingPdf]);
+  }, [isDownloadingPdf, pdf, t]);
 
   useEffect(() => {
     const sentinel = sentinelRef.current;
@@ -182,51 +194,59 @@ export default function LaborHubNavigation({
               </div>
             </div>
 
-            <div className={cn(actionRailClassName, surfaceClassName)}>
-              <div
-                aria-hidden
-                className={cn(actionFadeClassName, fadeToSurfaceClassName)}
-              />
-              <Button
-                type="button"
-                variant="tertiary"
-                size="md"
-                presentationType="icon"
-                aria-label={
-                  isDownloadingPdf ? "Downloading PDF" : "Download PDF"
-                }
-                aria-busy={isDownloadingPdf}
-                disabled={isDownloadingPdf}
-                onClick={handlePdfDownload}
-                className={cn(
-                  "relative z-10 border-purple-700 bg-transparent text-purple-700 hover:border-purple-700 hover:bg-purple-200/50 active:border-purple-700 active:bg-purple-700 active:text-purple-100 dark:border-purple-700-dark dark:bg-transparent dark:text-purple-700-dark dark:hover:border-purple-700-dark dark:hover:bg-purple-200-dark/50 dark:active:border-purple-700-dark dark:active:bg-purple-700-dark dark:active:text-purple-200-dark"
+            {(pdf || showNewsletter) && (
+              <div className={cn(actionRailClassName, surfaceClassName)}>
+                <div
+                  aria-hidden
+                  className={cn(actionFadeClassName, fadeToSurfaceClassName)}
+                />
+                {pdf && (
+                  <Button
+                    type="button"
+                    variant="tertiary"
+                    size="md"
+                    presentationType="icon"
+                    aria-label={
+                      isDownloadingPdf
+                        ? t("hubDownloadingPdf")
+                        : t("hubDownloadPdf")
+                    }
+                    aria-busy={isDownloadingPdf}
+                    disabled={isDownloadingPdf}
+                    onClick={handlePdfDownload}
+                    className={cn(
+                      "relative z-10 border-purple-700 bg-transparent text-purple-700 hover:border-purple-700 hover:bg-purple-200/50 active:border-purple-700 active:bg-purple-700 active:text-purple-100 dark:border-purple-700-dark dark:bg-transparent dark:text-purple-700-dark dark:hover:border-purple-700-dark dark:hover:bg-purple-200-dark/50 dark:active:border-purple-700-dark dark:active:bg-purple-700-dark dark:active:text-purple-200-dark"
+                    )}
+                  >
+                    {isDownloadingPdf ? (
+                      <LoadingSpinner size="sm" className="w-3" />
+                    ) : (
+                      <FontAwesomeIcon icon={faFilePdf} />
+                    )}
+                  </Button>
                 )}
-              >
-                {isDownloadingPdf ? (
-                  <LoadingSpinner size="sm" className="w-3" />
-                ) : (
-                  <FontAwesomeIcon icon={faFilePdf} />
+                {showNewsletter && (
+                  <Button
+                    ref={setReference}
+                    type="button"
+                    variant="tertiary"
+                    size="md"
+                    presentationType="icon"
+                    aria-label={t("hubSubscribeForUpdates")}
+                    aria-expanded={isNewsletterOpen}
+                    aria-haspopup="dialog"
+                    className={cn(
+                      "relative z-10 border-purple-700 bg-transparent text-purple-700 hover:border-purple-700 hover:bg-purple-200/50 active:border-purple-700 active:bg-purple-700 active:text-purple-100 dark:border-purple-700-dark dark:bg-transparent dark:text-purple-700-dark dark:hover:border-purple-700-dark dark:hover:bg-purple-200-dark/50 dark:active:border-purple-700-dark dark:active:bg-purple-700-dark dark:active:text-purple-200-dark",
+                      isNewsletterOpen &&
+                        "bg-purple-700 text-purple-100 hover:bg-purple-700 dark:bg-purple-700-dark dark:text-purple-200-dark dark:hover:bg-purple-700-dark"
+                    )}
+                    {...getReferenceProps()}
+                  >
+                    <FontAwesomeIcon icon={faBell} />
+                  </Button>
                 )}
-              </Button>
-              <Button
-                ref={setReference}
-                type="button"
-                variant="tertiary"
-                size="md"
-                presentationType="icon"
-                aria-label="Subscribe for updates"
-                aria-expanded={isNewsletterOpen}
-                aria-haspopup="dialog"
-                className={cn(
-                  "relative z-10 border-purple-700 bg-transparent text-purple-700 hover:border-purple-700 hover:bg-purple-200/50 active:border-purple-700 active:bg-purple-700 active:text-purple-100 dark:border-purple-700-dark dark:bg-transparent dark:text-purple-700-dark dark:hover:border-purple-700-dark dark:hover:bg-purple-200-dark/50 dark:active:border-purple-700-dark dark:active:bg-purple-700-dark dark:active:text-purple-200-dark",
-                  isNewsletterOpen &&
-                    "bg-purple-700 text-purple-100 hover:bg-purple-700 dark:bg-purple-700-dark dark:text-purple-200-dark dark:hover:bg-purple-700-dark"
-                )}
-                {...getReferenceProps()}
-              >
-                <FontAwesomeIcon icon={faBell} />
-              </Button>
-            </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

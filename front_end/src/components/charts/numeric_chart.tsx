@@ -34,6 +34,8 @@ import { NewsAnnotation } from "@/components/charts/primitives/news_annotations/
 import { clusterAnnotations } from "@/components/charts/primitives/news_annotations/utils";
 import PredictionWithRange from "@/components/charts/primitives/prediction_with_range";
 import ResolutionDiamond from "@/components/charts/primitives/resolution_diamond";
+import { renderGroupTimelineMarkers } from "@/components/charts/primitives/timeline_markers/group_timeline_markers_overlay";
+import { GroupTimelineMarker } from "@/components/charts/primitives/timeline_markers/types";
 import XTickLabel from "@/components/charts/primitives/x_tick_label";
 import { CHART_DASH } from "@/constants/chart_dash";
 import { darkTheme, lightTheme } from "@/constants/chart_theme";
@@ -120,6 +122,8 @@ type Props = {
   onToggleNewsAnnotations?: () => void;
   animate?: object;
   suppressEmptyOverlay?: boolean;
+  timelineMarkers?: GroupTimelineMarker[];
+  activeTimelineMarkerId?: string | null;
 };
 
 const BOTTOM_PADDING = 20;
@@ -160,6 +164,8 @@ const NumericChart: FC<Props> = ({
   onToggleNewsAnnotations,
   animate,
   suppressEmptyOverlay = false,
+  timelineMarkers,
+  activeTimelineMarkerId,
 }) => {
   const { theme, getThemeColor } = useAppTheme();
   const [isChartReady, setIsChartReady] = useState(false);
@@ -423,6 +429,16 @@ const NumericChart: FC<Props> = ({
     }
     return xDomain;
   }, [xDomain, isEmbedded]);
+
+  const visibleTimelineMarkers = useMemo(() => {
+    if (!timelineMarkers?.length) {
+      return [];
+    }
+    const [xMin, xMax] = adjustedXDomain as [number, number];
+    return timelineMarkers.filter(
+      ({ timestamp }) => timestamp >= xMin && timestamp <= xMax
+    );
+  }, [timelineMarkers, adjustedXDomain]);
 
   const [touchPoint, setTouchPoint] = useState<{
     x: number;
@@ -909,6 +925,14 @@ const NumericChart: FC<Props> = ({
                     }
                   />
                 ) : null}
+                {visibleTimelineMarkers.length
+                  ? renderGroupTimelineMarkers({
+                      markers: visibleTimelineMarkers,
+                      yDomain: yDomain as [number, number],
+                      getThemeColor,
+                      activeMarkerId: activeTimelineMarkerId,
+                    })
+                  : null}
               </VictoryChart>
             ) : null}
             {positionedClusters.length > 0 && (
