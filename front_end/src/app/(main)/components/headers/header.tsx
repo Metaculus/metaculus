@@ -12,6 +12,7 @@ import NavUserButton from "@/components/auth";
 import NavLink from "@/components/nav_link";
 import RandomButton from "@/components/random_button";
 import { useAuth } from "@/contexts/auth_context";
+import { usePublicSettings } from "@/contexts/public_settings_context";
 import cn from "@/utils/core/cn";
 import { isPathEqual } from "@/utils/navigation";
 
@@ -30,7 +31,8 @@ const Header: FC<Props> = ({ className }) => {
   const { user } = useAuth();
   const pathname = usePathname();
   const { navbarLinks, menuLinks, LINKS } = useNavbarLinks();
-  const { lgLinks, smLinks, xsLinks, xxsLinks } = navbarLinks;
+  const { PUBLIC_MINIMAL_UI } = usePublicSettings();
+  const { fullLinks, mdLinks, smLinks, xsLinks, xxsLinks } = navbarLinks;
 
   return (
     <header
@@ -43,10 +45,14 @@ const Header: FC<Props> = ({ className }) => {
         <NavbarLogo className="mr-1 lg:mr-5" />
 
         {/* Regular links */}
-        <NavbarLinks links={lgLinks} className="hidden lg:flex" />
+        <NavbarLinks links={fullLinks} className="hidden min-[1100px]:flex" />
+        <NavbarLinks
+          links={mdLinks}
+          className="hidden justify-end min-[880px]:max-[1099px]:flex"
+        />
         <NavbarLinks
           links={smLinks}
-          className="hidden justify-start min-[512px]:max-lg:flex md:justify-end"
+          className="hidden justify-start min-[512px]:max-[879px]:flex md:justify-end"
         />
         <NavbarLinks
           links={xsLinks}
@@ -70,7 +76,17 @@ const Header: FC<Props> = ({ className }) => {
                 }
               )}
             >
-              {t("more")}
+              {/* Nothing has moved into the menu yet when the bar is full, so it's just "About" */}
+              {PUBLIC_MINIMAL_UI ? (
+                t("more")
+              ) : (
+                <>
+                  <span className="hidden min-[1100px]:inline">
+                    {t("about")}
+                  </span>
+                  <span className="min-[1100px]:hidden">{t("more")}</span>
+                </>
+              )}
               <FontAwesomeIcon size="xs" icon={faChevronDown} />
               <span className="absolute bottom-0 left-0 h-1 w-full bg-blue-600 opacity-0 transition-opacity group-[.active]:opacity-100" />
             </MenuButton>
