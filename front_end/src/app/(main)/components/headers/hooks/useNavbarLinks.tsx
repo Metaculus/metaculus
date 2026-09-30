@@ -9,10 +9,17 @@ import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
 import { usePublicSettings } from "@/contexts/public_settings_context";
 import { useBreakpoint } from "@/hooks/tailwind";
+import useMediaQuery from "@/hooks/use_media_query";
 import { Community } from "@/types/projects";
 import cn from "@/utils/core/cn";
 
 import CreateQuestionButton from "../components/create_question_button";
+
+// Narrowest widths at which Services, then Discover, still fit in the bar
+// (measured with a logged-in header). Keep in sync with the min-[1100px] and
+// min-[880px] classes in header.tsx.
+export const NAV_FULL_MIN_WIDTH = 1100;
+export const NAV_DISCOVER_MIN_WIDTH = 880;
 
 type NavbarLinkDefinition = {
   label: ReactNode;
@@ -47,33 +54,17 @@ const useNavbarLinks = ({
           label: t("tournaments"),
           href: "/tournaments/",
         },
+        discover: {
+          label: t("discover"),
+          href: "/initiatives/",
+        },
         services: {
           label: t("services"),
           href: "/services/",
         },
-        leaderboards: {
-          label: <span className="capitalize">{t("leaderboards")}</span>,
-          href: "/leaderboard/",
-        },
         news: {
           label: t("news"),
           href: "/news/",
-        },
-        laborHub: {
-          label: "Labor Hub",
-          href: "/labor-hub/",
-        },
-        globalHealthMonitor: {
-          label: t("globalHealthMonitorNavLink"),
-          href: "/global-health-monitor/",
-        },
-        communities: {
-          label: t("communities"),
-          href: "/questions/?communities=true",
-        },
-        commentsFeed: {
-          label: t("commentsFeedTitle"),
-          href: "/questions/?comments_feed=true",
         },
         about: {
           label: t("aboutMetaculus"),
@@ -87,21 +78,9 @@ const useNavbarLinks = ({
           label: t("faq"),
           href: "/faq/",
         },
-        journal: {
-          label: t("theJournal"),
-          href: "/project/journal/",
-        },
         trackRecord: {
           label: t("trackRecord"),
           href: "/questions/track-record/",
-        },
-        aggregationExplorer: {
-          label: t("aggregationExplorer"),
-          href: "/aggregation-explorer/",
-        },
-        aiBenchmark: {
-          label: "FutureEval" + " " + t("aiBenchmark"),
-          href: "/futureeval/",
         },
         createQuestion: {
           label: <CreateQuestionButton />,
@@ -116,15 +95,23 @@ const useNavbarLinks = ({
   const navbarLinks = useMemo(
     () => ({
       /**
-       *  Breakpoint: \>= 1024
+       *  Breakpoint: \>= 1100 (NAV_FULL_MIN_WIDTH)
        */
-      lgLinks: [
+      fullLinks: [
         LINKS.questions,
         LINKS.tournaments,
-        ...(PUBLIC_MINIMAL_UI ? [] : [LINKS.services, LINKS.news]),
+        ...(PUBLIC_MINIMAL_UI ? [] : [LINKS.discover, LINKS.services]),
       ],
       /**
-       * Breakpoint: 512 - 1023
+       * Breakpoint: 880 - 1099 (NAV_DISCOVER_MIN_WIDTH)
+       */
+      mdLinks: [
+        LINKS.questions,
+        LINKS.tournaments,
+        ...(PUBLIC_MINIMAL_UI ? [] : [LINKS.discover]),
+      ],
+      /**
+       * Breakpoint: 512 - 879
        */
       smLinks: [LINKS.questions, LINKS.tournaments],
       /**
@@ -169,8 +156,8 @@ const useNavbarLinks = ({
       ],
     }),
     [
+      LINKS.discover,
       LINKS.services,
-      LINKS.news,
       LINKS.questions,
       LINKS.tournaments,
       PUBLIC_MINIMAL_UI,
@@ -181,54 +168,42 @@ const useNavbarLinks = ({
   );
 
   // It's safe to use JavaScript to generate links set because they are shown based on user action
-  const isMenuCollapsed = useBreakpoint("lg");
+  const isLgScreen = useBreakpoint("lg");
+  const isFullBar = useMediaQuery(`(min-width: ${NAV_FULL_MIN_WIDTH}px)`);
+  const isDiscoverInBar = useMediaQuery(
+    `(min-width: ${NAV_DISCOVER_MIN_WIDTH}px)`
+  );
   const menuLinks = useMemo(() => {
-    // common links that are always shown
-    const links: NavbarLinkDefinition[] = [
-      ...(PUBLIC_MINIMAL_UI ? [] : [LINKS.communities, LINKS.commentsFeed]),
-      LINKS.leaderboards,
-      LINKS.trackRecord,
-      LINKS.aggregationExplorer,
-      ...(PUBLIC_MINIMAL_UI
-        ? []
-        : [LINKS.aiBenchmark, LINKS.laborHub, LINKS.globalHealthMonitor]),
-    ];
-
-    // create question link is moved from navbar to desktop menu
-    if (!isMenuCollapsed && isLoggedIn) {
-      links.push(LINKS.createQuestion);
-    }
+    const links: NavbarLinkDefinition[] = PUBLIC_MINIMAL_UI
+      ? [LINKS.trackRecord]
+      : [LINKS.about, LINKS.press, LINKS.news, LINKS.trackRecord, LINKS.faq];
 
     if (!PUBLIC_MINIMAL_UI) {
-      // common links that are hidden with minimal UI
-      links.unshift(LINKS.about, LINKS.press, LINKS.faq, LINKS.journal);
+      // As the bar narrows, Services and then Discover move into the menu
+      if (!isFullBar) links.unshift(LINKS.services);
+      if (!isDiscoverInBar) links.unshift(LINKS.discover);
+    }
 
-      if (!isMenuCollapsed) {
-        // leaderboard and news are moved from navbar to desktop menu
-        links.unshift(LINKS.services, LINKS.news);
-      }
+    // create question link is moved from navbar to desktop menu
+    if (!isLgScreen && isLoggedIn) {
+      links.push(LINKS.createQuestion);
     }
 
     return links;
   }, [
     LINKS.about,
-    LINKS.aggregationExplorer,
-    LINKS.aiBenchmark,
-    LINKS.communities,
-    LINKS.commentsFeed,
     LINKS.createQuestion,
+    LINKS.discover,
     LINKS.faq,
-    LINKS.journal,
-    LINKS.leaderboards,
-    LINKS.services,
     LINKS.news,
-    LINKS.laborHub,
-    LINKS.globalHealthMonitor,
     LINKS.press,
+    LINKS.services,
     LINKS.trackRecord,
     PUBLIC_MINIMAL_UI,
     isLoggedIn,
-    isMenuCollapsed,
+    isLgScreen,
+    isFullBar,
+    isDiscoverInBar,
   ]);
 
   const mobileMenuLinks = useMemo(() => {
@@ -246,20 +221,17 @@ const useNavbarLinks = ({
                 "max-[511px]:flex": isNil(user),
               }),
             },
-            LINKS.services,
-            LINKS.news,
-            ...(PUBLIC_MINIMAL_UI ? [] : [LINKS.communities]),
-            { href: null, label: t("more"), isTitle: true },
-            LINKS.leaderboards,
-            LINKS.about,
-            LINKS.press,
-            LINKS.faq,
-            LINKS.trackRecord,
-            LINKS.journal,
-            LINKS.aggregationExplorer,
+            ...(PUBLIC_MINIMAL_UI ? [] : [LINKS.discover, LINKS.services]),
+            { href: null, label: t("about"), isTitle: true },
             ...(PUBLIC_MINIMAL_UI
-              ? []
-              : [LINKS.aiBenchmark, LINKS.laborHub, LINKS.globalHealthMonitor]),
+              ? [LINKS.trackRecord]
+              : [
+                  LINKS.about,
+                  LINKS.press,
+                  LINKS.news,
+                  LINKS.trackRecord,
+                  LINKS.faq,
+                ]),
           ]),
     ];
 
@@ -318,17 +290,11 @@ const useNavbarLinks = ({
     return { mainLinks, accountLinks };
   }, [
     LINKS.about,
-    LINKS.communities,
-    LINKS.services,
-    LINKS.aggregationExplorer,
-    LINKS.aiBenchmark,
-    LINKS.laborHub,
-    LINKS.globalHealthMonitor,
+    LINKS.discover,
     LINKS.faq,
-    LINKS.journal,
-    LINKS.leaderboards,
     LINKS.news,
     LINKS.press,
+    LINKS.services,
     LINKS.trackRecord,
     LINKS.tournaments,
     PUBLIC_ALLOW_SIGNUP,
