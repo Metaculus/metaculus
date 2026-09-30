@@ -10,6 +10,7 @@ import strip from "strip-markdown";
 import UserInfo from "@/app/(main)/accounts/profile/components/user_info";
 import Button from "@/components/ui/button";
 import { defaultDescription } from "@/constants/metadata";
+import ServerLeaderboardApi from "@/services/api/leaderboard/leaderboard.server";
 import ServerProfileApi from "@/services/api/profile/profile.server";
 import { UserProfileWithStats } from "@/types/users";
 import cn from "@/utils/core/cn";
@@ -30,25 +31,27 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
   if (!isNumericId(params.id)) {
     return {};
   }
-  // Same request as the layout below, so Next.js dedupes it within the render.
-  // Stats are also cached server-side for 1h.
-  const profile = await ServerProfileApi.getProfileById(+params.id, {
-    includeStats: true,
-  });
+  const id = +params.id;
+  // Same requests as the layout and overview page below,
+  // so Next.js dedupes them within the render.
+  const [profile, medals] = await Promise.all([
+    ServerProfileApi.getProfileById(id, { includeStats: true }),
+    ServerLeaderboardApi.getUserMedals(id),
+  ]);
 
   if (!profile) {
     return {};
   }
   const parsedBio = String(remark().use(strip).processSync(profile.bio));
 
-  // Profiles of accounts with no forecasts are thin pages (and often spam),
+  // Profiles of accounts with no medals are thin pages (and often spam),
   // so keep them out of search engine indexes.
-  const hasForecasts = (profile.forecasts_count ?? 0) > 0;
+  const hasMedals = medals.length > 0;
 
   return {
     title: `${profile.username}'s profile | Metaculus`,
     description: !!parsedBio ? parsedBio : defaultDescription,
-    ...(hasForecasts ? {} : { robots: { index: false, follow: false } }),
+    ...(hasMedals ? {} : { robots: { index: false, follow: false } }),
   };
 }
 
