@@ -79,12 +79,9 @@ const ProjectLeaderboardTable: FC<Props> = ({
       ? undefined
       : leaderboardDetails.max_coverage;
   // Peer scores are noisy enough that extra decimals are just visual noise
-  const scoreFractionDigits = [
-    "peer_tournament",
-    "spot_peer_tournament",
-  ].includes(leaderboardDetails.score_type)
-    ? 1
-    : 3;
+  const compactScores = ["peer_tournament", "spot_peer_tournament"].includes(
+    leaderboardDetails.score_type
+  );
 
   const withRankCI = useMemo(
     () =>
@@ -172,7 +169,7 @@ const ProjectLeaderboardTable: FC<Props> = ({
               withPrizePool={!!leaderboardDetails.prize_pool}
               withRankCI={withRankCI}
               withScoreCI={withScoreCI}
-              scoreFractionDigits={scoreFractionDigits}
+              compactScores={compactScores}
               isAdvanced={isAdvanced}
             />
           )}
@@ -186,7 +183,7 @@ const ProjectLeaderboardTable: FC<Props> = ({
                   withPrizePool={!!leaderboardDetails.prize_pool}
                   withRankCI={withRankCI}
                   withScoreCI={withScoreCI}
-                  scoreFractionDigits={scoreFractionDigits}
+                  compactScores={compactScores}
                   isAdvanced={isAdvanced}
                 />
               ))

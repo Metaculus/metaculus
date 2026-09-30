@@ -18,24 +18,32 @@ type Props = {
   withPrizePool?: boolean;
   withRankCI?: boolean;
   withScoreCI?: boolean;
-  scoreFractionDigits?: number;
+  compactScores?: boolean;
   isAdvanced?: boolean;
 };
+
+// One decimal below `threshold`, none from there on
+function formatCompact(value: number, threshold: number): string {
+  const withDecimal = value.toFixed(1);
+  return Math.abs(Number(withDecimal)) < threshold
+    ? withDecimal
+    : value.toFixed(0);
+}
 
 // Renders the " (lower–upper)" suffix shown after a rank or score
 const IntervalSuffix: FC<{
   lower: number | null | undefined;
   upper: number | null | undefined;
-  fractionDigits: number;
-}> = ({ lower, upper, fractionDigits }) => {
+  format: (value: number) => string;
+}> = ({ lower, upper, format }) => {
   if (isNil(lower) || isNil(upper)) {
     return null;
   }
   return (
     <span className="ml-1 text-xs">
-      ({lower.toFixed(fractionDigits)}
+      ({format(lower)}
       {"\u2013"}
-      {upper.toFixed(fractionDigits)})
+      {format(upper)})
     </span>
   );
 };
@@ -47,7 +55,7 @@ const TableRow: FC<Props> = ({
   withPrizePool = true,
   withRankCI = false,
   withScoreCI = false,
-  scoreFractionDigits = 3,
+  compactScores = false,
   isAdvanced = false,
 }) => {
   const {
@@ -83,6 +91,12 @@ const TableRow: FC<Props> = ({
       : aggregation_method == "unweighted"
         ? t("unweightedAggregate")
         : aggregation_method ?? "";
+  const formatScore = (value: number) =>
+    compactScores ? formatCompact(value, 10) : value.toFixed(3);
+  const formatScoreBound = (value: number) =>
+    compactScores ? formatCompact(value, 10) : value.toFixed(1);
+  const formatTake = (value: number) =>
+    compactScores ? formatCompact(value, 100) : value.toFixed(3);
   const forecasterLink = user
     ? `/accounts/profile/${user.id}/`
     : `/faq/#community-prediction`;
@@ -123,7 +137,7 @@ const TableRow: FC<Props> = ({
                     <IntervalSuffix
                       lower={rank_ci_lower}
                       upper={rank_ci_upper}
-                      fractionDigits={0}
+                      format={(value) => value.toFixed(0)}
                     />
                   )}
                 </>
@@ -145,12 +159,12 @@ const TableRow: FC<Props> = ({
         </Link>
       </Td>
       <Td className="text-right tabular-nums" highlight={highlight}>
-        {score.toFixed(scoreFractionDigits)}
+        {formatScore(score)}
         {isAdvanced && withScoreCI && (
           <IntervalSuffix
             lower={ci_lower}
             upper={ci_upper}
-            fractionDigits={1}
+            format={formatScoreBound}
           />
         )}
       </Td>
@@ -169,7 +183,7 @@ const TableRow: FC<Props> = ({
           {isAdvanced && (
             <>
               <Td className="text-right tabular-nums" highlight={highlight}>
-                {take?.toFixed(scoreFractionDigits)}
+                {isNil(take) ? null : formatTake(take)}
               </Td>
               <Td className="text-right tabular-nums" highlight={highlight}>
                 {percent_prize ? `${(percent_prize * 100).toFixed(1)}%` : "-"}
