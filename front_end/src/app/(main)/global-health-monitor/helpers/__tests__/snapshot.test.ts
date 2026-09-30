@@ -48,14 +48,14 @@ function h5Post(history: AggregateForecast[]): PostWithForecasts {
 }
 
 const AUGUST: Edition = {
-  slug: "2026-08-28",
+  slug: "2026-08",
   asOf: "2026-08-28T12:00:00Z",
   takeaways: [],
   sections: {},
   frozen: { h5Pheic: { value: 0.06 } },
 };
 const SEPTEMBER: Edition = {
-  slug: "2026-09-17",
+  slug: "2026-09",
   asOf: "2026-09-17T12:00:00Z",
   takeaways: [],
   sections: {},
@@ -88,7 +88,8 @@ describe("buildGhmSnapshot", () => {
       direction: "down",
       sentiment: "better",
     });
-    expect(snapshot.compareEdition?.shortLabel).toBe("Aug 28");
+    expect(snapshot.compareEdition?.label).toBe("August 2026");
+    expect(snapshot.compareEdition?.shortLabel).toBe("August");
   });
 
   it("uses frozen values when viewing a past edition", () => {

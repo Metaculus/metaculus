@@ -2,17 +2,17 @@ import { EDITIONS, getPreviousEdition } from "..";
 import { DISEASE_IDS } from "../../config/diseases";
 import { GHM_VALUES } from "../../config/questions";
 
-const SLUG_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
+const SLUG_PATTERN = /^\d{4}-\d{2}$/;
 
 describe("editions", () => {
-  it("uses unique date slugs, newest first", () => {
+  it("uses unique month slugs, newest first", () => {
     const slugs = EDITIONS.map((edition) => edition.slug);
     expect(new Set(slugs).size).toBe(slugs.length);
     slugs.forEach((slug) => expect(slug).toMatch(SLUG_PATTERN));
     expect([...slugs].sort().reverse()).toEqual(slugs);
   });
 
-  it("takes each edition's numbers on its publication date", () => {
+  it("takes each edition's numbers within its month", () => {
     EDITIONS.forEach((edition) => {
       expect(Number.isNaN(Date.parse(edition.asOf))).toBe(false);
       expect(edition.asOf.startsWith(edition.slug)).toBe(true);

@@ -7,7 +7,7 @@ import cn from "@/utils/core/cn";
 
 import { TokenHoverCard, tokenBaseClassName } from "./token_hover_card";
 import { ProCommentRef } from "../../editions/types";
-import { formatEditionDate } from "../../helpers/format";
+import { formatIsoDate } from "../../helpers/format";
 import { getCommentHref } from "../../helpers/links";
 
 export function ProComment({
@@ -32,7 +32,7 @@ export function ProComment({
           <div className="text-xs text-purple-800 dark:text-purple-800-dark">
             <span className="font-bold">{c.author}</span> ·{" "}
             {t("globalHealthMonitorProForecaster")} ·{" "}
-            {formatEditionDate(c.date, locale)}
+            {formatIsoDate(c.date, locale)}
           </div>
         </div>
       }

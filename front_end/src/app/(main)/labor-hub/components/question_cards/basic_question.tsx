@@ -39,7 +39,6 @@ export function BasicQuestionContent({
   chartHeight,
   subQuestionId,
   timelineMarkers,
-  activeTimelineMarkerId,
   timelineSubtitle,
   yDomainOptions,
 }: {
@@ -48,8 +47,6 @@ export function BasicQuestionContent({
   chartHeight?: number;
   subQuestionId?: number;
   timelineMarkers?: GroupTimelineMarker[];
-  /** Highlights a marker regardless of hover state. */
-  activeTimelineMarkerId?: string | null;
   timelineSubtitle?: string;
   yDomainOptions?: TimelineYDomainOptions;
 }) {
@@ -61,8 +58,6 @@ export function BasicQuestionContent({
     0,
     isPrintMode ? 10 : 4
   );
-  const activeMarkerId =
-    activeTimelineMarkerId ?? laborHubHover?.hoveredActivityId ?? null;
 
   if (isMultipleChoicePost(postData) && !subQuestionId) {
     if (preferTimeline) {
@@ -90,7 +85,7 @@ export function BasicQuestionContent({
             group={postData.group_of_questions}
             chartHeight={chartHeight}
             timelineMarkers={visibleTimelineMarkers}
-            activeTimelineMarkerId={activeMarkerId}
+            activeTimelineMarkerId={laborHubHover?.hoveredActivityId ?? null}
             onTimelineMarkerEnter={(marker) =>
               laborHubHover?.setHoveredActivityId(
                 marker.activityId ?? marker.id
@@ -186,8 +181,6 @@ export function BasicQuestionContent({
           inboundOutcomeCount={question.inbound_outcome_count}
           questionStatus={question.status}
           yDomainOptions={yDomainOptions}
-          timelineMarkers={visibleTimelineMarkers}
-          activeTimelineMarkerId={activeMarkerId}
         />
       );
     }

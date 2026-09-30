@@ -8,13 +8,12 @@ import {
 } from "@/app/(main)/labor-hub/components/section";
 import { PostWithForecasts } from "@/types/post";
 
-import { EditionSwitcher } from "../components/edition_switcher";
+import { EditionSelector } from "../components/edition_selector";
 import { LinkedTimeline } from "../components/linked_timeline/linked_timeline";
 import { LinkedTimelineChart } from "../components/linked_timeline/linked_timeline_chart";
 import { PastEditionBanner } from "../components/past_edition_banner";
 import { GHM_VALUES, GhmValueKey } from "../config/questions";
 import { Edition } from "../editions/types";
-import { toTimelineMarkers } from "../helpers/edition_markers";
 import { GhmSnapshot } from "../helpers/snapshot";
 
 export async function KeyTakeawaysSection({
@@ -31,18 +30,12 @@ export async function KeyTakeawaysSection({
   posts: Map<number, PostWithForecasts>;
 }) {
   const t = await getTranslations();
-  const markers = toTimelineMarkers(snapshot.editionMarkers);
 
   const charts: Partial<Record<GhmValueKey, ReactNode>> = {};
   for (const { lead } of edition.takeaways) {
     const post = posts.get(GHM_VALUES[lead].postId);
     charts[lead] = post ? (
-      <LinkedTimelineChart
-        post={post}
-        valueKey={lead}
-        markers={markers}
-        activeMarkerId={edition.slug}
-      />
+      <LinkedTimelineChart post={post} valueKey={lead} />
     ) : (
       <NoQuestionPlaceholder />
     );
@@ -50,12 +43,12 @@ export async function KeyTakeawaysSection({
 
   return (
     <SectionCard id="takeaways" className="flex flex-col gap-4 md:gap-6">
-      <div className="flex flex-wrap items-end justify-between gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <SectionHeader>
           {t("globalHealthMonitorKeyTakeawaysTitle")}
         </SectionHeader>
-        <EditionSwitcher
-          editions={snapshot.editionMarkers}
+        <EditionSelector
+          editions={snapshot.editions}
           currentSlug={edition.slug}
           latestSlug={latestSlug}
         />

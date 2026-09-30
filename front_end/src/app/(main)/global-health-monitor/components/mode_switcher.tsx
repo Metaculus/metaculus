@@ -1,10 +1,5 @@
 "use client";
 
-import {
-  faFileLines,
-  faTableCellsLarge,
-} from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useTranslations } from "next-intl";
 import { parseAsStringLiteral, useQueryState } from "nuqs";
 import { useOptimistic, useTransition } from "react";
@@ -13,11 +8,13 @@ import cn from "@/utils/core/cn";
 
 import { DEFAULT_GHM_MODE, GHM_MODES, GhmMode } from "../helpers/mode";
 
-const MODE_OPTIONS = {
-  full: { labelKey: "globalHealthMonitorModeFull", icon: faTableCellsLarge },
-  simple: { labelKey: "globalHealthMonitorModeSimple", icon: faFileLines },
+const MODE_LABEL_KEYS = {
+  full: "globalHealthMonitorModeFull",
+  simple: "globalHealthMonitorModeSimple",
 } as const;
 
+// Temporary: lets reviewers compare the two layouts. Styled as a preview strip, not as
+// part of the page.
 export function ModeSwitcher({ mode }: { mode: GhmMode }) {
   const t = useTranslations();
   const [isPending, startTransition] = useTransition();
@@ -47,8 +44,11 @@ export function ModeSwitcher({ mode }: { mode: GhmMode }) {
       role="radiogroup"
       aria-label={t("globalHealthMonitorModeLabel")}
       aria-busy={isPending}
-      className="inline-flex shrink-0 rounded-full border border-blue-400 bg-gray-0 p-1 dark:border-blue-400-dark dark:bg-gray-0-dark print:hidden"
+      className="mx-3 mb-2 mt-2 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 rounded border border-dashed border-gray-500 px-3 py-1 text-xs text-gray-600 dark:border-gray-500-dark dark:text-gray-600-dark xl:mx-0 xl:mt-0 print:hidden"
     >
+      <span className="font-medium uppercase tracking-wide">
+        {t("globalHealthMonitorModePreview")}
+      </span>
       {GHM_MODES.map((option) => {
         const isActive = option === optimisticMode;
         return (
@@ -59,18 +59,14 @@ export function ModeSwitcher({ mode }: { mode: GhmMode }) {
             aria-checked={isActive}
             onClick={() => selectMode(option)}
             className={cn(
-              "flex items-center gap-1.5 rounded-full px-3 py-1 text-sm font-medium transition-colors",
+              "rounded-sm px-1 underline-offset-2",
               isActive
-                ? "bg-blue-800 text-gray-0 dark:bg-blue-800-dark dark:text-gray-0-dark"
-                : "text-blue-700 hover:bg-blue-200 dark:text-blue-700-dark dark:hover:bg-blue-200-dark",
+                ? "font-bold text-gray-800 underline dark:text-gray-800-dark"
+                : "hover:underline",
               isActive && isPending && "opacity-70"
             )}
           >
-            <FontAwesomeIcon
-              icon={MODE_OPTIONS[option].icon}
-              className="size-3"
-            />
-            {t(MODE_OPTIONS[option].labelKey)}
+            {t(MODE_LABEL_KEYS[option])}
           </button>
         );
       })}

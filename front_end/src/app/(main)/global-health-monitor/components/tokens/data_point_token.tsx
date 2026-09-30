@@ -8,7 +8,7 @@ import cn from "@/utils/core/cn";
 import { TokenHoverCard, tokenBaseClassName } from "./token_hover_card";
 import { GHM_SOURCES } from "../../config/sources";
 import { SourceSnapshot } from "../../editions/types";
-import { formatEditionDate } from "../../helpers/format";
+import { formatIsoDate } from "../../helpers/format";
 
 export function DataPoint({
   s,
@@ -39,7 +39,7 @@ export function DataPoint({
           <div className="text-xs text-gray-600 dark:text-gray-600-dark">
             {t("globalHealthMonitorSourceAsOf", {
               source: source.name,
-              date: formatEditionDate(s.asOf, locale),
+              date: formatIsoDate(s.asOf, locale),
             })}
           </div>
         </div>

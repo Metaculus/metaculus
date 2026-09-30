@@ -40,8 +40,8 @@ const PRO = defineProComments({
   },
 });
 
-export const EDITION_2026_08_28: Edition = {
-  slug: "2026-08-28",
+export const EDITION_2026_08: Edition = {
+  slug: "2026-08",
   asOf: "2026-08-28T12:00:00Z",
   takeaways: [
     {

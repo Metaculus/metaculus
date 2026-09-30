@@ -65,28 +65,22 @@ function ForecastHoverContent({ datum }: { datum: TokenDatum }) {
           />
         )}
       </div>
-      {datum.change && compareEdition && (
-        <div className="text-xs text-gray-600 dark:text-gray-600-dark">
-          {datum.change.direction === "steady"
-            ? t("globalHealthMonitorSteadySince", {
-                date: compareEdition.label,
-              })
-            : t("globalHealthMonitorChangeSince", {
-                change: datum.change.text,
-                date: compareEdition.label,
-              })}
-        </div>
-      )}
+      {datum.change &&
+        datum.change.direction !== "steady" &&
+        compareEdition && (
+          <div className="text-xs text-gray-600 dark:text-gray-600-dark">
+            {t("globalHealthMonitorChangeSince", {
+              change: datum.change.text,
+              date: compareEdition.label,
+            })}
+          </div>
+        )}
       {datum.interval && (
         <div className="text-xs text-gray-600 dark:text-gray-600-dark">
           {t("globalHealthMonitorInterval", { range: datum.interval })}
         </div>
       )}
-      <ForecastSparkline
-        points={datum.sparkline}
-        markers={snapshot?.editionMarkers}
-        activeSlug={snapshot?.edition.slug}
-      />
+      <ForecastSparkline points={datum.sparkline} />
       {datum.resolution && (
         <div className="text-xs font-medium text-gray-700 dark:text-gray-700-dark">
           {t("globalHealthMonitorResolvedAs", {
@@ -116,7 +110,7 @@ function ForecastHoverContent({ datum }: { datum: TokenDatum }) {
 
 type Props = {
   v: GhmValueKey;
-  // Appends the change since the previous edition, e.g. "4,494 (+28% since Aug 28)".
+  // Appends the change since the previous edition, e.g. "4,494 (+28% since August)".
   change?: boolean;
   // Appends the 50% prediction interval.
   interval?: boolean;

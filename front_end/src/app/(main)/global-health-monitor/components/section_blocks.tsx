@@ -8,7 +8,7 @@ import cn from "@/utils/core/cn";
 
 import { GHM_SOURCES } from "../config/sources";
 import { ProCommentRef, SourceSnapshot } from "../editions/types";
-import { formatEditionDate } from "../helpers/format";
+import { formatIsoDate } from "../helpers/format";
 import { getCommentHref } from "../helpers/links";
 
 // External figures (cases, deaths) with their source and as-of date.
@@ -48,7 +48,7 @@ export async function LatestData({ sources }: { sources: SourceSnapshot[] }) {
               >
                 {t("globalHealthMonitorSourceAsOf", {
                   source: source.name,
-                  date: formatEditionDate(snapshot.asOf, locale),
+                  date: formatIsoDate(snapshot.asOf, locale),
                 })}
                 <FontAwesomeIcon
                   icon={faArrowUpRightFromSquare}
@@ -86,7 +86,7 @@ export async function ProQuoteCallout({ quote }: { quote: ProCommentRef }) {
     <ActivityCard
       username={quote.author}
       subtitle={t("globalHealthMonitorProForecaster")}
-      date={formatEditionDate(quote.date, locale)}
+      date={formatIsoDate(quote.date, locale)}
       link={getCommentHref(quote)}
     >
       <span className="italic">“{quote.excerpt}”</span>
@@ -94,20 +94,9 @@ export async function ProQuoteCallout({ quote }: { quote: ProCommentRef }) {
   );
 }
 
-export function SectionProse({
-  children,
-  small = false,
-}: {
-  children: ReactNode;
-  small?: boolean;
-}) {
+export function SectionProse({ children }: { children: ReactNode }) {
   return (
-    <div
-      className={cn(
-        "space-y-4 text-blue-700 [text-wrap:pretty] dark:text-blue-700-dark [&_p]:my-0",
-        small ? "text-sm md:text-base" : "text-base md:text-lg"
-      )}
-    >
+    <div className="space-y-4 text-base text-blue-700 [text-wrap:pretty] dark:text-blue-700-dark md:text-lg [&_p]:my-0">
       {children}
     </div>
   );

@@ -7,11 +7,10 @@ import {
 } from "@/app/(main)/labor-hub/components/question_cards/question";
 import { QuestionCard } from "@/app/(main)/labor-hub/components/question_cards/question_card";
 import ConsumerTileClient from "@/app/(main)/midterms-2026/components/consumer_tile_client";
-import { GroupTimelineMarker } from "@/components/charts/primitives/timeline_markers/types";
 import { PostWithForecasts } from "@/types/post";
 import { QuestionType, QuestionWithForecasts } from "@/types/question";
 
-import { CardChanges } from "./card_changes";
+import { CardChange } from "./card_change";
 import { GhmValueKey } from "../config/questions";
 
 const CHART_HEIGHT = 180;
@@ -46,16 +45,12 @@ function SnapshotView({ post }: { post: PostWithForecasts }) {
 export function GhmQuestionCard({
   postId,
   post,
-  values,
-  markers,
-  activeMarkerId,
+  value,
   className,
 }: {
   postId: number;
   post: PostWithForecasts | undefined;
-  values: GhmValueKey[];
-  markers?: GroupTimelineMarker[];
-  activeMarkerId?: string;
+  value?: GhmValueKey;
   className?: string;
 }) {
   if (!post) {
@@ -72,7 +67,7 @@ export function GhmQuestionCard({
       variant="secondary"
       postIds={[post.id]}
       className={className}
-      subheader={<CardChanges values={values} />}
+      subheader={value ? <CardChange value={value} /> : undefined}
       leftIcon={getLeftIcon(post)}
       rightIcon={getRightIcon(post)}
       leftContent={<SnapshotView post={post} />}
@@ -81,8 +76,6 @@ export function GhmQuestionCard({
           postData={post}
           preferTimeline
           chartHeight={CHART_HEIGHT}
-          timelineMarkers={markers}
-          activeTimelineMarkerId={activeMarkerId}
         />
       }
     />

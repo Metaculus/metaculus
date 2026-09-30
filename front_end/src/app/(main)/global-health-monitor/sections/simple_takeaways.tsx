@@ -6,8 +6,7 @@ import {
 } from "@/app/(main)/labor-hub/components/section";
 
 import { ChangeChip } from "../components/change_chip";
-import { EditionSwitcher } from "../components/edition_switcher";
-import { PastEditionBanner } from "../components/past_edition_banner";
+import { EditionSelector } from "../components/edition_selector";
 import { DISEASE_NAME_KEYS } from "../config/diseases";
 import { Edition } from "../editions/types";
 import { GhmSnapshot } from "../helpers/snapshot";
@@ -17,12 +16,10 @@ export async function SimpleTakeawaysSection({
   edition,
   snapshot,
   latestSlug,
-  latestHref,
 }: {
   edition: Edition;
   snapshot: GhmSnapshot;
   latestSlug: string;
-  latestHref: string;
 }) {
   const t = await getTranslations();
   const since = snapshot.compareEdition?.label;
@@ -70,26 +67,18 @@ export async function SimpleTakeawaysSection({
 
   return (
     <SectionCard id="takeaways" className="flex flex-col gap-6 md:gap-8">
-      <div className="flex flex-wrap items-end justify-between gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <SectionHeader>
           {t("globalHealthMonitorKeyTakeawaysTitle")}
         </SectionHeader>
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-          {since && (
-            <span className="text-sm text-blue-600 dark:text-blue-600-dark">
-              {t("globalHealthMonitorChangesSinceEdition", { date: since })}
-            </span>
-          )}
-          <EditionSwitcher
-            editions={snapshot.editionMarkers}
+          <EditionSelector
+            editions={snapshot.editions}
             currentSlug={edition.slug}
             latestSlug={latestSlug}
           />
         </div>
       </div>
-      {!snapshot.isLatest && (
-        <PastEditionBanner date={snapshot.edition.label} href={latestHref} />
-      )}
       <div
         role="list"
         className="flex flex-col gap-8 md:grid md:grid-cols-2 md:items-start md:gap-x-12 print:grid print:grid-cols-2 print:items-start print:gap-x-12"

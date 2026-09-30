@@ -17,9 +17,9 @@ import {
   readLatestForecast,
 } from "./forecast_values";
 import {
-  editionDate,
   formatChange,
-  formatEditionDate,
+  formatEditionLabel,
+  formatEditionMonth,
   formatInterval,
   formatValue,
 } from "./format";
@@ -59,18 +59,19 @@ export type TokenDatum = {
 
 export type EditionLabel = {
   slug: string;
+  // "September 2026", in the page locale.
   label: string;
+  // "September", for English prose.
   shortLabel: string;
 };
-
-export type EditionMarker = EditionLabel & { timestamp: number };
 
 export type GhmSnapshot = {
   values: Partial<Record<GhmValueKey, TokenDatum>>;
   edition: EditionLabel;
   compareEdition: EditionLabel | null;
   isLatest: boolean;
-  editionMarkers: EditionMarker[];
+  // Newest first.
+  editions: EditionLabel[];
 };
 
 type BuildParams = {
@@ -91,8 +92,8 @@ function toSeconds(iso: string) {
 function getEditionLabel(edition: Edition, locale: string): EditionLabel {
   return {
     slug: edition.slug,
-    label: formatEditionDate(edition.slug, locale),
-    shortLabel: formatEditionDate(edition.slug, "en-US", false),
+    label: formatEditionLabel(edition.slug, locale),
+    shortLabel: formatEditionMonth(edition.slug),
   };
 }
 
@@ -255,9 +256,6 @@ export function buildGhmSnapshot(
       ? getEditionLabel(previousEdition, locale)
       : null,
     isLatest,
-    editionMarkers: editions.map((item) => ({
-      ...getEditionLabel(item, locale),
-      timestamp: Math.floor(editionDate(item.slug).getTime() / 1000),
-    })),
+    editions: editions.map((item) => getEditionLabel(item, locale)),
   };
 }

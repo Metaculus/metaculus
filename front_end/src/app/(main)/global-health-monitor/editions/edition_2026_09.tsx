@@ -65,8 +65,8 @@ const EL_NINO_TIP =
 const SUBCLADE_K_TIP =
   "The H3N2 influenza strain that dominated the 2025/26 season. The 2026/27 vaccine was updated to match it.";
 
-export const EDITION_2026_09_17: Edition = {
-  slug: "2026-09-17",
+export const EDITION_2026_09: Edition = {
+  slug: "2026-09",
   asOf: "2026-09-17T12:00:00Z",
   takeaways: [
     {

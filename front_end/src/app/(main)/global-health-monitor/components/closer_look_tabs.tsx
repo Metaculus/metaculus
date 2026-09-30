@@ -9,14 +9,20 @@ import {
   useSyncExternalStore,
 } from "react";
 
-import {
-  HubPdf,
-  PdfDownloadButton,
-} from "@/app/(main)/labor-hub/components/pdf_download_button";
 import { useTopChromeHeightPx } from "@/hooks/use_top_chrome_height";
 import cn from "@/utils/core/cn";
 
-export type CloserLookTab = { id: string; label: string; panel: ReactNode };
+export type CloserLookTab = {
+  id: string;
+  label: string;
+  panel: ReactNode;
+  // Other hashes that open this tab, e.g. the diseases grouped inside it.
+  aliases?: string[];
+};
+
+function findTab(tabs: CloserLookTab[], hash: string) {
+  return tabs.find((tab) => tab.id === hash || tab.aliases?.includes(hash));
+}
 
 function subscribeToHash(onChange: () => void) {
   window.addEventListener("hashchange", onChange);
@@ -25,23 +31,29 @@ function subscribeToHash(onChange: () => void) {
 const getHash = () => decodeURIComponent(window.location.hash.slice(1));
 const getServerHash = () => "";
 
+// Same width and gutters as the page's content column.
+const containerClassName =
+  "mx-auto w-full max-w-7xl px-1 sm:px-8 xl:px-16 print:px-0";
+// The Tournaments page's sticky header glass.
+const stuckClassName =
+  "border-b border-blue-400/50 bg-white/70 backdrop-blur-md dark:border-blue-400-dark/50 dark:bg-slate-950/45";
+
 /**
  * Real tabs: only the active panel is shown (all of them in print). The URL hash picks
  * the tab, so disease links in the takeaways (#measles) and shared links open it.
+ * Rendered outside the content column so the sticky tab bar can span the viewport.
  */
 export function CloserLookTabs({
   id,
   title,
   tabs,
-  pdf,
 }: {
   id: string;
   title: string;
   tabs: CloserLookTab[];
-  pdf: HubPdf;
 }) {
   const hash = useSyncExternalStore(subscribeToHash, getHash, getServerHash);
-  const activeId = tabs.some((tab) => tab.id === hash) ? hash : tabs[0]?.id;
+  const activeId = (findTab(tabs, hash) ?? tabs[0])?.id;
   const [isStuck, setIsStuck] = useState(false);
   const topChromeHeight = useTopChromeHeightPx();
   const rootRef = useRef<HTMLElement>(null);
@@ -73,7 +85,7 @@ export function CloserLookTabs({
       isTabClickRef.current = false;
       return;
     }
-    if (tabs.some((tab) => tab.id === hash)) {
+    if (findTab(tabs, hash)) {
       rootRef.current?.scrollIntoView({ block: "start" });
     }
   }, [hash, tabs]);
@@ -131,64 +143,68 @@ export function CloserLookTabs({
 
   return (
     <section ref={rootRef} id={id} className="flex flex-col">
-      <h2 className="mx-4 my-0 text-2xl font-bold tracking-tight text-blue-800 dark:text-blue-800-dark sm:mx-0 md:text-3xl">
-        {title}
-      </h2>
-      <div ref={sentinelRef} className="h-0" />
+      <div className={containerClassName}>
+        <h2 className="mx-4 my-0 text-2xl font-bold tracking-tight text-blue-800 dark:text-blue-800-dark sm:mx-0 md:text-3xl">
+          {title}
+        </h2>
+      </div>
+      <div ref={sentinelRef} className="h-px w-full" aria-hidden />
       <div
         className={cn(
-          "sticky top-header z-[100] -mx-1 mb-4 flex items-center gap-3 bg-blue-200/95 px-1 py-4 backdrop-blur-sm transition-shadow dark:bg-blue-50-dark/95 sm:-mx-8 sm:px-8 md:mb-6 xl:-mx-16 xl:px-16 print:hidden",
-          isStuck &&
-            "shadow-[0_1px_0_0] shadow-blue-400 dark:shadow-blue-400-dark"
+          "sticky top-header z-[100] mb-2 border-b transition-colors md:mb-4 print:hidden",
+          isStuck ? stuckClassName : "border-transparent bg-transparent"
         )}
       >
-        <div
-          ref={tabListRef}
-          role="tablist"
-          aria-label={title}
-          onKeyDown={handleKeyDown}
-          className="relative flex min-w-0 flex-1 gap-2 overflow-x-auto px-3 no-scrollbar sm:px-0"
-        >
-          {tabs.map((tab) => {
-            const isActive = tab.id === activeId;
-            return (
-              <button
-                key={tab.id}
-                id={`${id}-tab-${tab.id}`}
-                type="button"
-                role="tab"
-                aria-selected={isActive}
-                aria-controls={`${id}-panel-${tab.id}`}
-                tabIndex={isActive ? 0 : -1}
-                onClick={() => selectTab(tab.id)}
-                className={cn(
-                  "shrink-0 whitespace-nowrap rounded-md border px-4 py-2 text-sm font-medium transition-colors md:px-5 md:py-2.5 md:text-base",
-                  isActive
-                    ? "border-blue-800 bg-blue-800 text-gray-0 dark:border-blue-800-dark dark:bg-blue-800-dark dark:text-gray-0-dark"
-                    : "border-gray-300 bg-gray-0 text-blue-800 hover:border-blue-500 dark:border-gray-300-dark dark:bg-gray-0-dark dark:text-blue-800-dark dark:hover:border-blue-500-dark"
-                )}
-              >
-                {tab.label}
-              </button>
-            );
-          })}
+        <div className={cn(containerClassName, "py-2 md:py-3")}>
+          <div
+            ref={tabListRef}
+            role="tablist"
+            aria-label={title}
+            onKeyDown={handleKeyDown}
+            className="relative flex gap-1 overflow-x-auto px-3 no-scrollbar sm:px-0 lg:gap-3"
+          >
+            {tabs.map((tab) => {
+              const isActive = tab.id === activeId;
+              return (
+                <button
+                  key={tab.id}
+                  id={`${id}-tab-${tab.id}`}
+                  type="button"
+                  role="tab"
+                  aria-selected={isActive}
+                  aria-controls={`${id}-panel-${tab.id}`}
+                  tabIndex={isActive ? 0 : -1}
+                  onClick={() => selectTab(tab.id)}
+                  className={cn(
+                    "shrink-0 whitespace-nowrap rounded-full px-3 py-1 text-sm transition-colors sm:px-5 sm:py-1.5 sm:text-lg sm:leading-[26px]",
+                    isActive
+                      ? "bg-blue-800 text-gray-0 dark:bg-blue-800-dark dark:text-gray-0-dark"
+                      : "bg-gray-0 text-blue-800 hover:bg-blue-400 dark:bg-gray-0-dark dark:text-blue-800-dark dark:hover:bg-blue-400-dark"
+                  )}
+                >
+                  {tab.label}
+                </button>
+              );
+            })}
+          </div>
         </div>
-        <PdfDownloadButton pdf={pdf} className="mr-3 shrink-0 sm:mr-0" />
       </div>
-      {tabs.map((tab) => (
-        <div
-          key={tab.id}
-          id={`${id}-panel-${tab.id}`}
-          role="tabpanel"
-          aria-labelledby={`${id}-tab-${tab.id}`}
-          className={cn(
-            tab.id === activeId ? "block" : "hidden",
-            "print:mb-8 print:block"
-          )}
-        >
-          {tab.panel}
-        </div>
-      ))}
+      <div className={containerClassName}>
+        {tabs.map((tab) => (
+          <div
+            key={tab.id}
+            id={`${id}-panel-${tab.id}`}
+            role="tabpanel"
+            aria-labelledby={`${id}-tab-${tab.id}`}
+            className={cn(
+              tab.id === activeId ? "block" : "hidden",
+              "print:mb-8 print:block"
+            )}
+          >
+            {tab.panel}
+          </div>
+        ))}
+      </div>
     </section>
   );
 }

@@ -44,14 +44,14 @@ function TakeawayCard({ takeaway }: { takeaway: TakeawayView }) {
         }
       }}
       className={cn(
-        "relative break-inside-avoid rounded-lg border bg-blue-100 px-4 py-3 transition-[border-color,box-shadow] dark:bg-blue-100-dark",
+        "relative break-inside-avoid rounded-lg border bg-blue-100 px-4 py-2 transition-[border-color,box-shadow] dark:bg-blue-100-dark",
         isActive
           ? "border-blue-600 ring-2 ring-blue-600 dark:border-blue-600-dark dark:ring-blue-600-dark"
           : "border-blue-300 hover:border-blue-500 dark:border-blue-300-dark dark:hover:border-blue-500-dark",
         "print:ring-0"
       )}
     >
-      <div className="mb-1.5 flex flex-wrap items-center gap-2 pr-8">
+      <div className="mb-1 flex flex-wrap items-center gap-2 pr-8">
         {takeaway.diseases.map((disease) => (
           <span
             key={disease}
@@ -82,7 +82,7 @@ function TakeawayCard({ takeaway }: { takeaway: TakeawayView }) {
       >
         <FontAwesomeIcon icon={faThumbtack} />
       </button>
-      <div className="text-sm leading-relaxed text-blue-900 [text-wrap:pretty] dark:text-blue-900-dark md:text-base">
+      <div className="text-sm leading-normal text-blue-900 [text-wrap:pretty] dark:text-blue-900-dark">
         {takeaway.content}
       </div>
     </div>
@@ -119,8 +119,8 @@ export function LinkedTimeline({
 
   return (
     <LinkedTimelineProvider defaultKey={firstLead} chartKeys={chartKeys}>
-      <div className="grid gap-5 md:grid-cols-2 md:gap-8 print:grid-cols-2">
-        <div className="flex flex-col gap-3">
+      <div className="grid gap-5 md:grid-cols-2 md:gap-8 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] print:grid-cols-2">
+        <div className="flex flex-col gap-2">
           {takeaways.map((takeaway) => (
             <TakeawayCard key={takeaway.id} takeaway={takeaway} />
           ))}

@@ -16,7 +16,7 @@ body:
     id: date
     attributes:
       label: Publication date
-      description: YYYY-MM-DD. Leave empty to use the day the draft runs.
+      description: YYYY-MM-DD. Leave empty to use the day the draft runs. The page shows only the month.
   - type: textarea
     id: notes
     attributes:

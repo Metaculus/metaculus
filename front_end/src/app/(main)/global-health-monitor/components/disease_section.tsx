@@ -2,14 +2,12 @@ import { getTranslations } from "next-intl/server";
 import { ReactNode } from "react";
 
 import {
-  ContentParagraph,
   DualPaneSectionCard,
   DualPaneSectionLeft,
   DualPaneSectionRight,
   SectionCard,
   SectionHeader,
 } from "@/app/(main)/labor-hub/components/section";
-import { GroupTimelineMarker } from "@/components/charts/primitives/timeline_markers/types";
 import { PostWithForecasts } from "@/types/post";
 import cn from "@/utils/core/cn";
 
@@ -22,47 +20,42 @@ import {
 } from "./section_blocks";
 import { SectionCarousel } from "./section_carousel";
 import { DISEASE_NAME_KEYS } from "../config/diseases";
-import { SectionConfig, SectionLayout } from "../config/sections";
+import { getSectionLayout, SectionConfig } from "../config/sections";
 import { SectionEdition } from "../editions/types";
 
 export async function DiseaseSection({
   section,
-  layout,
   content,
   posts,
-  editionLabel,
-  markers,
-  activeMarkerId,
 }: {
   section: SectionConfig;
-  layout: SectionLayout;
   content: SectionEdition | undefined;
   posts: Map<number, PostWithForecasts>;
-  editionLabel: string;
-  markers: GroupTimelineMarker[];
-  activeMarkerId: string;
 }) {
   const t = await getTranslations();
   const title = t(DISEASE_NAME_KEYS[section.id]);
-  const isColumn = layout === "column";
+  const layout = getSectionLayout(section);
 
   const cards = section.cards.map((card) => (
     <GhmQuestionCard
       key={card.postId}
       postId={card.postId}
       post={posts.get(card.postId)}
-      values={card.values}
-      markers={markers}
-      activeMarkerId={activeMarkerId}
+      value={card.value}
     />
   ));
-  const prose = content ? (
-    <SectionProse small={isColumn}>{content.body}</SectionProse>
-  ) : (
-    <ContentParagraph small={isColumn}>
-      {t("globalHealthMonitorNotCovered", { date: editionLabel })}
-    </ContentParagraph>
-  );
+
+  // Side-by-side columns are a title and a chart, with no edition text.
+  if (layout === "column") {
+    return (
+      <div id={section.id} className="flex min-w-0 flex-col gap-4 md:gap-6">
+        <SectionHeader className="md:text-2xl">{title}</SectionHeader>
+        {cards}
+      </div>
+    );
+  }
+
+  const prose = content ? <SectionProse>{content.body}</SectionProse> : null;
   const latestData = content?.sources?.length ? (
     <LatestData sources={content.sources} />
   ) : null;
@@ -72,19 +65,6 @@ export async function DiseaseSection({
   const quote = content?.quote ? (
     <ProQuoteCallout quote={content.quote} />
   ) : null;
-
-  if (isColumn) {
-    return (
-      <div id={section.id} className="flex min-w-0 flex-col gap-4 md:gap-6">
-        <SectionHeader className="md:text-2xl">{title}</SectionHeader>
-        {cards}
-        {latestData}
-        {prose}
-        {proSummary}
-        {quote}
-      </div>
-    );
-  }
 
   if (layout === "carousel") {
     const hasAside = latestData || proSummary || quote;

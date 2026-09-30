@@ -1,18 +1,23 @@
 import { getLocale, getTranslations } from "next-intl/server";
 
+import {
+  HubPdf,
+  PdfDownloadButton,
+} from "@/app/(main)/labor-hub/components/pdf_download_button";
 import LiveBadge from "@/app/(main)/midterms-2026/components/live_badge";
 import cn from "@/utils/core/cn";
 
-import { ModeSwitcher } from "../components/mode_switcher";
-import { formatEditionDate } from "../helpers/format";
+import { formatEditionLabel } from "../helpers/format";
 import { GhmMode } from "../helpers/mode";
 
 export async function HeroSection({
   latestSlug,
   mode,
+  pdf,
 }: {
   latestSlug: string;
   mode: GhmMode;
+  pdf: HubPdf;
 }) {
   const t = await getTranslations();
   const locale = await getLocale();
@@ -32,7 +37,11 @@ export async function HeroSection({
             {t("globalHealthMonitorHeroTitleLine2")}
           </span>
         </h1>
-        <ModeSwitcher mode={mode} />
+        <PdfDownloadButton
+          pdf={pdf}
+          labelled
+          className="shrink-0 print:hidden"
+        />
       </div>
       <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-end sm:gap-6">
         <p className="my-0 max-w-2xl text-base text-blue-700 [text-wrap:pretty] dark:text-blue-700-dark md:text-lg">
@@ -47,7 +56,7 @@ export async function HeroSection({
           <LiveBadge label={t("globalHealthMonitorLiveBadge")} />
           <span>
             {t("globalHealthMonitorLatestEdition", {
-              date: formatEditionDate(latestSlug, locale),
+              date: formatEditionLabel(latestSlug, locale),
             })}
           </span>
         </div>

@@ -1,18 +1,8 @@
-import { EditionMarker } from "../helpers/snapshot";
-
 const WIDTH = 240;
 const HEIGHT = 44;
 const PADDING = 3;
 
-export function ForecastSparkline({
-  points,
-  markers = [],
-  activeSlug,
-}: {
-  points: [number, number][];
-  markers?: EditionMarker[];
-  activeSlug?: string;
-}) {
+export function ForecastSparkline({ points }: { points: [number, number][] }) {
   if (points.length < 2) {
     return null;
   }
@@ -52,23 +42,6 @@ export function ForecastSparkline({
       className="h-11 w-full overflow-visible"
       aria-hidden
     >
-      {markers
-        .filter(({ timestamp }) => timestamp >= xMin && timestamp <= xMax)
-        .map((marker) => (
-          <line
-            key={marker.slug}
-            x1={scaleX(marker.timestamp)}
-            x2={scaleX(marker.timestamp)}
-            y1={0}
-            y2={HEIGHT}
-            strokeDasharray="2 3"
-            className={
-              marker.slug === activeSlug
-                ? "stroke-purple-700 dark:stroke-purple-700-dark"
-                : "stroke-purple-400 dark:stroke-purple-400-dark"
-            }
-          />
-        ))}
       <path
         d={path}
         fill="none"

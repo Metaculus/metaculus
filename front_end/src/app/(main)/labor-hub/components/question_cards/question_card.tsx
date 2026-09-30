@@ -446,7 +446,7 @@ export function QuestionCard({
           {subtitle}
         </p>
       )}
-      {subheader && <div className="mt-2 w-full">{subheader}</div>}
+      {subheader && <div className="mt-2 w-full empty:hidden">{subheader}</div>}
       <div className={cn("w-full", variant !== "section" && "mt-4")}>
         {children}
       </div>

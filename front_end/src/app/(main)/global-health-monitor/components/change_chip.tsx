@@ -1,10 +1,6 @@
 "use client";
 
-import {
-  faArrowDown,
-  faArrowUp,
-  faEquals,
-} from "@fortawesome/free-solid-svg-icons";
+import { faArrowDown, faArrowUp } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useTranslations } from "next-intl";
 
@@ -31,13 +27,11 @@ export function ChangeChip({
   className?: string;
 }) {
   const t = useTranslations();
-  const isSteady = change.direction === "steady";
-  const icon =
-    change.direction === "up"
-      ? faArrowUp
-      : change.direction === "down"
-        ? faArrowDown
-        : faEquals;
+
+  // Only movement is worth a chip.
+  if (change.direction === "steady") {
+    return null;
+  }
 
   return (
     <span
@@ -51,14 +45,15 @@ export function ChangeChip({
       }
       className={cn(
         "inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-sm px-1.5 py-0.5 text-xs font-medium leading-4",
-        isSteady
-          ? "bg-gray-200 text-gray-700 dark:bg-gray-200-dark dark:text-gray-700-dark"
-          : SENTIMENT_CLASS_NAMES[change.sentiment],
+        SENTIMENT_CLASS_NAMES[change.sentiment],
         className
       )}
     >
-      <FontAwesomeIcon icon={icon} className="size-2.5" />
-      {isSteady ? t("globalHealthMonitorSteady") : change.text}
+      <FontAwesomeIcon
+        icon={change.direction === "up" ? faArrowUp : faArrowDown}
+        className="size-2.5"
+      />
+      {change.text}
     </span>
   );
 }

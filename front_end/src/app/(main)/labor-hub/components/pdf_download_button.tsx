@@ -17,9 +17,12 @@ export type HubPdf = { url: string; fileName: string };
 
 export function PdfDownloadButton({
   pdf,
+  labelled = false,
   className,
 }: {
   pdf: HubPdf;
+  /** A regular button with a "Download PDF" label instead of the icon-only one. */
+  labelled?: boolean;
   className?: string;
 }) {
   const t = useTranslations();
@@ -70,6 +73,29 @@ export function PdfDownloadButton({
     }
   }, [isDownloading, pdf, t]);
 
+  const icon = isDownloading ? (
+    <LoadingSpinner size="sm" className="w-3" />
+  ) : (
+    <FontAwesomeIcon icon={faFilePdf} />
+  );
+
+  if (labelled) {
+    return (
+      <Button
+        type="button"
+        variant="tertiary"
+        size="md"
+        aria-busy={isDownloading}
+        disabled={isDownloading}
+        onClick={handleDownload}
+        className={className}
+      >
+        {icon}
+        {isDownloading ? t("hubDownloadingPdf") : t("hubDownloadPdf")}
+      </Button>
+    );
+  }
+
   return (
     <Button
       type="button"
@@ -82,11 +108,7 @@ export function PdfDownloadButton({
       onClick={handleDownload}
       className={cn(hubActionButtonClassName, className)}
     >
-      {isDownloading ? (
-        <LoadingSpinner size="sm" className="w-3" />
-      ) : (
-        <FontAwesomeIcon icon={faFilePdf} />
-      )}
+      {icon}
     </Button>
   );
 }

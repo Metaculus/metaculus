@@ -128,22 +128,35 @@ export function formatInlineInterval(interval: string) {
   return `50% prediction interval: ${interval}`;
 }
 
-// Edition slugs are YYYY-MM-DD dates.
-export function editionDate(slug: string) {
-  return new Date(`${slug}T00:00:00Z`);
+// Edition slugs are YYYY-MM months.
+function editionMonth(slug: string) {
+  return new Date(`${slug}-01T00:00:00Z`);
 }
 
-export function formatEditionDate(
-  slug: string,
-  locale = PROSE_LOCALE,
-  withYear = true
-) {
+export function formatEditionLabel(slug: string, locale = PROSE_LOCALE) {
+  return new Intl.DateTimeFormat(locale, {
+    timeZone: "UTC",
+    month: "long",
+    year: "numeric",
+  }).format(editionMonth(slug));
+}
+
+// Month name for English prose, e.g. "+29% since August".
+export function formatEditionMonth(slug: string) {
+  return new Intl.DateTimeFormat(PROSE_LOCALE, {
+    timeZone: "UTC",
+    month: "long",
+  }).format(editionMonth(slug));
+}
+
+// Source and comment dates (YYYY-MM-DD).
+export function formatIsoDate(date: string, locale = PROSE_LOCALE) {
   return new Intl.DateTimeFormat(locale, {
     timeZone: "UTC",
     month: "short",
     day: "numeric",
-    ...(withYear ? { year: "numeric" } : {}),
-  }).format(editionDate(slug));
+    year: "numeric",
+  }).format(new Date(`${date}T00:00:00Z`));
 }
 
 export function formatTimestamp(timestampSeconds: number, locale: string) {

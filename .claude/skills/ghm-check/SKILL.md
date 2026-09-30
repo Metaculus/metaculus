@@ -7,7 +7,7 @@ description: Check that the latest Global Health Monitor edition's wording still
 
 Only the latest edition is in scope: the first entry of `EDITIONS` in `front_end/src/app/(main)/global-health-monitor/editions/index.ts`. Forecast numbers are live tokens and `<Trend>` wording updates itself, so only hand-written interpretation can drift.
 
-1. Run `cd front_end && bun run ghm:inputs --since <latest edition date>` (needs `METACULUS_API_TOKEN`) and read `front_end/.ghm/inputs.md`.
+1. Run `cd front_end && bun run ghm:inputs --since <latest edition's asOf date, YYYY-MM-DD>` (needs `METACULUS_API_TOKEN`) and read `front_end/.ghm/inputs.md`.
 2. Read the latest edition file. For every sentence that interprets a forecast, compare it with the current values and changes:
    - fixed directions or sizes ("rose", "fell", "steady", "doubled", "sharp") against the change since the previous edition;
    - rankings and comparisons between values;
