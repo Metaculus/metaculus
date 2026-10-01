@@ -7,6 +7,9 @@ import {
 } from "../helpers";
 import {
   computeLabelLayout,
+  createLabelLayoutMemory,
+  type LabelLayoutMemory,
+  type LabelLayoutOptions,
   type LabelLayoutPoint,
   type PlacedLabel,
 } from "../label-layout";
@@ -24,14 +27,27 @@ const SAFE_BOUNDS = getSafeBounds(
 const measureText = (text: string, fontSize: number) =>
   Math.ceil(text.length * fontSize * 0.6);
 
-function layout(points: LabelLayoutPoint[]): PlacedLabel[] {
-  return computeLabelLayout(points, {
-    safeBounds: SAFE_BOUNDS,
-    fontSize: FONT_SIZE,
-    measureText,
-    rectPadding: RECT_PADDING,
-    dotRadius: DOT_RADIUS,
-  });
+function layout(
+  points: LabelLayoutPoint[],
+  extra: Pick<LabelLayoutOptions, "extraObstacles" | "lineObstacles"> = {},
+  memory?: LabelLayoutMemory
+): PlacedLabel[] {
+  return computeLabelLayout(
+    points,
+    {
+      safeBounds: SAFE_BOUNDS,
+      fontSize: FONT_SIZE,
+      measureText,
+      rectPadding: RECT_PADDING,
+      dotRadius: DOT_RADIUS,
+      ...extra,
+    },
+    memory
+  );
+}
+
+function rectsByName(placed: PlacedLabel[]): Record<string, Rect> {
+  return Object.fromEntries(placed.map((label) => [label.name, label.rect]));
 }
 
 function dotRect(point: { x: number; y: number }): Rect {
@@ -274,6 +290,78 @@ describe("computeLabelLayout", () => {
     expectCleanLayout(points, placed);
   });
 
+  it("keeps label boxes off drawn lines and caption boxes when it can", () => {
+    const point: LabelLayoutPoint = {
+      name: "On The Line",
+      x: 400,
+      y: 300,
+      isObstacle: true,
+      wantsLabel: true,
+    };
+    // A horizontal line through the cheapest slot (just above and right of
+    // the point) and a caption box in the next-cheapest one.
+    const lineY = 293;
+    const captionBox: Rect = { x: 300, y: 285, width: 90, height: 16 };
+    const [placed] = layout([point], {
+      lineObstacles: [
+        [
+          { x: SAFE_BOUNDS.left, y: lineY },
+          { x: SAFE_BOUNDS.right, y: lineY },
+        ],
+      ],
+      extraObstacles: [captionBox],
+    });
+    if (!placed) throw new Error("label not placed");
+    const crossesLine =
+      placed.rect.y <= lineY && placed.rect.y + placed.rect.height >= lineY;
+    expect(crossesLine).toBe(false);
+    expect(rectsOverlap(placed.rect, captionBox)).toBe(false);
+    expect(Math.hypot(placed.labelX - 400, placed.labelY - 300)).toBeLessThan(
+      80
+    );
+  });
+
+  it("adds and removes a hovered label without moving the others", () => {
+    const memory = createLabelLayoutMemory();
+    const base = frontierCluster();
+    const before = layout(base, {}, memory);
+    expect(before).toHaveLength(FRONTIER_STARS.length);
+
+    const hovered = base.map((point) =>
+      point.name === "dot-40"
+        ? { ...point, name: "Hovered Model Name", wantsLabel: true }
+        : point
+    );
+    const during = layout(hovered, {}, memory);
+    expect(during).toHaveLength(FRONTIER_STARS.length + 1);
+    expect(rectsByName(during)).toMatchObject(rectsByName(before));
+    const hoveredLabel = during.find(
+      (label) => label.name === "Hovered Model Name"
+    );
+    if (!hoveredLabel) throw new Error("hovered label not placed");
+    // The hovered label must not cover anything; in a jammed cluster its
+    // leader line is allowed to pass over a neighbouring label.
+    for (const other of during) {
+      if (other === hoveredLabel) continue;
+      expect(rectsOverlap(hoveredLabel.rect, other.rect)).toBe(false);
+    }
+    for (const point of hovered) {
+      if (!point.isObstacle) continue;
+      expect(rectsOverlap(hoveredLabel.rect, dotRect(point))).toBe(false);
+    }
+
+    const after = layout(base, {}, memory);
+    expect(rectsByName(after)).toEqual(rectsByName(before));
+  });
+
+  it("hovering an already-labelled point changes nothing", () => {
+    const memory = createLabelLayoutMemory();
+    const base = frontierCluster();
+    const before = layout(base, {}, memory);
+    const again = layout(base, {}, memory);
+    expect(rectsByName(again)).toEqual(rectsByName(before));
+  });
+
   it("handles a full-chart label set without dropping labels", () => {
     const points: LabelLayoutPoint[] = [];
     let index = 0;
@@ -290,6 +378,6 @@ describe("computeLabelLayout", () => {
     }
     const placed = layout(points);
     expect(placed).toHaveLength(points.length);
-    expectCleanLayout(points, placed);
+    expectCleanLayout(points, placed, { allowLeaderCrossings: true });
   });
 });

@@ -1,9 +1,15 @@
-import { memo } from "react";
+import { memo, useMemo } from "react";
 
 import { METAC_COLORS } from "@/constants/colors";
 
-import { getSafeBounds } from "./helpers";
-import { computeLabelLayout, type LabelLayoutPoint } from "./label-layout";
+import { getSafeBounds, type Rect } from "./helpers";
+import {
+  computeLabelLayout,
+  createLabelLayoutMemory,
+  type LabelLayoutMemory,
+  type LabelLayoutPoint,
+  type LineObstacle,
+} from "./label-layout";
 
 const LABEL_FONT_FAMILY = "system-ui, sans-serif";
 const LABEL_FONT_WEIGHT = 500;
@@ -11,17 +17,29 @@ const LABEL_STROKE_WIDTH = 2.5;
 const LABEL_EDGE_PADDING = 6;
 const LABEL_RECT_PADDING = LABEL_STROKE_WIDTH + 1;
 const DOT_OBSTACLE_RADIUS = 6;
+// Must match how the chart positions its reference-line captions.
+const REFERENCE_LABEL_FONT_WEIGHT = 600;
+const REFERENCE_LABEL_DX = 2;
+const REFERENCE_LABEL_DY = -6;
 
 const labelMeasureCanvas =
   typeof document !== "undefined" ? document.createElement("canvas") : null;
 
-function measureLabelText(text: string, fontSize: number): number {
+function measureText(
+  text: string,
+  fontSize: number,
+  fontWeight: number
+): number {
   const avgCharWidth = fontSize * 0.6;
   if (!labelMeasureCanvas) return Math.ceil(text.length * avgCharWidth);
   const ctx = labelMeasureCanvas.getContext("2d");
   if (!ctx) return Math.ceil(text.length * avgCharWidth);
-  ctx.font = `${LABEL_FONT_WEIGHT} ${fontSize}px ${LABEL_FONT_FAMILY}`;
+  ctx.font = `${fontWeight} ${fontSize}px ${LABEL_FONT_FAMILY}`;
   return Math.ceil(ctx.measureText(text).width);
+}
+
+function measureLabelText(text: string, fontSize: number): number {
+  return measureText(text, fontSize, LABEL_FONT_WEIGHT);
 }
 
 type Padding = { top: number; bottom: number; left: number; right: number };
@@ -41,6 +59,10 @@ type CollisionAwareLabelsProps = {
   }>;
   xDomain: [number, number];
   yDomain: [number, number];
+  // Data-space endpoints of the trend line, or empty when there is none.
+  trendLine: Array<{ x: number; y: number }>;
+  // Horizontal reference lines, each captioned at its right end.
+  referenceLines: Array<{ y: number; label: string }>;
   colorForFamily: (family: string) => string;
   getThemeColor: (color: { DEFAULT: string; dark: string }) => string;
   padding: Padding;
@@ -52,7 +74,9 @@ type CollisionAwareLabelsProps = {
 
 // Renders model-name labels as a VictoryChart child. Pixel positions are
 // recomputed here from the domain because Victory does not pass its scale to
-// arbitrary children. Memoized so the layout only reruns when inputs change.
+// arbitrary children. Memoized so the layout only reruns when inputs change,
+// and label positions are remembered across renders so hovering a point adds
+// one label without moving the others.
 export const CollisionAwareLabels = memo(function CollisionAwareLabels(
   props: CollisionAwareLabelsProps
 ) {
@@ -60,6 +84,8 @@ export const CollisionAwareLabels = memo(function CollisionAwareLabels(
     data,
     xDomain,
     yDomain,
+    trendLine,
+    referenceLines,
     colorForFamily,
     getThemeColor,
     padding,
@@ -68,6 +94,12 @@ export const CollisionAwareLabels = memo(function CollisionAwareLabels(
     domainPadding,
     labelFontSize,
   } = props;
+  // Remembered label positions only stay valid while the pixel geometry does.
+  const layoutMemory: LabelLayoutMemory = useMemo(
+    () => createLabelLayoutMemory(),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [chartWidth, chartHeight, labelFontSize, xDomain.join(), yDomain.join()]
+  );
   if (!data || data.length === 0) return null;
 
   const plotWidth = chartWidth - padding.left - padding.right;
@@ -113,13 +145,48 @@ export const CollisionAwareLabels = memo(function CollisionAwareLabels(
     };
   });
 
-  const placedLabels = computeLabelLayout(layoutPoints, {
-    safeBounds,
-    fontSize: labelFontSize,
-    measureText: measureLabelText,
-    rectPadding: LABEL_RECT_PADDING,
-    dotRadius: DOT_OBSTACLE_RADIUS,
+  const plotLeft = scaleX(xDomain[0]);
+  const plotRight = scaleX(xDomain[1]);
+  const lineObstacles: LineObstacle[] = referenceLines.map((line) => [
+    { x: plotLeft, y: scaleY(line.y) },
+    { x: plotRight, y: scaleY(line.y) },
+  ]);
+  const [trendStart, trendEnd] = trendLine;
+  if (trendStart && trendEnd) {
+    lineObstacles.push([
+      { x: scaleX(trendStart.x), y: scaleY(trendStart.y) },
+      { x: scaleX(trendEnd.x), y: scaleY(trendEnd.y) },
+    ]);
+  }
+  const referenceCaptionRects: Rect[] = referenceLines.map((line) => {
+    const width = measureText(
+      line.label,
+      labelFontSize,
+      REFERENCE_LABEL_FONT_WEIGHT
+    );
+    const right = plotRight + REFERENCE_LABEL_DX;
+    const centerY = scaleY(line.y) + REFERENCE_LABEL_DY;
+    return {
+      x: right - width,
+      y: centerY - labelFontSize / 2,
+      width,
+      height: labelFontSize,
+    };
   });
+
+  const placedLabels = computeLabelLayout(
+    layoutPoints,
+    {
+      safeBounds,
+      fontSize: labelFontSize,
+      measureText: measureLabelText,
+      rectPadding: LABEL_RECT_PADDING,
+      dotRadius: DOT_OBSTACLE_RADIUS,
+      extraObstacles: referenceCaptionRects,
+      lineObstacles,
+    },
+    layoutMemory
+  );
 
   const outlineColor = getThemeColor(METAC_COLORS.gray[0]);
 
