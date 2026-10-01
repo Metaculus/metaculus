@@ -14,6 +14,11 @@ urlpatterns = [
         name="create-withdraw",
     ),
     path(
+        "questions/bulk-forecast-comment/",
+        views.bulk_forecast_and_comment_api_view,
+        name="bulk-forecast-comment",
+    ),
+    path(
         "questions/<int:pk>/", views.question_detail_api_view, name="question-details"
     ),
     path(

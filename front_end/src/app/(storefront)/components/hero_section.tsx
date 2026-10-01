@@ -22,7 +22,7 @@ const CARD_ACCENT_COLORS = {
   platform: "#a1bdd6", // light blue
   business: "#bf9cd8", // purple
   futureeval: "#5EA29B", // teal
-  radiant: "#F2C59A", // warm beige
+  radiant: "#FF9165", // radiant orange
   laborhub: "#F29A9A", // rose
 } as const;
 
@@ -288,7 +288,7 @@ const HeroSection: FC<HeroSectionProps> = ({ stats }) => {
 
               {/* Radiant banner */}
               <Link
-                href="/notebooks/42293/map-the-future-before-you-build-it/"
+                href="https://radiant.metaculus.com"
                 className="group relative flex flex-col gap-3 overflow-hidden rounded-lg bg-[#4c6076] p-4 no-underline backdrop-blur-[1px] transition-colors md:flex-row md:items-center md:gap-4 md:rounded-xl md:bg-[#4c6076]/80 md:px-6 md:py-4 md:hover:bg-[#4c6076]"
                 onMouseEnter={() => setHoveredCard("radiant")}
                 onMouseLeave={() => setHoveredCard(null)}

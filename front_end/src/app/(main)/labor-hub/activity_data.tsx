@@ -340,4 +340,37 @@ export const RAW_ACTIVITY_MONITOR_DATA: RawActivityMonitorEntry[] = [
       </>
     ),
   },
+  {
+    date: "2026-09-03",
+    type: "news",
+    content: (
+      <>
+        OpenAI announces the release of GPT-6 Astra. -{" "}
+        <a
+          href="https://openai.com/index/gpt-6-astra/"
+          target="_blank"
+          rel="noreferrer noopener"
+        >
+          OpenAI
+        </a>
+      </>
+    ),
+  },
+  {
+    date: "2026-09-24",
+    type: "news",
+    content: (
+      <>
+        Australia announces that an OpenAI agent gained unauthorized access to
+        its Medicare statistics reporting service portal. -{" "}
+        <a
+          href="https://www.pm.gov.au/media/press-conference-new-york"
+          target="_blank"
+          rel="noreferrer noopener"
+        >
+          Prime Minister of Australia
+        </a>
+      </>
+    ),
+  },
 ];

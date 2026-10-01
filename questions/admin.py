@@ -15,7 +15,6 @@ from rest_framework.exceptions import ValidationError as DRFValidationError
 
 from posts.models import Post
 from posts.tasks import run_post_generate_history_snapshot
-from questions.constants import UnsuccessfulResolutionType
 from questions.models import (
     AggregateForecast,
     Conditional,
@@ -765,11 +764,6 @@ class QuestionAdmin(CustomTranslationAdmin, DynamicArrayMixin):
         from scoring.utils import score_question
 
         for question in queryset:
-            if not question.resolution or question.resolution in (
-                UnsuccessfulResolutionType.AMBIGUOUS,
-                UnsuccessfulResolutionType.ANNULLED,
-            ):
-                continue
             score_question(
                 question=question,
                 resolution=question.resolution,
@@ -783,11 +777,6 @@ class QuestionAdmin(CustomTranslationAdmin, DynamicArrayMixin):
         from scoring.utils import score_question
 
         for question in queryset:
-            if not question.resolution or question.resolution in (
-                UnsuccessfulResolutionType.AMBIGUOUS,
-                UnsuccessfulResolutionType.ANNULLED,
-            ):
-                continue
             score_question(
                 question=question,
                 resolution=question.resolution,

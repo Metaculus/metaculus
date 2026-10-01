@@ -879,23 +879,6 @@ export default function AboutPage() {
             <button className="group flex flex-col items-center justify-start rounded-lg px-5 py-4 hover:bg-gray-0 hover:shadow-lg focus-visible:bg-gray-0 active:shadow-md hover:dark:bg-gray-900 focus-visible:dark:bg-gray-900">
               <div className="relative size-24 overflow-hidden rounded-full bg-[url('(main)/about/img/person.webp')] bg-cover md:size-44">
                 <Image
-                  alt="Carroll “Max” Wainwright"
-                  className="size-full rounded-full object-cover"
-                  src="https://cdn.metaculus.com/about/carroll_wainwright.webp"
-                  fill
-                  sizes="(min-width: 768px) 176px, 96px"
-                />
-              </div>
-              <h3 className="mb-1 mt-6 text-xl font-bold leading-tight text-blue-900 dark:text-blue-100">
-                Carroll “Max” Wainwright
-              </h3>
-              <p className="my-1 text-base leading-tight text-blue-700 dark:text-blue-500">
-                Fundador e AI Advisor
-              </p>
-            </button>
-            <button className="group flex flex-col items-center justify-start rounded-lg px-5 py-4 hover:bg-gray-0 hover:shadow-lg focus-visible:bg-gray-0 active:shadow-md hover:dark:bg-gray-900 focus-visible:dark:bg-gray-900">
-              <div className="relative size-24 overflow-hidden rounded-full bg-[url('(main)/about/img/person.webp')] bg-cover md:size-44">
-                <Image
                   alt="David Levine"
                   className="object-cover"
                   src="https://cdn.metaculus.com/about/david_levine.webp"

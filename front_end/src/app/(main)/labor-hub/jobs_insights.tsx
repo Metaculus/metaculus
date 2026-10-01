@@ -9,18 +9,17 @@ export const JOBS_INSIGHTS = {
     negative: (
       <>
         By 2027, <strong>designers</strong> and{" "}
-        <strong>services sales representatives</strong> are expected to see
-        early declines as AI begins to automate creative work and outreach
-        tasks.
+        <strong>software developers</strong> are expected to see early declines
+        as AI begins to automate creative and coding work.
       </>
     ),
   },
   "2030": {
     positive: (
       <>
-        By 2030, <strong>nurses</strong>, <strong>physicians</strong>, and{" "}
-        <strong>construction workers</strong> are expected to see the largest
-        gains, driven by an aging population&apos;s growing healthcare needs and
+        By 2030, <strong>nurses</strong>, <strong>construction workers</strong>,
+        and <strong>physicians</strong> are expected to see the largest gains,
+        driven by an aging population&apos;s growing healthcare needs and
         continued infrastructure buildouts that AI is unlikely to fully displace
         in the short term.
       </>
@@ -47,9 +46,9 @@ export const JOBS_INSIGHTS = {
     ),
     negative: (
       <>
-        By 2035, <strong>lawyers and law clerks</strong>,{" "}
-        <strong>financial specialists</strong>, and{" "}
-        <strong>software developers</strong> are expected to see sharp staff
+        By 2035, <strong>financial specialists</strong>,{" "}
+        <strong>software developers</strong>, and{" "}
+        <strong>lawyers and law clerks</strong> are expected to see sharp staff
         reductions as AI takes over legal research, analysis, and coding work.{" "}
         <strong>Sales representatives</strong> will also see reductions as AI
         automates outreach work.
