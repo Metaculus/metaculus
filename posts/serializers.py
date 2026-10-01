@@ -101,6 +101,7 @@ class PostReadSerializer(serializers.ModelSerializer):
             "open_time",
             "nr_forecasters",
             "html_metadata_json",
+            "is_pinned",
         )
 
     def get_author_username(self, obj: Post):
