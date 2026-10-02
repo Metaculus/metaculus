@@ -24,7 +24,10 @@ import { NoQuestionPlaceholder } from "./placeholder";
 import { QuestionCard, QuestionCardSkeleton } from "./question_card";
 import { fetchLaborHubPost } from "../../helpers/labor_hub_posts";
 
-function getLeftIcon(postData: PostWithForecasts, subQuestionId?: number) {
+export function getLeftIcon(
+  postData: PostWithForecasts,
+  subQuestionId?: number
+) {
   if (isMultipleChoicePost(postData) && !subQuestionId) {
     return faChartBar;
   }
@@ -62,7 +65,10 @@ function getLeftIcon(postData: PostWithForecasts, subQuestionId?: number) {
   return faTable;
 }
 
-function getRightIcon(postData: PostWithForecasts, subQuestionId?: number) {
+export function getRightIcon(
+  postData: PostWithForecasts,
+  subQuestionId?: number
+) {
   if (isMultipleChoicePost(postData) && !subQuestionId) {
     return faChartArea;
   }
