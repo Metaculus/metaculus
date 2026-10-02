@@ -176,6 +176,29 @@ class PostUpdateSerializer(PostWriteSerializer):
     group_of_questions = GroupOfQuestionsUpdateSerializer(required=False)
 
 
+class PostAuthorOverrideSerializer(serializers.Serializer):
+    author_id = serializers.IntegerField(required=False, allow_null=True)
+    author_username = serializers.CharField(required=False, allow_null=True)
+    is_staff_override = serializers.BooleanField(required=False, default=False)
+
+    def validate(self, attrs: dict) -> dict:
+        has_author = (
+            attrs.get("author_id") is not None
+            or attrs.get("author_username") is not None
+        )
+
+        if attrs["is_staff_override"] and not has_author:
+            raise ValidationError(
+                "Either author_id or author_username must be provided."
+            )
+        if has_author and not attrs["is_staff_override"]:
+            raise ValidationError(
+                "is_staff_override must be true to set author_id or author_username."
+            )
+
+        return attrs
+
+
 class PostFilterSerializer(SerializerKeyLookupMixin, serializers.Serializer):
     class Order(models.TextChoices):
         PUBLISHED_AT = "published_at"
