@@ -3,6 +3,7 @@ import {
   Duration,
   intlFormat,
   intlFormatDistance,
+  type IntlFormatDistanceOptions,
 } from "date-fns";
 import { es, cs, pt, zhTW, zhCN, enUS } from "date-fns/locale";
 
@@ -92,7 +93,7 @@ export function formatDate(locale: string, date: Date) {
   return intlFormat(
     new Date(date),
     { year: "numeric", month: "short", day: "numeric" },
-    { locale }
+    { locale: normalizeIntlLocale(locale) }
   );
 }
 
@@ -106,7 +107,7 @@ export function formatDatetime(locale: string, date: Date) {
       hour: "numeric",
       minute: "numeric",
     },
-    { locale }
+    { locale: normalizeIntlLocale(locale) }
   );
 }
 
@@ -133,7 +134,7 @@ export function formatRelativeDate(
   let dateStr: string = "";
   if (Math.abs(delta) < relCutoff) {
     dateStr = intlFormatDistance(date, now, {
-      locale,
+      locale: normalizeIntlLocale(locale),
       numeric: "always",
       style: short ? "short" : "long",
     });
@@ -187,6 +188,47 @@ export function formatDurationToShortStr(duration: Duration): string {
     str += duration.seconds + "s";
   }
   return str;
+}
+
+/**
+ * Normalizes the app locale for use with the browser's Intl API.
+ * The "original" locale (Untranslated mode) is not a valid BCP 47 tag,
+ * so it falls back to the OS language. This maps it to "en" instead.
+ */
+export function normalizeIntlLocale(locale: string): string {
+  return locale === "original" ? "en" : locale;
+}
+
+/**
+ * Wrapper around date-fns `intlFormat` that normalizes the locale.
+ * Prefer this over calling `intlFormat` directly so Untranslated mode
+ * (`"original"` locale) is handled consistently.
+ */
+export function formatIntlDate(
+  locale: string,
+  date: Date | number | string,
+  formatOptions?: Intl.DateTimeFormatOptions
+): string {
+  return intlFormat(date, formatOptions ?? {}, {
+    locale: normalizeIntlLocale(locale),
+  });
+}
+
+/**
+ * Wrapper around date-fns `intlFormatDistance` that normalizes the locale.
+ * Prefer this over calling `intlFormatDistance` directly so Untranslated mode
+ * (`"original"` locale) is handled consistently.
+ */
+export function formatIntlDistance(
+  locale: string,
+  date: Date | number | string,
+  baseDate: Date | number | string,
+  options?: Omit<IntlFormatDistanceOptions, "locale">
+): string {
+  return intlFormatDistance(date, baseDate, {
+    ...options,
+    locale: normalizeIntlLocale(locale),
+  });
 }
 
 export const getDateFnsLocale = (locale: string) => {

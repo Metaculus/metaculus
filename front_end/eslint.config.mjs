@@ -64,6 +64,25 @@ const eslintConfig = [
           },
         },
       ],
+      "no-restricted-imports": [
+        "error",
+        {
+          paths: [
+            {
+              name: "date-fns",
+              importNames: ["intlFormat", "intlFormatDistance"],
+              message:
+                "Use formatIntlDate / formatIntlDistance from @/utils/formatters/date so the 'original' locale (Untranslated mode) is normalized for Intl APIs.",
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    files: ["src/utils/formatters/date.ts"],
+    rules: {
+      "no-restricted-imports": "off",
     },
   },
   {
