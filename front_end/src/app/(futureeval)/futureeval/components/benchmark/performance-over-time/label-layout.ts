@@ -737,7 +737,9 @@ export function computeLabelLayout(
     const rememberedPlacement = remembered
       ? candidates.find((candidate) => sameRect(candidate.rect, remembered))
       : undefined;
-    if (rememberedPlacement) {
+    // A remembered slot is only kept while it is still clear of fixed
+    // obstacles; a newly hovered dot can appear underneath it.
+    if (rememberedPlacement && !rememberedPlacement.overlapsObstacle) {
       pinned.push({ point, candidates, placement: rememberedPlacement });
     } else {
       fresh.push({ point, candidates, placement: first });

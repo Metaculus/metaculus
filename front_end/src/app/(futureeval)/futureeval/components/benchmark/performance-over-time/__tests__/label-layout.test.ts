@@ -354,6 +354,34 @@ describe("computeLabelLayout", () => {
     expect(rectsByName(after)).toEqual(rectsByName(before));
   });
 
+  it("re-places a remembered label when a new obstacle appears under it", () => {
+    const memory = createLabelLayoutMemory();
+    const labelled: LabelLayoutPoint = {
+      name: "Remembered",
+      x: 400,
+      y: 300,
+      isObstacle: true,
+      wantsLabel: true,
+    };
+    const [before] = layout([labelled], {}, memory);
+    if (!before) throw new Error("label not placed");
+
+    // A point that was faded out (not an obstacle) becomes highlighted on
+    // hover, right where the remembered label box sits.
+    const revealed: LabelLayoutPoint = {
+      name: "Revealed",
+      x: before.rect.x + before.rect.width / 2,
+      y: before.rect.y + before.rect.height / 2,
+      isObstacle: true,
+      wantsLabel: false,
+    };
+    const placed = layout([labelled, revealed], {}, memory);
+    const after = placed.find((label) => label.name === "Remembered");
+    if (!after) throw new Error("label not placed");
+    expect(rectsOverlap(after.rect, dotRect(revealed))).toBe(false);
+    expect(after.rect).not.toEqual(before.rect);
+  });
+
   it("hovering an already-labelled point changes nothing", () => {
     const memory = createLabelLayoutMemory();
     const base = frontierCluster();
