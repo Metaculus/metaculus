@@ -132,6 +132,15 @@ export enum CommunitySettingsMode {
   Settings = "settings",
 }
 
+/**
+ * Minimal project shape served by /projects/sitemap/ — only what getProjectLink
+ * needs to derive a URL.
+ */
+export type SitemapProject = Pick<Project, "id" | "slug"> & {
+  type: TournamentType;
+  lastmod: string | null;
+};
+
 export enum BotLeaderboardStatus {
   ExcludeAndHide = "exclude_and_hide",
   ExcludeAndShow = "exclude_and_show",

@@ -3,6 +3,7 @@ from django.urls import path, include
 from . import views
 
 urlpatterns = [
+    path("sitemap/", views.sitemap_api_view, name="sitemap"),
     path("ad-tiles/", views.ad_tiles_api_view, name="ad-tiles"),
     path(
         "ad-tiles/<str:dismiss_id>/dismiss/",

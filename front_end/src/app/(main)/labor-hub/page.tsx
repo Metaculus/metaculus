@@ -198,8 +198,8 @@ export default function LaborAutomationHubPage() {
               </span>
               , <strong>median wages are expected to grow.</strong> The workweek
               is also expected to become{" "}
-              <strong>about two hours shorter by 2035</strong> among all
-              workers, while productivity grows.
+              <strong>about an hour shorter by 2035</strong> among all workers,
+              while productivity grows.
             </ContentParagraph>
             <ContentParagraph>
               Lower income households are expected to see their government
