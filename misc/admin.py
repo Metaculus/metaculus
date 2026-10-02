@@ -6,6 +6,7 @@ from .models import (
     AdTile,
     Bulletin,
     SidebarItem,
+    UserApiAccess,
     UserDataAccess,
     default_ad_tile_placements,
 )
@@ -138,6 +139,98 @@ class SidebarItemAdmin(admin.ModelAdmin):
 
 @admin.register(UserDataAccess)
 class UserDataAccessAdmin(admin.ModelAdmin):
-    list_display = ("user", "created_at", "project", "post")
+    list_display = (
+        "user",
+        "created_at",
+        "project",
+        "post",
+        "view_user_data",
+        "view_deanonymized_data",
+    )
+    list_filter = ("view_user_data", "view_deanonymized_data")
+    list_select_related = ("user", "project", "post")
     search_fields = ("user__username", "user__email", "project__name", "post__title")
     autocomplete_fields = ("user", "project", "post")
+    fieldsets = (
+        (
+            None,
+            {
+                "description": (
+                    "<p>Whitelists a user to read <strong>user-level</strong> data they "
+                    "could not otherwise see - that is, who forecast what, rather than "
+                    "the aggregate. Entries are purely additive: an entry only widens "
+                    "what its user can read, and a user with no entry gets the default "
+                    "aggregated, anonymized data.</p>"
+                    "<p>This does <strong>not</strong> set a user's API access level. "
+                    "That lives in <em>User api accesses</em>, and the two are "
+                    "independent: a level there decides which fields and endpoints are "
+                    "exposed, while an entry here decides whether the rows behind them "
+                    "name real forecasters.</p>"
+                ),
+                "fields": (
+                    "user",
+                    "project",
+                    "post",
+                    "view_user_data",
+                    "view_deanonymized_data",
+                    "notes",
+                ),
+            },
+        ),
+    )
+
+
+@admin.register(UserApiAccess)
+class UserApiAccessAdmin(admin.ModelAdmin):
+    list_display = ("user", "access_level", "scope", "created_at")
+    list_filter = ("access_level",)
+    list_select_related = ("user", "project")
+    search_fields = ("user__username", "user__email", "project__name")
+    autocomplete_fields = ("user", "project")
+    fieldsets = (
+        (
+            None,
+            {
+                "description": (
+                    "<p>Raises the API access level granted to a user by the "
+                    "<strong>external API gateway</strong> that Metaculus runs in front "
+                    "of this backend. Nothing in this application reads these entries "
+                    "to make an access decision - they are serialized to the gateway, "
+                    "and the gateway decides what a request may read. A deployment "
+                    "without such a gateway can ignore this model entirely; adding "
+                    "entries there changes nothing.</p>"
+                    "<p><strong>How a level is resolved</strong></p>"
+                    "<ul>"
+                    "<li>A user with <em>no entry</em> is <code>restricted</code>, the "
+                    "default. There is deliberately no stored <code>restricted</code> "
+                    "level, because a grant conferring it would mean nothing - to "
+                    "restrict a user, delete their entry.</li>"
+                    "<li>An entry with <em>no project</em> is global: it applies to "
+                    "every request that user makes.</li>"
+                    "<li>An entry <em>with</em> a project applies only to data "
+                    "belonging to that project.</li>"
+                    "<li>The most permissive applicable level wins, so a project entry "
+                    "can only ever widen a global one. A user who is globally "
+                    "<code>benchmarking</code> and <code>unrestricted</code> on one "
+                    "project is <code>unrestricted</code> there and "
+                    "<code>benchmarking</code> everywhere else.</li>"
+                    "<li>Staff are treated as <code>unrestricted</code> by the gateway "
+                    "regardless of what is recorded here.</li>"
+                    "</ul>"
+                    "<p><strong>What the levels mean</strong> is defined by the "
+                    "gateway, not here. Today <code>benchmarking</code> additionally "
+                    "exposes community predictions and question text for the project it "
+                    "is scoped to, plus that project's data exports, while "
+                    "<code>unrestricted</code> lifts the gateway's restrictions "
+                    "altogether. Read access to user-level data is a separate axis, "
+                    "granted under <em>User data accesses</em>; a level here never "
+                    "reveals another forecaster's identity.</p>"
+                ),
+                "fields": ("user", "project", "access_level", "notes"),
+            },
+        ),
+    )
+
+    @admin.display(description="Scope", ordering="project")
+    def scope(self, obj: UserApiAccess) -> str:
+        return obj.project.name if obj.project_id else "Global"
