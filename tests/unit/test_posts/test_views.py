@@ -1,5 +1,6 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
+import pytest
 from django.utils import timezone
 from django.utils.timezone import make_aware
 from freezegun import freeze_time
@@ -659,3 +660,187 @@ class TestPostNewsHotnessBreakdown:
         data = response.json()
         assert data["news_hotness"] == 0
         assert data["articles"] == []
+
+
+class TestPostsStaffOverride:
+    list_url = reverse("post-list")
+
+    @pytest.fixture()
+    def forecast_start_time(self):
+        return timezone.now() - timedelta(days=2)
+
+    @pytest.fixture()
+    def bot_post(self, user1, metac_bot, forecast_start_time):
+        """
+        Open question in a private tournament only the metac bot can forecast in,
+        with one forecast by the bot.
+        """
+
+        question = create_question(
+            question_type=Question.QuestionType.BINARY,
+            open_time=timezone.now() - timedelta(days=10),
+            scheduled_close_time=timezone.now() + timedelta(days=10),
+        )
+        post = factory_post(
+            author=user1,
+            question=question,
+            default_project=factory_project(
+                type=Project.ProjectTypes.TOURNAMENT,
+                default_permission=None,
+                override_permissions={metac_bot.id: ObjectPermission.FORECASTER},
+            ),
+        )
+        question.user_forecasts.create(
+            author=metac_bot, probability_yes=0.6, start_time=forecast_start_time
+        )
+        PostUserSnapshot.update_last_forecast_date(post=post, user=metac_bot)
+
+        return post
+
+    def detail_url(self, post):
+        return reverse("post-detail", kwargs={"pk": post.pk})
+
+    def test_detail_as_metac_bot(
+        self,
+        transactional_db,
+        metac_bot_runner_client,
+        metac_bot,
+        bot_post,
+        forecast_start_time,
+    ):
+        response = metac_bot_runner_client.get(
+            self.detail_url(bot_post),
+            {"is_staff_override": "true", "username": metac_bot.username},
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        my_forecasts = response.data["question"]["my_forecasts"]
+        assert len(my_forecasts["history"]) == 1
+        assert my_forecasts["latest"]["start_time"] == forecast_start_time.timestamp()
+
+    def test_detail_without_override_uses_requester(
+        self, metac_bot_runner_client, bot_post
+    ):
+        response = metac_bot_runner_client.get(self.detail_url(bot_post))
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    def test_detail_does_not_widen_bot_visibility(
+        self, user1, metac_bot_runner_client, metac_bot
+    ):
+        post = factory_post(
+            author=user1,
+            default_project=factory_project(
+                type=Project.ProjectTypes.TOURNAMENT, default_permission=None
+            ),
+        )
+
+        response = metac_bot_runner_client.get(
+            self.detail_url(post),
+            {"is_staff_override": "true", "user_id": metac_bot.id},
+        )
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    def test_list_as_metac_bot(
+        self, metac_bot_runner_client, metac_bot, bot_post, forecast_start_time
+    ):
+        response = metac_bot_runner_client.get(
+            self.list_url,
+            {
+                "with_cp": "true",
+                "is_staff_override": "true",
+                "user_id": metac_bot.id,
+            },
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        results = {p["id"]: p for p in response.data["results"]}
+        assert bot_post.id in results
+        latest = results[bot_post.id]["question"]["my_forecasts"]["latest"]
+        assert latest["start_time"] == forecast_start_time.timestamp()
+
+    def test_list_forecaster_filters_as_metac_bot(
+        self, metac_bot_runner_client, metac_bot, bot_post
+    ):
+        override = {"is_staff_override": "true", "user_id": metac_bot.id}
+
+        response = metac_bot_runner_client.get(
+            self.list_url, {**override, "forecaster_id": metac_bot.id}
+        )
+        assert response.status_code == status.HTTP_200_OK
+        assert [p["id"] for p in response.data["results"]] == [bot_post.id]
+
+        response = metac_bot_runner_client.get(
+            self.list_url, {**override, "not_forecaster_id": metac_bot.id}
+        )
+        assert response.status_code == status.HTTP_200_OK
+        assert bot_post.id not in [p["id"] for p in response.data["results"]]
+
+        # Without the override, filters stay limited to the requester
+        response = metac_bot_runner_client.get(
+            self.list_url, {"forecaster_id": metac_bot.id}
+        )
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    def test_superuser_can_read_as_any_account(
+        self, user_admin_client, user2, bot_post
+    ):
+        response = user_admin_client.get(
+            self.list_url, {"is_staff_override": "true", "user_id": user2.id}
+        )
+        assert response.status_code == status.HTTP_200_OK
+
+        response = user_admin_client.get(
+            self.list_url, {"is_staff_override": "true", "user_id": 999999}
+        )
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    @pytest.mark.parametrize("endpoint", ["list", "detail"])
+    def test_denied_targets(
+        self,
+        endpoint,
+        metac_bot_runner_client,
+        user2_client,
+        user2,
+        metac_bot,
+        bot_post,
+    ):
+        url = self.list_url if endpoint == "list" else self.detail_url(bot_post)
+
+        # Runner can't act as a non-metac account, or one that doesn't exist
+        for user_id in (user2.id, 999999):
+            response = metac_bot_runner_client.get(
+                url, {"is_staff_override": "true", "user_id": user_id}
+            )
+            assert response.status_code == status.HTTP_403_FORBIDDEN
+
+        # Accounts without the capability can't use the flag
+        response = user2_client.get(
+            url, {"is_staff_override": "true", "user_id": metac_bot.id}
+        )
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    @pytest.mark.parametrize("endpoint", ["list", "detail"])
+    @pytest.mark.parametrize(
+        "params",
+        [
+            {"user_id": "{bot_id}"},
+            {"username": "metac-test-bot"},
+            {"is_staff_override": "true"},
+            {
+                "is_staff_override": "true",
+                "user_id": "{bot_id}",
+                "username": "metac-test-bot",
+            },
+        ],
+    )
+    def test_invalid_params(
+        self, endpoint, params, metac_bot_runner_client, metac_bot, bot_post
+    ):
+        url = self.list_url if endpoint == "list" else self.detail_url(bot_post)
+        params = {k: v.format(bot_id=metac_bot.id) for k, v in params.items()}
+
+        response = metac_bot_runner_client.get(url, params)
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST

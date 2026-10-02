@@ -4,6 +4,7 @@ from datetime import datetime, timezone as dt_timezone
 import pytest
 from rest_framework.reverse import reverse
 
+from comments.models import Comment
 from questions.models import Forecast, Question
 from tests.unit.test_posts.conftest import *  # noqa
 from tests.unit.test_posts.factories import factory_post
@@ -247,6 +248,85 @@ class TestBulkForecastAndComment:
             content_type="application/json",
         )
         assert response.status_code == 404
+
+    def test_runner_override_as_metac_bot(
+        self, metac_bot_runner_client, metac_bot, open_question
+    ):
+        response = metac_bot_runner_client.post(
+            URL,
+            data=json.dumps(
+                {
+                    "username": metac_bot.username,
+                    "is_staff_override": True,
+                    "forecasts": [forecast_payload(open_question)],
+                    "comments": [
+                        {
+                            "on_post": open_question.get_post().id,
+                            "text": "bot reasoning",
+                            "is_private": True,
+                            "included_forecast": True,
+                        }
+                    ],
+                }
+            ),
+            content_type="application/json",
+        )
+        assert response.status_code == 201
+        assert Forecast.objects.filter(
+            question=open_question, author=metac_bot
+        ).exists()
+        assert Comment.objects.filter(
+            author=metac_bot, on_post=open_question.get_post(), is_private=True
+        ).exists()
+
+    def test_runner_override_as_non_metac_account_denied(
+        self, metac_bot_runner_client, user2, user_bot_no_owner, open_question
+    ):
+        for target in (user2, user_bot_no_owner):
+            response = metac_bot_runner_client.post(
+                URL,
+                data=json.dumps(
+                    {
+                        "user_id": target.id,
+                        "is_staff_override": True,
+                        "forecasts": [forecast_payload(open_question)],
+                    }
+                ),
+                content_type="application/json",
+            )
+            assert response.status_code == 403
+            assert not Forecast.objects.filter(author=target).exists()
+
+    def test_runner_override_unknown_user_id_returns_403(
+        self, metac_bot_runner_client, open_question
+    ):
+        response = metac_bot_runner_client.post(
+            URL,
+            data=json.dumps(
+                {
+                    "user_id": 999999,
+                    "is_staff_override": True,
+                    "forecasts": [forecast_payload(open_question)],
+                }
+            ),
+            content_type="application/json",
+        )
+        assert response.status_code == 403
+
+    def test_runner_without_override_cannot_act_as_metac_bot(
+        self, metac_bot_runner_client, metac_bot, open_question
+    ):
+        response = metac_bot_runner_client.post(
+            URL,
+            data=json.dumps(
+                {
+                    "user_id": metac_bot.id,
+                    "forecasts": [forecast_payload(open_question)],
+                }
+            ),
+            content_type="application/json",
+        )
+        assert response.status_code == 403
 
     def test_key_factors_in_bulk_comment_returns_400(
         self, user1, user1_client, open_question

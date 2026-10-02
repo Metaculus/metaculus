@@ -18,6 +18,7 @@ from posts.services.common import get_post_permission_for_user
 from posts.utils import get_post_slug
 from projects.permissions import ObjectPermission
 from users.models import User
+from users.services.bots_management import resolve_staff_override_target
 from utils.requests import is_internal_request
 from utils.the_math.aggregations import get_aggregations_at_time
 from questions.constants import QuestionStatus
@@ -272,10 +273,10 @@ def bulk_forecast_and_comment_api_view(request):
     """
     Submits forecasts and comments in a single atomic transaction.
 
-    Superusers may submit on behalf of any user by providing user_id or username
-    and flag `is_staff_override`.
-    Non-superusers may submit as themselves or as one of their bots (identified
-    by user_id or username).
+    With flag `is_staff_override`, superusers may submit on behalf of any user,
+    and metac bot service accounts on behalf of active metac bots
+    (identified by user_id or username).
+    Without it, users may submit as themselves or as one of their bots.
     """
     serializer = BulkForecastAndCommentSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
@@ -288,14 +289,10 @@ def bulk_forecast_and_comment_api_view(request):
     is_staff_override = data.get("is_staff_override", False)
 
     request_user = request.user
-    if is_staff_override and not request_user.is_superuser:
-        raise PermissionDenied("Only superusers can use the is_staff_override flag.")
-
     if is_staff_override:
-        if user_id:
-            user = get_object_or_404(User, id=user_id)
-        else:
-            user = get_object_or_404(User, username=username)
+        user = resolve_staff_override_target(
+            request_user, user_id=user_id, username=username, path=request.path
+        )
     else:
         user = (
             User.objects.filter(id=user_id).first()

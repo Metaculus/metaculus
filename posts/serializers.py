@@ -340,6 +340,33 @@ class OldQuestionFilterSerializer(SerializerKeyLookupMixin, serializers.Serializ
         return
 
 
+class StaffOverrideQuerySerializer(serializers.Serializer):
+    is_staff_override = serializers.BooleanField(required=False, default=False)
+    user_id = serializers.IntegerField(required=False, allow_null=True, min_value=1)
+    username = serializers.CharField(required=False, allow_null=True)
+
+    def validate(self, attrs):
+        has_user_id = attrs.get("user_id") is not None
+        has_username = bool(attrs.get("username"))
+
+        if has_user_id and has_username:
+            raise serializers.ValidationError(
+                "Provide either user_id or username, not both."
+            )
+
+        if attrs["is_staff_override"] and not (has_user_id or has_username):
+            raise serializers.ValidationError(
+                "is_staff_override requires user_id or username."
+            )
+
+        if not attrs["is_staff_override"] and (has_user_id or has_username):
+            raise serializers.ValidationError(
+                "user_id and username require is_staff_override=true."
+            )
+
+        return attrs
+
+
 def serialize_post(
     post: Post,
     current_user: User = None,
