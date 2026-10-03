@@ -9,9 +9,8 @@ export const JOBS_INSIGHTS = {
     negative: (
       <>
         By 2027, <strong>designers</strong> and{" "}
-        <strong>services sales representatives</strong> are expected to see
-        early declines as AI begins to automate creative work and outreach
-        tasks.
+        <strong>software developers</strong> are expected to see early declines
+        as AI begins to automate creative and coding work.
       </>
     ),
   },
@@ -28,11 +27,11 @@ export const JOBS_INSIGHTS = {
     negative: (
       <>
         By 2030, <strong>software developers</strong>,{" "}
-        <strong>financial specialists</strong>, and{" "}
-        <strong>services sales representatives</strong> are expected to see the
-        largest declines as AI absorbs coding, rules-based analysis, and
-        customer outreach work. Software development leads the drop, with rapid
-        AI adoption and no legal protections.
+        <strong>services sales representatives</strong>, and{" "}
+        <strong>financial specialists</strong> are expected to see the largest
+        declines as AI absorbs coding, customer outreach, and rules-based
+        analysis work. Software development leads the drop, with rapid AI
+        adoption and no legal protections.
       </>
     ),
   },
@@ -48,8 +47,8 @@ export const JOBS_INSIGHTS = {
     negative: (
       <>
         By 2035, <strong>financial specialists</strong>,{" "}
-        <strong>lawyers and law clerks</strong>, and{" "}
-        <strong>software developers</strong> are expected to see sharp staff
+        <strong>software developers</strong>, and{" "}
+        <strong>lawyers and law clerks</strong> are expected to see sharp staff
         reductions as AI takes over legal research, analysis, and coding work.{" "}
         <strong>Sales representatives</strong> will also see reductions as AI
         automates outreach work.

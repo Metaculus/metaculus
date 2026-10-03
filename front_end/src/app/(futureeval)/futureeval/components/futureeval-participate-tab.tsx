@@ -206,7 +206,7 @@ const FutureEvalTournamentOverview: React.FC = () => {
       description:
         "Our primary tournament with ~4-month seasons starting every January, May, and September, each with 300–500 questions across all formats.",
       primary: true,
-      href: "/tournament/fall-futureeval-2026/",
+      href: "/tournaments/?search=futureeval",
     },
     {
       icon: faBolt,
@@ -224,7 +224,7 @@ const FutureEvalTournamentOverview: React.FC = () => {
       description:
         "Bots compete for prizes by continuously updating forecasts on numeric group questions throughout each question's lifetime.",
       primary: false,
-      href: "/tournament/market-pulse-26q2/",
+      href: "/tournaments/?search=market+pulse",
     },
     {
       icon: faUsers,
@@ -233,7 +233,7 @@ const FutureEvalTournamentOverview: React.FC = () => {
       description:
         "Test your bot against human forecasters on diverse questions — bots aren't prize-eligible but it's a great strength benchmark.",
       primary: false,
-      href: "/tournament/metaculus-cup-summer-2026/",
+      href: "/tournaments/?search=metaculus+cup",
     },
   ] as const;
 

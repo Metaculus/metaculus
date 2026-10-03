@@ -1,3 +1,4 @@
+from collections.abc import Callable
 from datetime import datetime
 
 from django.utils import timezone
@@ -5,6 +6,7 @@ from django.utils.timezone import make_aware
 from freezegun import freeze_time
 from rest_framework import status
 from rest_framework.reverse import reverse
+from rest_framework.test import APIClient
 
 from posts.models import Post, PostUserSnapshot, PostSubscription
 from projects.models import Project
@@ -16,6 +18,7 @@ from tests.unit.test_posts.factories import factory_post
 from tests.unit.test_projects.factories import factory_project
 from tests.unit.test_questions.conftest import *  # noqa
 from tests.unit.test_questions.factories import create_question
+from users.models import User
 
 
 class TestPostCreate:
@@ -212,6 +215,170 @@ class TestPostCreate:
         assert Post.objects.filter(id=post_id).filter_permission().exists()
         assert Post.objects.filter(id=post_id).filter_permission(user=user2).exists()
         assert Post.objects.filter(id=post_id).filter_permission(user=user1).exists()
+
+
+class TestPostCreateAuthorOverride:
+    url = reverse("post-create")
+
+    @staticmethod
+    def payload(**kwargs: object) -> dict:
+        return {
+            "title": "Question Post",
+            "default_project": get_site_main_project().pk,
+            "question": {
+                "title": "Question Post",
+                "description": "Question description",
+                "type": "binary",
+                "possibilities": {"type": "binary"},
+                "open_time": "2024-04-01T00:00:00Z",
+                "scheduled_close_time": "2024-05-01T00:00:00Z",
+                "scheduled_resolve_time": "2024-05-02T00:00:00Z",
+            },
+            **kwargs,
+        }
+
+    def test_superuser_override_by_username(
+        self, user_admin_client: APIClient, user2: User
+    ) -> None:
+        response = user_admin_client.post(
+            self.url,
+            self.payload(is_staff_override=True, author_username=user2.username),
+            format="json",
+        )
+
+        assert response.status_code == status.HTTP_201_CREATED
+        assert Post.objects.get(pk=response.data["id"]).author == user2
+        assert response.data["author_username"] == user2.username
+
+    def test_superuser_override_by_author_id(
+        self, user_admin_client: APIClient, user2: User
+    ) -> None:
+        response = user_admin_client.post(
+            self.url,
+            self.payload(is_staff_override=True, author_id=user2.id),
+            format="json",
+        )
+
+        assert response.status_code == status.HTTP_201_CREATED
+        assert Post.objects.get(pk=response.data["id"]).author == user2
+        assert response.data["author_id"] == user2.id
+
+    def test_superuser_override_author_id_wins_over_username(
+        self, user_admin_client: APIClient, user1: User, user2: User
+    ) -> None:
+        response = user_admin_client.post(
+            self.url,
+            self.payload(
+                is_staff_override=True,
+                author_id=user2.id,
+                author_username=user1.username,
+            ),
+            format="json",
+        )
+
+        assert response.status_code == status.HTTP_201_CREATED
+        assert Post.objects.get(pk=response.data["id"]).author == user2
+        assert response.data["author_id"] == user2.id
+
+    def test_superuser_override_validates_project_as_requester(
+        self, user_admin_client: APIClient, user2: User
+    ) -> None:
+        project_hidden_from_author = factory_project(
+            type=Project.ProjectTypes.TOURNAMENT, default_permission=None
+        )
+
+        response = user_admin_client.post(
+            self.url,
+            self.payload(
+                is_staff_override=True,
+                author_id=user2.id,
+                default_project=project_hidden_from_author.pk,
+            ),
+            format="json",
+        )
+
+        assert response.status_code == status.HTTP_201_CREATED
+        assert response.data["author_id"] == user2.id
+
+    def test_non_superuser_cannot_use_staff_override(
+        self, user1_client: APIClient, user2: User
+    ) -> None:
+        response = user1_client.post(
+            self.url,
+            self.payload(is_staff_override=True, author_id=user2.id),
+            format="json",
+        )
+
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert not Post.objects.exists()
+
+    def test_staff_non_superuser_cannot_use_staff_override(
+        self,
+        create_client_for_user: Callable[[User | None], APIClient],
+        user2: User,
+    ) -> None:
+        staff_user = User.objects.create(
+            email="staff@metaculus.com", username="staff", is_staff=True
+        )
+
+        response = create_client_for_user(staff_user).post(
+            self.url,
+            self.payload(is_staff_override=True, author_id=user2.id),
+            format="json",
+        )
+
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert not Post.objects.exists()
+
+    def test_author_without_staff_override_flag(
+        self, user_admin_client: APIClient, user2: User
+    ) -> None:
+        response = user_admin_client.post(
+            self.url, self.payload(author_username=user2.username), format="json"
+        )
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert not Post.objects.exists()
+
+    def test_staff_override_without_author(self, user_admin_client: APIClient) -> None:
+        response = user_admin_client.post(
+            self.url, self.payload(is_staff_override=True), format="json"
+        )
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert not Post.objects.exists()
+
+    def test_superuser_override_unknown_username(
+        self, user_admin_client: APIClient
+    ) -> None:
+        response = user_admin_client.post(
+            self.url,
+            self.payload(is_staff_override=True, author_username="does_not_exist"),
+            format="json",
+        )
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert not Post.objects.exists()
+
+    def test_superuser_override_unknown_author_id(
+        self, user_admin_client: APIClient
+    ) -> None:
+        response = user_admin_client.post(
+            self.url,
+            self.payload(is_staff_override=True, author_id=999999),
+            format="json",
+        )
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert not Post.objects.exists()
+
+    def test_superuser_without_override_authors_self(
+        self, user_admin: User, user_admin_client: APIClient
+    ) -> None:
+        response = user_admin_client.post(self.url, self.payload(), format="json")
+
+        assert response.status_code == status.HTTP_201_CREATED
+        assert response.data["author_id"] == user_admin.id
 
 
 class TestPostUpdate:
