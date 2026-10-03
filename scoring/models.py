@@ -355,6 +355,12 @@ class LeaderboardEntry(TimeStampedModel):
     )
     take = models.FloatField(null=True, blank=True)
     rank = models.IntegerField(null=True, blank=True)
+    rank_ci_lower = models.IntegerField(
+        null=True, blank=True, help_text="Rank Confidence Interval lower bound"
+    )
+    rank_ci_upper = models.IntegerField(
+        null=True, blank=True, help_text="Rank Confidence Interval upper bound"
+    )
 
     # TO BE DEPRECATED IN FAVOR OF exclusion_status
     excluded = models.BooleanField(

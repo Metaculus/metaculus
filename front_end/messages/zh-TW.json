@@ -395,6 +395,8 @@
   "coverage": "覆蓋",
   "totalCoverage": "總覆蓋",
   "totalScore": "總分",
+  "confidenceInterval95": "95% 信賴區間",
+  "confidenceIntervalTooltip": "95% <link>自助法（bootstrap）</link>信賴區間",
   "totalTake": "總收益",
   "weightedAverageScore": "加權平均分",
   "hIndex": "H 指數",

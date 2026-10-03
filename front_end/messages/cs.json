@@ -342,6 +342,8 @@
   "score": "Skóre",
   "coverage": "Pokrytí",
   "totalScore": "Celkové skóre",
+  "confidenceInterval95": "95% IS",
+  "confidenceIntervalTooltip": "95% interval spolehlivosti <link>odhadnutý metodou bootstrap</link>",
   "totalTake": "Celkový zisk",
   "weightedAverageScore": "Vážené průměrné skóre",
   "hIndex": "H-Index",

@@ -347,6 +347,8 @@
   "average": "平均",
   "score": "數",
   "totalScore": "總分",
+  "confidenceInterval95": "95% 置信区间",
+  "confidenceIntervalTooltip": "95% <link>自助法（bootstrap）</link>置信区间",
   "weightedAverageScore": "加權平均分",
   "hIndex": "h指數",
   "upvotes": "點贊",

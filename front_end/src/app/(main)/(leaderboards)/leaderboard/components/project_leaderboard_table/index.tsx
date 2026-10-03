@@ -13,6 +13,7 @@ import {
 
 import TableHeader from "./table_header";
 import TableRow from "./table_row";
+import ConfidenceIntervalTooltip from "../confidence_interval_tooltip";
 import UnfinalizedPrizeTooltip from "../prize_unfinalized_tooltip";
 
 type Props = {
@@ -77,6 +78,25 @@ const ProjectLeaderboardTable: FC<Props> = ({
     leaderboardDetails.score_type === "relative_legacy_tournament"
       ? undefined
       : leaderboardDetails.max_coverage;
+  // Peer scores are noisy enough that extra decimals are just visual noise
+  const compactScores = ["peer_tournament", "spot_peer_tournament"].includes(
+    leaderboardDetails.score_type
+  );
+
+  const withRankCI = useMemo(
+    () =>
+      leaderboardDetails.entries.some(
+        (entry) => !isNil(entry.rank_ci_lower) && !isNil(entry.rank_ci_upper)
+      ),
+    [leaderboardDetails.entries]
+  );
+  const withScoreCI = useMemo(
+    () =>
+      leaderboardDetails.entries.some(
+        (entry) => !isNil(entry.ci_lower) && !isNil(entry.ci_upper)
+      ),
+    [leaderboardDetails.entries]
+  );
 
   const getColumnCount = () => {
     let count = 3;
@@ -92,14 +112,16 @@ const ProjectLeaderboardTable: FC<Props> = ({
       <table className="mb-0 w-full border-separate whitespace-nowrap">
         <thead>
           <tr>
-            <TableHeader className="sticky left-0 text-left">
+            <TableHeader className="sticky left-0 w-0 text-left">
               {getColumnName("rank", columnRenames)}
+              {withRankCI && <ConfidenceIntervalTooltip />}
             </TableHeader>
-            <TableHeader className="sticky left-0 w-0 max-w-[16rem] text-left">
+            <TableHeader className="sticky left-0 w-0 max-w-[9rem] text-left sm:max-w-[16rem]">
               {getColumnName("forecaster", columnRenames)}
             </TableHeader>
             <TableHeader className="text-right">
               {getColumnName("totalScore", columnRenames)}
+              {isAdvanced && withScoreCI && <ConfidenceIntervalTooltip />}
             </TableHeader>
             {isAdvanced && (
               <>
@@ -145,6 +167,9 @@ const ProjectLeaderboardTable: FC<Props> = ({
               userId={userId}
               maxCoverage={maxCoverage}
               withPrizePool={!!leaderboardDetails.prize_pool}
+              withRankCI={withRankCI}
+              withScoreCI={withScoreCI}
+              compactScores={compactScores}
               isAdvanced={isAdvanced}
             />
           )}
@@ -156,6 +181,9 @@ const ProjectLeaderboardTable: FC<Props> = ({
                   userId={userId}
                   maxCoverage={maxCoverage}
                   withPrizePool={!!leaderboardDetails.prize_pool}
+                  withRankCI={withRankCI}
+                  withScoreCI={withScoreCI}
+                  compactScores={compactScores}
                   isAdvanced={isAdvanced}
                 />
               ))

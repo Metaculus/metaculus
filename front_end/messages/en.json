@@ -544,6 +544,8 @@
   "totalLiveCoverage": "Total Live Coverage",
   "predictedQuestions": "Predicted Questions",
   "totalScore": "Total Score",
+  "confidenceInterval95": "95% CI",
+  "confidenceIntervalTooltip": "95% <link>bootstrapped</link> confidence interval",
   "totalTake": "Total Take",
   "weightedAverageScore": "Weighted Average Score",
   "hIndex": "H-Index",
