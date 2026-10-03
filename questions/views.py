@@ -1,10 +1,12 @@
+from collections import defaultdict
+
 from django.db import transaction
 from django.http import Http404
 from django.utils import timezone
 import numpy as np
 from rest_framework import serializers, status
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.exceptions import PermissionDenied, ValidationError
+from rest_framework.exceptions import ValidationError
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
@@ -17,7 +19,9 @@ from posts.models import Post
 from posts.services.common import get_post_permission_for_user
 from posts.utils import get_post_slug
 from projects.permissions import ObjectPermission
-from users.models import User
+from projects.services.common import get_projects_qs
+from utils.acting_user import get_acting_user
+from utils.models import get_by_pk_or_slug
 from utils.requests import is_internal_request
 from utils.the_math.aggregations import get_aggregations_at_time
 from questions.constants import QuestionStatus
@@ -25,6 +29,7 @@ from questions.models import Forecast, Question
 from questions.serializers.common import (
     ForecastWriteSerializer,
     ForecastWithdrawSerializer,
+    MyForecastSerializer,
     OldForecastWriteSerializer,
     QuestionsCommunityPredictionsSerializer,
     serialize_question,
@@ -258,20 +263,7 @@ def legacy_question_api_view(request, pk: int):
     )
 
 
-class BulkForecastAndCommentUserSerializer(serializers.Serializer):
-    user_id = serializers.IntegerField(required=False, allow_null=True)
-    username = serializers.CharField(required=False, allow_null=True)
-    is_staff_override = serializers.BooleanField(required=False, default=False)
-
-    def validate(self, attrs):
-        if not attrs.get("user_id") and not attrs.get("username"):
-            raise serializers.ValidationError(
-                "Either user_id or username must be provided."
-            )
-        return attrs
-
-
-class BulkForecastAndCommentSerializer(BulkForecastAndCommentUserSerializer):
+class BulkForecastAndCommentSerializer(serializers.Serializer):
     forecasts = ForecastWriteSerializer(many=True, required=False, default=list)
     comments = CommentWriteSerializer(many=True, required=False, default=list)
 
@@ -280,51 +272,14 @@ class BulkForecastAndCommentSerializer(BulkForecastAndCommentUserSerializer):
 @permission_classes([IsAuthenticated])
 def bulk_forecast_and_comment_api_view(request):
     """
-    Submits forecasts and comments in a single atomic transaction.
-
-    Superusers may submit on behalf of any user by providing user_id or username
-    and flag `is_staff_override`.
-    Non-superusers may submit as themselves or as one of their bots (identified
-    by user_id or username).
+    Submits forecasts and comments in a single atomic transaction, as the
+    requester or the account given by `acting_user`. See `utils.acting_user`
+    for which accounts the requester may act as.
     """
-    # The submitting user is resolved first, so forecasts and comments are
-    # validated as them and hidden questions or posts look like missing ones
-    user_serializer = BulkForecastAndCommentUserSerializer(data=request.data)
-    user_serializer.is_valid(raise_exception=True)
-    user_data = user_serializer.validated_data
+    user = get_acting_user(request, data=request.data)
 
-    user_id = user_data.get("user_id")
-    username = user_data.get("username")
-    is_staff_override = user_data.get("is_staff_override", False)
-
-    request_user = request.user
-    if is_staff_override and not request_user.is_superuser:
-        raise PermissionDenied("Only superusers can use the is_staff_override flag.")
-
-    if is_staff_override:
-        if user_id:
-            user = get_object_or_404(User, id=user_id)
-        else:
-            user = get_object_or_404(User, username=username)
-    else:
-        user = (
-            User.objects.filter(id=user_id).first()
-            if user_id
-            else User.objects.filter(username=username).first()
-        )
-        is_self = user is not None and user.id == request_user.id
-        is_own_bot = (
-            user is not None
-            and user.is_bot
-            and user.bot_owner_id is not None
-            and user.bot_owner_id == request_user.id
-        )
-        if not is_self and not is_own_bot:
-            raise PermissionDenied(
-                "Non-superusers can only submit forecasts and comments as themselves "
-                "or their bots."
-            )
-
+    # Validated as the acting user, so questions and posts hidden from them
+    # look the same as ones that don't exist
     serializer = BulkForecastAndCommentSerializer(
         data=request.data, context={"user": user}
     )
@@ -435,6 +390,71 @@ def bulk_forecast_and_comment_api_view(request):
             )
 
     return Response({}, status=status.HTTP_201_CREATED)
+
+
+class BulkForecastReadSerializer(serializers.Serializer):
+    question_ids = serializers.ListField(
+        child=serializers.IntegerField(), required=False, allow_empty=False
+    )
+    project = serializers.CharField(required=False, help_text="Project id or slug")
+
+    def validate(self, attrs):
+        if ("question_ids" in attrs) == ("project" in attrs):
+            raise serializers.ValidationError(
+                "Provide exactly one of question_ids or project."
+            )
+        return attrs
+
+
+@api_view(["GET", "POST"])
+@permission_classes([IsAuthenticated])
+def bulk_forecast_read_api_view(request):
+    """
+    Returns the acting user's forecasts on the given questions, or on every
+    question in the given project. Questions the acting user can't view are
+    omitted, exactly as if they didn't exist. Supports the `acting_user`
+    override from `utils.acting_user`. POST takes the same params as a JSON
+    body, for lists of question ids too long for a query string.
+    """
+    src = request.data if request.method == "POST" else request.query_params
+
+    user = get_acting_user(request, data=src)
+
+    serializer = BulkForecastReadSerializer(data=src)
+    serializer.is_valid(raise_exception=True)
+    data = serializer.validated_data
+
+    posts = Post.objects.filter_permission(user=user)
+
+    if "project" in data:
+        project = get_by_pk_or_slug(get_projects_qs(user=user), data["project"])
+        posts = posts.filter_projects(project)
+
+    questions = Question.objects.filter(post__in=posts)
+
+    if "question_ids" in data:
+        questions = questions.filter(id__in=data["question_ids"])
+
+    forecasts_by_question: dict[int, list[Forecast]] = defaultdict(list)
+
+    for forecast in Forecast.objects.filter(
+        author=user, question__in=questions
+    ).order_by("start_time"):
+        forecasts_by_question[forecast.question_id].append(forecast)
+
+    return Response(
+        {
+            "results": [
+                {
+                    "question_id": question_id,
+                    "forecasts": MyForecastSerializer(
+                        forecasts_by_question[question_id], many=True
+                    ).data,
+                }
+                for question_id in questions.order_by("id").values_list("id", flat=True)
+            ]
+        }
+    )
 
 
 @api_view(["GET", "POST"])

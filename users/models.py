@@ -262,6 +262,32 @@ class User(TimeStampedModel, AbstractUser):
 
         return not self.is_active and self.last_login is not None
 
+    def get_metadata(self) -> dict:
+        """
+        Returns `metadata` as a dict, tolerating null or malformed values.
+        """
+
+        return self.metadata if isinstance(self.metadata, dict) else {}
+
+    @property
+    def is_metac_bot(self) -> bool:
+        bot_details = self.get_metadata().get("bot_details")
+
+        return (
+            self.is_bot
+            and isinstance(bot_details, dict)
+            and bot_details.get("metac_bot") is True
+        )
+
+    @property
+    def can_act_as_metac_bots(self) -> bool:
+        """
+        Granted via the `can_act_as_metac_bots` key of `metadata`, which lets
+        admins give a non-superuser service account access to the metac bots.
+        """
+
+        return self.get_metadata().get("can_act_as_metac_bots") is True
+
     def get_old_usernames(self) -> list[tuple[str, datetime]]:
         return [
             (name, dateutil.parser.parse(date)) for name, date in self.old_usernames

@@ -1,5 +1,3 @@
-import logging
-
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.views.decorators.cache import cache_page
@@ -26,7 +24,6 @@ from posts.serializers import (
     get_subscription_serializer_by_type,
     PostRelatedArticleSerializer,
     PostUpdateSerializer,
-    PostAuthorOverrideSerializer,
     serialize_private_notes_many,
 )
 from posts.services.common import (
@@ -58,14 +55,12 @@ from projects.models import Project
 from projects.permissions import ObjectPermission
 from projects.services.common import get_project_permission_for_user
 from questions.serializers.common import QuestionApproveSerializer
-from users.models import User
+from utils.acting_user import get_acting_user
 from utils.csv_utils import export_data_for_questions
 from utils.files import validate_and_upload_image
 from utils.paginator import CountlessLimitOffsetPagination, LimitOffsetPagination
 from utils.tasks import email_data_task
 from utils.views import validate_data_request
-
-logger = logging.getLogger(__name__)
 
 spam_error = ValidationError(
     detail="This post seems to be spam. Please contact "
@@ -234,7 +229,8 @@ def post_detail_oldapi_view(request: Request, pk):
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def post_detail(request: Request, pk):
-    user = request.user if request.user.is_authenticated else None
+    acting_user = get_acting_user(request)
+    user = acting_user if acting_user.is_authenticated else None
 
     # Extra params
     with_cp = serializers.BooleanField(allow_null=True).run_validation(
@@ -244,7 +240,7 @@ def post_detail(request: Request, pk):
     qs = Post.objects.filter_permission(user=user).filter(pk=pk)
     posts = serialize_post_many(
         qs,
-        current_user=request.user,
+        current_user=acting_user,
         with_cp=with_cp,
         with_subscriptions=True,
         with_key_factors=True,
@@ -264,23 +260,10 @@ def post_detail(request: Request, pk):
 @api_view(["POST"])
 def post_create_api_view(request):
     """
-    Superusers may set another user as the author via `is_staff_override`;
-    permission and spam checks still apply to the requesting user.
+    `acting_user` sets the post's author (see `utils.acting_user`); permission
+    and spam checks still apply to the requesting user.
     """
-    override_serializer = PostAuthorOverrideSerializer(data=request.data)
-    override_serializer.is_valid(raise_exception=True)
-    override = override_serializer.validated_data
-
-    author = request.user
-    if override["is_staff_override"]:
-        if not request.user.is_superuser:
-            raise PermissionDenied(
-                "Only superusers can use the is_staff_override flag."
-            )
-        if override.get("author_id") is not None:
-            author = get_object_or_404(User, id=override["author_id"])
-        else:
-            author = get_object_or_404(User, username=override["author_username"])
+    author = get_acting_user(request, data=request.data)
 
     # manually convert scaling to range_min, range_max, zero_point
     # TODO: move scaling handling
@@ -298,13 +281,6 @@ def post_create_api_view(request):
     serializer = PostWriteSerializer(data=request.data, context={"user": request.user})
     serializer.is_valid(raise_exception=True)
     post = create_post(**serializer.validated_data, author=author)
-    if override["is_staff_override"]:
-        logger.info(
-            "is_staff_override: user %s created post %s as user %s",
-            request.user.id,
-            post.id,
-            author.id,
-        )
 
     user_permission = get_post_permission_for_user(post, user=request.user)
     is_user_admin = user_permission == ObjectPermission.ADMIN

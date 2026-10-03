@@ -1,6 +1,7 @@
 from collections.abc import Callable
-from datetime import datetime
+from datetime import datetime, timedelta
 
+import pytest
 from django.utils import timezone
 from django.utils.timezone import make_aware
 from freezegun import freeze_time
@@ -217,7 +218,7 @@ class TestPostCreate:
         assert Post.objects.filter(id=post_id).filter_permission(user=user1).exists()
 
 
-class TestPostCreateAuthorOverride:
+class TestPostCreateActingUser:
     url = reverse("post-create")
 
     @staticmethod
@@ -237,12 +238,12 @@ class TestPostCreateAuthorOverride:
             **kwargs,
         }
 
-    def test_superuser_override_by_username(
+    def test_superuser_by_username(
         self, user_admin_client: APIClient, user2: User
     ) -> None:
         response = user_admin_client.post(
             self.url,
-            self.payload(is_staff_override=True, author_username=user2.username),
+            self.payload(acting_user=user2.username),
             format="json",
         )
 
@@ -250,12 +251,10 @@ class TestPostCreateAuthorOverride:
         assert Post.objects.get(pk=response.data["id"]).author == user2
         assert response.data["author_username"] == user2.username
 
-    def test_superuser_override_by_author_id(
-        self, user_admin_client: APIClient, user2: User
-    ) -> None:
+    def test_superuser_by_id(self, user_admin_client: APIClient, user2: User) -> None:
         response = user_admin_client.post(
             self.url,
-            self.payload(is_staff_override=True, author_id=user2.id),
+            self.payload(acting_user=user2.id),
             format="json",
         )
 
@@ -263,24 +262,7 @@ class TestPostCreateAuthorOverride:
         assert Post.objects.get(pk=response.data["id"]).author == user2
         assert response.data["author_id"] == user2.id
 
-    def test_superuser_override_author_id_wins_over_username(
-        self, user_admin_client: APIClient, user1: User, user2: User
-    ) -> None:
-        response = user_admin_client.post(
-            self.url,
-            self.payload(
-                is_staff_override=True,
-                author_id=user2.id,
-                author_username=user1.username,
-            ),
-            format="json",
-        )
-
-        assert response.status_code == status.HTTP_201_CREATED
-        assert Post.objects.get(pk=response.data["id"]).author == user2
-        assert response.data["author_id"] == user2.id
-
-    def test_superuser_override_validates_project_as_requester(
+    def test_superuser_validates_project_as_requester(
         self, user_admin_client: APIClient, user2: User
     ) -> None:
         project_hidden_from_author = factory_project(
@@ -290,8 +272,7 @@ class TestPostCreateAuthorOverride:
         response = user_admin_client.post(
             self.url,
             self.payload(
-                is_staff_override=True,
-                author_id=user2.id,
+                acting_user=user2.id,
                 default_project=project_hidden_from_author.pk,
             ),
             format="json",
@@ -300,19 +281,44 @@ class TestPostCreateAuthorOverride:
         assert response.status_code == status.HTTP_201_CREATED
         assert response.data["author_id"] == user2.id
 
-    def test_non_superuser_cannot_use_staff_override(
+    def test_user_can_act_as_own_bot(self, user1: User, user1_client: APIClient):
+        bot = User.objects.create(
+            email="own-bot@metaculus.com",
+            username="own_bot",
+            is_bot=True,
+            bot_owner=user1,
+        )
+
+        response = user1_client.post(
+            self.url, self.payload(acting_user=bot.username), format="json"
+        )
+
+        assert response.status_code == status.HTTP_201_CREATED
+        assert Post.objects.get(pk=response.data["id"]).author == bot
+
+    def test_runner_can_act_as_metac_bot(
+        self, metac_bot_runner_client: APIClient, metac_bot: User
+    ):
+        response = metac_bot_runner_client.post(
+            self.url, self.payload(acting_user=metac_bot.id), format="json"
+        )
+
+        assert response.status_code == status.HTTP_201_CREATED
+        assert Post.objects.get(pk=response.data["id"]).author == metac_bot
+
+    def test_user_cannot_act_as_other_account(
         self, user1_client: APIClient, user2: User
     ) -> None:
         response = user1_client.post(
             self.url,
-            self.payload(is_staff_override=True, author_id=user2.id),
+            self.payload(acting_user=user2.id),
             format="json",
         )
 
         assert response.status_code == status.HTTP_403_FORBIDDEN
         assert not Post.objects.exists()
 
-    def test_staff_non_superuser_cannot_use_staff_override(
+    def test_staff_non_superuser_cannot_act_as_other_account(
         self,
         create_client_for_user: Callable[[User | None], APIClient],
         user2: User,
@@ -323,49 +329,27 @@ class TestPostCreateAuthorOverride:
 
         response = create_client_for_user(staff_user).post(
             self.url,
-            self.payload(is_staff_override=True, author_id=user2.id),
+            self.payload(acting_user=user2.id),
             format="json",
         )
 
         assert response.status_code == status.HTTP_403_FORBIDDEN
         assert not Post.objects.exists()
 
-    def test_author_without_staff_override_flag(
-        self, user_admin_client: APIClient, user2: User
-    ) -> None:
-        response = user_admin_client.post(
-            self.url, self.payload(author_username=user2.username), format="json"
-        )
-
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert not Post.objects.exists()
-
-    def test_staff_override_without_author(self, user_admin_client: APIClient) -> None:
-        response = user_admin_client.post(
-            self.url, self.payload(is_staff_override=True), format="json"
-        )
-
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert not Post.objects.exists()
-
-    def test_superuser_override_unknown_username(
-        self, user_admin_client: APIClient
-    ) -> None:
+    def test_superuser_unknown_username(self, user_admin_client: APIClient) -> None:
         response = user_admin_client.post(
             self.url,
-            self.payload(is_staff_override=True, author_username="does_not_exist"),
+            self.payload(acting_user="does_not_exist"),
             format="json",
         )
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
         assert not Post.objects.exists()
 
-    def test_superuser_override_unknown_author_id(
-        self, user_admin_client: APIClient
-    ) -> None:
+    def test_superuser_unknown_id(self, user_admin_client: APIClient) -> None:
         response = user_admin_client.post(
             self.url,
-            self.payload(is_staff_override=True, author_id=999999),
+            self.payload(acting_user=999999),
             format="json",
         )
 
@@ -826,3 +810,101 @@ class TestPostNewsHotnessBreakdown:
         data = response.json()
         assert data["news_hotness"] == 0
         assert data["articles"] == []
+
+
+class TestPostDetailActingUser:
+    @pytest.fixture()
+    def forecast_start_time(self):
+        return timezone.now() - timedelta(days=2)
+
+    @pytest.fixture()
+    def bot_post(self, user1, metac_bot, forecast_start_time):
+        """
+        Open question in a private tournament only the metac bot can forecast in,
+        with one forecast by the bot.
+        """
+
+        question = create_question(
+            question_type=Question.QuestionType.BINARY,
+            open_time=timezone.now() - timedelta(days=10),
+            scheduled_close_time=timezone.now() + timedelta(days=10),
+        )
+        post = factory_post(
+            author=user1,
+            question=question,
+            default_project=factory_project(
+                type=Project.ProjectTypes.TOURNAMENT,
+                default_permission=None,
+                override_permissions={metac_bot.id: ObjectPermission.FORECASTER},
+            ),
+        )
+        question.user_forecasts.create(
+            author=metac_bot, probability_yes=0.6, start_time=forecast_start_time
+        )
+        PostUserSnapshot.update_last_forecast_date(post=post, user=metac_bot)
+
+        return post
+
+    def detail_url(self, post):
+        return reverse("post-detail", kwargs={"pk": post.pk})
+
+    def test_detail_as_metac_bot(
+        self,
+        transactional_db,
+        metac_bot_runner_client,
+        metac_bot,
+        bot_post,
+        forecast_start_time,
+    ):
+        response = metac_bot_runner_client.get(
+            self.detail_url(bot_post), {"acting_user": metac_bot.username}
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        my_forecasts = response.data["question"]["my_forecasts"]
+        assert len(my_forecasts["history"]) == 1
+        assert my_forecasts["latest"]["start_time"] == forecast_start_time.timestamp()
+
+    def test_detail_without_override_uses_requester(
+        self, metac_bot_runner_client, bot_post
+    ):
+        response = metac_bot_runner_client.get(self.detail_url(bot_post))
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    def test_detail_does_not_widen_bot_visibility(
+        self, user1, metac_bot_runner_client, metac_bot
+    ):
+        post = factory_post(
+            author=user1,
+            default_project=factory_project(
+                type=Project.ProjectTypes.TOURNAMENT, default_permission=None
+            ),
+        )
+
+        response = metac_bot_runner_client.get(
+            self.detail_url(post), {"acting_user": metac_bot.id}
+        )
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    def test_denied_targets(
+        self,
+        anon_client,
+        metac_bot_runner_client,
+        user2_client,
+        user2,
+        metac_bot,
+        bot_post,
+    ):
+        url = self.detail_url(bot_post)
+
+        # Runner can't act as a non-metac account, or one that doesn't exist
+        for user_id in (user2.id, 999999):
+            response = metac_bot_runner_client.get(url, {"acting_user": user_id})
+            assert response.status_code == status.HTTP_403_FORBIDDEN
+
+        # Accounts without the capability can't act as metac bots
+        for client in (user2_client, anon_client):
+            response = client.get(url, {"acting_user": metac_bot.id})
+            assert response.status_code == status.HTTP_403_FORBIDDEN

@@ -53,13 +53,14 @@ def user_bot_no_owner() -> User:
 
 
 class TestBulkForecastAndComment:
-    def test_requires_user_id_or_username(self, user1_client, open_question):
+    def test_defaults_to_requester(self, user1, user1_client, open_question):
         response = user1_client.post(
             URL,
             data=json.dumps({"forecasts": [forecast_payload(open_question)]}),
             content_type="application/json",
         )
-        assert response.status_code == 400
+        assert response.status_code == 201
+        assert Forecast.objects.filter(question=open_question, author=user1).exists()
 
     @pytest.fixture()
     def hidden_question(self):
@@ -76,20 +77,17 @@ class TestBulkForecastAndComment:
         )
         return question
 
-    def post_and_normalize(self, client, user, payload, hidden_id):
+    def post_and_normalize(self, client, payload, hidden_id):
         response = client.post(
-            URL,
-            data=json.dumps({"user_id": user.id, **payload}),
-            content_type="application/json",
+            URL, data=json.dumps(payload), content_type="application/json"
         )
         assert response.status_code == 400
         return response.content.decode().replace(str(hidden_id), "<id>")
 
-    def test_hidden_question_looks_missing(self, user1, user1_client, hidden_question):
+    def test_hidden_question_looks_missing(self, user1_client, hidden_question):
         bodies = [
             self.post_and_normalize(
                 user1_client,
-                user1,
                 {"forecasts": [{"question": question_id, "probability_yes": 0.5}]},
                 question_id,
             )
@@ -117,7 +115,6 @@ class TestBulkForecastAndComment:
             bodies = [
                 self.post_and_normalize(
                     user1_client,
-                    user1,
                     {
                         "comments": [
                             {"text": "hi", "is_private": True, **extra, field: value}
@@ -134,17 +131,23 @@ class TestBulkForecastAndComment:
         response = anon_client.post(
             URL,
             data=json.dumps(
-                {"user_id": user1.id, "forecasts": [forecast_payload(open_question)]}
+                {
+                    "acting_user": user1.id,
+                    "forecasts": [forecast_payload(open_question)],
+                }
             ),
             content_type="application/json",
         )
         assert response.status_code == 403
 
-    def test_submit_as_self_by_user_id(self, user1, user1_client, open_question):
+    def test_submit_as_self_by_id(self, user1, user1_client, open_question):
         response = user1_client.post(
             URL,
             data=json.dumps(
-                {"user_id": user1.id, "forecasts": [forecast_payload(open_question)]}
+                {
+                    "acting_user": user1.id,
+                    "forecasts": [forecast_payload(open_question)],
+                }
             ),
             content_type="application/json",
         )
@@ -156,7 +159,7 @@ class TestBulkForecastAndComment:
             URL,
             data=json.dumps(
                 {
-                    "username": user1.username,
+                    "acting_user": user1.username,
                     "forecasts": [forecast_payload(open_question)],
                 }
             ),
@@ -169,17 +172,23 @@ class TestBulkForecastAndComment:
         response = user1_client.post(
             URL,
             data=json.dumps(
-                {"user_id": user2.id, "forecasts": [forecast_payload(open_question)]}
+                {
+                    "acting_user": user2.id,
+                    "forecasts": [forecast_payload(open_question)],
+                }
             ),
             content_type="application/json",
         )
         assert response.status_code == 403
 
-    def test_submit_as_own_bot_by_user_id(self, user1_client, user_bot, open_question):
+    def test_submit_as_own_bot_by_id(self, user1_client, user_bot, open_question):
         response = user1_client.post(
             URL,
             data=json.dumps(
-                {"user_id": user_bot.id, "forecasts": [forecast_payload(open_question)]}
+                {
+                    "acting_user": user_bot.id,
+                    "forecasts": [forecast_payload(open_question)],
+                }
             ),
             content_type="application/json",
         )
@@ -191,7 +200,7 @@ class TestBulkForecastAndComment:
             URL,
             data=json.dumps(
                 {
-                    "username": user_bot.username,
+                    "acting_user": user_bot.username,
                     "forecasts": [forecast_payload(open_question)],
                 }
             ),
@@ -207,7 +216,10 @@ class TestBulkForecastAndComment:
         response = user2_client.post(
             URL,
             data=json.dumps(
-                {"user_id": user_bot.id, "forecasts": [forecast_payload(open_question)]}
+                {
+                    "acting_user": user_bot.id,
+                    "forecasts": [forecast_payload(open_question)],
+                }
             ),
             content_type="application/json",
         )
@@ -220,7 +232,7 @@ class TestBulkForecastAndComment:
             URL,
             data=json.dumps(
                 {
-                    "user_id": user_bot_no_owner.id,
+                    "acting_user": user_bot_no_owner.id,
                     "forecasts": [forecast_payload(open_question)],
                 }
             ),
@@ -228,7 +240,7 @@ class TestBulkForecastAndComment:
         )
         assert response.status_code == 403
 
-    def test_superuser_override_by_user_id(
+    def test_superuser_by_id(
         self, create_client_for_user, user_admin, user2, open_question
     ):
         staff_client = create_client_for_user(user_admin)
@@ -236,8 +248,7 @@ class TestBulkForecastAndComment:
             URL,
             data=json.dumps(
                 {
-                    "user_id": user2.id,
-                    "is_staff_override": True,
+                    "acting_user": user2.id,
                     "forecasts": [forecast_payload(open_question)],
                 }
             ),
@@ -246,7 +257,7 @@ class TestBulkForecastAndComment:
         assert response.status_code == 201
         assert Forecast.objects.filter(question=open_question, author=user2).exists()
 
-    def test_superuser_override_by_username(
+    def test_superuser_by_username(
         self, create_client_for_user, user_admin, user2, open_question
     ):
         staff_client = create_client_for_user(user_admin)
@@ -254,8 +265,7 @@ class TestBulkForecastAndComment:
             URL,
             data=json.dumps(
                 {
-                    "username": user2.username,
-                    "is_staff_override": True,
+                    "acting_user": user2.username,
                     "forecasts": [forecast_payload(open_question)],
                 }
             ),
@@ -263,28 +273,12 @@ class TestBulkForecastAndComment:
         )
         assert response.status_code == 201
         assert Forecast.objects.filter(question=open_question, author=user2).exists()
-
-    def test_non_superuser_cannot_use_staff_override(
-        self, user1_client, user1, user2, open_question
-    ):
-        response = user1_client.post(
-            URL,
-            data=json.dumps(
-                {
-                    "user_id": user2.id,
-                    "is_staff_override": True,
-                    "forecasts": [forecast_payload(open_question)],
-                }
-            ),
-            content_type="application/json",
-        )
-        assert response.status_code == 403
 
     def test_unknown_user_id_returns_403(self, user1_client, open_question):
         response = user1_client.post(
             URL,
             data=json.dumps(
-                {"user_id": 999999, "forecasts": [forecast_payload(open_question)]}
+                {"acting_user": 999999, "forecasts": [forecast_payload(open_question)]}
             ),
             content_type="application/json",
         )
@@ -295,7 +289,7 @@ class TestBulkForecastAndComment:
             URL,
             data=json.dumps(
                 {
-                    "username": "does_not_exist",
+                    "acting_user": "does_not_exist",
                     "forecasts": [forecast_payload(open_question)],
                 }
             ),
@@ -303,7 +297,7 @@ class TestBulkForecastAndComment:
         )
         assert response.status_code == 403
 
-    def test_superuser_override_unknown_user_id_returns_404(
+    def test_superuser_unknown_user_id_returns_404(
         self, create_client_for_user, user_admin, open_question
     ):
         staff_client = create_client_for_user(user_admin)
@@ -311,14 +305,74 @@ class TestBulkForecastAndComment:
             URL,
             data=json.dumps(
                 {
-                    "user_id": 999999,
-                    "is_staff_override": True,
+                    "acting_user": 999999,
                     "forecasts": [forecast_payload(open_question)],
                 }
             ),
             content_type="application/json",
         )
         assert response.status_code == 404
+
+    def test_runner_as_metac_bot(
+        self, metac_bot_runner_client, metac_bot, open_question
+    ):
+        response = metac_bot_runner_client.post(
+            URL,
+            data=json.dumps(
+                {
+                    "acting_user": metac_bot.username,
+                    "forecasts": [forecast_payload(open_question)],
+                    "comments": [
+                        {
+                            "on_post": open_question.get_post().id,
+                            "text": "bot reasoning",
+                            "is_private": True,
+                            "included_forecast": True,
+                        }
+                    ],
+                }
+            ),
+            content_type="application/json",
+        )
+        assert response.status_code == 201
+        assert Forecast.objects.filter(
+            question=open_question, author=metac_bot
+        ).exists()
+        assert Comment.objects.filter(
+            author=metac_bot, on_post=open_question.get_post(), is_private=True
+        ).exists()
+
+    def test_runner_as_non_metac_account_denied(
+        self, metac_bot_runner_client, user2, user_bot_no_owner, open_question
+    ):
+        for target in (user2, user_bot_no_owner):
+            response = metac_bot_runner_client.post(
+                URL,
+                data=json.dumps(
+                    {
+                        "acting_user": target.id,
+                        "forecasts": [forecast_payload(open_question)],
+                    }
+                ),
+                content_type="application/json",
+            )
+            assert response.status_code == 403
+            assert not Forecast.objects.filter(author=target).exists()
+
+    def test_runner_unknown_user_id_returns_403(
+        self, metac_bot_runner_client, open_question
+    ):
+        response = metac_bot_runner_client.post(
+            URL,
+            data=json.dumps(
+                {
+                    "acting_user": 999999,
+                    "forecasts": [forecast_payload(open_question)],
+                }
+            ),
+            content_type="application/json",
+        )
+        assert response.status_code == 403
 
     def test_key_factors_in_bulk_comment_returns_400(
         self, user1, user1_client, open_question
@@ -327,7 +381,7 @@ class TestBulkForecastAndComment:
             URL,
             data=json.dumps(
                 {
-                    "user_id": user1.id,
+                    "acting_user": user1.id,
                     "comments": [
                         {
                             "on_post": open_question.get_post().id,
