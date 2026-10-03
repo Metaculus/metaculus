@@ -14,10 +14,17 @@ from authentication.services.gated_actions import (
 )
 from comments.models import Comment, KeyFactor
 from posts.models import PostSubscription, Vote
+from projects.models import Project
 from questions.models import Forecast, Question
 from tests.unit.test_posts.factories import factory_post
 from tests.unit.test_projects.factories import factory_project
 from tests.unit.test_questions.factories import create_question
+
+
+def private_project():
+    return factory_project(
+        type=Project.ProjectTypes.TOURNAMENT, default_permission=None
+    )
 
 
 @pytest.fixture
@@ -218,6 +225,31 @@ class TestForecastAction:
                 }
             )
 
+    def test_validate_hidden_question_looks_missing(self):
+        hidden = create_question(
+            question_type=Question.QuestionType.MULTIPLE_CHOICE,
+            options=["a", "b"],
+            options_history=[("0001-01-01T00:00:00", ["a", "b"])],
+        )
+        factory_post(question=hidden, default_project=private_project())
+
+        for props in (
+            {"probability_yes": 0.6},
+            {"probability_yes_per_category": {"a": 0.5, "b": 0.5}},
+        ):
+            details = []
+            for question_id in (hidden.pk, hidden.pk + 1000):
+                with pytest.raises(ValidationError) as exc:
+                    validate_gated_action(
+                        {
+                            "type": "forecast",
+                            "payload": [{"question": question_id, **props}],
+                        }
+                    )
+                details.append(str(exc.value.detail).replace(str(question_id), "<id>"))
+
+            assert details[0] == details[1]
+
     def test_validate_caps_items_at_10(self):
         payload = [{"question": i, "probability_yes": 0.6} for i in range(11)]
         with pytest.raises(ValidationError):
@@ -281,6 +313,22 @@ class TestCreateCommentAction:
             }
         )
         assert slug == "create_comment"
+
+    def test_validate_hidden_post_looks_missing(self, user1):
+        hidden_post = factory_post(author=user1, default_project=private_project())
+
+        details = []
+        for post_id in (hidden_post.pk, hidden_post.pk + 1000):
+            with pytest.raises(ValidationError) as exc:
+                validate_gated_action(
+                    {
+                        "type": "create_comment",
+                        "payload": {"on_post": post_id, "text": "Hello"},
+                    }
+                )
+            details.append(str(exc.value.detail).replace(str(post_id), "<id>"))
+
+        assert details[0] == details[1]
 
     def test_validate_rejects_text_less_comment(self, user1, public_post):
         # Proves validate() actually runs CommentWriteSerializer, which requires
