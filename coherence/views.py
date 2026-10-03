@@ -256,7 +256,9 @@ def post_coherence_bot_forecasts_and_comments(request):
     """
     Posts a forecast as a Coherence Bot for a given user
     """
-    serializer = CoherenceBotForecastSerializer(data=request.data)
+    serializer = CoherenceBotForecastSerializer(
+        data=request.data, context={"user": request.user}
+    )
     serializer.is_valid(raise_exception=True)
     data = serializer.validated_data
     forecasts_data = data["forecasts"]

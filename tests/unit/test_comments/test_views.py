@@ -18,6 +18,7 @@ from comments.services.feed import get_comments_feed
 from posts.models import PostUserSnapshot
 from questions.models import Forecast
 from questions.services.forecasts import create_forecast
+from projects.models import Project
 from tests.unit.test_comments.factories import factory_comment, factory_key_factor
 from tests.unit.test_misc.factories import factory_itn_article
 from tests.unit.test_posts.factories import factory_post
@@ -326,6 +327,30 @@ class TestCommentCreation:
     @pytest.fixture()
     def post(self, user1, question_binary):
         return factory_post(author=user1, question=question_binary)
+
+    def test_hidden_post_and_parent_look_missing(self, user1, user2, user1_client):
+        hidden_post = factory_post(
+            author=user2,
+            default_project=factory_project(
+                type=Project.ProjectTypes.TOURNAMENT, default_permission=None
+            ),
+        )
+        hidden_comment = factory_comment(author=user2, on_post=hidden_post)
+        visible_post = factory_post(author=user1)
+
+        for field, hidden_id, extra in [
+            ("on_post", hidden_post.pk, {}),
+            ("parent", hidden_comment.pk, {"on_post": visible_post.pk}),
+        ]:
+            bodies = []
+            for value in (hidden_id, hidden_id + 1000):
+                response = user1_client.post(
+                    self.url, {"text": "hi", **extra, field: value}, format="json"
+                )
+                assert response.status_code == 400
+                bodies.append(response.content.decode().replace(str(value), "<id>"))
+
+            assert bodies[0] == bodies[1], field
 
     def test_no_text_failure(self, post, user1_client, user1, user2):
         response = user1_client.post(self.url, {"on_post": post.pk})

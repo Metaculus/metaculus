@@ -129,7 +129,8 @@ def comment_delete_api_view(request: Request, pk: int):
 @transaction.atomic
 def comment_create_api_view(request: Request):
     user: User = request.user
-    serializer = CommentWriteSerializer(data=request.data)
+    # Posts and parent comments the user can't view fail like missing ones
+    serializer = CommentWriteSerializer(data=request.data, context={"user": user})
     serializer.is_valid(raise_exception=True)
 
     new_comment = perform_create_comment(user=user, **serializer.validated_data)
