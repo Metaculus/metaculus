@@ -108,7 +108,9 @@ def unresolve_api_view(request, pk: int):
 
 @api_view(["POST"])
 def bulk_create_forecasts_api_view(request):
-    serializer = ForecastWriteSerializer(data=request.data, many=True)
+    serializer = ForecastWriteSerializer(
+        data=request.data, many=True, context={"user": request.user}
+    )
     serializer.is_valid(raise_exception=True)
 
     validated_data = serializer.validated_data
@@ -140,9 +142,13 @@ def bulk_withdraw_forecasts_api_view(request):
     if not validated_data:
         raise ValidationError("At least one forecast must be withdawn")
 
-    # Prefetching questions for bulk optimization
+    # Prefetching questions for bulk optimization. Questions the user can't
+    # view are left out, so they fail exactly like ones that don't exist
     questions = (
-        Question.objects.filter(pk__in=[f["question"] for f in validated_data])
+        Question.objects.filter(
+            pk__in=[f["question"] for f in validated_data],
+            post__in=Post.objects.filter_permission(user=request.user),
+        )
         .select_related("post")
         .prefetch_related("user_forecasts")
     )
@@ -150,7 +156,8 @@ def bulk_withdraw_forecasts_api_view(request):
 
     # Replacing prefetched optimized questions
     for withdrawal in validated_data:
-        question = questions_map.get(withdrawal["question"])
+        question_id = withdrawal["question"]
+        question = questions_map.get(question_id)
         withdrawal["question"] = question  # used in withdraw_foreacst_bulk
         withdraw_at = withdrawal.get("withdraw_at", now)
         withdrawal["withdraw_at"] = withdraw_at  # used in withdraw_foreacst_bulk
@@ -162,7 +169,7 @@ def bulk_withdraw_forecasts_api_view(request):
             )
 
         if not question:
-            raise ValidationError(f"Wrong question id {withdrawal['question']}")
+            raise ValidationError(f"Wrong question id {question_id}")
 
         # Check permissions
         permission = get_post_permission_for_user(
@@ -251,12 +258,10 @@ def legacy_question_api_view(request, pk: int):
     )
 
 
-class BulkForecastAndCommentSerializer(serializers.Serializer):
+class BulkForecastAndCommentUserSerializer(serializers.Serializer):
     user_id = serializers.IntegerField(required=False, allow_null=True)
     username = serializers.CharField(required=False, allow_null=True)
     is_staff_override = serializers.BooleanField(required=False, default=False)
-    forecasts = ForecastWriteSerializer(many=True, required=False, default=list)
-    comments = CommentWriteSerializer(many=True, required=False, default=list)
 
     def validate(self, attrs):
         if not attrs.get("user_id") and not attrs.get("username"):
@@ -264,6 +269,11 @@ class BulkForecastAndCommentSerializer(serializers.Serializer):
                 "Either user_id or username must be provided."
             )
         return attrs
+
+
+class BulkForecastAndCommentSerializer(BulkForecastAndCommentUserSerializer):
+    forecasts = ForecastWriteSerializer(many=True, required=False, default=list)
+    comments = CommentWriteSerializer(many=True, required=False, default=list)
 
 
 @api_view(["POST"])
@@ -277,15 +287,15 @@ def bulk_forecast_and_comment_api_view(request):
     Non-superusers may submit as themselves or as one of their bots (identified
     by user_id or username).
     """
-    serializer = BulkForecastAndCommentSerializer(data=request.data)
-    serializer.is_valid(raise_exception=True)
-    data = serializer.validated_data
+    # The submitting user is resolved first, so forecasts and comments are
+    # validated as them and hidden questions or posts look like missing ones
+    user_serializer = BulkForecastAndCommentUserSerializer(data=request.data)
+    user_serializer.is_valid(raise_exception=True)
+    user_data = user_serializer.validated_data
 
-    user_id = data.get("user_id")
-    username = data.get("username")
-    forecasts_data = data["forecasts"]
-    comments_data = data.get("comments", [])
-    is_staff_override = data.get("is_staff_override", False)
+    user_id = user_data.get("user_id")
+    username = user_data.get("username")
+    is_staff_override = user_data.get("is_staff_override", False)
 
     request_user = request.user
     if is_staff_override and not request_user.is_superuser:
@@ -314,6 +324,15 @@ def bulk_forecast_and_comment_api_view(request):
                 "Non-superusers can only submit forecasts and comments as themselves "
                 "or their bots."
             )
+
+    serializer = BulkForecastAndCommentSerializer(
+        data=request.data, context={"user": user}
+    )
+    serializer.is_valid(raise_exception=True)
+    data = serializer.validated_data
+
+    forecasts_data = data["forecasts"]
+    comments_data = data.get("comments", [])
 
     now = timezone.now()
     errors = []

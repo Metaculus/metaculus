@@ -4,9 +4,12 @@ from datetime import datetime, timezone as dt_timezone
 import pytest
 from rest_framework.reverse import reverse
 
+from comments.models import Comment
+from projects.models import Project
 from questions.models import Forecast, Question
 from tests.unit.test_posts.conftest import *  # noqa
 from tests.unit.test_posts.factories import factory_post
+from tests.unit.test_projects.factories import factory_project
 from tests.unit.test_questions.conftest import *  # noqa
 from tests.unit.test_questions.factories import create_question
 from users.models import User
@@ -57,6 +60,75 @@ class TestBulkForecastAndComment:
             content_type="application/json",
         )
         assert response.status_code == 400
+
+    @pytest.fixture()
+    def hidden_question(self):
+        question = create_question(
+            question_type=Question.QuestionType.BINARY,
+            open_time=datetime(2000, 1, 1, tzinfo=dt_timezone.utc),
+            scheduled_close_time=datetime(3000, 1, 1, tzinfo=dt_timezone.utc),
+        )
+        factory_post(
+            question=question,
+            default_project=factory_project(
+                type=Project.ProjectTypes.TOURNAMENT, default_permission=None
+            ),
+        )
+        return question
+
+    def post_and_normalize(self, client, user, payload, hidden_id):
+        response = client.post(
+            URL,
+            data=json.dumps({"user_id": user.id, **payload}),
+            content_type="application/json",
+        )
+        assert response.status_code == 400
+        return response.content.decode().replace(str(hidden_id), "<id>")
+
+    def test_hidden_question_looks_missing(self, user1, user1_client, hidden_question):
+        bodies = [
+            self.post_and_normalize(
+                user1_client,
+                user1,
+                {"forecasts": [{"question": question_id, "probability_yes": 0.5}]},
+                question_id,
+            )
+            for question_id in (hidden_question.id, hidden_question.id + 1000)
+        ]
+
+        assert bodies[0] == bodies[1]
+
+    def test_hidden_post_looks_missing(self, user1, user1_client, hidden_question):
+        hidden_post = hidden_question.get_post()
+        hidden_comment = Comment.objects.create(
+            author=user1, on_post=hidden_post, text="hidden"
+        )
+        visible_post = factory_post()
+
+        for field, hidden_id, missing_id, extra in [
+            ("on_post", hidden_post.id, hidden_post.id + 1000, {}),
+            (
+                "parent",
+                hidden_comment.id,
+                hidden_comment.id + 1000,
+                {"on_post": visible_post.id},
+            ),
+        ]:
+            bodies = [
+                self.post_and_normalize(
+                    user1_client,
+                    user1,
+                    {
+                        "comments": [
+                            {"text": "hi", "is_private": True, **extra, field: value}
+                        ]
+                    },
+                    value,
+                )
+                for value in (hidden_id, missing_id)
+            ]
+
+            assert bodies[0] == bodies[1], field
 
     def test_unauthenticated(self, anon_client, user1, open_question):
         response = anon_client.post(

@@ -146,13 +146,19 @@ class ForecastAction(BaseGatedAction):
         items = serializers.ListField(
             min_length=1, max_length=MAX_FORECAST_ITEMS
         ).run_validation(payload)
-        serializer = ForecastWriteSerializer(data=items, many=True)
+        # Captured while signed out, so only public questions are valid; any
+        # other id fails exactly like a missing one
+        serializer = ForecastWriteSerializer(
+            data=items, many=True, context={"user": None}
+        )
         serializer.is_valid(raise_exception=True)
 
         return payload
 
     def apply(self, user: User, payload) -> None:
-        serializer = ForecastWriteSerializer(data=payload, many=True)
+        serializer = ForecastWriteSerializer(
+            data=payload, many=True, context={"user": user}
+        )
         serializer.is_valid(raise_exception=True)
 
         validate_and_create_forecasts(
@@ -170,13 +176,15 @@ class CreateCommentAction(BaseGatedAction):
             raise ValidationError(
                 {"gated_action": ["create_comment payload must be an object"]}
             )
-        serializer = CommentWriteSerializer(data=payload)
+        # Captured while signed out, so only public posts are valid; any other
+        # id fails exactly like a missing one
+        serializer = CommentWriteSerializer(data=payload, context={"user": None})
         serializer.is_valid(raise_exception=True)
 
         return payload
 
     def apply(self, user: User, payload) -> None:
-        serializer = CommentWriteSerializer(data=payload)
+        serializer = CommentWriteSerializer(data=payload, context={"user": user})
         serializer.is_valid(raise_exception=True)
 
         perform_create_comment(user=user, **serializer.validated_data)
