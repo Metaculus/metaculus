@@ -77,6 +77,15 @@ class ServerPostsApiClass extends PostsApi {
     );
   }
 
+  async togglePinPost(
+    postId: number,
+    pin: boolean
+  ): Promise<PostWithForecasts> {
+    return this.post<PostWithForecasts>(`/posts/${postId}/toggle-pin/`, {
+      pin,
+    });
+  }
+
   async updateSubscriptions(postId: number, subscriptions: PostSubscription[]) {
     return this.post<PostSubscription[], PostSubscription[]>(
       `/posts/${postId}/subscriptions/`,
