@@ -1126,8 +1126,8 @@ export default async function ScoresFAQ() {
         </Link>
         . Being near the top of a leaderboard requires skill, but finishing
         first rather than second is often largely luck. So tournament
-        leaderboards show a 95% confidence interval for each Rank and, in the
-        advanced view, for each total Score. To compute it, we use{" "}
+        leaderboards, in the advanced view, show a 95% confidence interval for
+        each Rank and total Score. To compute it, we use{" "}
         <a href="https://en.wikipedia.org/wiki/Bootstrapping_(statistics)">
           bootstrapping
         </a>
