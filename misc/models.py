@@ -7,7 +7,7 @@ from pgvector.django import VectorField
 
 from posts.models import Post
 from projects.models import Project
-from users.constants import ApiAccessTier
+from users.constants import ApiAccessLevel, ApiAccessTier
 from users.models import User
 from utils.models import TimeStampedModel
 
@@ -84,7 +84,12 @@ class BulletinViewedBy(TimeStampedModel):
 
 
 class UserDataAccess(TimeStampedModel):
-    """Grants users permission to unlock project-specific API access and user-level data"""
+    """Whitelists a user to read user-level data they could not otherwise see.
+
+    Purely additive: an entry only ever widens what its user may read, and a user with
+    no entry sees the default aggregated, anonymized data. Nothing here affects the
+    user's API access level - that lives in UserApiAccess.
+    """
 
     user = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="data_accesses"
@@ -113,6 +118,10 @@ class UserDataAccess(TimeStampedModel):
         "base tier. If neither project nor post is set, the entry applies globally.",
     )
 
+    # Deprecated, and no longer read: API access levels live in
+    # UserApiAccess. TEMPORARY - retained only so this branch can be
+    # exercised against the API gateway. The RemoveField migration must land
+    # before this merges.
     api_access_tier = models.CharField(
         max_length=32,
         choices=ApiAccessTier.choices,
@@ -144,6 +153,72 @@ class UserDataAccess(TimeStampedModel):
                 name="userdataaccess_project_or_post_not_both",
             )
         ]
+
+
+class UserApiAccess(TimeStampedModel):
+    """Raises the API access level an external API gateway grants a user.
+
+    This model is inert on its own. Nothing in this codebase reads it to make an access
+    decision; it is only serialized to an external API gateway (which Metaculus runs in
+    front of this backend), and that gateway decides what a request may read. A
+    deployment without such a gateway can ignore this model entirely.
+
+    Resolution rules:
+
+    - A user with no entry is `restricted`, the default level. There is deliberately no
+      stored `restricted` level, since a grant conferring it would mean nothing.
+    - An entry with no project is global: it applies to every request the user makes.
+    - An entry with a project applies only to data belonging to that project.
+    - The most permissive applicable level wins. A project entry can therefore only
+      widen a global one, never narrow it: a user who is globally `benchmarking` and
+      `unrestricted` on one project is `unrestricted` there and `benchmarking`
+      everywhere else.
+
+    Read access to *user-level* data is a separate axis, granted by UserDataAccess. A
+    level here decides which fields and endpoints the gateway exposes; it never causes
+    another forecaster's identity to be revealed.
+    """
+
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="api_accesses"
+    )
+    project = models.ForeignKey(
+        Project,
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE,
+        related_name="api_accesses",
+        help_text="Optional. Scopes this grant to data belonging to one project. "
+        "Leave blank to grant the level globally, on every request the user makes.",
+    )
+    access_level = models.CharField(
+        max_length=32,
+        choices=ApiAccessLevel.choices,
+        help_text="The level granted at this scope. Omit the entry entirely to leave "
+        "the user restricted; the most permissive applicable grant always wins.",
+    )
+    notes = models.TextField(
+        null=True,
+        blank=True,
+        help_text="Optional notes about the grant, e.g. who asked for it and why. "
+        "Please note any specific conditions.",
+    )
+
+    class Meta:
+        verbose_name_plural = "user api accesses"
+        constraints = [
+            # One grant per scope per user, counting "no project" as a scope of its own
+            # (nulls_distinct=False), so a user cannot hold two conflicting global rows.
+            models.UniqueConstraint(
+                fields=["user", "project"],
+                name="userapiaccess_unique_user_project",
+                nulls_distinct=False,
+            )
+        ]
+
+    def __str__(self) -> str:
+        scope = self.project.name if self.project_id else "global"
+        return f"{self.user}: {self.access_level} ({scope})"
 
 
 def default_ad_tile_placements() -> list[str]:
