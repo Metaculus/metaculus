@@ -19,7 +19,7 @@ def get_max_bots(user: User) -> int | None:
     if user.is_superuser:
         return None
 
-    limit = (user.metadata or {}).get("max_bots")
+    limit = user.get_metadata().get("max_bots")
 
     if isinstance(limit, bool) or not isinstance(limit, int) or limit < 0:
         return DEFAULT_MAX_BOTS
