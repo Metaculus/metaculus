@@ -45,7 +45,7 @@ export enum TaxonomyProjectType {
 export enum TournamentsSortBy {
   Featured = "featured",
   PrizePoolDesc = "-prize_pool",
-  CloseDateAsc = "close_date",
+  WinnersAnnouncedDateAsc = "winners_announced_date",
   StartDateDesc = "-start_date",
 }
 
@@ -62,8 +62,8 @@ export type TournamentPreview = Project & {
   forecasters_count: number;
   prize_pool: string | null;
   start_date: string;
+  winners_announced_date?: string;
   close_date?: string;
-  forecasting_end_date?: string;
   is_ongoing: boolean;
   created_at: string;
   questions_count: number;
