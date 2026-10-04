@@ -373,4 +373,20 @@ export const RAW_ACTIVITY_MONITOR_DATA: RawActivityMonitorEntry[] = [
       </>
     ),
   },
+  {
+    date: "2026-09-30",
+    type: "news",
+    content: (
+      <>
+        California passes a series of AI laws affecting workers. -{" "}
+        <a
+          href="https://www.gov.ca.gov/2026/09/30/californias-nation-leading-ai-framework-just-got-stronger-governor-newsom-signs-more-first-in-the-nation-worker-protections-and-more/"
+          target="_blank"
+          rel="noreferrer noopener"
+        >
+          Office of Governor Gavin Newsom
+        </a>
+      </>
+    ),
+  },
 ];
