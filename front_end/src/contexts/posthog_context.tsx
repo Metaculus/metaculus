@@ -1,5 +1,5 @@
 "use client";
-import posthog from "posthog-js";
+import posthog, { type PostHogInterface } from "posthog-js";
 import { PostHogProvider } from "posthog-js/react";
 import { ReactNode, useEffect } from "react";
 
@@ -81,6 +81,11 @@ function CSPostHogProvider({
               }),
             },
           },
+          // Bootstrapping marks flags as loaded, which makes posthog-js skip
+          // the initial /flags request. Reload so flags absent from the
+          // bootstrap (e.g. survey-linked flags) resolve instead of reading as
+          // missing. Same distinct_id, so experiment variants are unchanged.
+          loaded: (ph: PostHogInterface) => ph.reloadFeatureFlags(),
         }),
       });
 
