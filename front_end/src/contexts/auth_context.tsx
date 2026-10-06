@@ -12,6 +12,7 @@ import {
 
 import { AuthContextType } from "@/types/auth";
 import { CurrentUser } from "@/types/users";
+import { getPostHogIdentity } from "@/utils/posthog_identity";
 
 export const AuthContext = createContext<AuthContextType>({
   user: null,
@@ -39,14 +40,14 @@ const AuthProvider: FC<
 
   useEffect(() => {
     if (initialUser) {
-      const { id, username, is_superuser, is_staff, language } = initialUser;
-      posthog.identify(id.toString(), {
-        username,
-        is_superuser,
-        is_staff,
-        locale,
-        language: language || locale,
-      });
+      // On first mount this runs before CSPostHogProvider's init (child
+      // effects run first) and is a no-op; the provider identifies on load.
+      // This covers users logging in or switching later in the page's life.
+      const { distinctId, properties } = getPostHogIdentity(
+        initialUser,
+        locale
+      );
+      posthog.identify(distinctId, properties);
     } else {
       if (posthog._isIdentified()) {
         posthog.reset();
