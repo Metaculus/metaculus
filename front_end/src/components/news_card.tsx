@@ -64,7 +64,7 @@ const NewsCard: FC<Props> = ({ post }) => {
                     height: 48,
                   })
                 }
-                contentEditableClassName="font-serif !text-gray-700 !dark:text-gray-700-dark *:m-0"
+                contentEditableClassName="font-serif !text-gray-700 !dark:text-gray-700-dark *:m-0 line-clamp-2 sm:line-clamp-3"
                 withUgcLinks
               />
             )}
