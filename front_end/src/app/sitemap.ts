@@ -41,6 +41,7 @@ const STATIC_PATHS = [
   "/help/question-checklist/",
   "/labor-hub/",
   "/labor-hub/jobs/",
+  "/global-health-monitor/",
 ];
 
 /**

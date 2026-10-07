@@ -1,0 +1,25 @@
+import { EDITION_2026_08 } from "./edition_2026_08";
+import { EDITION_2026_09 } from "./edition_2026_09";
+import { Edition } from "./types";
+
+// Newest first.
+export const EDITIONS: Edition[] = [EDITION_2026_09, EDITION_2026_08];
+
+export function getLatestEdition(): Edition {
+  const latest = EDITIONS[0];
+  if (!latest) {
+    throw new Error("Global Health Monitor has no editions");
+  }
+  return latest;
+}
+
+export function resolveEdition(slug: string | undefined): Edition {
+  return (
+    EDITIONS.find((edition) => edition.slug === slug) ?? getLatestEdition()
+  );
+}
+
+export function getPreviousEdition(edition: Edition): Edition | null {
+  const index = EDITIONS.findIndex((item) => item.slug === edition.slug);
+  return index >= 0 ? EDITIONS[index + 1] ?? null : null;
+}
