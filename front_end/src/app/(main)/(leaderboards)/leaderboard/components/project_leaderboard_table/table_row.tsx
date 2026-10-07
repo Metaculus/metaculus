@@ -133,7 +133,7 @@ const TableRow: FC<Props> = ({
               ) : (
                 <>
                   {rank}
-                  {withRankCI && (
+                  {isAdvanced && withRankCI && (
                     <IntervalSuffix
                       lower={rank_ci_lower}
                       upper={rank_ci_upper}
