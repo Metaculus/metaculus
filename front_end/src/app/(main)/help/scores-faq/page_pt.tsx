@@ -2254,9 +2254,9 @@ export default function ScoresFAQ() {
           </Link>
           . Estar perto do topo de uma tabela de classificação exige habilidade,
           mas terminar em primeiro e não em segundo lugar é muitas vezes questão
-          de sorte. Por isso, as tabelas de classificação dos torneios mostram,
-          na visualização avançada, um intervalo de confiança de 95% para cada
-          Rank e pontuação total. Para calculá-lo, usamos{" "}
+          de sorte. Por isso, as tabelas de classificação dos torneios mostram
+          um intervalo de confiança de 95% para cada Rank e, na visualização
+          avançada, para cada pontuação total. Para calculá-lo, usamos{" "}
           <a href="https://en.wikipedia.org/wiki/Bootstrapping_(statistics)">
             bootstrapping
           </a>

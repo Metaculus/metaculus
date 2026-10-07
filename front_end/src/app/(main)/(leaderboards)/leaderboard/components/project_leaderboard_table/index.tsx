@@ -114,7 +114,7 @@ const ProjectLeaderboardTable: FC<Props> = ({
           <tr>
             <TableHeader className="sticky left-0 w-0 text-left">
               {getColumnName("rank", columnRenames)}
-              {isAdvanced && withRankCI && <ConfidenceIntervalTooltip />}
+              {withRankCI && <ConfidenceIntervalTooltip />}
             </TableHeader>
             <TableHeader className="sticky left-0 w-0 max-w-[9rem] text-left sm:max-w-[16rem]">
               {getColumnName("forecaster", columnRenames)}
