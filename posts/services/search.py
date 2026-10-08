@@ -30,17 +30,27 @@ class SearchUnavailable(APIException):
 def generate_post_content_for_embedding_vectorization(post: Post):
     """
     Generates a composed Post content to be indexed by openai
+
+    Fine print is left out on purpose: it's definitions and edge cases, which
+    pull posts away from the ITN news articles matched against this vector.
     """
 
     question_chunks = []
+    group_content = None
     notebook_content = None
+
+    # Group subquestions leave these empty; the text lives on the group
+    if post.group_of_questions_id:
+        group = post.group_of_questions
+        group_content = "\n".join(
+            [x for x in [group.description, group.resolution_criteria] if x]
+        )
 
     for question in post.get_questions():
         chunks = [
             question.title,
             question.description,
             question.resolution_criteria,
-            question.fine_print,
         ]
         question_chunks.append("\n".join([x for x in chunks if x]))
 
@@ -53,7 +63,7 @@ def generate_post_content_for_embedding_vectorization(post: Post):
     if post.title == questions_content:
         questions_content = None
 
-    post_chunks = [post.title, questions_content, notebook_content]
+    post_chunks = [post.title, group_content, questions_content, notebook_content]
 
     return "\n\n".join([x for x in post_chunks if x])
 

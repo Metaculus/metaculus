@@ -287,6 +287,43 @@ def generate_related_articles_for_post(post: Post):
     )
 
 
+def rebuild_related_articles_for_post(post: Post):
+    """
+    Replaces the post's PostArticle rows after its embedding vector is regenerated,
+    matching it against every stored article as generate_related_posts_for_article
+    does. Rows are dated by the article, since news hotness decays by row age.
+    """
+
+    if post.notebook_id:
+        return
+
+    PostArticle.objects.filter(post=post).delete()
+
+    if post.embedding_vector is None:
+        return
+
+    relevant_articles = (
+        ITNArticle.objects.filter(embedding_vector__isnull=False)
+        .annotate(distance=CosineDistance("embedding_vector", post.embedding_vector))
+        .filter(distance__lte=MAX_RELEVANT_DISTANCE)
+        .only("id", "created_at")
+    )
+
+    PostArticle.objects.bulk_create(
+        [
+            PostArticle(
+                article=article,
+                post=post,
+                distance=article.distance,
+                created_at=article.created_at,
+            )
+            for article in relevant_articles
+        ],
+        ignore_conflicts=True,
+        batch_size=100,
+    )
+
+
 def assign_article_clusters():
     """Group near-duplicate articles (same story, different outlets/rewrites) so
     that repeated coverage counts only once towards a post's news hotness.
