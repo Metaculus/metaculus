@@ -1,9 +1,10 @@
 import json
 import uuid
-from datetime import timedelta
+from datetime import timedelta, timezone as datetime_timezone
 
 from django.conf import settings
 from django.core.cache import cache
+from django.db import transaction
 from django.utils import timezone
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
@@ -98,16 +99,30 @@ def is_token_revoked(token) -> bool:
     return True
 
 
-def is_user_global_token_revoked(user: User, token_iat: int) -> bool:
+def get_auth_version(user: User) -> str | None:
+    """Encode the credential snapshot without losing database timestamp precision."""
+    if user.auth_revoked_at is None:
+        return None
+    return user.auth_revoked_at.astimezone(datetime_timezone.utc).isoformat(
+        timespec="microseconds"
+    )
+
+
+def is_user_global_token_revoked(user: User, token) -> bool:
     """
     Check if a token is revoked at the user level (auth_revoked_at).
-    Returns True if token was issued before user's auth_revoked_at timestamp.
+    New tokens must match the current credential version, including explicit null.
+    Tokens without the claim retain the legacy timestamp cutoff during migration.
     """
+    if "auth_version" in token:
+        return token["auth_version"] != get_auth_version(user)
+
     if not user.auth_revoked_at:
         return False
     revoked_at_ts = int(user.auth_revoked_at.timestamp())
 
-    return token_iat < revoked_at_ts
+    # Legacy fallback for JWTs issued without an auth_version claim.
+    return token.get("iat", 0) < revoked_at_ts
 
 
 class SessionAccessToken(AccessToken):
@@ -137,6 +152,8 @@ class SessionRefreshToken(RefreshToken):
     def for_user(cls, user):
         token = super().for_user(user)
         token["session_id"] = str(uuid.uuid4())
+        # Use the validated user snapshot, not a freshly loaded credential version.
+        token["auth_version"] = get_auth_version(user)
         return token
 
     def verify(self):
@@ -175,7 +192,7 @@ def refresh_tokens_with_grace_period(refresh_token_str: str) -> dict:
 
     if not api_settings.USER_AUTHENTICATION_RULE(user):
         raise AuthenticationFailed("No active account found for the given token.")
-    if is_user_global_token_revoked(user, old_token_iat):
+    if is_user_global_token_revoked(user, refresh):
         raise InvalidToken("Token has been invalidated")
 
     # Check grace period cache - only reached if token is valid
@@ -196,6 +213,7 @@ def refresh_tokens_with_grace_period(refresh_token_str: str) -> dict:
         data = {"access": str(refresh.access_token)}
 
         if api_settings.ROTATE_REFRESH_TOKENS:
+            # Preserve auth_version (or its absence for legacy sessions).
             refresh.set_jti()
             refresh.set_exp()
             refresh.set_iat()
@@ -222,6 +240,7 @@ def revoke_session(session_id: str) -> None:
     set_session_enforce_at(session_id, 0)
 
 
+@transaction.atomic
 def revoke_all_user_tokens(user: User) -> None:
     """
     Revoke all tokens for a user by setting auth_revoked_at to now.
@@ -232,5 +251,13 @@ def revoke_all_user_tokens(user: User) -> None:
     - Admin security action
     """
 
-    user.auth_revoked_at = timezone.now() - timedelta(seconds=1)
+    current_user = User.objects.select_for_update().get(pk=user.pk)
+    # Ensure every revocation changes the version,
+    # even for concurrent calls, identical clock readings, or a backwards clock.
+    revoked_at = timezone.now()
+    if current_user.auth_revoked_at is not None:
+        revoked_at = max(
+            revoked_at, current_user.auth_revoked_at + timedelta(microseconds=1)
+        )
+    user.auth_revoked_at = revoked_at
     user.save(update_fields=["auth_revoked_at"])
