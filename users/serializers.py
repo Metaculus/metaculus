@@ -267,7 +267,7 @@ class PasswordChangeSerializer(serializers.Serializer):
 
 class EmailChangeSerializer(serializers.Serializer):
     password = serializers.CharField()
-    email = serializers.EmailField()
+    email = serializers.EmailField(max_length=254)
 
 
 class UserCampaignRegistrationSerializer(serializers.ModelSerializer):

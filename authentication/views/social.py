@@ -4,7 +4,6 @@ from rest_framework import serializers, status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
-from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_social_auth.views import SocialTokenOnlyAuthView
 from social_core.backends.oauth import BaseOAuth2
 
@@ -53,7 +52,7 @@ class SocialCodeAuth(SocialTokenOnlyAuthView):
             return get_tokens_for_user(obj)
 
     serializer_class = TokenSerializer
-    authentication_classes = (JWTAuthentication,)
+    authentication_classes = ()
 
     def respond_error(self, error):
         response = super().respond_error(error)

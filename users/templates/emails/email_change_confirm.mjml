@@ -7,46 +7,39 @@
         <mj-section>
             <mj-column>
                 <mj-text>
-                    Hello {{ username }},
-                </mj-text>
-
-                <mj-text>
                     {% blocktrans %}
-                    We received a request to change the email address associated with your Metaculus account to <code>{{ new_email }}</code>.
+                    Confirm that you want to use this address for your Metaculus account.
+                    Open the link while signed in to that account and press Confirm.
                     {% endblocktrans %}
                 </mj-text>
-                
+
                 <mj-text color="#6B7280" font-size="13px">
                     {% blocktrans %}
-                    If you did not make this request, you can safely ignore this email.
+                    If you didn't request this, ignore this email; nothing changes.
                     {% endblocktrans %}
                 </mj-text>
             </mj-column>
         </mj-section>
-                
-        <!-- Email Change CTA section -->
+
         <mj-wrapper mj-class="content-block-wrapper" css-class="content-block-wrapper-loose">
             <mj-section mj-class="content-block" padding="8px 24px">
                 <mj-column padding="0px">
-                    <mj-text 
-                        align="center" 
-                        color="#161C22" 
-                        font-size="16px" 
-                        font-weight="500" 
-                        padding-bottom="6px"
-                        line-height="1.5">
-                        {% blocktrans %}
-                        Click the button to confirm this email change.
-                        {% endblocktrans %}
-                    </mj-text>
-                    
-                    <mj-button mj-class="cta-button" href="{{ reset_link }}">
-                        Confirm Email Change
+                    <mj-button mj-class="cta-button" href="{{ confirm_link }}" padding-top="16px">
+                        Confirm email address
                     </mj-button>
+
+                    <mj-text
+                        align="center"
+                        color="#7C8894"
+                        font-size="11px"
+                        line-height="16px"
+                        padding="10px 0px 6px">
+                        {% blocktrans %}Expires in 24 hours{% endblocktrans %}
+                    </mj-text>
                 </mj-column>
             </mj-section>
         </mj-wrapper>
-        
+
         <mj-section>
             <mj-column>
                 <mj-text align="center" color="#6B7280" font-size="13px" padding-top="8px">
@@ -54,11 +47,11 @@
                     Or, copy and paste this link into your browser:
                     {% endblocktrans %}
                     <br/>
-                    <a href="{{ reset_link }}" style="color: #0A66C2; word-break: break-all;">{{ reset_link }}</a>
+                    <a href="{{ confirm_link }}" style="color: #0A66C2; word-break: break-all;">{{ confirm_link }}</a>
                 </mj-text>
             </mj-column>
-
         </mj-section>
-        
+
+        <mj-include path="../../../templates/emails/email_greeting.mjml"/>
     </mj-body>
 </mjml>

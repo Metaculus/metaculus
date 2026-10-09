@@ -195,6 +195,11 @@ class User(TimeStampedModel, AbstractUser):
         blank=True,
         help_text="All JWT tokens issued before this timestamp are invalid. Set on password change or 'log out everywhere'.",
     )
+    email_changed_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="Last applied email change. Starts the change lock and binds the rollback link.",
+    )
 
     # Controls whether the account may submit forecasts via the API.
     api_forecasting_access = models.CharField(

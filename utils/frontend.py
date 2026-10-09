@@ -86,3 +86,9 @@ def build_frontend_account_settings_url():
 
 def build_frontend_email_change_url(token: str):
     return build_frontend_url(f"/accounts/change-email?{urlencode({'token': token})}")
+
+
+def build_frontend_email_change_rollback_url(token: str):
+    return build_frontend_url(
+        f"/accounts/change-email/rollback?{urlencode({'token': token})}"
+    )

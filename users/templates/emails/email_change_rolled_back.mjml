@@ -1,0 +1,31 @@
+<mjml>
+    <mj-include path="../../../templates/emails/email_styles.mjml"/>
+
+    <mj-body>
+        <mj-include path="../../../templates/emails/email_top.mjml"/>
+
+        <mj-section>
+            <mj-column>
+                <mj-text>
+                    Hello {{ username }},
+                </mj-text>
+
+                <mj-text>
+                    {% blocktrans %}
+                    The change of your Metaculus email to <code>{{ new_email }}</code> was undone
+                    using the link sent to <code>{{ old_email }}</code>. The password was reset
+                    and all devices were signed out.
+                    {% endblocktrans %}
+                </mj-text>
+
+                <mj-text color="#6B7280" font-size="13px">
+                    {% blocktrans %}
+                    If you didn't do this, contact {{ support_email }}.
+                    {% endblocktrans %}
+                </mj-text>
+            </mj-column>
+        </mj-section>
+
+        <mj-include path="../../../templates/emails/email_greeting.mjml"/>
+    </mj-body>
+</mjml>

@@ -6,7 +6,11 @@ from django.db import transaction
 from django.db.models import Q
 from django.utils import timezone
 from rest_framework import status, serializers
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import (
+    api_view,
+    authentication_classes,
+    permission_classes,
+)
 from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import AllowAny, IsAdminUser
 from rest_framework.response import Response
@@ -38,6 +42,10 @@ from projects.permissions import ObjectPermission
 from users.models import User
 from users.serializers import UserPrivateSerializer, validate_username
 from users.services.common import register_user_to_campaign, change_user_password
+from users.services.email_change import (
+    check_email_change_rollback,
+    rollback_email_change,
+)
 from utils.cloudflare import validate_turnstile_from_request
 
 logger = logging.getLogger(__name__)
@@ -330,3 +338,23 @@ def logout_api_view(request):
                 revoke_session(session_id)
 
     return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+@api_view(["GET", "POST"])
+@authentication_classes([])
+@permission_classes([AllowAny])
+def email_change_rollback_api_view(request):
+    if request.method == "GET":
+        token = serializers.CharField().run_validation(
+            request.query_params.get("token")
+        )
+        target = check_email_change_rollback(token)
+        return Response({"old_email": target.old_email, "new_email": target.new_email})
+
+    token = serializers.CharField().run_validation(request.data.get("token"))
+    password = serializers.CharField().run_validation(request.data.get("password"))
+    user = rollback_email_change(token, password)
+
+    return Response(
+        {"tokens": get_tokens_for_user(user), "user": UserPrivateSerializer(user).data}
+    )
