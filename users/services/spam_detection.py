@@ -212,11 +212,10 @@ async def ask_gpt_to_check_profile_for_spam(bio_plus_websites: str) -> tuple[boo
     )
     try:
         gpt_response = await generate_text_async(
-            model="gpt-4o-mini",
+            model="gpt-6-luna",
             system_prompt=system_prompt,
             prompt=prompt,
-            temperature=0,
-            timeout=7,
+            timeout=10,
         )
         is_spam = "TRUE" in gpt_response
     except Exception as e:
