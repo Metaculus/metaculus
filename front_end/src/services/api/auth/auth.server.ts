@@ -11,6 +11,7 @@ import {
 } from "@/types/auth";
 import { serverFetcher } from "@/utils/core/fetch/fetch.server";
 import { GatedActionWire } from "@/utils/gated_actions";
+import { encodeQueryParams } from "@/utils/navigation";
 
 export type SignUpProps = {
   email: string;
@@ -169,6 +170,23 @@ class ServerAuthApiClass extends ApiService {
     return this.post<AuthResponse>(
       `/auth/password-reset/change/?user_id=${user_id}&token=${token}`,
       { password },
+      {},
+      { passAuthHeader: false }
+    );
+  }
+
+  async checkEmailChangeRollback(token: string) {
+    return this.get<{ old_email: string; new_email: string }>(
+      `/auth/email-change/rollback/${encodeQueryParams({ token })}`,
+      {},
+      { passAuthHeader: false }
+    );
+  }
+
+  async rollbackEmailChange(token: string, password: string) {
+    return this.post<AuthResponse, { token: string; password: string }>(
+      "/auth/email-change/rollback/",
+      { token, password },
       {},
       { passAuthHeader: false }
     );

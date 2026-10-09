@@ -14,6 +14,9 @@ export default function EmailChangeToast() {
     if (searchParams.get("emailChanged") === "true") {
       toast.success(t("emailChangeSuccessMessage"));
       router.replace("/accounts/settings/account", { scroll: false });
+    } else if (searchParams.get("emailRestored") === "true") {
+      toast.success(t("emailRestoredSuccessMessage"));
+      router.replace("/accounts/settings/account", { scroll: false });
     }
   }, [searchParams, router, t]);
 
