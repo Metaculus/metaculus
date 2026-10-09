@@ -94,7 +94,7 @@ def test_explicit_version_must_match_account(account_revoked, token_version, acc
 
 @pytest.mark.parametrize("revocation_age", [None, 0, 1, 10])
 @freeze_time("2026-01-01 12:00:00")
-def test_legacy_tokens_keep_cutoff_and_remain_legacy_on_refresh(revocation_age):
+def test_legacy_tokens_keep_cutoff_and_gain_version_on_refresh(revocation_age):
     user = factory_user(is_active=True)
     refresh = SessionRefreshToken.for_user(user)
     del refresh["auth_version"]
@@ -111,8 +111,17 @@ def test_legacy_tokens_keep_cutoff_and_remain_legacy_on_refresh(revocation_age):
         else:
             assert SessionJWTAuthentication().get_user(access).pk == user.pk
             result = refresh_tokens_with_grace_period(str(refresh))
-            assert "auth_version" not in SessionAccessToken(result["access"])
-            assert "auth_version" not in SessionRefreshToken(result["refresh"])
+            upgraded_access = SessionAccessToken(result["access"])
+            upgraded_refresh = SessionRefreshToken(result["refresh"])
+            assert upgraded_access["auth_version"] == get_auth_version(user)
+            assert upgraded_refresh["auth_version"] == get_auth_version(user)
+            assert refresh_tokens_with_grace_period(str(refresh)) == result
+
+            revoke_all_user_tokens(user)
+            with pytest.raises(AuthenticationFailed, match="invalidated"):
+                SessionJWTAuthentication().get_user(upgraded_access)
+            with pytest.raises(InvalidToken, match="invalidated"):
+                refresh_tokens_with_grace_period(result["refresh"])
 
 
 @freeze_time("2026-01-01 12:00:00.123456")

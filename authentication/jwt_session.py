@@ -210,15 +210,20 @@ def refresh_tokens_with_grace_period(refresh_token_str: str) -> dict:
         if cached:
             return json.loads(cached)
 
-        data = {"access": str(refresh.access_token)}
+        data = {}
 
         if api_settings.ROTATE_REFRESH_TOKENS:
-            # Preserve auth_version (or its absence for legacy sessions).
+            # Migrate legacy sessions; preserve existing versions, including null.
+            if "auth_version" not in refresh:
+                refresh["auth_version"] = get_auth_version(user)
+
             refresh.set_jti()
             refresh.set_exp()
             refresh.set_iat()
             refresh["session_id"] = session_id
             data["refresh"] = str(refresh)
+
+        data["access"] = str(refresh.access_token)
 
         cache.set(grace_key, json.dumps(data), timeout=REFRESH_GRACE_PERIOD)
 
