@@ -16,7 +16,6 @@ from authentication.services.common import get_tokens_for_user
 from tests.unit.test_users.factories import factory_user
 from users.models import User
 from users.services.email_change import (
-    EmailChangeWrongAccountError,
     check_email_change_token,
     confirm_email_change,
     load_rollback_target,
@@ -114,7 +113,7 @@ class TestConfirmToken:
         token = make_email_change_token(user, "new@example.com")
         other = factory_user(is_active=True)
 
-        with pytest.raises(EmailChangeWrongAccountError):
+        with pytest.raises(ValidationError, match="different account"):
             check_email_change_token(other, token)
 
     def test_tampered(self, user):
@@ -306,7 +305,7 @@ class TestConfirmEmailChange:
         response = jwt_client(other).get(self.url, {"token": token})
 
         assert response.status_code == 400
-        assert response.data["error_code"] == "WRONG_ACCOUNT"
+        assert "different account" in str(response.data)
 
     def test_get_with_garbage_token(self, user):
         response = jwt_client(user).get(self.url, {"token": "garbage"})
@@ -317,6 +316,7 @@ class TestConfirmEmailChange:
         response = jwt_client(user).get(self.url)
 
         assert response.status_code == 400
+        assert "invalid or expired" in str(response.data)
 
     def test_post_applies_change(
         self, user, mock_send, django_capture_on_commit_callbacks
@@ -438,7 +438,10 @@ class TestEmailChangeRollback:
         assert anon_client.get(self.url, {"token": "garbage"}).status_code == 400
 
     def test_get_without_token(self, anon_client):
-        assert anon_client.get(self.url).status_code == 400
+        response = anon_client.get(self.url)
+
+        assert response.status_code == 400
+        assert "invalid or expired" in str(response.data)
 
     def test_post_restores_and_secures(
         self, user, anon_client, mock_send, django_capture_on_commit_callbacks

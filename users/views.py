@@ -254,9 +254,7 @@ def email_me_my_data_api_view(request):
 @authentication_classes([SessionJWTAuthentication])
 def email_change_confirm_api_view(request):
     if request.method == "GET":
-        token = serializers.CharField().run_validation(
-            request.query_params.get("token")
-        )
+        token = request.query_params.get("token", "")
         return Response({"new_email": check_email_change(request.user, token)})
 
     token = serializers.CharField().run_validation(request.data.get("token"))

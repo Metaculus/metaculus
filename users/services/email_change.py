@@ -8,8 +8,7 @@ from django.contrib.auth.password_validation import validate_password
 from django.core import signing
 from django.db import transaction
 from django.utils import timezone
-from rest_framework import status
-from rest_framework.exceptions import APIException, ValidationError
+from rest_framework.exceptions import ValidationError
 from social_django.models import UserSocialAuth
 
 from authentication.jwt_session import revoke_all_user_tokens
@@ -44,18 +43,6 @@ class EmailChangeTokenGenerator(ScopedTokenGenerator):
 email_change_token_generator = EmailChangeTokenGenerator()
 
 
-class EmailChangeWrongAccountError(APIException):
-    status_code = status.HTTP_400_BAD_REQUEST
-
-    def __init__(self):
-        super().__init__(
-            detail={
-                "detail": "This link is for a different account",
-                "error_code": "WRONG_ACCOUNT",
-            }
-        )
-
-
 class RollbackTarget(NamedTuple):
     user: User
     old_email: str
@@ -82,7 +69,7 @@ def check_email_change_token(user: User, token: str) -> str:
         raise ValidationError("Link is invalid or expired")
 
     if payload["user_id"] != user.pk:
-        raise EmailChangeWrongAccountError()
+        raise ValidationError("This link is for a different account")
 
     if not email_change_token_generator.check_token(user, payload["check"]):
         raise ValidationError("Link is invalid or expired")

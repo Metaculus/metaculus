@@ -345,10 +345,7 @@ def logout_api_view(request):
 @permission_classes([AllowAny])
 def email_change_rollback_api_view(request):
     if request.method == "GET":
-        token = serializers.CharField().run_validation(
-            request.query_params.get("token")
-        )
-        target = check_email_change_rollback(token)
+        target = check_email_change_rollback(request.query_params.get("token", ""))
         return Response({"old_email": target.old_email, "new_email": target.new_email})
 
     token = serializers.CharField().run_validation(request.data.get("token"))
