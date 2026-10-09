@@ -1,4 +1,4 @@
-from datetime import timedelta
+from datetime import datetime, timedelta, timezone as datetime_timezone
 
 import pytest
 from django.core.cache import cache
@@ -27,6 +27,19 @@ def clear_cache():
 
 def authenticate(refresh):
     return SessionJWTAuthentication().get_user(refresh.access_token)
+
+
+@pytest.mark.parametrize("offset_hours", [0, 5, -4])
+def test_auth_version_encodes_exact_seconds_and_microseconds(offset_hours):
+    timestamp = datetime(2026, 1, 1, microsecond=1, tzinfo=datetime_timezone.utc)
+    user = User(
+        auth_revoked_at=timestamp.astimezone(
+            datetime_timezone(timedelta(hours=offset_hours))
+        )
+    )
+    assert get_auth_version(user) == "1767225600.000001"
+    user.auth_revoked_at += timedelta(microseconds=1)
+    assert get_auth_version(user) == "1767225600.000002"
 
 
 @pytest.mark.parametrize("previously_revoked", [False, True])

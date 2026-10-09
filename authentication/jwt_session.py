@@ -1,6 +1,6 @@
 import json
 import uuid
-from datetime import timedelta, timezone as datetime_timezone
+from datetime import timedelta
 
 from django.conf import settings
 from django.core.cache import cache
@@ -100,12 +100,11 @@ def is_token_revoked(token) -> bool:
 
 
 def get_auth_version(user: User) -> str | None:
-    """Encode the credential snapshot without losing database timestamp precision."""
+    """Encode the credential snapshot as a timestamp string."""
     if user.auth_revoked_at is None:
         return None
-    return user.auth_revoked_at.astimezone(datetime_timezone.utc).isoformat(
-        timespec="microseconds"
-    )
+
+    return str(user.auth_revoked_at.timestamp())
 
 
 def is_user_global_token_revoked(user: User, token) -> bool:
