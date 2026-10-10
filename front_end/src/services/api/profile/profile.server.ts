@@ -5,6 +5,7 @@ import { SubscriptionEmailType } from "@/types/notifications";
 import { ProfilePreferencesType } from "@/types/preferences";
 import { ApiForecastingAccess, CurrentBot, CurrentUser } from "@/types/users";
 import { serverFetcher } from "@/utils/core/fetch/fetch.server";
+import { encodeQueryParams } from "@/utils/navigation";
 
 import ProfileApi from "./profile.shared";
 
@@ -102,6 +103,12 @@ class ServerProfileApiClass extends ProfileApi {
     return this.post<AuthTokens>("/users/me/email/confirm/", {
       token,
     });
+  }
+
+  async checkEmailChange(token: string) {
+    return this.get<{ new_email: string }>(
+      `/users/me/email/confirm/${encodeQueryParams({ token })}`
+    );
   }
 
   async registerUserCampaign(

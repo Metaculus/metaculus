@@ -242,6 +242,15 @@ AUTH_SIGNUP_SIMPLIFIED_TOKEN = os.environ.get("AUTH_SIGNUP_SIMPLIFIED_TOKEN")
 # Redis TTL of pending gated actions, in seconds.
 AUTH_EMAIL_LINK_TIMEOUT = int(os.environ.get("AUTH_EMAIL_LINK_TIMEOUT", 60 * 60 * 24))
 
+# Max age of the email-change confirmation link, seconds
+AUTH_EMAIL_CHANGE_TIMEOUT = int(
+    os.environ.get("AUTH_EMAIL_CHANGE_TIMEOUT", 60 * 60 * 24)
+)
+# Max age of the email-change rollback link and length of the change lock, seconds
+AUTH_EMAIL_CHANGE_ROLLBACK_TIMEOUT = int(
+    os.environ.get("AUTH_EMAIL_CHANGE_ROLLBACK_TIMEOUT", 60 * 60 * 24 * 7)
+)
+
 PUBLIC_AUTHENTICATION_REQUIRED = (
     os.environ.get("PUBLIC_AUTHENTICATION_REQUIRED", "false").lower() == "true"
 )
