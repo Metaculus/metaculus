@@ -46,7 +46,9 @@ def notify_weekly_top_comments_subscribers(
             "created_at": e.comment.created_at,
             "author": e.comment.author.username,
             "post_title": e.comment.on_post.title,
-            "post_url": build_post_url(e.comment.on_post),
+            "comment_url": (
+                f"{build_post_url(e.comment.on_post)}#comment-{e.comment.id}"
+            ),
             "preview_text": generate_email_comment_preview_text(
                 e.comment.text, max_chars=512
             )[0],
