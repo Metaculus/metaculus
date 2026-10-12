@@ -1,7 +1,6 @@
 from datetime import datetime, timedelta, timezone as datetime_timezone
 
 import pytest
-from django.core.cache import cache
 from django.utils import timezone
 from freezegun import freeze_time
 from rest_framework_simplejwt.exceptions import AuthenticationFailed, InvalidToken
@@ -18,11 +17,7 @@ from tests.unit.test_users.factories import factory_user
 from users.models import User
 
 
-@pytest.fixture(autouse=True)
-def clear_cache():
-    cache.clear()
-    yield
-    cache.clear()
+pytestmark = pytest.mark.usefixtures("clear_cache")
 
 
 def authenticate(refresh):
@@ -37,9 +32,9 @@ def test_auth_version_encodes_exact_seconds_and_microseconds(offset_hours):
             datetime_timezone(timedelta(hours=offset_hours))
         )
     )
-    assert get_auth_version(user) == "1767225600.000001"
+    assert get_auth_version(user) == 1767225600000001
     user.auth_revoked_at += timedelta(microseconds=1)
-    assert get_auth_version(user) == "1767225600.000002"
+    assert get_auth_version(user) == 1767225600000002
 
 
 @pytest.mark.parametrize("previously_revoked", [False, True])
@@ -76,9 +71,9 @@ def test_same_second_revocation_rejects_old_tokens(previously_revoked):
     "account_revoked,token_version,accepted",
     [
         (False, None, True),
-        (False, "old-version", False),
+        (False, 1, False),
         (True, None, False),
-        (True, "old-version", False),
+        (True, 1, False),
         (True, "matching", True),
     ],
 )

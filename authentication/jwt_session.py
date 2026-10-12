@@ -1,10 +1,11 @@
 import json
 import uuid
-from datetime import timedelta
+from datetime import UTC, datetime, timedelta
 
 from django.conf import settings
 from django.core.cache import cache
-from django.db import transaction
+from django.db.models import F, Value
+from django.db.models.functions import Greatest
 from django.utils import timezone
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
@@ -99,12 +100,13 @@ def is_token_revoked(token) -> bool:
     return True
 
 
-def get_auth_version(user: User) -> str | None:
-    """Encode the credential snapshot as a timestamp string."""
+def get_auth_version(user: User) -> int | None:
+    """Encode the credential snapshot as integer microseconds since the epoch."""
     if user.auth_revoked_at is None:
         return None
 
-    return str(user.auth_revoked_at.timestamp())
+    epoch = datetime.fromtimestamp(0, tz=UTC)
+    return (user.auth_revoked_at - epoch) // timedelta(microseconds=1)
 
 
 def is_user_global_token_revoked(user: User, token) -> bool:
@@ -151,7 +153,7 @@ class SessionRefreshToken(RefreshToken):
     def for_user(cls, user):
         token = super().for_user(user)
         token["session_id"] = str(uuid.uuid4())
-        # Use the validated user snapshot, not a freshly loaded credential version.
+        # Stamp the caller's validated snapshot, never a reloaded user.
         token["auth_version"] = get_auth_version(user)
         return token
 
@@ -212,10 +214,7 @@ def refresh_tokens_with_grace_period(refresh_token_str: str) -> dict:
         data = {}
 
         if api_settings.ROTATE_REFRESH_TOKENS:
-            # Migrate legacy sessions; preserve existing versions, including null.
-            if "auth_version" not in refresh:
-                refresh["auth_version"] = get_auth_version(user)
-
+            refresh["auth_version"] = get_auth_version(user)
             refresh.set_jti()
             refresh.set_exp()
             refresh.set_iat()
@@ -244,7 +243,6 @@ def revoke_session(session_id: str) -> None:
     set_session_enforce_at(session_id, 0)
 
 
-@transaction.atomic
 def revoke_all_user_tokens(user: User) -> None:
     """
     Revoke all tokens for a user by setting auth_revoked_at to now.
@@ -255,13 +253,10 @@ def revoke_all_user_tokens(user: User) -> None:
     - Admin security action
     """
 
-    current_user = User.objects.select_for_update().get(pk=user.pk)
-    # Ensure every revocation changes the version,
-    # even for concurrent calls, identical clock readings, or a backwards clock.
-    revoked_at = timezone.now()
-    if current_user.auth_revoked_at is not None:
-        revoked_at = max(
-            revoked_at, current_user.auth_revoked_at + timedelta(microseconds=1)
+    # Every revocation must produce a new version.
+    User.objects.filter(pk=user.pk).update(
+        auth_revoked_at=Greatest(
+            Value(timezone.now()), F("auth_revoked_at") + timedelta(microseconds=1)
         )
-    user.auth_revoked_at = revoked_at
-    user.save(update_fields=["auth_revoked_at"])
+    )
+    user.refresh_from_db(fields=["auth_revoked_at"])
