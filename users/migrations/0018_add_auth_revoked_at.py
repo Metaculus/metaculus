@@ -15,7 +15,7 @@ class Migration(migrations.Migration):
             name="auth_revoked_at",
             field=models.DateTimeField(
                 blank=True,
-                help_text="All JWT tokens issued before this timestamp are invalid. Set on password change or 'log out everywhere'.",
+                help_text="Credential version. Any change invalidates every issued JWT. Set on password change or 'log out everywhere'.",
                 null=True,
             ),
         ),
