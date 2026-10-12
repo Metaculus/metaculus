@@ -2,7 +2,7 @@ import ServerProfileApi from "@/services/api/profile/profile.server";
 import { SearchParams } from "@/types/navigation";
 import { ApiError } from "@/utils/core/errors";
 
-import ChangeEmailClient, { ChangeEmailCheck, SignInForm } from "./client";
+import ChangeEmailClient, { ChangeEmailCheck, SignInPrompt } from "./client";
 
 async function checkToken(token: string): Promise<ChangeEmailCheck> {
   try {
@@ -22,7 +22,7 @@ export default async function ChangeEmailPage(props: {
     typeof searchParams.token === "string" ? searchParams.token : "";
   const user = await ServerProfileApi.getMyProfile();
 
-  if (!user) return <SignInForm />;
+  if (!user) return <SignInPrompt />;
 
   return (
     <ChangeEmailClient

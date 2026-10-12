@@ -2,11 +2,11 @@
 
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { FC, FormEvent, useState } from "react";
+import { FC, useState } from "react";
 
-import loginAction from "@/app/(main)/accounts/actions";
 import Button from "@/components/ui/button";
-import { FormErrorMessage, Input } from "@/components/ui/form_field";
+import { FormErrorMessage } from "@/components/ui/form_field";
+import { useModal } from "@/contexts/modal_context";
 import { useServerAction } from "@/hooks/use_server_action";
 import { ErrorResponse } from "@/types/fetch";
 import { CurrentUser } from "@/types/users";
@@ -18,8 +18,6 @@ export type ChangeEmailCheck =
   | { status: "error"; errors: ErrorResponse };
 
 const TITLE_CLASS = "m-0 text-blue-800 dark:text-blue-800-dark";
-const INPUT_CLASS =
-  "block w-full rounded border border-gray-700 bg-inherit px-3 py-2 dark:border-gray-700-dark md:w-1/2";
 
 const ErrorState: FC<{ errors: ErrorResponse }> = ({ errors }) => {
   const t = useTranslations();
@@ -37,54 +35,29 @@ const ErrorState: FC<{ errors: ErrorResponse }> = ({ errors }) => {
   );
 };
 
-export const SignInForm: FC = () => {
+export const SignInPrompt: FC = () => {
   const t = useTranslations();
   const router = useRouter();
-  const [login, setLogin] = useState("");
-  const [password, setPassword] = useState("");
-  const [errors, setErrors] = useState<ErrorResponse>();
-
-  const [signIn, isPending] = useServerAction(async () => {
-    const response = await loginAction(login, password);
-    if (response?.errors) {
-      setErrors(response.errors);
-      return;
-    }
-    router.refresh();
-  });
-
-  const onSubmit = (event: FormEvent) => {
-    event.preventDefault();
-    setErrors(undefined);
-    void signIn();
-  };
+  const { setCurrentModal } = useModal();
 
   return (
-    <form className="flex flex-col gap-4" onSubmit={onSubmit}>
+    <div className="flex flex-col gap-4">
       <h1 className={TITLE_CLASS}>{t("emailChangeConfirmTitle")}</h1>
       <p className="m-0">{t("emailChangeSignInPrompt")}</p>
-      <Input
-        className={INPUT_CLASS}
-        placeholder={t("loginUsernamePlaceholder")}
-        autoComplete="username"
-        value={login}
-        onChange={(event) => setLogin(event.target.value)}
-      />
-      <Input
-        className={INPUT_CLASS}
-        type="password"
-        placeholder={t("passwordPlaceholder")}
-        autoComplete="current-password"
-        value={password}
-        onChange={(event) => setPassword(event.target.value)}
-      />
-      <FormErrorMessage errors={errors} />
       <div>
-        <Button variant="primary" type="submit" disabled={isPending}>
+        <Button
+          variant="primary"
+          onClick={() =>
+            setCurrentModal({
+              type: "signin",
+              data: { onSuccess: () => router.refresh() },
+            })
+          }
+        >
           {t("logIn")}
         </Button>
       </div>
-    </form>
+    </div>
   );
 };
 
