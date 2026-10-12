@@ -56,11 +56,11 @@ export default function ContestRules() {
 
         <p>
           Competitions are open to residents of the United States and worldwide,
-          except that if you are a resident of Crimea, Cuba, Iran, Syria, North
-          Korea, Sudan, Russia, or any other place prohibited by applicable law,
-          you may not enter any Competition. Prize recipients will be required
-          to verify their identity, nationality, and residency. Payouts will not
-          be made to any participant or participating bot where such a payment
+          except that if you are a resident of Crimea, Cuba, Iran, North Korea,
+          Sudan, Russia, or any other place prohibited by applicable law, you
+          may not enter any Competition. Prize recipients will be required to
+          verify their identity, nationality, and residency. Payouts will not be
+          made to any participant or participating bot where such a payment
           would be prohibited by U.S. law. Taxes and fees are paid by
           recipients.
         </p>
