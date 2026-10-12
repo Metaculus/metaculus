@@ -189,11 +189,11 @@ class User(TimeStampedModel, AbstractUser):
         help_text="The human owner of the bot. This property can only be changed for bot users.",
     )
 
-    # Token revocation - all tokens issued before this timestamp are invalid
+    # Credential version: any change invalidates every issued JWT.
     auth_revoked_at = models.DateTimeField(
         null=True,
         blank=True,
-        help_text="All JWT tokens issued before this timestamp are invalid. Set on password change or 'log out everywhere'.",
+        help_text="Credential version. Any change invalidates every issued JWT. Set on password change or 'log out everywhere'.",
     )
     email_changed_at = models.DateTimeField(
         null=True,

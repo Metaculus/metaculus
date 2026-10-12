@@ -90,7 +90,6 @@ async def generate_text_async(
     model: str,
     prompt: str,
     system_prompt: str | None = None,
-    temperature: float = 0,
     timeout: float | None = None,
 ) -> str:
     messages = [{"role": "user", "content": prompt}]
@@ -102,7 +101,6 @@ async def generate_text_async(
         response = await client.chat.completions.create(
             model=model,
             messages=messages,  # type: ignore
-            temperature=temperature,
             timeout=timeout,
         )
         response_text = response.choices[0].message.content

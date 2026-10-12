@@ -63,17 +63,15 @@ def build_question_embed_url(question_id: int):
     return build_frontend_url(f"/questions/embed/{question_id}")
 
 
-def build_post_comment_url(post_id: int, post_title: str, comment_id: int):
-    return build_frontend_url(
-        f"/questions/{post_id}/{slugify(post_title)}#comment-{comment_id}"
-    )
-
-
 def build_post_url(post: Post):
     if post.notebook_id:
         return build_frontend_url(f"/notebooks/{post.id}/{slugify(post.title)}/")
 
     return build_frontend_url(f"/questions/{post.id}/{slugify(post.title)}/")
+
+
+def build_post_comment_url(post: Post, comment_id: int):
+    return f"{build_post_url(post)}#comment-{comment_id}"
 
 
 def build_news_url():
