@@ -23,24 +23,24 @@ from authentication.services.common import (
 from projects.models import Project
 from users.models import User, UserSpamActivity
 from users.serializers import (
-    UserPrivateSerializer,
-    UserPrivateDataAccessSerializer,
-    UserPublicSerializer,
-    validate_username,
-    UserUpdateProfileSerializer,
-    UserFilterSerializer,
-    PasswordChangeSerializer,
-    EmailChangeSerializer,
-    UserCampaignRegistrationSerializer,
     BotUpdateProfileSerializer,
+    EmailChangeSerializer,
+    PasswordChangeSerializer,
+    UserCampaignRegistrationSerializer,
+    UserFilterSerializer,
+    UserPrivateDataAccessSerializer,
+    UserPrivateSerializer,
+    UserPublicSerializer,
+    UserUpdateProfileSerializer,
+    validate_username,
     validate_username_change,
 )
 from users.services.common import (
+    change_user_password,
     get_users,
     mark_user_as_spam,
-    user_unsubscribe_tags,
     register_user_to_campaign,
-    change_user_password,
+    user_unsubscribe_tags,
 )
 from users.services.email_change import (
     check_email_change,
@@ -48,7 +48,8 @@ from users.services.email_change import (
     request_email_change,
 )
 from utils.tasks import email_user_their_data_task
-from .services.bots_management import get_user_bots, create_bot
+
+from .services.bots_management import create_bot, get_user_bots
 from .services.profile_stats import serialize_user_stats
 from .services.spam_detection import (
     check_profile_update_for_spam,
@@ -149,7 +150,7 @@ def change_username_api_view(request: Request):
             raise ValidationError("can only change username once every 180 days")
 
     user.update_username(username)
-    user.save()
+    user.save(update_fields=["username", "old_usernames", "username_set_at"])
 
     return Response(UserPrivateSerializer(user).data)
 

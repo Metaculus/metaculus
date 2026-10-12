@@ -590,6 +590,49 @@ class TestEmailChangeRollback:
 
         mock_send.assert_called_once()
 
+    @pytest.mark.parametrize(
+        "method, url, data, status_code",
+        [
+            pytest.param(
+                "post",
+                "/api/users/me/password/",
+                {"password": PASSWORD, "new_password": "Attacker-Password-789"},
+                403,
+                id="password",
+            ),
+            pytest.param(
+                "patch", "/api/users/me/update/", {"bio": "Hello"}, 200, id="profile"
+            ),
+            pytest.param(
+                "post",
+                "/api/users/change-username/",
+                {"username": "renamed"},
+                200,
+                id="username",
+            ),
+            pytest.param("post", "/api/auth/api-key/rotate/", {}, 403, id="api-key"),
+        ],
+    )
+    def test_in_flight_request_cannot_undo_it(
+        self, user, anon_client, method, url, data, status_code
+    ):
+        token = changed_user(user)
+        stale_version = user.auth_revoked_at
+        # Stale request.user, as if authenticated before the rollback
+        client = APIClient()
+        client.force_authenticate(user=user)
+        assert self.post(anon_client, token).status_code == 200
+
+        response = getattr(client, method)(url, data, format="json")
+
+        assert response.status_code == status_code
+        fresh = User.objects.get(pk=user.pk)
+        assert fresh.email == "old@example.com"
+        assert fresh.email_changed_at is None
+        assert fresh.check_password(NEW_PASSWORD)
+        assert fresh.auth_revoked_at != stale_version
+        assert not ApiKey.objects.filter(user=user).exists()
+
 
 # pytest-django's per-test transaction masks a missing @transaction.atomic
 @pytest.mark.django_db(transaction=True)

@@ -10,7 +10,7 @@ from django.utils import timezone
 from rest_framework.exceptions import ValidationError
 from social_django.models import UserSocialAuth
 
-from authentication.jwt_session import revoke_all_user_tokens
+from authentication.jwt_session import credential_lock, revoke_all_user_tokens
 from authentication.models import ApiKey
 from comments.models import Comment
 from comments.services.common import soft_delete_comment
@@ -178,11 +178,11 @@ def change_user_password(user: User, new_password: str) -> None:
     Change user's password and revoke all existing tokens.
     """
     validate_password(new_password, user=user)
-
     user.set_password(new_password)
-    user.save()
 
-    revoke_all_user_tokens(user)
+    with credential_lock(user):
+        user.save(update_fields=["password"])
+        revoke_all_user_tokens(user)
 
 
 def user_unsubscribe_tags(user: User, tags: list[str]) -> None:

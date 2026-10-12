@@ -19,6 +19,7 @@ from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 
 from authentication.backends import AuthLoginBackend
 from authentication.jwt_session import (
+    credential_lock,
     refresh_tokens_with_grace_period,
     revoke_session,
     SessionAccessToken,
@@ -291,8 +292,9 @@ def api_key_api_view(request):
 @api_view(["POST"])
 def api_key_rotate_api_view(request):
     """Create or rotate the API key for the authenticated user."""
-    ApiKey.objects.filter(user=request.user).delete()
-    api_key = ApiKey.objects.create(user=request.user)
+    with credential_lock(request.user):
+        ApiKey.objects.filter(user=request.user).delete()
+        api_key = ApiKey.objects.create(user=request.user)
 
     return Response({"key": api_key.key}, status=status.HTTP_201_CREATED)
 
