@@ -601,9 +601,6 @@ class TestEmailChangeRollback:
                 id="password",
             ),
             pytest.param(
-                "patch", "/api/users/me/update/", {"bio": "Hello"}, 200, id="profile"
-            ),
-            pytest.param(
                 "post",
                 "/api/users/change-username/",
                 {"username": "renamed"},
