@@ -43,12 +43,14 @@ def user() -> User:
     return user
 
 
-def jwt_client(user: User) -> APIClient:
+def bearer_client(access: str) -> APIClient:
     client = APIClient()
-    client.credentials(
-        HTTP_AUTHORIZATION=f"Bearer {get_tokens_for_user(user)['access']}"
-    )
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {access}")
     return client
+
+
+def jwt_client(user: User) -> APIClient:
+    return bearer_client(get_tokens_for_user(user)["access"])
 
 
 def link_token(link: str) -> str:
@@ -370,18 +372,23 @@ class TestConfirmEmailChange:
         token_2 = make_email_change_token(user, "two@example.com")
 
         first = jwt_client(user).post(self.url, {"token": token_1}, format="json")
-        second = jwt_client(user).post(self.url, {"token": token_2}, format="json")
-
         assert first.status_code == 200
+
+        # Confirming revokes the old session; continue with the returned tokens
+        second = bearer_client(first.data["access"]).post(
+            self.url, {"token": token_2}, format="json"
+        )
         assert second.status_code == 400
 
     def test_same_link_twice(self, user):
         token = make_email_change_token(user, "new@example.com")
 
         first = jwt_client(user).post(self.url, {"token": token}, format="json")
-        second = jwt_client(user).post(self.url, {"token": token}, format="json")
-
         assert first.status_code == 200
+
+        second = bearer_client(first.data["access"]).post(
+            self.url, {"token": token}, format="json"
+        )
         assert second.status_code == 400
 
     def test_stale_user_object_cannot_apply_a_second_token(self, user):
