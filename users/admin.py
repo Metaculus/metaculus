@@ -255,7 +255,7 @@ class UserAdmin(admin.ModelAdmin):
         BotFilter,
         AutocompleteFilterFactory("Bot Owner", "bot_owner"),
     ]
-    readonly_fields = ["old_usernames", "auth_revoked_at"]
+    readonly_fields = ["old_usernames", "auth_revoked_at", "email_changed_at"]
     autocomplete_fields = ["bot_owner"]
     inlines = [BotInline, ProjectUserPermissionInline]
 

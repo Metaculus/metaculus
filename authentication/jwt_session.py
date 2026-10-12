@@ -1,9 +1,11 @@
 import json
 import uuid
+from contextlib import contextmanager
 from datetime import UTC, datetime, timedelta
 
 from django.conf import settings
 from django.core.cache import cache
+from django.db import transaction
 from django.db.models import F, Value
 from django.db.models.functions import Greatest
 from django.utils import timezone
@@ -260,3 +262,15 @@ def revoke_all_user_tokens(user: User) -> None:
         )
     )
     user.refresh_from_db(fields=["auth_revoked_at"])
+
+
+@contextmanager
+def credential_lock(user: User):
+    """Row-locks the user for the block; raises if credentials were revoked since this instance was loaded."""
+    with transaction.atomic():
+        locked = User.objects.select_for_update().get(pk=user.pk)
+
+        if locked.auth_revoked_at != user.auth_revoked_at:
+            raise AuthenticationFailed("Credentials changed. Please try again.")
+
+        yield
