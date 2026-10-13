@@ -3,6 +3,7 @@ from datetime import timedelta
 import pytest  # noqa
 from django.utils import timezone
 
+from comments.models import CommentVote
 from projects.models import Project
 from questions.models import Question
 from questions.services.common import create_question
@@ -13,11 +14,18 @@ from scoring.utils import (
     assign_exclusions_,
     assign_prize_percentages_,
     assign_ranks_,
+    generate_comment_insight_leaderboard_entries,
     generate_entries_from_scores,
+    generate_question_writing_leaderboard_entries,
     update_project_leaderboard,
 )
+from tests.unit.test_comments.factories import factory_comment
 from tests.unit.test_posts.factories import factory_post
 from tests.unit.test_projects.factories import factory_project
+from tests.unit.test_questions.factories import (
+    factory_forecast,
+    factory_group_of_questions,
+)
 from tests.unit.test_scoring.factories import factory_score
 from tests.unit.test_users.factories import factory_user
 
@@ -310,3 +318,107 @@ def test_update_project_leaderboard_saves_confidence_intervals():
         assert entry.ci_lower <= entry.score <= entry.ci_upper
         assert entry.rank_ci_lower <= entry.rank <= entry.rank_ci_upper
     assert saved_entries[0].rank_ci_lower == saved_entries[0].rank_ci_upper == 1
+
+
+def _binary_question(**kwargs) -> Question:
+    return create_question(
+        title="Question",
+        type=Question.QuestionType.BINARY,
+        open_time=timezone.now() - timedelta(days=10),
+        scheduled_close_time=timezone.now() + timedelta(days=10),
+        **kwargs,
+    )
+
+
+@pytest.mark.django_db
+def test_generate_question_writing_leaderboard_entries():
+    now = timezone.now()
+    leaderboard = Leaderboard.objects.create(
+        project=factory_project(type=Project.ProjectTypes.TOURNAMENT),
+        score_type=LeaderboardScoreTypes.QUESTION_WRITING,
+        start_time=now - timedelta(days=5),
+        end_time=now + timedelta(days=5),
+    )
+    author, coauthor, idle_author = factory_user(), factory_user(), factory_user()
+    forecasters = [factory_user() for _ in range(4)]
+
+    group = factory_group_of_questions()
+    group_post = factory_post(author=author, group_of_questions=group)
+    group_post.coauthors.add(coauthor)
+    group_q1 = _binary_question(group=group, post=group_post)
+    group_q2 = _binary_question(group=group, post=group_post)
+    single_q = _binary_question()
+    factory_post(author=author, question=single_q)
+    idle_q = _binary_question()
+    factory_post(author=idle_author, question=idle_q)
+
+    for forecaster, question in [
+        (forecasters[0], group_q1),
+        (forecasters[0], group_q1),
+        (forecasters[1], group_q1),
+        (forecasters[1], group_q2),
+        (forecasters[2], group_q2),
+        (forecasters[0], single_q),
+    ]:
+        factory_forecast(
+            author=forecaster, question=question, start_time=now - timedelta(days=1)
+        )
+    factory_forecast(
+        author=forecasters[3], question=group_q1, start_time=now - timedelta(days=10)
+    )
+
+    entries = generate_question_writing_leaderboard_entries(
+        Question.objects.filter(
+            pk__in=[group_q1.pk, group_q2.pk, single_q.pk, idle_q.pk]
+        ),
+        leaderboard,
+    )
+
+    by_user = {e.user_id: (e.score, e.contribution_count) for e in entries}
+    assert by_user == {
+        author.id: (pytest.approx(0.3), 2),
+        coauthor.id: (pytest.approx(0.3), 1),
+        idle_author.id: (0, 1),
+    }
+    assert [e.score for e in entries] == sorted(
+        (e.score for e in entries), reverse=True
+    )
+
+
+@pytest.mark.django_db
+def test_generate_comment_insight_leaderboard_entries():
+    now = timezone.now()
+    project = factory_project(type=Project.ProjectTypes.TOURNAMENT)
+    leaderboard = Leaderboard.objects.create(
+        project=project,
+        score_type=LeaderboardScoreTypes.COMMENT_INSIGHT,
+        start_time=now - timedelta(days=5),
+        end_time=now + timedelta(days=5),
+    )
+    post = factory_post(default_project=project)
+    author, other_author = factory_user(), factory_user()
+    voters = [factory_user() for _ in range(2)]
+
+    def comment_with_votes(comment_author, directions, voted_at):
+        comment = factory_comment(
+            author=comment_author, on_post=post, created_at=now - timedelta(days=2)
+        )
+        for voter, direction in zip(voters, directions):
+            CommentVote.objects.create(
+                user=voter, comment=comment, direction=direction, created_at=voted_at
+            )
+
+    in_period = now - timedelta(days=1)
+    comment_with_votes(author, [1, 1], in_period)
+    comment_with_votes(author, [1], in_period)
+    comment_with_votes(author, [1, -1], in_period)
+    comment_with_votes(author, [1], now - timedelta(days=10))
+    comment_with_votes(other_author, [1], in_period)
+
+    entries = generate_comment_insight_leaderboard_entries(leaderboard)
+
+    assert [(e.user_id, e.contribution_count) for e in entries] == [
+        (author.id, 2),
+        (other_author.id, 1),
+    ]
+    assert [e.score for e in entries] == pytest.approx([1.67, 1.0])
