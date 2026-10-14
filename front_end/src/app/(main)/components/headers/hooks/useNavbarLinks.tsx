@@ -62,6 +62,14 @@ const useNavbarLinks = ({
           label: t("services"),
           href: "/services/",
         },
+        leaderboards: {
+          label: t("leaderboards"),
+          href: "/leaderboard/",
+        },
+        commentsFeed: {
+          label: t("commentsFeedTitle"),
+          href: "/questions/?comments_feed=true",
+        },
         news: {
           label: t("news"),
           href: "/news/",
@@ -175,8 +183,16 @@ const useNavbarLinks = ({
   );
   const menuLinks = useMemo(() => {
     const links: NavbarLinkDefinition[] = PUBLIC_MINIMAL_UI
-      ? [LINKS.trackRecord]
-      : [LINKS.about, LINKS.press, LINKS.news, LINKS.trackRecord, LINKS.faq];
+      ? [LINKS.leaderboards, LINKS.trackRecord]
+      : [
+          LINKS.leaderboards,
+          LINKS.commentsFeed,
+          LINKS.about,
+          LINKS.press,
+          LINKS.news,
+          LINKS.trackRecord,
+          LINKS.faq,
+        ];
 
     if (!PUBLIC_MINIMAL_UI) {
       // As the bar narrows, Services and then Discover move into the menu
@@ -192,9 +208,11 @@ const useNavbarLinks = ({
     return links;
   }, [
     LINKS.about,
+    LINKS.commentsFeed,
     LINKS.createQuestion,
     LINKS.discover,
     LINKS.faq,
+    LINKS.leaderboards,
     LINKS.news,
     LINKS.press,
     LINKS.services,

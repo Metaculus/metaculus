@@ -12,7 +12,6 @@ import NavUserButton from "@/components/auth";
 import NavLink from "@/components/nav_link";
 import RandomButton from "@/components/random_button";
 import { useAuth } from "@/contexts/auth_context";
-import { usePublicSettings } from "@/contexts/public_settings_context";
 import cn from "@/utils/core/cn";
 import { isPathEqual } from "@/utils/navigation";
 
@@ -31,7 +30,6 @@ const Header: FC<Props> = ({ className }) => {
   const { user } = useAuth();
   const pathname = usePathname();
   const { navbarLinks, menuLinks, LINKS } = useNavbarLinks();
-  const { PUBLIC_MINIMAL_UI } = usePublicSettings();
   const { fullLinks, mdLinks, smLinks, xsLinks, xxsLinks } = navbarLinks;
 
   return (
@@ -76,17 +74,7 @@ const Header: FC<Props> = ({ className }) => {
                 }
               )}
             >
-              {/* Nothing has moved into the menu yet when the bar is full, so it's just "About" */}
-              {PUBLIC_MINIMAL_UI ? (
-                t("more")
-              ) : (
-                <>
-                  <span className="hidden min-[1100px]:inline">
-                    {t("about")}
-                  </span>
-                  <span className="min-[1100px]:hidden">{t("more")}</span>
-                </>
-              )}
+              {t("more")}
               <FontAwesomeIcon size="xs" icon={faChevronDown} />
               <span className="absolute bottom-0 left-0 h-1 w-full bg-blue-600 opacity-0 transition-opacity group-[.active]:opacity-100" />
             </MenuButton>
