@@ -20,6 +20,17 @@ describe("replaceEmbedsWithLinks", () => {
     );
   });
 
+  it("accepts single-quoted ids", () => {
+    expect(
+      replaceEmbedsWithLinks(
+        "<EmbeddedQuestion id='123' />\n\n<Tweet id='789' />",
+        ORIGIN
+      )
+    ).toBe(
+      "https://www.metaculus.com/questions/123/\n\nhttps://x.com/i/status/789"
+    );
+  });
+
   it("leaves malformed embeds untouched", () => {
     const markdown = '<EmbeddedQuestion id={1" onload="alert(1)} />';
 

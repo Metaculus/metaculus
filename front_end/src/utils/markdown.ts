@@ -73,8 +73,8 @@ export function estimateReadingTime(markdown: string) {
 
 // Names match EMBEDDED_QUESTION_COMPONENT_NAME and EMBEDDED_TWITTER_COMPONENT_NAME
 const EMBEDDED_QUESTION_REGEX =
-  /<EmbeddedQuestion\s+id=(?:\{(\d+)\}|"(\d+)")\s*\/>/g;
-const TWEET_REGEX = /<Tweet\s+id=(?:\{(\d+)\}|"(\d+)")\s*\/>/g;
+  /<EmbeddedQuestion\s+id=(?:\{(\d+)\}|["'](\d+)["'])\s*\/>/g;
+const TWEET_REGEX = /<Tweet\s+id=(?:\{(\d+)\}|["'](\d+)["'])\s*\/>/g;
 
 export function replaceEmbedsWithLinks(
   markdown: string,
