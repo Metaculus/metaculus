@@ -19,7 +19,7 @@ import GlobalSearch from "../global_search";
 import MobileMenu from "./components/mobile_menu";
 import NavbarLinks from "./components/navbar_links";
 import NavbarLogo from "./components/navbar_logo";
-import useNavbarLinks from "./hooks/useNavbarLinks";
+import useNavbarLinks, { NavbarLinkDefinition } from "./hooks/useNavbarLinks";
 
 type Props = {
   className?: string;
@@ -28,7 +28,6 @@ type Props = {
 const Header: FC<Props> = ({ className }) => {
   const t = useTranslations();
   const { user } = useAuth();
-  const pathname = usePathname();
   const { navbarLinks, menuLinks, LINKS } = useNavbarLinks();
   const { fullLinks, mdLinks, smLinks, xsLinks, xxsLinks } = navbarLinks;
 
@@ -43,14 +42,14 @@ const Header: FC<Props> = ({ className }) => {
         <NavbarLogo className="mr-1 lg:mr-5" />
 
         {/* Regular links */}
-        <NavbarLinks links={fullLinks} className="hidden min-[1100px]:flex" />
+        <NavbarLinks links={fullLinks} className="hidden min-[1180px]:flex" />
         <NavbarLinks
           links={mdLinks}
-          className="hidden justify-end min-[880px]:max-[1099px]:flex"
+          className="hidden justify-end min-[960px]:max-[1179px]:flex"
         />
         <NavbarLinks
           links={smLinks}
-          className="hidden justify-start min-[512px]:max-[879px]:flex md:justify-end"
+          className="hidden justify-start min-[512px]:max-[959px]:flex md:justify-end"
         />
         <NavbarLinks
           links={xsLinks}
@@ -61,36 +60,12 @@ const Header: FC<Props> = ({ className }) => {
           className="hidden justify-start max-[374px]:flex"
         />
 
-        {/* The More menu */}
-        <div className="hidden h-full justify-start text-sm font-medium md:block">
-          <Menu>
-            <MenuButton
-              className={cn(
-                "group relative flex h-full items-center gap-1 p-3 no-underline hover:bg-blue-700",
-                {
-                  active: menuLinks.some((link) =>
-                    isPathEqual(pathname, link.href ?? "")
-                  ),
-                }
-              )}
-            >
-              {t("more")}
-              <FontAwesomeIcon size="xs" icon={faChevronDown} />
-              <span className="absolute bottom-0 left-0 h-1 w-full bg-blue-600 opacity-0 transition-opacity group-[.active]:opacity-100" />
-            </MenuButton>
-            <MenuItems
-              anchor="bottom"
-              className="z-100 border border-blue-200-dark bg-blue-900 text-sm text-gray-0"
-            >
-              {menuLinks.map((link) => (
-                <LinkMenuItem
-                  key={link.href}
-                  href={link.href}
-                  label={link.label}
-                />
-              ))}
-            </MenuItems>
-          </Menu>
+        {/* The About and More menus */}
+        <div className="hidden h-full justify-start text-sm font-medium md:flex">
+          {menuLinks.aboutLinks.length > 0 && (
+            <NavMenu label={t("about")} links={menuLinks.aboutLinks} />
+          )}
+          <NavMenu label={t("more")} links={menuLinks.moreLinks} />
         </div>
       </div>
 
@@ -128,6 +103,38 @@ const Header: FC<Props> = ({ className }) => {
         <MobileMenu />
       </div>
     </header>
+  );
+};
+
+const NavMenu: FC<{ label: ReactNode; links: NavbarLinkDefinition[] }> = ({
+  label,
+  links,
+}) => {
+  const pathname = usePathname();
+
+  return (
+    <Menu>
+      <MenuButton
+        className={cn(
+          "group relative flex h-full items-center gap-1 p-3 no-underline hover:bg-blue-700",
+          {
+            active: links.some((link) => isPathEqual(pathname, link.href)),
+          }
+        )}
+      >
+        {label}
+        <FontAwesomeIcon size="xs" icon={faChevronDown} />
+        <span className="absolute bottom-0 left-0 h-1 w-full bg-blue-600 opacity-0 transition-opacity group-[.active]:opacity-100" />
+      </MenuButton>
+      <MenuItems
+        anchor="bottom"
+        className="z-100 border border-blue-200-dark bg-blue-900 text-sm text-gray-0"
+      >
+        {links.map((link) => (
+          <LinkMenuItem key={link.href} href={link.href} label={link.label} />
+        ))}
+      </MenuItems>
+    </Menu>
   );
 };
 

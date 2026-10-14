@@ -16,12 +16,12 @@ import cn from "@/utils/core/cn";
 import CreateQuestionButton from "../components/create_question_button";
 
 // Narrowest widths at which Services, then Discover, still fit in the bar
-// (measured with a logged-in header). Keep in sync with the min-[1100px] and
-// min-[880px] classes in header.tsx.
-export const NAV_FULL_MIN_WIDTH = 1100;
-export const NAV_DISCOVER_MIN_WIDTH = 880;
+// (measured with a logged-in header). Keep in sync with the min-[1180px] and
+// min-[960px] classes in header.tsx.
+export const NAV_FULL_MIN_WIDTH = 1180;
+export const NAV_DISCOVER_MIN_WIDTH = 960;
 
-type NavbarLinkDefinition = {
+export type NavbarLinkDefinition = {
   label: ReactNode;
   href: string;
 };
@@ -103,7 +103,7 @@ const useNavbarLinks = ({
   const navbarLinks = useMemo(
     () => ({
       /**
-       *  Breakpoint: \>= 1100 (NAV_FULL_MIN_WIDTH)
+       *  Breakpoint: \>= 1180 (NAV_FULL_MIN_WIDTH)
        */
       fullLinks: [
         LINKS.questions,
@@ -111,7 +111,7 @@ const useNavbarLinks = ({
         ...(PUBLIC_MINIMAL_UI ? [] : [LINKS.discover, LINKS.services]),
       ],
       /**
-       * Breakpoint: 880 - 1099 (NAV_DISCOVER_MIN_WIDTH)
+       * Breakpoint: 960 - 1179 (NAV_DISCOVER_MIN_WIDTH)
        */
       mdLinks: [
         LINKS.questions,
@@ -119,7 +119,7 @@ const useNavbarLinks = ({
         ...(PUBLIC_MINIMAL_UI ? [] : [LINKS.discover]),
       ],
       /**
-       * Breakpoint: 512 - 879
+       * Breakpoint: 512 - 959
        */
       smLinks: [LINKS.questions, LINKS.tournaments],
       /**
@@ -182,30 +182,26 @@ const useNavbarLinks = ({
     `(min-width: ${NAV_DISCOVER_MIN_WIDTH}px)`
   );
   const menuLinks = useMemo(() => {
-    const links: NavbarLinkDefinition[] = PUBLIC_MINIMAL_UI
+    const aboutLinks: NavbarLinkDefinition[] = PUBLIC_MINIMAL_UI
+      ? []
+      : [LINKS.about, LINKS.press, LINKS.news, LINKS.trackRecord, LINKS.faq];
+
+    const moreLinks: NavbarLinkDefinition[] = PUBLIC_MINIMAL_UI
       ? [LINKS.leaderboards, LINKS.trackRecord]
-      : [
-          LINKS.leaderboards,
-          LINKS.commentsFeed,
-          LINKS.about,
-          LINKS.press,
-          LINKS.news,
-          LINKS.trackRecord,
-          LINKS.faq,
-        ];
+      : [LINKS.leaderboards, LINKS.commentsFeed];
 
     if (!PUBLIC_MINIMAL_UI) {
-      // As the bar narrows, Services and then Discover move into the menu
-      if (!isFullBar) links.unshift(LINKS.services);
-      if (!isDiscoverInBar) links.unshift(LINKS.discover);
+      // As the bar narrows, Services and then Discover move into the More menu
+      if (!isFullBar) moreLinks.unshift(LINKS.services);
+      if (!isDiscoverInBar) moreLinks.unshift(LINKS.discover);
     }
 
     // create question link is moved from navbar to desktop menu
     if (!isLgScreen && isLoggedIn) {
-      links.push(LINKS.createQuestion);
+      moreLinks.push(LINKS.createQuestion);
     }
 
-    return links;
+    return { aboutLinks, moreLinks };
   }, [
     LINKS.about,
     LINKS.commentsFeed,
