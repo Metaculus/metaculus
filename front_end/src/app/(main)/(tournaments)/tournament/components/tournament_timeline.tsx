@@ -42,7 +42,7 @@ const TournamentTimeline: FC<Props> = async ({ tournament }) => {
   } = tournament.timeline;
 
   const latestScheduledCloseTimestamp = getTimestampFromDateString(
-    tournament.forecasting_end_date || tournament.close_date
+    tournament.close_date || tournament.winners_announced_date
   );
 
   const nowTs = Date.now();

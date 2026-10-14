@@ -10,7 +10,7 @@ import {
 import { TournamentsSection } from "../types";
 
 const archiveEndTs = (t: TournamentPreview) =>
-  [t.forecasting_end_date, t.close_date, t.start_date]
+  [t.close_date, t.winners_announced_date, t.start_date]
     .map((s) => (s ? toDate(s.trim(), { timeZone: "UTC" }) : null))
     .find((d) => d && isValid(d))
     ?.getTime() ?? 0;
