@@ -7,7 +7,7 @@ from rest_framework.exceptions import ValidationError
 from comments.models import KeyFactor
 from projects.models import Project
 from scoring.models import LeaderboardEntry
-from users.constants import forbidden_usernames
+from users.constants import forbidden_usernames, reserved_username_prefixes
 from users.models import User, UserCampaignRegistration
 from users.services.bots_management import get_max_bots
 
@@ -221,6 +221,12 @@ def validate_username(value: str):
 
     if value.lower() in forbidden_usernames:
         raise serializers.ValidationError("this username is not allowed")
+
+    for prefix in reserved_username_prefixes:
+        if value.lower().startswith(prefix):
+            raise serializers.ValidationError(
+                f'Usernames starting with "{prefix}" are reserved for Metaculus bots'
+            )
 
     if User.objects.filter(username__iexact=value).exists():
         raise serializers.ValidationError("The username is already taken")
