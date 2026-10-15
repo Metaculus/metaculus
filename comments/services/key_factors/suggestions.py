@@ -391,8 +391,7 @@ def generate_keyfactors(
 
     try:
         response = client.chat.completions.create(
-            # TODO: update to 5
-            model="gpt-4o",
+            model="gpt-6-luna",
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt},

@@ -175,7 +175,7 @@ def run_spam_analysis(text: str, content_type: str) -> SpamAnalysisResult:
     client = instructor.from_openai(get_openai_client())
 
     user = client.chat.completions.create(
-        model="gpt-4o-mini",
+        model="gpt-6-luna",
         messages=[
             {
                 "role": "system",
