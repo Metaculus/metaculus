@@ -144,7 +144,7 @@ const AiBenchmarkingTournamentPage: FC<Props> = ({ primaryBotToken }) => {
                 </span>
               </Link>
               <Link
-                href="/aib/minibench"
+                href="/futureeval/minibench"
                 className="flex w-full items-center gap-4 rounded bg-white p-4 no-underline transition-all hover:bg-blue-500/40 dark:bg-blue-100-dark dark:hover:bg-blue-600/40 md:p-5 min-[1920px]:p-6"
               >
                 <FontAwesomeIcon

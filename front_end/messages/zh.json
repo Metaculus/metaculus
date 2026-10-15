@@ -1785,7 +1785,7 @@
   "aibLbThCILower": "95% 置信区间下限",
   "aibLbThCIHigher": "95% 置信区间上限",
   "minibenchDescription": "快节奏的双周机器人比赛，用于快速实验和迭代。在短期激烈的比赛中测试您的预测机器人。",
-  "minibenchBackToAIB": "返回概览",
+  "minibenchBackToAIB": "返回 FutureEval",
   "minibenchResources": "资源与文档",
   "minibenchAboutTitle": "什么是 MiniBench？",
   "minibenchAboutP1": "MiniBench 是我们的双周实验性比赛系列，专为快速迭代和反馈设计。每个 MiniBench 运行约两周，精选快速解决的预测问题。",
