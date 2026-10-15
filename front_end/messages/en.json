@@ -1966,7 +1966,7 @@
   "aibLbThCILower": "95% CI lower",
   "aibLbThCIHigher": "95% CI higher",
   "minibenchDescription": "Fast-paced bi-weekly fully-automated forecasting bot tournaments for rapid experimentation and iteration.",
-  "minibenchBackToAIB": "Back to AI Benchmark Overview",
+  "minibenchBackToAIB": "Back to FutureEval",
   "minibenchResources": "Resources & Documentation",
   "minibenchAboutTitle": "What is MiniBench?",
   "minibenchAboutP1": "MiniBench is our bi-weekly experimental tournament series designed for rapid iteration and feedback. Each MiniBench runs for approximately two weeks, and uses automated questions.",

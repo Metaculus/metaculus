@@ -71,7 +71,7 @@ const nextConfig = {
         permanent: true,
       },
       {
-        source: "/aib/minibench",
+        source: "/aib/minibench/",
         destination: "/futureeval/minibench/",
         permanent: true,
       },

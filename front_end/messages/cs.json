@@ -1784,7 +1784,7 @@
   "aibLbThCILower": "95% CI dolní",
   "aibLbThCIHigher": "95% CI horní",
   "minibenchDescription": "Rychlé dvoutýdenní turnaje botů pro rychlé experimentování a iteraci. Otestujte svého prognostického bota proti nejlepším v krátkých, intenzivních soutěžích.",
-  "minibenchBackToAIB": "Zpět na přehled",
+  "minibenchBackToAIB": "Zpět na FutureEval",
   "minibenchResources": "Zdroje a dokumentace",
   "minibenchAboutTitle": "Co je MiniBench?",
   "minibenchAboutP1": "MiniBench je naše dvoutýdenní experimentální turnajová série navržená pro rychlou iteraci a zpětnou vazbu. Každý MiniBench trvá přibližně dva týdny a obsahuje vybraný soubor prognostických otázek, které se rychle vyřeší.",

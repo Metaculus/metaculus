@@ -1783,7 +1783,7 @@
   "aibLbThCILower": "Límite inferior del IC del 95%",
   "aibLbThCIHigher": "Límite superior del IC del 95%",
   "minibenchDescription": "Torneos de bots quincenales de ritmo rápido para experimentación e iteración rápida. Prueba tu bot de pronóstico contra los mejores en competiciones cortas e intensas.",
-  "minibenchBackToAIB": "Volver a Resumen",
+  "minibenchBackToAIB": "Volver a FutureEval",
   "minibenchResources": "Recursos y Documentación",
   "minibenchAboutTitle": "¿Qué es MiniBench?",
   "minibenchAboutP1": "MiniBench es nuestra serie de torneos experimentales quincenales diseñados para iteración y retroalimentación rápida. Cada MiniBench dura aproximadamente dos semanas, con un conjunto seleccionado de preguntas de pronóstico que se resuelven rápidamente.",
