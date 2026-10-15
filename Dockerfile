@@ -35,6 +35,7 @@ FROM base AS frontend_deps
 WORKDIR /app/front_end
 
 COPY front_end/package.json front_end/bun.lock ./
+COPY front_end/patches ./patches
 ENV NODE_ENV=production
 RUN bun install --frozen-lockfile
 
