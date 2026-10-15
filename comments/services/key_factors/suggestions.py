@@ -346,6 +346,7 @@ def generate_keyfactors(
             - Specify impact_direction (1/-1) or certainty (-1)
         2. News: A relevant news article found in the comment.
             - url: REQUIRED. Must be extracted from the comment body. If no URL, skip this factor.
+            - If the comment links to a news article, add it as a News factor; do not restate the article as a Driver instead.
             - Specify impact_direction (1/-1) or certainty (-1) for how this article affects the forecast
         3. BaseRate: A historical base rate or reference frequency/trend.
             - source_url: REQUIRED. Must be a real URL extracted verbatim from <user_comment>.
@@ -392,6 +393,7 @@ def generate_keyfactors(
     try:
         response = client.chat.completions.create(
             model="gpt-6-luna",
+            reasoning_effort="none",
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt},
