@@ -14,6 +14,7 @@ from misc.services.ad_tiles import (
 from projects.models import Project
 from projects.services.common import get_feed_project_tiles
 from tests.unit.test_misc.factories import factory_ad_tile
+from tests.unit.test_posts.factories import factory_post
 from tests.unit.test_projects.factories import factory_project
 
 
@@ -89,6 +90,28 @@ def test_combined_tiles_dedup_promoted_project(user1, link):
     get_feed_project_tiles.clear_cache()
 
 
+def test_combined_tiles_targeted_ad_does_not_dedup_project(user1):
+    cache.clear()
+    get_feed_project_tiles.clear_cache()
+    now = timezone.now()
+    project = factory_project(
+        type=Project.ProjectTypes.TOURNAMENT, slug="cup-2026", start_date=now
+    )
+    factory_ad_tile(
+        title="Promo",
+        project=project,
+        url="https://metaculus.com/tournament/cup-2026/",
+        target_post=factory_post(),
+    )
+
+    tiles = get_combined_feed_tiles(user1)
+
+    assert any(
+        t["type"] == "project" and t["project"]["id"] == project.id for t in tiles
+    )
+    get_feed_project_tiles.clear_cache()
+
+
 def test_combined_tiles_project_tile_shape_and_dismissal(user1):
     cache.clear()
     get_feed_project_tiles.clear_cache()
@@ -140,4 +163,28 @@ def test_combined_tiles_expose_ad_placements(user1):
     ad_tiles = [t for t in tiles if t["type"] == "ad"]
 
     assert ad_tiles[0]["ad"]["placements"] == ["news_feed"]
+    get_feed_project_tiles.clear_cache()
+
+
+def test_combined_tiles_expose_ad_targets(user1):
+    cache.clear()
+    get_feed_project_tiles.clear_cache()
+    post = factory_post()
+    project = factory_project()
+    factory_ad_tile(title="Untargeted", order=0)
+    factory_ad_tile(title="On post", order=1, target_post=post)
+    factory_ad_tile(title="On project", order=2, target_project=project)
+
+    tiles = get_combined_feed_tiles(user1)
+    targets = {
+        t["ad"]["title"]: (t["ad"]["target_post_id"], t["ad"]["target_project_id"])
+        for t in tiles
+        if t["type"] == "ad"
+    }
+
+    assert targets == {
+        "Untargeted": (None, None),
+        "On post": (post.id, None),
+        "On project": (None, project.id),
+    }
     get_feed_project_tiles.clear_cache()
