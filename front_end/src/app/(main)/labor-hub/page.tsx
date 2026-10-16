@@ -198,14 +198,14 @@ export default function LaborAutomationHubPage() {
               </span>
               , <strong>median wages are expected to grow.</strong> The workweek
               is also expected to become{" "}
-              <strong>about two hours shorter by 2035</strong> among all
+              <strong>nearly two hours shorter by 2035</strong> among all
               workers, while productivity grows.
             </ContentParagraph>
             <ContentParagraph>
               Lower income households are expected to see their government
-              benefits outpace their basic needs, while higher income households
-              are expected to see much stronger growth in resources relative to
-              needs.
+              benefits keep pace with their basic needs, while higher income
+              households are expected to see much stronger growth in resources
+              relative to needs.
             </ContentParagraph>
           </DualPaneSectionLeft>
           <DualPaneSectionRight className="lg:mt-16 print:mt-12">
@@ -342,6 +342,7 @@ export default function LaborAutomationHubPage() {
               chartProps={{
                 showTickLabels: true,
                 valueFormat: "number",
+                yAxisMin: 0,
               }}
             />
             <ActivityCard
@@ -356,7 +357,7 @@ export default function LaborAutomationHubPage() {
               of governments and organizations at everyone else&apos;s expense.
             </ActivityCard>
             <ContentParagraph small>
-              With only 13% of workers using AI daily as of early 2026, the
+              With only 15% of workers using AI daily as of May 2026, the
               workplace is still in the early stages of an adoption curve that
               could fundamentally change how most Americans do their jobs within
               a decade. But forecasters note that some people may only think
@@ -377,6 +378,7 @@ export default function LaborAutomationHubPage() {
                 showTickLabels: true,
                 valueFormat: "percentage",
                 decimals: 1,
+                yAxisMin: 0,
               }}
             />
           </DualPaneSectionRight>
@@ -451,6 +453,7 @@ export default function LaborAutomationHubPage() {
                 chartProps={{
                   showTickLabels: true,
                   valueFormat: "percentage",
+                  yAxisMin: 0,
                 }}
               />
             </ThemeOverrideContainer>
@@ -662,6 +665,7 @@ export default function LaborAutomationHubPage() {
                 showTickLabels: true,
                 valueFormat: "number",
                 decimals: 0,
+                yAxisMin: 0,
               }}
             />
             <ActivityCard
@@ -728,6 +732,7 @@ export default function LaborAutomationHubPage() {
                 showTickLabels: true,
                 valueFormat: "percentage",
                 decimals: 2,
+                yAxisMin: 0,
               }}
             />
             <ContentParagraph small>

@@ -322,4 +322,71 @@ export const RAW_ACTIVITY_MONITOR_DATA: RawActivityMonitorEntry[] = [
       </>
     ),
   },
+  {
+    date: "2026-07-30",
+    type: "insight",
+    content: (
+      <>
+        Metaculus Pro Forecasters completed a quarterly forecasting update, with
+        the biggest moves on the number of humanities and STEM degrees awarded,
+        as well as lower unemployment disruption for 2030. -{" "}
+        <a
+          href="https://www.metaculus.com/notebooks/44978/labor-hub-updates-july-2026/"
+          target="_blank"
+          rel="noreferrer noopener"
+        >
+          Metaculus
+        </a>
+      </>
+    ),
+  },
+  {
+    date: "2026-09-03",
+    type: "news",
+    content: (
+      <>
+        OpenAI announces the release of GPT-6 Astra. -{" "}
+        <a
+          href="https://openai.com/index/gpt-6-astra/"
+          target="_blank"
+          rel="noreferrer noopener"
+        >
+          OpenAI
+        </a>
+      </>
+    ),
+  },
+  {
+    date: "2026-09-24",
+    type: "news",
+    content: (
+      <>
+        Australia announces that an OpenAI agent gained unauthorized access to
+        its Medicare statistics reporting service portal. -{" "}
+        <a
+          href="https://www.pm.gov.au/media/press-conference-new-york"
+          target="_blank"
+          rel="noreferrer noopener"
+        >
+          Prime Minister of Australia
+        </a>
+      </>
+    ),
+  },
+  {
+    date: "2026-09-30",
+    type: "news",
+    content: (
+      <>
+        California passes a series of AI laws affecting workers. -{" "}
+        <a
+          href="https://www.gov.ca.gov/2026/09/30/californias-nation-leading-ai-framework-just-got-stronger-governor-newsom-signs-more-first-in-the-nation-worker-protections-and-more/"
+          target="_blank"
+          rel="noreferrer noopener"
+        >
+          Office of Governor Gavin Newsom
+        </a>
+      </>
+    ),
+  },
 ];

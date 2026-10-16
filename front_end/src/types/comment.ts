@@ -20,6 +20,9 @@ export type BECommentType = {
   text_edited_at: string;
   is_soft_deleted: boolean;
   text: string;
+  // Set when only a stub of `text` is stored; the rest is fetched on demand
+  // from `getComment`.
+  is_text_archived: boolean;
   included_forecast?: ForecastType;
   is_private: boolean;
   vote_score?: number;

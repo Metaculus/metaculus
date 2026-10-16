@@ -2,7 +2,6 @@ import textwrap
 from itertools import islice
 from typing import Iterable, Iterator
 
-import instructor
 import tiktoken
 from django.conf import settings
 from openai import OpenAI, AsyncOpenAI
@@ -90,7 +89,6 @@ async def generate_text_async(
     model: str,
     prompt: str,
     system_prompt: str | None = None,
-    temperature: float = 0,
     timeout: float | None = None,
 ) -> str:
     messages = [{"role": "user", "content": prompt}]
@@ -102,7 +100,6 @@ async def generate_text_async(
         response = await client.chat.completions.create(
             model=model,
             messages=messages,  # type: ignore
-            temperature=temperature,
             timeout=timeout,
         )
         response_text = response.choices[0].message.content
@@ -174,10 +171,8 @@ def run_spam_analysis(text: str, content_type: str) -> SpamAnalysisResult:
         """
     )
 
-    client = instructor.from_openai(get_openai_client())
-
-    user = client.chat.completions.create(
-        model="gpt-4o-mini",
+    response = get_openai_client().chat.completions.parse(
+        model="gpt-6-luna",
         messages=[
             {
                 "role": "system",
@@ -188,9 +183,13 @@ def run_spam_analysis(text: str, content_type: str) -> SpamAnalysisResult:
                 "content": user_prompt,
             },
         ],
-        response_model=SpamAnalysisResult,
+        response_format=SpamAnalysisResult,
     )
-    return user
+    result = response.choices[0].message.parsed
+
+    if result is None:
+        raise ValueError("No spam analysis was generated")
+    return result
 
 
 def pydantic_to_openai_json_schema(model: BaseModel) -> dict:

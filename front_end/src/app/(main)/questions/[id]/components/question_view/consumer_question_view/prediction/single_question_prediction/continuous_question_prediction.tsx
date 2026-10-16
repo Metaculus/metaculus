@@ -73,7 +73,7 @@ const ContinuousQuestionPrediction: React.FC<Props> = ({
   }
 
   return (
-    <div className="mx-auto mb-7 flex max-w-[340px] flex-col items-center gap-2.5">
+    <div className="mx-auto flex max-w-[340px] flex-col items-center gap-2.5">
       <ConsumerContinuousTile
         question={question}
         forecastAvailability={forecastAvailability}

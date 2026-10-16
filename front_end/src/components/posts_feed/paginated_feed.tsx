@@ -26,12 +26,15 @@ import { useContentTranslatedBannerContext } from "@/contexts/translations_banne
 import useMounted from "@/hooks/use_mounted";
 import { PostsParams } from "@/services/api/posts/posts.shared";
 import { PostWithForecasts } from "@/types/post";
-import { CombinedFeedTile } from "@/types/projects";
+import { CombinedFeedTile, TilePlacement } from "@/types/projects";
 import { InterfaceType } from "@/types/users";
 import { sendAnalyticsEvent } from "@/utils/analytics";
 import cn from "@/utils/core/cn";
 import { logError } from "@/utils/core/errors";
-import { getPageNumberFromParam } from "@/utils/posts_feed";
+import {
+  filterTilesByPlacement,
+  getPageNumberFromParam,
+} from "@/utils/posts_feed";
 import { isNotebookPost } from "@/utils/questions/helpers";
 
 import { FeedItem, buildFeedItems, getFeedItemKey } from "./build_feed_items";
@@ -90,6 +93,7 @@ type Props = {
   initialProjectTiles?: CombinedFeedTile[];
   filters: PostsParams;
   type?: PostsFeedType;
+  tilePlacement?: TilePlacement;
   isCommunity?: boolean;
   indexWeights?: Record<string, number>;
   forceLayout?: FeedLayout;
@@ -103,6 +107,7 @@ const PaginatedPostsFeed: FC<Props> = ({
   initialProjectTiles = [],
   filters,
   type = "posts",
+  tilePlacement,
   isCommunity,
   indexWeights = EMPTY_INDEX_WEIGHTS,
   forceLayout,
@@ -166,9 +171,13 @@ const PaginatedPostsFeed: FC<Props> = ({
   const shouldUseClientProjectTiles = !!clientFilterOptions;
   const shouldShowClientProjectTiles =
     shouldUseClientProjectTiles &&
+    !!tilePlacement &&
     !isCommunity &&
     !PUBLIC_MINIMAL_UI &&
-    shouldShowProjectTilesForParams(feedQueryParams);
+    // "Only show tiles when no filters are applied" is specific to the questions
+    // feed; other placements (e.g. the question sidebar) don't gate on this.
+    (tilePlacement !== TilePlacement.QUESTIONS_FEED ||
+      shouldShowProjectTilesForParams(feedQueryParams));
   const { data: clientProjectTiles = EMPTY_PROJECT_TILES } =
     useCombinedFeedTilesQuery({
       enabled: shouldShowClientProjectTiles,
@@ -287,12 +296,20 @@ const PaginatedPostsFeed: FC<Props> = ({
       ? clientProjectTiles
       : EMPTY_PROJECT_TILES
     : initialProjectTiles;
+  const placementTiles = useMemo(
+    () =>
+      tilePlacement
+        ? filterTilesByPlacement(rawTiles, tilePlacement)
+        : EMPTY_PROJECT_TILES,
+    [rawTiles, tilePlacement]
+  );
+
   const feedItems = useMemo(
     () =>
-      buildFeedItems(visiblePosts, rawTiles).filter(
+      buildFeedItems(visiblePosts, placementTiles).filter(
         (item) => item.type !== "tile" || !dismissedIds.has(item.tile.id)
       ),
-    [visiblePosts, rawTiles, dismissedIds]
+    [visiblePosts, placementTiles, dismissedIds]
   );
 
   const { layout: contextLayout } = useFeedLayout();

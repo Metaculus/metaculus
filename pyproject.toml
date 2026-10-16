@@ -45,7 +45,6 @@ dependencies = [
     "django-modeltranslation>=0.19.9,<0.20",
     "google-auth>=2.35.0,<3",
     "django-select2>=8.4.1,<9",
-    "instructor>=1.7.7,<2",
     "pytz>=2025.2",
     "psycopg2>=2.9.10,<3",
     "scikit-learn>=1.7.2,<2",

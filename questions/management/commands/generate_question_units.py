@@ -94,7 +94,7 @@ def generate_units(questions: list[Question]):
     client = get_openai_client()
 
     response = client.chat.completions.create(
-        model="gpt-4.5-preview",
+        model="gpt-6-luna",
         messages=[
             {"role": "system", "content": generate_prompt()},
             {"role": "user", "content": json.dumps(question_contents, indent=2)},

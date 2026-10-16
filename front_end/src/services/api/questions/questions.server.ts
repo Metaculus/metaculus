@@ -39,13 +39,23 @@ class ServerQuestionsApiClass extends ApiService {
     return await this.post(`/questions/withdraw/`, withdrawals);
   }
 
-  async resolve(id: number, resolution: string, actual_resolve_time: string) {
+  async resolve(
+    id: number,
+    resolution: string,
+    actual_resolve_time: string,
+    score_as_task: boolean
+  ) {
     return this.post<
       { post_id: number },
-      { resolution: string; actual_resolve_time: string }
+      {
+        resolution: string;
+        actual_resolve_time: string;
+        score_as_task: boolean;
+      }
     >(`/questions/${id}/resolve/`, {
       resolution: resolution,
       actual_resolve_time: actual_resolve_time,
+      score_as_task: score_as_task,
     });
   }
 

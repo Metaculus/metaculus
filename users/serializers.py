@@ -7,8 +7,9 @@ from rest_framework.exceptions import ValidationError
 from comments.models import KeyFactor
 from projects.models import Project
 from scoring.models import LeaderboardEntry
-from users.constants import forbidden_usernames
+from users.constants import forbidden_usernames, reserved_username_prefixes
 from users.models import User, UserCampaignRegistration
+from users.services.bots_management import get_max_bots
 
 
 class BaseUserSerializer(serializers.ModelSerializer):
@@ -78,6 +79,7 @@ class UserPrivateSerializer(UserPublicSerializer):
     should_suggest_keyfactors = serializers.SerializerMethodField()
     has_password = serializers.SerializerMethodField()
     metaculus_news_subscription = serializers.SerializerMethodField()
+    max_bots = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -97,6 +99,7 @@ class UserPrivateSerializer(UserPublicSerializer):
             "api_access_tier",
             "api_forecasting_access",
             "is_primary_bot",
+            "max_bots",
             "has_password",
             "username_set_at",
             "metaculus_news_subscription",
@@ -132,6 +135,9 @@ class UserPrivateSerializer(UserPublicSerializer):
 
     def get_metaculus_news_subscription(self, user: User) -> bool:
         return user.project_subscriptions.filter(project__slug="platform").exists()
+
+    def get_max_bots(self, user: User) -> int | None:
+        return get_max_bots(user)
 
 
 class UserPrivateDataAccessSerializer(UserPrivateSerializer):
@@ -216,6 +222,12 @@ def validate_username(value: str):
     if value.lower() in forbidden_usernames:
         raise serializers.ValidationError("this username is not allowed")
 
+    for prefix in reserved_username_prefixes:
+        if value.lower().startswith(prefix):
+            raise serializers.ValidationError(
+                f'Usernames starting with "{prefix}" are reserved for Metaculus bots'
+            )
+
     if User.objects.filter(username__iexact=value).exists():
         raise serializers.ValidationError("The username is already taken")
 
@@ -261,7 +273,7 @@ class PasswordChangeSerializer(serializers.Serializer):
 
 class EmailChangeSerializer(serializers.Serializer):
     password = serializers.CharField()
-    email = serializers.EmailField()
+    email = serializers.EmailField(max_length=254)
 
 
 class UserCampaignRegistrationSerializer(serializers.ModelSerializer):

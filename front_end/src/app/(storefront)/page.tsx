@@ -27,7 +27,7 @@ const STAFF_PICKS = [
   {
     name: "Metaculus Cup",
     emoji: "⚔️",
-    url: "/tournament/metaculus-cup-spring-2026/",
+    url: "/tournament/metaculus-cup-fall-2026/",
   },
   {
     name: "Top Questions",

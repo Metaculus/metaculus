@@ -5,14 +5,16 @@ import { faEllipsis, faBell, faCode } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { cva, type VariantProps } from "class-variance-authority";
 import { useTranslations } from "next-intl";
-import { ComponentProps, FC } from "react";
+import { ComponentProps, FC, useState } from "react";
 
 import ShareIcon from "@/components/icons/share";
 import { MetaculusWordmark } from "@/components/logos";
 import { PostDropdownMenu, SharePostMenu } from "@/components/post_actions";
+import SharePostDrawer from "@/components/post_actions/share_post_drawer";
 import Button from "@/components/ui/button";
 import useEmbedModalContext from "@/contexts/embed_modal_context";
 import { usePostSubscriptionContext } from "@/contexts/post_subscription_context";
+import { useBreakpoint } from "@/hooks/tailwind";
 import { PostWithForecasts, PostStatus, QuestionStatus } from "@/types/post";
 import cn from "@/utils/core/cn";
 import {
@@ -56,6 +58,8 @@ const ActionRow: FC<Props> = ({ post, variant }) => {
   const { updateIsOpen: openEmbedModal } = useEmbedModalContext();
   const { isSubscribed, isLoading, handleSubscribe, handleCustomize } =
     usePostSubscriptionContext();
+  const isDesktop = useBreakpoint("sm");
+  const [shareDrawerOpen, setShareDrawerOpen] = useState(false);
 
   const isPredictable =
     (isQuestionPost(post) &&
@@ -71,7 +75,7 @@ const ActionRow: FC<Props> = ({ post, variant }) => {
   return (
     <div
       className={cn(
-        "relative w-full flex-wrap items-center gap-2 pb-3 pt-1 md:py-3",
+        "relative w-full flex-wrap items-center gap-2 md:py-3",
         variant === "forecaster"
           ? "hidden md:flex"
           : "flex justify-center md:justify-start"
@@ -105,17 +109,34 @@ const ActionRow: FC<Props> = ({ post, variant }) => {
         {isSubscribed ? t("followingButton") : t("followButton")}
       </PillButton>
 
-      {/* Share */}
-      <SharePostMenu
-        questionId={post.id}
-        questionTitle={getPostTitle(post)}
-        textAlign="left"
-      >
-        <PillButton className="capitalize">
-          <ShareIcon />
-          {t("share")}
-        </PillButton>
-      </SharePostMenu>
+      {/* Share: dropdown on desktop, bottom drawer with big targets on mobile */}
+      {isDesktop ? (
+        <SharePostMenu
+          questionId={post.id}
+          questionTitle={getPostTitle(post)}
+          textAlign="left"
+        >
+          <PillButton className="capitalize">
+            <ShareIcon />
+            {t("share")}
+          </PillButton>
+        </SharePostMenu>
+      ) : (
+        <>
+          <PillButton
+            className="capitalize"
+            onClick={() => setShareDrawerOpen(true)}
+          >
+            <ShareIcon />
+            {t("share")}
+          </PillButton>
+          <SharePostDrawer
+            open={shareDrawerOpen}
+            onOpenChange={setShareDrawerOpen}
+            questionTitle={getPostTitle(post)}
+          />
+        </>
+      )}
 
       {/* Embed — hidden on mobile for consumer */}
       <PillButton

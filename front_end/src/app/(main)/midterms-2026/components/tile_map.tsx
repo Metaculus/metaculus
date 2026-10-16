@@ -6,7 +6,6 @@ import cn from "@/utils/core/cn";
 
 import { MIDTERMS_COLORS, STATE_NAMES } from "../constants";
 import { US_TILE_GRID } from "../data";
-import MapLegend from "./map_legend";
 import MapTooltipPortal from "./map_tooltip_portal";
 import StateTooltipContent from "./state_tooltip";
 import { SenateRaceWithQuestion } from "../helpers/post_utils";
@@ -28,10 +27,16 @@ type HoverState = {
 const MAX_COL = Math.max(...US_TILE_GRID.map((c) => c.col));
 const MAX_ROW = Math.max(...US_TILE_GRID.map((c) => c.row));
 
-const UNCONTESTED_OPACITY_DEFAULT = 0.75;
+// Halved in light mode so the grey recedes and the warm toss-up fill separates
+// from it; dark mode already distinguishes the two. Matches geographic_map.tsx.
+const UNCONTESTED_OPACITY_DEFAULT_DARK = 0.75;
+const UNCONTESTED_OPACITY_DEFAULT_LIGHT = 0.375;
 
 const TileMap: FC<Props> = ({ races }) => {
   const isDark = useIsDark();
+  const uncontestedOpacity = isDark
+    ? UNCONTESTED_OPACITY_DEFAULT_DARK
+    : UNCONTESTED_OPACITY_DEFAULT_LIGHT;
   const uncontestedFill = isDark
     ? MIDTERMS_COLORS.uncontestedDark
     : MIDTERMS_COLORS.uncontestedLight;
@@ -60,6 +65,13 @@ const TileMap: FC<Props> = ({ races }) => {
     e: MouseEvent<HTMLButtonElement>
   ) => {
     if (!race) return;
+    // A safe or unrated race has no destination; the tap only toggles its
+    // tooltip, which is the whole of its content.
+    if (!race.href) {
+      if (hovered?.abbr === abbr) setHovered(null);
+      else showTooltipFor(abbr, e);
+      return;
+    }
     // On touch devices, first tap reveals the tooltip; navigation happens
     // when the user taps the tooltip itself.
     if (
@@ -89,25 +101,36 @@ const TileMap: FC<Props> = ({ races }) => {
       >
         {US_TILE_GRID.map(({ abbr, row, col }) => {
           const race = racesByState.get(abbr);
-          const isContested = race !== undefined;
-          const fillColor = isContested
-            ? getStateColor(race.demWinPct)
-            : uncontestedFill;
+          // Mirrors the geographic map: a question makes the tile navigable, a
+          // safe rating paints it without a destination, and anything else is
+          // an inert grey tile. `race` alone no longer implies either.
+          const canOpen = race?.href != null;
+          const safeParty = race?.rating ?? null;
+          const fillColor = safeParty
+            ? getStateColor(safeParty === "D" ? 100 : 0)
+            : race?.demWinPct != null
+              ? getStateColor(race.demWinPct)
+              : uncontestedFill;
+          const isFilled = safeParty != null || race?.demWinPct != null;
 
           return (
             <button
               key={abbr}
               type="button"
-              onMouseEnter={(e) => isContested && showTooltipFor(abbr, e)}
+              // Every race gets a tooltip, including the ones going nowhere —
+              // that is the only place "Safe Republican" is stated.
+              onMouseEnter={(e) => race && showTooltipFor(abbr, e)}
               onMouseLeave={() => setHovered(null)}
               onClick={(e) => handleTileClick(abbr, race, e)}
-              disabled={!isContested}
+              disabled={!race}
               aria-label={STATE_NAMES[abbr] ?? abbr}
               className={cn(
                 "flex aspect-square items-center justify-center rounded-sm text-xs font-medium transition-transform duration-150 ease-out",
-                isContested
-                  ? "cursor-pointer text-white hover:scale-105"
-                  : "cursor-default text-blue-600 dark:text-blue-600-dark",
+                canOpen && "hover:scale-105",
+                isFilled
+                  ? "text-white"
+                  : "text-blue-600 dark:text-blue-600-dark",
+                canOpen ? "cursor-pointer" : "cursor-default",
                 // Active tile (its tooltip is open): thick contrast outline
                 // until the tooltip is dismissed.
                 hovered?.abbr === abbr &&
@@ -117,10 +140,10 @@ const TileMap: FC<Props> = ({ races }) => {
                 gridColumn: col + 1,
                 gridRow: row + 1,
                 backgroundColor: fillColor,
-                opacity: isContested ? 1 : UNCONTESTED_OPACITY_DEFAULT,
+                opacity: isFilled ? 1 : uncontestedOpacity,
                 // Dark mode: pastel tile fills make white text hard to
                 // read. Override to the dark navy token.
-                ...(isContested && isDark
+                ...(isFilled && isDark
                   ? { color: MIDTERMS_COLORS.tileTextDark }
                   : {}),
               }}
@@ -145,8 +168,6 @@ const TileMap: FC<Props> = ({ races }) => {
           />
         </MapTooltipPortal>
       )}
-
-      <MapLegend className="mt-4 flex-row items-center justify-center gap-4" />
     </div>
   );
 };

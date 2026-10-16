@@ -3,13 +3,18 @@ from datetime import timedelta
 
 from django.utils import timezone
 from rest_framework import serializers, status
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import (
+    api_view,
+    authentication_classes,
+    permission_classes,
+)
 from rest_framework.exceptions import ValidationError
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import AllowAny, IsAdminUser
 from rest_framework.request import Request
 from rest_framework.response import Response
 
+from authentication.auth import SessionJWTAuthentication
 from authentication.models import ApiKey
 from authentication.services.common import (
     get_tokens_for_user,
@@ -18,29 +23,33 @@ from authentication.services.common import (
 from projects.models import Project
 from users.models import User, UserSpamActivity
 from users.serializers import (
-    UserPrivateSerializer,
-    UserPrivateDataAccessSerializer,
-    UserPublicSerializer,
-    validate_username,
-    UserUpdateProfileSerializer,
-    UserFilterSerializer,
-    PasswordChangeSerializer,
-    EmailChangeSerializer,
-    UserCampaignRegistrationSerializer,
     BotUpdateProfileSerializer,
+    EmailChangeSerializer,
+    PasswordChangeSerializer,
+    UserCampaignRegistrationSerializer,
+    UserFilterSerializer,
+    UserPrivateDataAccessSerializer,
+    UserPrivateSerializer,
+    UserPublicSerializer,
+    UserUpdateProfileSerializer,
+    validate_username,
     validate_username_change,
 )
 from users.services.common import (
+    change_user_password,
     get_users,
     mark_user_as_spam,
-    user_unsubscribe_tags,
-    send_email_change_confirmation_email,
-    change_email_from_token,
     register_user_to_campaign,
-    change_user_password,
+    user_unsubscribe_tags,
+)
+from users.services.email_change import (
+    check_email_change,
+    confirm_email_change,
+    request_email_change,
 )
 from utils.tasks import email_user_their_data_task
-from .services.bots_management import get_user_bots, create_bot
+
+from .services.bots_management import create_bot, get_user_bots
 from .services.profile_stats import serialize_user_stats
 from .services.spam_detection import (
     check_profile_update_for_spam,
@@ -141,7 +150,7 @@ def change_username_api_view(request: Request):
             raise ValidationError("can only change username once every 180 days")
 
     user.update_username(username)
-    user.save()
+    user.save(update_fields=["username", "old_usernames", "username_set_at"])
 
     return Response(UserPrivateSerializer(user).data)
 
@@ -221,19 +230,16 @@ def send_set_password_email_api_view(request):
 
 
 @api_view(["POST"])
+@authentication_classes([SessionJWTAuthentication])
 def email_change_api_view(request):
-    user = request.user
-
     serializer = EmailChangeSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
 
-    password = serializer.validated_data["password"]
-    new_email = serializer.validated_data["email"]
-
-    if not user.check_password(password):
-        raise ValidationError({"password": "Invalid password"})
-
-    send_email_change_confirmation_email(user, new_email)
+    request_email_change(
+        request.user,
+        password=serializer.validated_data["password"],
+        new_email=serializer.validated_data["email"],
+    )
 
     return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -245,13 +251,17 @@ def email_me_my_data_api_view(request):
     return Response({"message": "Email scheduled to be sent"}, status=200)
 
 
-@api_view(["POST"])
+@api_view(["GET", "POST"])
+@authentication_classes([SessionJWTAuthentication])
 def email_change_confirm_api_view(request):
-    token = serializers.CharField().run_validation(request.data.get("token"))
-    change_email_from_token(request.user, token)
+    if request.method == "GET":
+        token = request.query_params.get("token", "")
+        return Response({"new_email": check_email_change(request.user, token)})
 
-    tokens = get_tokens_for_user(request.user)
-    return Response(tokens)
+    token = serializers.CharField().run_validation(request.data.get("token"))
+    user = confirm_email_change(request.user, token)
+
+    return Response(get_tokens_for_user(user))
 
 
 @api_view(["POST"])

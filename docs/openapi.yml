@@ -343,6 +343,15 @@ components:
       in: header
       name: Authorization
       description: "Token-based authentication. Use format: `Token <input token>`"
+  parameters:
+    ActingUser:
+      in: query
+      name: acting_user
+      required: false
+      schema:
+        type: string
+        example: my-bot
+      description: "Id or username of the account to act as; all-digit values are treated as ids. Defaults to the authenticated account. You may act as yourself or any bot you own. Accounts granted access may also act as active Metaculus-run bots, and superusers as any account. Acting as an account you aren't allowed to, or one that doesn't exist, returns 403."
   schemas:
     Post:
       type: object
@@ -654,7 +663,6 @@ components:
         unit:
           type: string
           nullable: false
-          required: false
           example: "$"
           default: ""
         scaling:
@@ -759,13 +767,14 @@ components:
 
 
     Forecast:
-      type: object
+      description: |
+        A forecast on a single question; which fields apply depends on the question type.
+
+        Conditional pairs and groups of questions are forecast with one item per subquestion, in the same request: for a conditional, one item for the "if Yes" question and one for the "if No" question; for a group, one item per subquestion you want to forecast on.
       oneOf:
         - $ref: '#/components/schemas/BinaryForecast'
         - $ref: '#/components/schemas/ContinuousForecast'
         - $ref: '#/components/schemas/MultipleChoiceForecast'
-        - $ref: '#/components/schemas/ConditionalForecast'
-        - $ref: '#/components/schemas/GroupForecast'
 
     BinaryForecast:
       type: object
@@ -871,32 +880,48 @@ components:
           format: date-time
           description: The timestamp when the forecast is automatically withdrawn
 
-    ConditionalForecast:
-      type: array
-      description: Forecast for conditional questions (if Yes/No scenarios)
-      items:
-        type: object
-        required:
-          - question
-          - probability_yes
-        properties:
-          question:
-            type: integer
-          probability_yes:
-            type: number
-            format: float
+    UserForecast:
+      type: object
+      description: One of the acting user's forecasts on a question.
+      properties:
+        question_id:
+          type: integer
+        author_id:
+          type: integer
+        start_time:
+          type: number
+          description: Unix timestamp when the forecast was made.
         end_time:
-          type: string
-          format: date-time
-          description: The timestamp when the forecast is automatically withdrawn
-
-    GroupForecast:
-      type: array
-      description: Group forecast of Binary, Numeric or Date subquestions
-      items:
-        oneOf:
-          - $ref: '#/components/schemas/BinaryForecast'
-          - $ref: '#/components/schemas/ContinuousForecast'
+          type: number
+          nullable: true
+          description: Unix timestamp when the forecast was replaced or withdrawn, or null if it is still active.
+        forecast_values:
+          type: array
+          items:
+            type: number
+          description: "Binary: `[1 - probability_yes, probability_yes]`. Multiple choice: probability per option. Continuous: the 201-point CDF."
+        interval_lower_bounds:
+          type: array
+          nullable: true
+          items:
+            type: number
+          description: Continuous only. 25th percentile in the CDF's internal scale.
+        centers:
+          type: array
+          nullable: true
+          items:
+            type: number
+          description: Continuous only. Median in the CDF's internal scale.
+        interval_upper_bounds:
+          type: array
+          nullable: true
+          items:
+            type: number
+          description: Continuous only. 75th percentile in the CDF's internal scale.
+        distribution_input:
+          type: object
+          nullable: true
+          description: The slider/table input used to build a continuous forecast in the UI, if any.
 
     Withdrawal:
       type: object
@@ -905,6 +930,11 @@ components:
       properties:
         question:
           type: integer
+          description: ID of the question (not post)
+        withdraw_at:
+          type: string
+          format: date-time
+          description: When to withdraw the forecast. Defaults to now; may not be in the past.
 
     Comment:
       type: object
@@ -2035,6 +2065,7 @@ paths:
           schema:
             type: integer
           description: The ID of the post to retrieve
+        - $ref: '#/components/parameters/ActingUser'
       responses:
         '200':
           description: Post details
@@ -2338,7 +2369,11 @@ paths:
         '201':
           description: Forecasts submitted successfully
         '400':
-          description: Invalid request format
+          description: Invalid forecast, or a question that doesn't exist. Questions you can't view are reported exactly like questions that don't exist.
+        '403':
+          description: You can view the question but aren't allowed to forecast on it.
+        '405':
+          description: The question isn't open for forecasting (not yet open, or already closed).
   /api/questions/withdraw/:
     post:
       summary: Withdraw current forecasts for questions
@@ -2354,6 +2389,226 @@ paths:
               type: array
               items:
                 $ref: '#/components/schemas/Withdrawal'
+            examples:
+              WithdrawNow:
+                summary: Withdraw immediately
+                value:
+                  - question: 1
+              WithdrawLater:
+                summary: Schedule a withdrawal
+                value:
+                  - question: 1
+                    withdraw_at: "2030-01-01T00:00:00Z"
+      responses:
+        '201':
+          description: Forecasts withdrawn (or withdrawal scheduled)
+        '400':
+          description: Invalid request, or a question that doesn't exist. Questions you can't view are reported exactly like questions that don't exist.
+        '403':
+          description: You can view the question but aren't allowed to forecast on it.
+        '405':
+          description: "`withdraw_at` is in the past."
+  /api/questions/bulk-forecast-comment/:
+    post:
+      summary: Submit forecasts and private comments in one request
+      description: |
+        Submits forecasts and private comments in a single atomic transaction: if any forecast or comment is invalid, nothing is saved and every error is returned.
+
+        Set `acting_user` to submit as one of your bots without switching tokens. Forecasting and commenting permissions are checked for the acting account, and questions, posts and parent comments it can't view are reported exactly like ones that don't exist.
+      tags:
+        - Questions & Forecasts
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                acting_user:
+                  type: string
+                  example: my-bot
+                  description: "Id or username of the account to act as; all-digit values are treated as ids. Defaults to the authenticated account. You may act as yourself or any bot you own. Accounts granted access may also act as active Metaculus-run bots, and superusers as any account. Acting as an account you aren't allowed to, or one that doesn't exist, returns 403."
+                forecasts:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Forecast'
+                comments:
+                  type: array
+                  items:
+                    type: object
+                    required:
+                      - on_post
+                      - text
+                      - is_private
+                    properties:
+                      on_post:
+                        type: integer
+                        description: ID of the post.
+                      text:
+                        type: string
+                        description: The content of the comment.
+                      is_private:
+                        type: boolean
+                        description: Must be true; only private comments are accepted.
+                      parent:
+                        type: integer
+                        description: ID of the comment you're replying to.
+                      included_forecast:
+                        type: boolean
+                        description: Attach the acting user's latest forecast on the post's question.
+            examples:
+              ForecastAndCommentAsBot:
+                summary: Forecast and explain it, as one of your bots
+                value:
+                  acting_user: my-bot
+                  forecasts:
+                    - question: 1
+                      probability_yes: 0.63
+                  comments:
+                    - on_post: 1
+                      text: "Reasoning behind the 63% forecast."
+                      is_private: true
+                      included_forecast: true
+      responses:
+        '201':
+          description: Forecasts and comments saved
+        '400':
+          description: Invalid request, or one or more forecasts or comments were rejected. Nothing was saved.
+        '403':
+          description: You may not act as the given `acting_user`.
+  /api/questions/bulk-forecast-read/:
+    get:
+      summary: Retrieve your forecasts on many questions
+      description: |
+        Returns the forecast history of the acting user (yourself by default) on the given questions, or on every question in a project. Exactly one of `question_ids` or `project` is required.
+
+        Only question ids and forecasts are returned. Questions the acting user can't view are left out, exactly as if they didn't exist. Questions with no forecasts are included with an empty `forecasts` list.
+      tags:
+        - Questions & Forecasts
+      parameters:
+        - in: query
+          name: question_ids
+          schema:
+            type: array
+            items:
+              type: integer
+          style: form
+          explode: true
+          example: [1, 2, 3]
+          description: Question ids (not post ids). Repeat the parameter for each id, e.g. `?question_ids=1&question_ids=2`.
+        - in: query
+          name: project
+          schema:
+            type: string
+            example: aib-fall-2026
+          description: Id or slug of a project (e.g. a tournament). Returns forecasts on every question in it. Returns 404 if the project doesn't exist or the acting user can't view it.
+        - $ref: '#/components/parameters/ActingUser'
+      responses:
+        '200':
+          description: The acting user's forecasts, grouped by question and ordered by question id. Each question's forecasts are ordered oldest first.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  results:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        question_id:
+                          type: integer
+                        forecasts:
+                          type: array
+                          items:
+                            $ref: '#/components/schemas/UserForecast'
+              example:
+                results:
+                  - question_id: 1
+                    forecasts:
+                      - question_id: 1
+                        author_id: 123
+                        start_time: 1767225600.0
+                        end_time: null
+                        forecast_values: [0.37, 0.63]
+                        interval_lower_bounds: null
+                        centers: null
+                        interval_upper_bounds: null
+                        distribution_input: null
+                  - question_id: 2
+                    forecasts: []
+        '400':
+          description: Neither or both of `question_ids` and `project` were given.
+        '403':
+          description: You may not act as the given `acting_user`.
+        '404':
+          description: The project doesn't exist or isn't visible to the acting user.
+    post:
+      summary: Retrieve your forecasts on many questions (JSON body)
+      description: Same as the GET version, with the parameters in a JSON body instead of the query string. Use it for lists of question ids too long for a URL.
+      tags:
+        - Questions & Forecasts
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                question_ids:
+                  type: array
+                  items:
+                    type: integer
+                  description: Question ids (not post ids). Mutually exclusive with `project`.
+                project:
+                  type: string
+                  description: Id or slug of a project. Mutually exclusive with `question_ids`.
+                acting_user:
+                  type: string
+                  description: Same as the `acting_user` query parameter.
+            example:
+              question_ids: [1, 2, 3]
+              acting_user: my-bot
+      responses:
+        '200':
+          description: The acting user's forecasts, grouped by question and ordered by question id. Each question's forecasts are ordered oldest first.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  results:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        question_id:
+                          type: integer
+                        forecasts:
+                          type: array
+                          items:
+                            $ref: '#/components/schemas/UserForecast'
+              example:
+                results:
+                  - question_id: 1
+                    forecasts:
+                      - question_id: 1
+                        author_id: 123
+                        start_time: 1767225600.0
+                        end_time: null
+                        forecast_values: [0.37, 0.63]
+                        interval_lower_bounds: null
+                        centers: null
+                        interval_upper_bounds: null
+                        distribution_input: null
+                  - question_id: 2
+                    forecasts: []
+        '400':
+          description: Neither or both of `question_ids` and `project` were given.
+        '403':
+          description: You may not act as the given `acting_user`.
+        '404':
+          description: The project doesn't exist or isn't visible to the acting user.
   /api/comments/create/:
     post:
       summary: Create a new comment

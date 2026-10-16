@@ -3,6 +3,7 @@ import { Notebook, Post, PostGroupOfQuestions } from "@/types/post";
 import {
   Project,
   TaxonomyProjectType,
+  Tournament,
   TournamentType,
   LeaderboardTag,
 } from "@/types/projects";
@@ -62,11 +63,13 @@ export const addUrlParams = (
 };
 
 export const getPostLink = (
-  post: Optional<
-    Pick<Post, "id" | "slug" | "projects">,
-    "slug" | "projects"
-  > & {
-    notebook?: Pick<Notebook, "id">;
+  // Only the fields actually read below, so callers holding a minimal post
+  // (e.g. the sitemap payload) can build the same URL as a full Post.
+  post: Optional<Pick<Post, "id" | "slug">, "slug"> & {
+    projects?: {
+      default_project?: Pick<Tournament, "type" | "slug"> | null;
+    } | null;
+    notebook?: Pick<Notebook, "id"> | null;
     group_of_questions?: Pick<PostGroupOfQuestions<Question>, "id">;
   },
   questionId?: number

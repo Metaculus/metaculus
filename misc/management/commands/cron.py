@@ -11,9 +11,11 @@ from django_dramatiq.tasks import delete_old_tasks
 from coherence.jobs import job_run_daily_suggestion_batch
 from comments.tasks import (
     update_current_top_comments_of_week,
+    job_archive_bot_comment_texts,
     job_finalize_and_send_weekly_top_comments,
 )
 from misc.jobs import sync_itn_articles
+from misc.tasks import warm_cache_site_stats
 from notifications.jobs import (
     job_send_notification_groups,
     job_send_open_status_notifications,
@@ -242,6 +244,13 @@ class Command(BaseCommand):
                 max_instances=1,
                 replace_existing=True,
             )
+        scheduler.add_job(
+            close_old_connections(job_archive_bot_comment_texts.send),
+            trigger=CronTrigger.from_crontab("0 4 * * *"),  # Daily at 04:00 UTC
+            id="comments_archive_bot_comment_texts",
+            max_instances=1,
+            replace_existing=True,
+        )
 
         #
         # Cache warm-up jobs
@@ -257,6 +266,13 @@ class Command(BaseCommand):
             close_old_connections(warm_cache_metaculus_stats.send),
             trigger=CronTrigger.from_crontab("0 */12 * * *"),  # Every 12 hours
             id="warm_cache_metaculus_stats",
+            max_instances=1,
+            replace_existing=True,
+        )
+        scheduler.add_job(
+            close_old_connections(warm_cache_site_stats.send),
+            trigger=CronTrigger.from_crontab("30 */12 * * *"),  # Every 12 hours
+            id="warm_cache_site_stats",
             max_instances=1,
             replace_existing=True,
         )

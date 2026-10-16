@@ -59,6 +59,10 @@ def email_link_request_api_view(request):
             password=None,  # unusable password: email-link is the only way in
             is_active=False,
             is_bot=False,
+            # Someone who arrived by following one question is a reader, not a
+            # forecaster: start them in the view the site already gives them
+            # while signed out, rather than switching layouts under them.
+            interface_type=User.InterfaceType.CONSUMER_VIEW,
             metadata={
                 "signup_details": {"method": "email_link", "action_type": action_type}
             },

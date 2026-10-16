@@ -20,6 +20,10 @@ def test_ad_tiles_endpoint_returns_active_ad(client_name, request):
     ad_tiles = [t for t in resp.json() if t["type"] == "ad"]
     assert ad_tiles[0]["id"] == f"ad:{ad.id}"
     assert ad_tiles[0]["ad"]["title"] == "Promo"
+    assert ad_tiles[0]["ad"]["placements"] == [
+        "questions_feed",
+        "question_sidebar",
+    ]
     get_feed_project_tiles.clear_cache()
 
 

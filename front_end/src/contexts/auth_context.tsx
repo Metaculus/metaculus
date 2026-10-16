@@ -12,6 +12,7 @@ import {
 
 import { AuthContextType } from "@/types/auth";
 import { CurrentUser } from "@/types/users";
+import { getPostHogIdentity } from "@/utils/posthog_identity";
 
 export const AuthContext = createContext<AuthContextType>({
   user: null,
@@ -25,25 +26,33 @@ const AuthProvider: FC<
   }>
 > = ({ user: initialUser, children, locale }) => {
   const [user, setUser] = useState<CurrentUser | null>(initialUser);
+  const [syncedUser, setSyncedUser] = useState<CurrentUser | null>(initialUser);
   const posthog = usePostHog();
+
+  // Adjust during render rather than in an effect: child effects run before
+  // parent effects, so a page mounting right after logout would otherwise
+  // read the signed-out user as still signed in for one commit — which is how
+  // the tutorial popped up on the storefront after logging out.
+  if (initialUser !== syncedUser) {
+    setSyncedUser(initialUser);
+    setUser(initialUser);
+  }
 
   useEffect(() => {
     if (initialUser) {
-      const { id, username, is_superuser, is_staff, language } = initialUser;
-      posthog.identify(id.toString(), {
-        username,
-        is_superuser,
-        is_staff,
-        locale,
-        language: language || locale,
-      });
+      // On first mount this runs before CSPostHogProvider's init (child
+      // effects run first) and is a no-op; the provider identifies on load.
+      // This covers users logging in or switching later in the page's life.
+      const { distinctId, properties } = getPostHogIdentity(
+        initialUser,
+        locale
+      );
+      posthog.identify(distinctId, properties);
     } else {
       if (posthog._isIdentified()) {
         posthog.reset();
       }
     }
-
-    setUser(initialUser);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialUser, posthog]);
 

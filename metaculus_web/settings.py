@@ -242,6 +242,15 @@ AUTH_SIGNUP_SIMPLIFIED_TOKEN = os.environ.get("AUTH_SIGNUP_SIMPLIFIED_TOKEN")
 # Redis TTL of pending gated actions, in seconds.
 AUTH_EMAIL_LINK_TIMEOUT = int(os.environ.get("AUTH_EMAIL_LINK_TIMEOUT", 60 * 60 * 24))
 
+# Max age of the email-change confirmation link, seconds
+AUTH_EMAIL_CHANGE_TIMEOUT = int(
+    os.environ.get("AUTH_EMAIL_CHANGE_TIMEOUT", 60 * 60 * 24)
+)
+# Max age of the email-change rollback link and length of the change lock, seconds
+AUTH_EMAIL_CHANGE_ROLLBACK_TIMEOUT = int(
+    os.environ.get("AUTH_EMAIL_CHANGE_ROLLBACK_TIMEOUT", 60 * 60 * 24 * 7)
+)
+
 PUBLIC_AUTHENTICATION_REQUIRED = (
     os.environ.get("PUBLIC_AUTHENTICATION_REQUIRED", "false").lower() == "true"
 )
@@ -429,6 +438,12 @@ AWS_QUERYSTRING_AUTH = False
 AWS_STORAGE_BUCKET_POST_VERSION_HISTORY = os.environ.get(
     "AWS_STORAGE_BUCKET_POST_VERSION_HISTORY"
 )
+# S3 bucket holding the `comments_text/` prefix of archived comment texts.
+# Comment text archiving will be disabled if this isn’t set. There is
+# deliberately no fallback to another bucket: the archive is the only copy of
+# the text, so a missing setting must disable the feature rather than silently
+# write somewhere unintended.
+AWS_STORAGE_BUCKET_COMMENTS_TEXT = os.environ.get("AWS_STORAGE_BUCKET_COMMENTS_TEXT")
 
 # Cloudflare captcha
 # https://developers.cloudflare.com/turnstile/get-started/server-side-validation/
@@ -516,6 +531,7 @@ SENTRY_SAMPLE_RATE = float(os.environ.get("SENTRY_SAMPLE_RATE", 0.15))
 
 def traces_sampler(sampling_context):
     exclude_endpoints = [
+        "/api/healthcheck/",
         "/api/get-bulletins",
         "/api/auth/verify_token",
         "/api/auth/social",
@@ -532,7 +548,7 @@ def traces_sampler(sampling_context):
 
         # Reduced sampling for high-volume endpoints
         if url == "/api/users/me/":
-            return 0.05
+            return 0.005
 
         if method in ("POST", "PATCH", "PUT", "DELETE"):
             # High-volume write endpoints - use reduced rates
@@ -613,6 +629,13 @@ LOCALE_PATHS = (os.path.join(os.path.dirname(__file__), "locale"),)
 
 GOOGLE_TRANSLATE_SERVICE_ACCOUNT_KEY = os.environ.get(
     "GOOGLE_TRANSLATE_SERVICE_ACCOUNT_KEY", None
+)
+
+# Machine translation of new/edited content. When disabled, the whole
+# translation machinery stays in place (already translated content is still
+# served), but no new content is sent to the translation service.
+AUTOMATIC_TRANSLATIONS_ENABLED = (
+    os.environ.get("AUTOMATIC_TRANSLATIONS_ENABLED", "false").lower() == "true"
 )
 
 CAMPAIGN_USER_REGISTRATION_HOOK_KEY_URL_PAIR = os.environ.get(

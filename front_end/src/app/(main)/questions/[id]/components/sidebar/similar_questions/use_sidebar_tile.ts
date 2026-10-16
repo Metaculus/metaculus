@@ -10,9 +10,9 @@ import {
 import { useAuth } from "@/contexts/auth_context";
 import ClientMiscApi from "@/services/api/misc/misc.client";
 import { PostWithForecasts } from "@/types/post";
-import { CombinedFeedTile } from "@/types/projects";
+import { CombinedFeedTile, TilePlacement } from "@/types/projects";
 import { logError } from "@/utils/core/errors";
-import { seededRandom } from "@/utils/posts_feed";
+import { filterTilesByPlacement, seededRandom } from "@/utils/posts_feed";
 
 // Extracted so Date.now() is not called directly in the hook body
 function getDaySeed(): number {
@@ -36,7 +36,10 @@ export function useSidebarTile(post: PostWithForecasts) {
     // Seed on post.id + day: stable per page, rotates daily
     const rand = seededRandom(post.id + getDaySeed());
 
-    for (const t of tiles) {
+    for (const t of filterTilesByPlacement(
+      tiles,
+      TilePlacement.QUESTION_SIDEBAR
+    )) {
       // Filter ad tiles by exposure_rate; project tiles always show
       if (t.type === "ad" && rand() * 100 >= t.ad.exposure_rate) continue;
       return t;

@@ -10,6 +10,7 @@ from django.urls import path, reverse
 from django.utils.html import format_html
 from sql_util.aggregates import SubqueryAggregate
 
+from authentication.jwt_session import revoke_all_user_tokens
 from authentication.services.common import generate_password_reset_link
 from projects.models import ProjectUserPermission
 from questions.models import Forecast
@@ -237,6 +238,7 @@ class UserAdmin(admin.ModelAdmin):
         "clean_user_data_deletion",
         "run_profile_spam_detection_on_selected",
         "generate_password_reset_links",
+        "revoke_all_sessions",
     ]
     search_fields = ["username", "email", "pk"]
     list_filter = [
@@ -253,7 +255,7 @@ class UserAdmin(admin.ModelAdmin):
         BotFilter,
         AutocompleteFilterFactory("Bot Owner", "bot_owner"),
     ]
-    readonly_fields = ["old_usernames"]
+    readonly_fields = ["old_usernames", "auth_revoked_at", "email_changed_at"]
     autocomplete_fields = ["bot_owner"]
     inlines = [BotInline, ProjectUserPermissionInline]
 
@@ -353,6 +355,22 @@ class UserAdmin(admin.ModelAdmin):
                 mark_user_as_spam(user)
                 send_deactivation_email(user.email)
 
+    def revoke_all_sessions(self, request, queryset: QuerySet[User]):
+        for user in queryset:
+            revoke_all_user_tokens(user)
+
+        LogEntry.objects.log_actions(
+            user_id=request.user.id,
+            queryset=queryset,
+            action_flag=CHANGE,
+            change_message="Revoked all sessions.",
+        )
+        self.message_user(
+            request, f"Revoked all sessions for {queryset.count()} user(s)."
+        )
+
+    revoke_all_sessions.short_description = "Revoke all sessions (log out everywhere)"
+
     def generate_password_reset_links(self, request, queryset: QuerySet[User]):
         if not request.user.is_superuser:
             self.message_user(
@@ -429,7 +447,8 @@ class UserAdmin(admin.ModelAdmin):
                     '<pre style="margin-top:0;">{}</pre></details>',
                     json.dumps(
                         json.loads(
-                            '{"pro_details":{"is_current_pro":true,"pro_start_date":"2024-12-01","pro_end_date":null},'
+                            '{"max_bots":10,'
+                            '"pro_details":{"is_current_pro":true,"pro_start_date":"2024-12-01","pro_end_date":null},'
                             '"bot_details":{"metac_bot":true,"include_in_calculations":true,"display_in_leaderboard":true,"display_name":"OpenAI 4o","base_models":[{"name":"OpenAI 4o","model_release_date":"2024-05","estimated_cost_per_question":1.3}],"research_models":[{"name":"AskNews Research v1","model_release_date":"2024-05","estimated_cost_per_question":null}],"scaffolding":{"pipeline":"metac-bot-latest","notes":"Runs base model, then research follow-up if confidence < 0.7."}},'
                             '"signup_details":{"method":"email_link","action_type":"post_vote"}}'
                         ),
@@ -469,7 +488,7 @@ class UserSpamActivityAdmin(admin.ModelAdmin):
         "content_link",
     ]
     search_fields = ["user__username", "user__id", "user__email"]
-    list_filter = ["user"]
+    list_filter = [AutocompleteFilterFactory("User", "user")]
 
     def content_link(self, obj):
         match obj.content_type:

@@ -34,13 +34,15 @@ class TestAssociateByEmail:
     """
 
     def test_claims_pending_signup(self):
-        existing = user_with_email()
+        existing = user_with_email(password="initial-password")
+        assert existing.has_usable_password()
 
         result = associate_by_email(Mock(), details())
 
         existing.refresh_from_db()
         assert result == {"user": existing, "is_new": False}
         assert existing.is_active
+        assert not existing.has_usable_password()
         assert User.objects.count() == 1
 
     @pytest.mark.parametrize(

@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { AUTOTRANSLATION_HEADER } from "@/constants/experiments";
+import {
+  AUTOTRANSLATION_HEADER,
+  SUBSCRIBE_CAPTURE_HEADER,
+} from "@/constants/experiments";
 import ServerAuthApi from "@/services/api/auth/auth.server";
 import { AuthCookieManager, AuthCookieReader } from "@/services/auth_tokens";
 import {
@@ -12,6 +15,10 @@ import {
   LOCALE_COOKIE_NAME,
 } from "@/services/language_service";
 import { getAlphaTokenSession } from "@/services/session";
+import {
+  getSubscribeCaptureEnrollment,
+  setSubscribeCaptureCookieInResponse,
+} from "@/services/subscribe_capture_experiment";
 import { getAlphaAccessToken } from "@/utils/alpha_access";
 import { ApiError } from "@/utils/core/errors";
 import { applyCspHeaders, buildCsp } from "@/utils/csp";
@@ -116,6 +123,23 @@ export async function proxy(request: NextRequest) {
     requestHeaders.delete(AUTOTRANSLATION_HEADER);
   }
 
+  // Subscribe-capture flow experiment: same enrollment mechanism, sharing
+  // the distinct_id if the auto-translation enrollment just minted one
+  const subscribeCaptureEnrollment = await getSubscribeCaptureEnrollment(
+    request,
+    requestAuth,
+    shouldApplyCsp,
+    autotranslationEnrollment?.distinctId ?? null
+  );
+  if (subscribeCaptureEnrollment) {
+    requestHeaders.set(
+      SUBSCRIBE_CAPTURE_HEADER,
+      subscribeCaptureEnrollment.variant
+    );
+  } else {
+    requestHeaders.delete(SUBSCRIBE_CAPTURE_HEADER);
+  }
+
   const response = NextResponse.next({ request: { headers: requestHeaders } });
   if (cspHeader) {
     applyCspHeaders(response, cspHeader);
@@ -124,6 +148,9 @@ export async function proxy(request: NextRequest) {
 
   if (autotranslationEnrollment) {
     setAssignmentCookieInResponse(response, autotranslationEnrollment);
+  }
+  if (subscribeCaptureEnrollment) {
+    setSubscribeCaptureCookieInResponse(response, subscribeCaptureEnrollment);
   }
 
   let hasSession = false;
