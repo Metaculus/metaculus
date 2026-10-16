@@ -199,6 +199,12 @@ export function computeMultiLineChartModel({
         : yAxisMax;
       yMax = Math.min(yMax, Math.max(yAxisMax, highestPlotted));
     }
+
+    // Equal bounds (e.g. both 0 on an empty chart) collapse the domain, which
+    // leaves every point without a Y position.
+    if (yMax <= yMin) {
+      yMax = yMin + 1;
+    }
   }
 
   const yDomain: [number, number] = [yMin, yMax];
