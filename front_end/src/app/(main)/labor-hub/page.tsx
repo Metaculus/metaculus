@@ -342,6 +342,7 @@ export default function LaborAutomationHubPage() {
               chartProps={{
                 showTickLabels: true,
                 valueFormat: "number",
+                yAxisMin: 0,
               }}
             />
             <ActivityCard
@@ -377,6 +378,7 @@ export default function LaborAutomationHubPage() {
                 showTickLabels: true,
                 valueFormat: "percentage",
                 decimals: 1,
+                yAxisMin: 0,
               }}
             />
           </DualPaneSectionRight>
@@ -663,6 +665,7 @@ export default function LaborAutomationHubPage() {
                 showTickLabels: true,
                 valueFormat: "number",
                 decimals: 0,
+                yAxisMin: 0,
               }}
             />
             <ActivityCard
@@ -729,6 +732,7 @@ export default function LaborAutomationHubPage() {
                 showTickLabels: true,
                 valueFormat: "percentage",
                 decimals: 2,
+                yAxisMin: 0,
               }}
             />
             <ContentParagraph small>
