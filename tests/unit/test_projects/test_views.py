@@ -45,6 +45,9 @@ class TestProjectCreate:
         assert leaderboards_response.data[0]["bot_exclusion_status"] == (
             ExclusionStatuses.INCLUDE
         )
+        assert leaderboards_response.data[0]["human_exclusion_status"] == (
+            ExclusionStatuses.INCLUDE
+        )
 
     def test_keeps_default_bot_exclusion_status_when_not_given(self, staff_client):
         response = self.create_project(staff_client)
