@@ -451,6 +451,7 @@ export default function LaborAutomationHubPage() {
                 chartProps={{
                   showTickLabels: true,
                   valueFormat: "percentage",
+                  yAxisMin: 0,
                 }}
               />
             </ThemeOverrideContainer>

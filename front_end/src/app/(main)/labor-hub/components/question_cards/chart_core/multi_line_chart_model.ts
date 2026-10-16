@@ -104,6 +104,8 @@ type ComputeMultiLineChartModelArgs = {
   showTickLabels: boolean;
   formatYTick: (value: number) => string;
   yAxisGutter?: number;
+  yAxisMin?: number;
+  yAxisMax?: number;
 };
 
 export function computeMultiLineChartModel({
@@ -112,6 +114,8 @@ export function computeMultiLineChartModel({
   showTickLabels,
   formatYTick,
   yAxisGutter,
+  yAxisMin,
+  yAxisMax,
 }: ComputeMultiLineChartModelArgs) {
   const xTickValues = Array.from(
     new Set(series.flatMap((s) => s.data.map((point) => point.x)))
@@ -173,6 +177,28 @@ export function computeMultiLineChartModel({
     const topPadding = range * 0.15;
     yMin = minValue - bottomPadding;
     yMax = maxValue + topPadding;
+  }
+
+  if (yAxisMin != null || yAxisMax != null) {
+    // Never clamp past a plotted value, so the bounds can't hide data.
+    const plottedValues = [
+      ...dataValues,
+      ...(yAxisLabels?.map((label) => label.value) ?? []),
+    ];
+
+    if (yAxisMin != null) {
+      const lowestPlotted = plottedValues.length
+        ? Math.min(...plottedValues)
+        : yAxisMin;
+      yMin = Math.max(yMin, Math.min(yAxisMin, lowestPlotted));
+    }
+
+    if (yAxisMax != null) {
+      const highestPlotted = plottedValues.length
+        ? Math.max(...plottedValues)
+        : yAxisMax;
+      yMax = Math.min(yMax, Math.max(yAxisMax, highestPlotted));
+    }
   }
 
   const yDomain: [number, number] = [yMin, yMax];
