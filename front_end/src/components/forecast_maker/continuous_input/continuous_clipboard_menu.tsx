@@ -1,7 +1,7 @@
 import { faCopy, faPaste } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useTranslations } from "next-intl";
-import { FC, useCallback, useEffect, useRef } from "react";
+import { FC, useCallback, useEffect } from "react";
 import toast from "react-hot-toast";
 
 import Button from "@/components/ui/button";
@@ -150,9 +150,6 @@ const ContinuousClipboardMenu: FC<Props> = ({
 }) => {
   const t = useTranslations();
 
-  const onPasteRef = useRef(onPaste);
-  onPasteRef.current = onPaste;
-
   const handleCopy = useCallback(async () => {
     const data: ClipboardDistribution = {
       [CLIPBOARD_MARKER]: true,
@@ -187,12 +184,12 @@ const ContinuousClipboardMenu: FC<Props> = ({
               openUpperBound
             )
           : parsed.components;
-      onPasteRef.current(parsed.type, components);
+      onPaste(parsed.type, components);
       toast(t("distributionPasted"));
     } catch {
       toast.error(t("distributionPasteInvalid"));
     }
-  }, [scaling, openLowerBound, openUpperBound, t]);
+  }, [scaling, openLowerBound, openUpperBound, onPaste, t]);
 
   // Ctrl+C / Ctrl+V keyboard shortcuts
   useEffect(() => {
