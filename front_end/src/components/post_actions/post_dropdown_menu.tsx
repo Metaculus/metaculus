@@ -10,7 +10,10 @@ import DataRequestModal from "@/app/(main)/questions/[id]/components/download_qu
 import PostDestructiveActionModal, {
   PostDestructiveActionModalProps,
 } from "@/app/(main)/questions/[id]/components/post_destructive_action_modal";
-import { changePostActivityBoost } from "@/app/(main)/questions/actions";
+import {
+  changePostActivityBoost,
+  togglePinPost,
+} from "@/app/(main)/questions/actions";
 import QuestionResolutionModal from "@/components/forecast_maker/resolution/resolution_modal";
 import QuestionUnresolveModal from "@/components/forecast_maker/resolution/unresolve_modal";
 import Button from "@/components/ui/button";
@@ -100,6 +103,21 @@ export const PostDropdownMenu: FC<Props> = ({ post, button, hideShare }) => {
     },
     [post.id, t]
   );
+
+  const [isPinned, setIsPinned] = useState(!!post.is_pinned);
+  const togglePin = useCallback(() => {
+    const nextPinned = !isPinned;
+    setIsPinned(nextPinned);
+    togglePinPost(post.id, nextPinned)
+      .then(() => {
+        toast(nextPinned ? t("postPinned") : t("postUnpinned"));
+        router.refresh();
+      })
+      .catch(() => {
+        // Revert optimistic update on failure
+        setIsPinned(!nextPinned);
+      });
+  }, [isPinned, post.id, router, t]);
 
   const [isResolutionModalOpen, setIsResolutionModalOpen] = useState(false);
   const [isUnresolveModalOpen, setIsUnresolveModalOpen] = useState(false);
@@ -252,6 +270,11 @@ export const PostDropdownMenu: FC<Props> = ({ post, button, hideShare }) => {
     // Include if user is admin
     ...(isAdmin
       ? [
+          {
+            id: "togglePin",
+            name: isPinned ? t("unpinFromProject") : t("pinInProject"),
+            onClick: togglePin,
+          },
           {
             id: "deleteQuestion",
             name: t("delete"),
