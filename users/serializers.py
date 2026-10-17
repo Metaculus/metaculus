@@ -1,5 +1,6 @@
 from datetime import timedelta
 
+from django.db.models import prefetch_related_objects
 from django.utils import timezone
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
@@ -140,6 +141,13 @@ class UserPrivateSerializer(UserPublicSerializer):
 
     def get_max_bots(self, user: User) -> int | None:
         return get_max_bots(user)
+
+    def to_representation(self, instance: User):
+        # One query for the grants that get_api_access_tier and, in the data access
+        # subclass, get_project_api_access_levels both read. A no-op when the caller
+        # already prefetched them.
+        prefetch_related_objects([instance], "api_accesses")
+        return super().to_representation(instance)
 
     def get_api_access_tier(self, user: User) -> str:
         return get_global_api_access_level(user)

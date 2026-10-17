@@ -101,11 +101,7 @@ class UserDataAccess(TimeStampedModel):
         on_delete=models.CASCADE,
         related_name="data_accesses",
         help_text="Optional. Scopes this entry to a specific project. "
-        "If neither project nor post is set while `view_user_data` is True, this entry "
-        "will apply globally with respect to viewing user data. "
-        "The API access tier will apply to this project if it exceeds the user's "
-        "base tier. If neither project nor post is set, the api_access_tier will be "
-        "taken from the User's base tier.",
+        "If neither project nor post is set, the entry applies globally.",
     )
     post = models.ForeignKey(
         Post,
@@ -114,8 +110,7 @@ class UserDataAccess(TimeStampedModel):
         on_delete=models.CASCADE,
         related_name="data_accesses",
         help_text="Optional. Scopes this entry to a specific post. "
-        "The API access tier will apply to this post if it exceeds the user's "
-        "base tier. If neither project nor post is set, the entry applies globally.",
+        "If neither project nor post is set, the entry applies globally.",
     )
 
     # Deprecated, and no longer read: API access levels live in
@@ -173,6 +168,10 @@ class UserApiAccess(TimeStampedModel):
       widen a global one, never narrow it: a user who is globally `benchmarking` and
       `unrestricted` on one project is `unrestricted` there and `benchmarking`
       everywhere else.
+
+    What a level unlocks is up to the gateway. Today `benchmarking` only ever unlocks
+    the benchmarking project the gateway hardcodes (32979), so a global `benchmarking`
+    grant and one scoped to that project are equivalent.
 
     Read access to *user-level* data is a separate axis, granted by UserDataAccess. A
     level here decides which fields and endpoints the gateway exposes; it never causes

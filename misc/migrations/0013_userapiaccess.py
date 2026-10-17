@@ -7,8 +7,10 @@ from django.db import migrations, models
 
 # Question series "Bot benchmarking question list". Inlined rather than imported so that
 # renaming or moving the constant later cannot change what this migration did. The API
-# gateway hardcodes the same id to decide which questions the benchmarking level may
-# read, so a global benchmarking tier only ever unlocked this one project.
+# gateway hardcodes the same id as the only project the benchmarking level unlocks. A
+# user gets benchmarking there if their base tier is benchmarking OR they hold a
+# benchmarking grant scoped to this project, so the two are equivalent and a global
+# benchmarking tier only ever unlocked this one project.
 BENCHMARKING_PROJECT_ID = 32979
 
 ACCESS_LEVEL_RANK = {"restricted": 0, "benchmarking": 1, "unrestricted": 2}
@@ -114,7 +116,6 @@ def migrate_user_api_access_to_access_tiers(apps, schema_editor):
 class Migration(migrations.Migration):
     dependencies = [
         ("misc", "0012_adtile_placements"),
-        ("posts", "0033_postusersnapshot_posts_postuser_forecasted_idx"),
         ("projects", "0023_alter_project_bot_leaderboard_status"),
         # The data migration reads User.api_access_tier, so the migration that adds it
         # has to be in the historical state, not merely somewhere earlier in the plan.

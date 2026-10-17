@@ -334,7 +334,7 @@ def update_bot_profile_api_view(request: Request, pk: int):
 
 @api_view(["GET"])
 def my_bots_api_view(request: Request):
-    bots = get_user_bots(request.user)
+    bots = get_user_bots(request.user).prefetch_related("api_accesses")
 
     return Response(UserPrivateSerializer(bots, many=True).data)
 

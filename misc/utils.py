@@ -68,6 +68,16 @@ def max_api_access_level(*levels: str | None) -> str:
     return max(candidates, key=lambda level: API_ACCESS_LEVEL_RANK.get(level, 0))
 
 
+def _get_api_access_grants(user: User) -> list[tuple[int | None, str]]:
+    """The user's (project_id, access_level) grants.
+
+    Reads through `user.api_accesses.all()`, so a user whose grants were prefetched
+    costs no query.
+    """
+
+    return [(grant.project_id, grant.access_level) for grant in user.api_accesses.all()]
+
+
 def get_global_api_access_level(user: User | None) -> str:
     """The level a user holds on every request, from their unscoped grant if any."""
 
@@ -75,8 +85,10 @@ def get_global_api_access_level(user: User | None) -> str:
         return API_ACCESS_RESTRICTED
 
     return max_api_access_level(
-        *user.api_accesses.filter(project__isnull=True).values_list(
-            "access_level", flat=True
+        *(
+            level
+            for project_id, level in _get_api_access_grants(user)
+            if project_id is None
         )
     )
 
@@ -91,28 +103,15 @@ def get_project_api_access_levels(user: User | None) -> list[dict]:
     if not user or not user.is_authenticated:
         return []
 
-    global_level = get_global_api_access_level(user)
+    grants = _get_api_access_grants(user)
+    global_level = max_api_access_level(
+        *(level for project_id, level in grants if project_id is None)
+    )
     return [
         {
             "project_id": project_id,
-            "api_access_tier": max_api_access_level(access_level, global_level),
+            "api_access_tier": max_api_access_level(level, global_level),
         }
-        for project_id, access_level in user.api_accesses.filter(
-            project__isnull=False
-        ).values_list("project_id", "access_level")
+        for project_id, level in grants
+        if project_id is not None
     ]
-
-
-def get_api_access_level(user: User | None, project_id: int | None = None) -> str:
-    """The level that applies to a user for data in `project_id`, or globally."""
-
-    global_level = get_global_api_access_level(user)
-    if project_id is None or not user or not user.is_authenticated:
-        return global_level
-
-    return max_api_access_level(
-        global_level,
-        *user.api_accesses.filter(project_id=project_id).values_list(
-            "access_level", flat=True
-        ),
-    )
