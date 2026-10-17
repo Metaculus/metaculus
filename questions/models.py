@@ -243,6 +243,14 @@ class Question(TimeStampedModel, TranslatedModel):  # type: ignore
         CP_DESC: all views sort options by descending community prediction.""",
     )
 
+    options_colors = models.JSONField(
+        null=True,
+        blank=True,
+        help_text="""For Multiple Choice only.
+        Dict of option label -> frontend palette key ('1'..'18').
+        Overrides the default index-based option color.""",
+    )
+
     # Legacy field that will be removed
     possibilities = models.JSONField(null=True, blank=True)
 
@@ -261,6 +269,13 @@ class Question(TimeStampedModel, TranslatedModel):  # type: ignore
     # Group
     group_variable = models.CharField(blank=True, null=False)
     label = models.TextField(blank=True, null=False)
+    label_color = models.CharField(
+        max_length=20,
+        blank=True,
+        null=True,
+        help_text="Admin-set frontend palette key ('1'..'18') "
+        "overriding the index-based subquestion color.",
+    )
     group: "GroupOfQuestions" = models.ForeignKey(
         "GroupOfQuestions",
         null=True,
