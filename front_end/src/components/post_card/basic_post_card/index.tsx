@@ -14,7 +14,7 @@ import { PostWithForecasts } from "@/types/post";
 import { TournamentType } from "@/types/projects";
 import cn from "@/utils/core/cn";
 import { getPostLink } from "@/utils/navigation";
-import { isQuestionPost } from "@/utils/questions/helpers";
+import { getPostShortTitle, isQuestionPost } from "@/utils/questions/helpers";
 
 type BorderVariant = "regular" | "highlighted";
 type BorderColor = "blue" | "purple";
@@ -41,7 +41,7 @@ const BasicPostCard: FC<PropsWithChildren<Props>> = ({
   minimalistic = false,
   useShortTitle = false,
 }) => {
-  const title = useShortTitle ? post.short_title || post.title : post.title;
+  const title = useShortTitle ? getPostShortTitle(post) : post.title;
 
   return (
     <div>
