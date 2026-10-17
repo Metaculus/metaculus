@@ -138,14 +138,15 @@ export function FlippableQuestionCard({
         />
       </div>
 
-      {/* Flippable content area */}
+      {/* Flippable content area. The hidden side is clipped to the visible one: it can be
+          taller, and invisible overflow still makes a scrolling ancestor scrollable. */}
       <div className="relative">
         <div
           className={cn(
             "transition-opacity duration-200",
             currentSide === "left"
               ? "opacity-100"
-              : "pointer-events-none invisible absolute inset-0 opacity-0"
+              : "pointer-events-none invisible absolute inset-0 overflow-hidden opacity-0"
           )}
         >
           {leftContent}
@@ -155,7 +156,7 @@ export function FlippableQuestionCard({
             "transition-opacity duration-200",
             currentSide === "right"
               ? "opacity-100"
-              : "pointer-events-none invisible absolute inset-0 opacity-0"
+              : "pointer-events-none invisible absolute inset-0 overflow-hidden opacity-0"
           )}
         >
           {rightContent}

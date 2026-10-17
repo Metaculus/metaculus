@@ -72,6 +72,9 @@ jobs:
       - name: Run Claude Code
         id: claude
         uses: anthropics/claude-code-action@v1
+        env:
+          # Read-only token for `bun run ghm:inputs` / `ghm:bake` (Global Health Monitor editions).
+          METACULUS_API_TOKEN: ${{ secrets.METACULUS_API_TOKEN }}
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           use_commit_signing: true

@@ -169,3 +169,7 @@ trace.zip
 # Email preview tools (local development only)
 email_previews/
 .email-tools/
+
+# Claude Code local files (shared skills live in .claude/skills/)
+.claude/settings.local.json
+.claude/worktrees/

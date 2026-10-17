@@ -20,6 +20,8 @@
     "format": "prettier \"src/**/**.{js,jsx,ts,tsx}\" --write",
     "format:check": "prettier \"src/**/**.{js,jsx,ts,tsx}\" --check",
     "translations:generate": "node ./scripts/add_missing_translations.mjs",
+    "ghm:inputs": "bun ./scripts/ghm/collect_inputs.ts",
+    "ghm:bake": "bun ./scripts/ghm/bake_edition.ts",
     "pm2-runtime": "pm2-runtime start ecosystem.config.js",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build --test",
