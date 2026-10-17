@@ -10,6 +10,7 @@ import {
 
 import { QuestionLinkDirection, QuestionLinkStrength } from "@/types/coherence";
 import { CommentType } from "@/types/comment";
+import { CaptureTrigger, GatedActionInput } from "@/types/gated_actions";
 import { CurrentUser } from "@/types/users";
 
 export type ModalType =
@@ -23,7 +24,8 @@ export type ModalType =
   | "confirm"
   | "accountInactive"
   | "disputeKeyFactor"
-  | "copyQuestionLink";
+  | "copyQuestionLink"
+  | "emailCapture";
 
 type ModalDataByType = {
   signin: {
@@ -53,6 +55,13 @@ type ModalDataByType = {
     onFinalize: (tempId: number, real: CommentType) => void;
     onRemove: (tempId: number) => void;
     onSubmitted?: () => void;
+  };
+  emailCapture: {
+    trigger: CaptureTrigger;
+    surface?: string;
+    gatedAction?: GatedActionInput | null;
+    subscribePost?: { postId: number; isNotebook: boolean };
+    initialView?: "options" | "input" | "sent";
   };
   copyQuestionLink: {
     fromQuestionTitle: string;

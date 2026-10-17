@@ -1,7 +1,8 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
+import posthog from "posthog-js";
 import { FC, useEffect } from "react";
 
 import { SetOriginalLanguage as setOriginalLanguage } from "@/components/language_menu";
@@ -17,6 +18,7 @@ const ContentTranslatedBanner: FC<{
   className?: string;
 }> = ({ forceVisible = false, className }) => {
   const t = useTranslations();
+  const locale = useLocale();
   const { setBannerIsVisible, bannerIsVisible } =
     useContentTranslatedBannerContext();
   const pathname = usePathname();
@@ -45,7 +47,19 @@ const ContentTranslatedBanner: FC<{
             className="inline whitespace-nowrap"
             variant="link"
             size="xs"
-            onClick={() => setOriginalLanguage(params, router, pathname)}
+            onClick={() => {
+              // Beacon transport so the event survives the hard navigation
+              posthog.capture(
+                "language_changed",
+                {
+                  previous_language: locale,
+                  new_language: "original",
+                  source: "content_translated_banner",
+                },
+                { transport: "sendBeacon" }
+              );
+              setOriginalLanguage(params, router, pathname);
+            }}
           >
             {t("showOriginalContent")}
           </Button>

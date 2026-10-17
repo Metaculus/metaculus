@@ -5,9 +5,14 @@ import TournamentsScreen from "../components/tournaments_screen";
 
 const IndexesPage: React.FC = async () => {
   const tournaments = await ServerProjectsApi.getTournaments();
+  const nowTs = Date.now();
 
   return (
-    <TournamentsScreen current="indexes" tournaments={tournaments}>
+    <TournamentsScreen
+      current="indexes"
+      tournaments={tournaments}
+      nowTs={nowTs}
+    >
       <IndexTournamentsGrid />
     </TournamentsScreen>
   );

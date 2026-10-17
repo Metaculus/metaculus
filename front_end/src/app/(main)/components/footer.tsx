@@ -145,6 +145,7 @@ const LanguageSelector: FC = () => {
         posthog.capture("language_changed", {
           previous_language: selectedLanguage,
           new_language: language,
+          source: "footer",
         });
         // Update user property for language only after preference is successfully persisted
         if (user) {

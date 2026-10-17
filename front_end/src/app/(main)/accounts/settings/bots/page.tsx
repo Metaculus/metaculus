@@ -19,7 +19,11 @@ export default async function Bots() {
   invariant(authManager.hasAuthSession());
 
   const t = await getTranslations();
-  const bots = await ServerProfileApi.getMyBots();
+  const [currentUser, bots] = await Promise.all([
+    ServerProfileApi.getMyProfile(),
+    ServerProfileApi.getMyBots(),
+  ]);
+  const maxBots = currentUser?.max_bots ?? null;
 
   return (
     <div className="flex flex-col gap-6">
@@ -29,7 +33,9 @@ export default async function Bots() {
           <h3 className="my-0 text-blue-900 dark:text-blue-900-dark">
             {t("myBots")}
           </h3>
-          <BotCreateButton disabled={bots.length >= 5} />
+          <BotCreateButton
+            disabled={maxBots !== null && bots.length >= maxBots}
+          />
         </div>
         <div className="flex flex-col gap-2.5">
           {bots.length > 0 ? (

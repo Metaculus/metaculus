@@ -1,5 +1,24 @@
 from django.db import models
 
+# Default number of bots a user may own. Lift per user via metadata["max_bots"].
+DEFAULT_MAX_BOTS = 5
+
+forbidden_usernames = [
+    "anonymous",
+    "moderator",
+    "moderators",
+    "predictor",
+    "predictors",
+    "metaculus",
+    "admin",
+    "admins",
+    "curator",
+    "curators",
+]
+
+# Reserved for Metaculus-run benchmark bots, which staff create via admin/shell.
+reserved_username_prefixes = ["metac-"]
+
 
 class ApiAccessTier(models.TextChoices):
     RESTRICTED = "restricted"

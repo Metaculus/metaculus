@@ -16,6 +16,7 @@ import {
   DomainTuple,
   LineSegment,
   PointProps,
+  Tuple,
   VictoryArea,
   VictoryAxis,
   VictoryChart,
@@ -40,10 +41,14 @@ import usePrevious from "@/hooks/use_previous";
 import {
   Area,
   BaseChartData,
+  DEFAULT_TIMELINE_Y_DOMAIN_OPTIONS,
   Line,
   ScaleDirection,
   TickFormat,
   TimelineChartZoomOption,
+  TimelineYDomainOptions,
+  TimelineYDomainSource,
+  resolveTimelineYDomainOptions,
 } from "@/types/charts";
 import { ChoiceItem } from "@/types/choices";
 import { ForecastAvailability, QuestionType, Scaling } from "@/types/question";
@@ -55,6 +60,8 @@ import {
   generateTimestampXScale,
   getAxisRightPadding,
   getTickLabelFontSize,
+  restrictScaleTicksToDomain,
+  widenDomainToTicks,
   Y_AXIS_LABEL_ANCHOR_OFFSET,
   Y_AXIS_LABEL_RESERVED_PX,
 } from "@/utils/charts/axis";
@@ -79,6 +86,10 @@ type Props = {
   actualCloseTime?: number | null;
   choiceItems: ChoiceItem[];
   defaultZoom?: TimelineChartZoomOption;
+  /** Controlled zoom. Omit to let the chart own it via `defaultZoom`. Lets one
+   *  external picker drive several charts at once. */
+  zoom?: TimelineChartZoomOption;
+  onZoomChange?: (zoom: TimelineChartZoomOption) => void;
   withZoomPicker?: boolean;
   height?: number;
   yLabel?: string;
@@ -93,10 +104,16 @@ type Props = {
   aggregation?: boolean;
   isEmptyDomain?: boolean;
   openTime?: number | null;
-  forceAutoZoom?: boolean;
   cursorTimestamp?: number | null;
   forecastAvailability?: ForecastAvailability;
   forceShowLinePoints?: boolean;
+  /** Hide the y-axis tick labels and reclaim the space they reserve. Gridlines
+   *  stay. For compact charts that surface their values elsewhere. */
+  hideYAxis?: boolean;
+  /** Hide the x-axis tick labels permanently, not just while the cursor is
+   *  active. Pair with `showCursorLabel` so the hovered date is the only x value
+   *  ever shown. */
+  hideXAxis?: boolean;
   forFeedPage?: boolean;
   isEmbedded?: boolean;
   chartTitle?: ReactNode;
@@ -112,9 +129,23 @@ type Props = {
   withHighlightArea?: boolean;
   withHighlightEndpoint?: boolean;
   headerLeft?: ReactNode;
+  yDomainOptions?: TimelineYDomainOptions;
+  /** Let binary questions use the computed zoomed y-domain instead of the fixed
+   *  [0, 1]. Off by default: platform-wide, a binary timeline is read against a
+   *  full probability axis, and shrinking it silently would overstate movement.
+   *  Opt in where the values are surfaced numerically elsewhere. */
+  binaryYZoom?: boolean;
+  /** Floor on the zoomed domain's height, in probability units. Guards the
+   *  degenerate case: `generateYDomain` falls back to a ±1pp window when the
+   *  visible span is zero, which would draw sampling noise as a swing. */
+  minYSpan?: number;
 };
 
 const BOTTOM_PADDING = 20;
+// Endpoint-dot clearance used in place of the y-label allowance when hideYAxis is
+// set — matches the SCATTER_POINT_PADDING that getAxisRightPadding adds for the
+// same dot, plus a pixel for its stroke.
+const HIDDEN_Y_AXIS_RIGHT_PADDING = 6;
 const POINT_SIZE = 9;
 const USER_POINT_SIZE = 6;
 const USER_POINT_STROKE = CHART_STROKE_WIDTH.userPoint;
@@ -125,6 +156,8 @@ const GroupChart: FC<Props> = ({
   actualCloseTime,
   choiceItems,
   defaultZoom = TimelineChartZoomOption.All,
+  zoom: controlledZoom,
+  onZoomChange,
   withZoomPicker = false,
   height = 150,
   yLabel,
@@ -139,10 +172,11 @@ const GroupChart: FC<Props> = ({
   aggregation,
   isEmptyDomain,
   openTime,
-  forceAutoZoom,
   cursorTimestamp,
   forecastAvailability,
   forceShowLinePoints = false,
+  hideYAxis = false,
+  hideXAxis = false,
   forFeedPage,
   isEmbedded = false,
   chartTitle,
@@ -158,6 +192,9 @@ const GroupChart: FC<Props> = ({
   withHighlightArea = true,
   withHighlightEndpoint = false,
   headerLeft,
+  yDomainOptions,
+  binaryYZoom = false,
+  minYSpan,
 }) => {
   const t = useTranslations();
   const {
@@ -185,7 +222,34 @@ const GroupChart: FC<Props> = ({
   );
   const [isCursorActive, setIsCursorActive] = useState(false);
 
-  const [zoom, setZoom] = useState<TimelineChartZoomOption>(defaultZoom);
+  // Controlled/uncontrolled: an external picker can own the zoom, otherwise the
+  // chart keeps its own.
+  const [internalZoom, setInternalZoom] =
+    useState<TimelineChartZoomOption>(defaultZoom);
+  // Mirror the controlled value so nothing jumps if a caller stops controlling
+  // mid-life. Without this, internal state only saw changes made through the
+  // chart's own picker, so a parent that drives zoom from elsewhere would leave
+  // it at `defaultZoom` and the chart would snap back to that on release.
+  useEffect(() => {
+    if (!isNil(controlledZoom)) {
+      setInternalZoom(controlledZoom);
+    }
+  }, [controlledZoom]);
+  const zoom = controlledZoom ?? internalZoom;
+  const handleZoomChange = (next: TimelineChartZoomOption) => {
+    setInternalZoom(next);
+    onZoomChange?.(next);
+  };
+  const [yDomainSource, setYDomainSource] = useState<TimelineYDomainSource>(
+    yDomainOptions?.source ?? DEFAULT_TIMELINE_Y_DOMAIN_OPTIONS.source
+  );
+  useEffect(
+    () =>
+      setYDomainSource(
+        yDomainOptions?.source ?? DEFAULT_TIMELINE_Y_DOMAIN_OPTIONS.source
+      ),
+    [yDomainOptions?.source]
+  );
   const { xScale, yScale, graphs, xDomain, yDomain } = useMemo(
     () =>
       buildChartData({
@@ -202,8 +266,13 @@ const GroupChart: FC<Props> = ({
         hideCP,
         isAggregationsEmpty: isEmptyDomain,
         openTime,
-        forceAutoZoom,
         forFeedPage,
+        yDomainOptions: {
+          ...yDomainOptions,
+          source: yDomainSource,
+        },
+        binaryYZoom,
+        minYSpan,
       }),
     [
       timestamps,
@@ -219,8 +288,11 @@ const GroupChart: FC<Props> = ({
       hideCP,
       isEmptyDomain,
       openTime,
-      forceAutoZoom,
       forFeedPage,
+      yDomainOptions,
+      yDomainSource,
+      binaryYZoom,
+      minYSpan,
     ]
   );
   const [localCursorTimestamp, setLocalCursorTimestamp] = useState<
@@ -259,8 +331,13 @@ const GroupChart: FC<Props> = ({
     return getAxisRightPadding(yScale, tickLabelFontSize as number, yLabel);
   }, [yScale, tickLabelFontSize, yLabel]);
   const maxRightPadding = useMemo(() => {
+    // MIN_RIGHT_PADDING (35px) exists to fit y-axis tick labels. With them hidden
+    // that space is dead, and it reads as lopsided padding against a container
+    // whose own padding is symmetric. Keep only what the line's endpoint dot
+    // needs to sit fully inside the plot.
+    if (hideYAxis) return HIDDEN_Y_AXIS_RIGHT_PADDING;
     return Math.max(rightPadding, MIN_RIGHT_PADDING);
-  }, [rightPadding, MIN_RIGHT_PADDING]);
+  }, [hideYAxis, rightPadding, MIN_RIGHT_PADDING]);
   const chartPadding = useMemo(
     () => ({
       left: leftPadding,
@@ -367,7 +444,17 @@ const GroupChart: FC<Props> = ({
         ref={chartContainerRef}
         height={height}
         zoom={withZoomPicker ? zoom : undefined}
-        onZoomChange={setZoom}
+        onZoomChange={handleZoomChange}
+        yDomainSource={
+          withZoomPicker && questionType !== QuestionType.Binary
+            ? yDomainSource
+            : undefined
+        }
+        onYDomainSourceChange={
+          withZoomPicker && questionType !== QuestionType.Binary
+            ? setYDomainSource
+            : undefined
+        }
         chartTitle={chartTitle}
         headerLeft={headerLeft}
         headerExtra={headerExtra}
@@ -567,7 +654,9 @@ const GroupChart: FC<Props> = ({
                       4,
                     textAnchor: "end",
                     fontSize: tickLabelFontSize,
-                    fill: getThemeColor(METAC_COLORS.gray["700"]),
+                    fill: hideYAxis
+                      ? "transparent"
+                      : getThemeColor(METAC_COLORS.gray["700"]),
                   },
                   axis: {
                     stroke: "transparent",
@@ -591,7 +680,7 @@ const GroupChart: FC<Props> = ({
                 <VictoryAxis
                   tickValues={xScale.ticks}
                   tickFormat={
-                    (hideCP && !hasUserForecasts) || isCursorActive
+                    hideXAxis || (hideCP && !hasUserForecasts) || isCursorActive
                       ? () => ""
                       : xScale.tickFormat
                   }
@@ -926,9 +1015,11 @@ function buildChartData({
   hideCP,
   isAggregationsEmpty,
   openTime,
-  forceAutoZoom,
   forFeedPage,
   isEmbedded,
+  yDomainOptions,
+  binaryYZoom,
+  minYSpan,
 }: {
   timestamps: number[];
   actualCloseTime?: number | null;
@@ -943,9 +1034,11 @@ function buildChartData({
   hideCP?: boolean;
   isAggregationsEmpty?: boolean;
   openTime?: number | null;
-  forceAutoZoom?: boolean;
   forFeedPage?: boolean;
   isEmbedded?: boolean;
+  yDomainOptions?: TimelineYDomainOptions;
+  binaryYZoom?: boolean;
+  minYSpan?: number;
 }): ChartData {
   const closeTimes = choiceItems
     .map(({ closeTime }) => closeTime)
@@ -1202,54 +1295,85 @@ function buildChartData({
   const fontSize = extraTheme ? getTickLabelFontSize(extraTheme) : undefined;
   const xScale = generateTimestampXScale(xDomain, width, fontSize);
 
-  // @ts-expect-error we manually check, that areas are not nullable, this should be fixed on later ts versions
-  const areas: Area = graphs
-    .filter((g) => !isNil(g.area) && g.active)
-    .flatMap((g) => g.area);
-  const { originalYDomain, zoomedYDomain } = generateTimeSeriesYDomain({
-    zoom,
-    minTimestamp: xDomain[0],
-    isChartEmpty: !domainTimestamps.length,
-    minValues: [
-      ...areas.map((a) => ({ timestamp: a.x, y: a.y0 })),
-      ...graphs
-        .filter((g) => g.active)
-        .flatMap((g) =>
-          (g.scatter ?? []).map((point) => ({
-            timestamp: point.x,
-            y: point.y1 ?? point.y,
-          }))
-        ),
-      ...graphs
-        .filter((g) => g.active && !isNil(g.resolutionPoint))
-        .map((g) => ({
-          timestamp: g.resolutionPoint?.x ?? latestTimestamp,
-          y: g.resolutionPoint?.y,
-        })),
-    ],
-    maxValues: [
-      ...areas.map((a) => ({ timestamp: a.x, y: a.y })),
-      ...graphs
-        .filter((g) => g.active)
-        .flatMap((g) =>
-          (g.scatter ?? []).map((point) => ({
-            timestamp: point.x,
-            y: point.y2 ?? point.y,
-          }))
-        ),
-      ...graphs
-        .filter((g) => g.active && !isNil(g.resolutionPoint))
-        .map((g) => ({
-          timestamp: g.resolutionPoint?.x ?? latestTimestamp,
-          y: g.resolutionPoint?.y,
-        })),
-    ],
-    includeClosestBoundOnZoom: questionType === QuestionType.Binary,
-    forceAutoZoom,
-    useFullYDomain:
-      questionType === QuestionType.Numeric ||
-      questionType === QuestionType.Date,
+  const activeGraphs = graphs.filter((g) => g.active);
+  const communityCenterSources = activeGraphs.map((graph) => {
+    const values = graph.line.map((point) => ({
+      timestamp: point.x,
+      y: point.y,
+    }));
+    return {
+      minValues: values,
+      maxValues: values,
+      carryForward: true,
+    };
   });
+  const communityIntervalSources = activeGraphs.map((graph) => ({
+    minValues: (graph.area ?? []).map((point) => ({
+      timestamp: point.x,
+      y: point.y0,
+    })),
+    maxValues: (graph.area ?? []).map((point) => ({
+      timestamp: point.x,
+      y: point.y,
+    })),
+    carryForward: true,
+  }));
+  const scatterCenterSources = activeGraphs.map((graph) => {
+    const values = (graph.scatter ?? []).map((point) => ({
+      timestamp: point.x,
+      y: point.y,
+    }));
+    return {
+      minValues: values,
+      maxValues: values,
+    };
+  });
+  const scatterIntervalSources = activeGraphs.map((graph) => ({
+    minValues: (graph.scatter ?? []).map((point) => ({
+      timestamp: point.x,
+      y: point.y1 ?? point.y,
+    })),
+    maxValues: (graph.scatter ?? []).map((point) => ({
+      timestamp: point.x,
+      y: point.y2 ?? point.y,
+    })),
+  }));
+  const resolutionSources = activeGraphs.flatMap((graph) => {
+    if (isNil(graph.resolutionPoint)) return [];
+    const values = [
+      {
+        timestamp: graph.resolutionPoint.x ?? latestTimestamp,
+        y: graph.resolutionPoint.y,
+      },
+    ];
+    return [{ minValues: values, maxValues: values }];
+  });
+  const effectiveYDomainOptions = resolveTimelineYDomainOptions(yDomainOptions);
+  const useCenterValues = effectiveYDomainOptions.source === "centers";
+  const domainSources = useCenterValues
+    ? [...communityCenterSources, ...scatterCenterSources, ...resolutionSources]
+    : [
+        ...communityIntervalSources,
+        // Keep medians as a fallback for histories without interval bounds.
+        ...communityCenterSources,
+        ...scatterIntervalSources,
+        ...resolutionSources,
+      ];
+  const useFullYDomain = effectiveYDomainOptions.scope === "fullHistory";
+  const generatedYDomain = generateTimeSeriesYDomain({
+    sources: domainSources,
+    timeRange: xDomain,
+    isChartEmpty: !domainTimestamps.length,
+    useFullYDomain,
+    paddingRatio: effectiveYDomainOptions.paddingRatio,
+  });
+  const { originalYDomain, tickCoverageDomain } = generatedYDomain;
+  // Binary questions default to the full [0, 1] axis regardless of how little the
+  // forecast moves; `binaryYZoom` opts a chart out of that.
+  const zoomedYDomain =
+    questionType === QuestionType.Binary && !binaryYZoom
+      ? originalYDomain
+      : expandDomainToMinSpan(generatedYDomain.zoomedYDomain, minYSpan);
 
   const yScale = generateScale({
     displayType: questionType,
@@ -1258,11 +1382,48 @@ function buildChartData({
     scaling: scaling,
     domain: originalYDomain,
     zoomedDomain: zoomedYDomain,
-    forceTickCount: isEmbedded ? 5 : forFeedPage ? 3 : 5,
+    forceTickCount: isEmbedded ? 5 : forFeedPage ? 3 : 6,
     alwaysShowTicks: true,
+    tickCoverageDomain,
   });
 
-  return { xScale, yScale, graphs, xDomain, yDomain: zoomedYDomain };
+  const yDomain = widenDomainToTicks(zoomedYDomain, yScale.ticks);
+  const visibleYScale = restrictScaleTicksToDomain(yScale, yDomain);
+
+  return { xScale, yScale: visibleYScale, graphs, xDomain, yDomain };
+}
+
+/**
+ * Widens a y-domain about its midpoint until it spans at least `minSpan`, so a
+ * barely-moving series can't zoom in far enough to render noise as movement.
+ * A no-op without `minSpan`, which is how every caller that doesn't opt in
+ * leaves it.
+ *
+ * When the widened window would run past 0 or 1 it slides back inside rather than
+ * being clipped: a clipped domain would still be shorter than `minSpan` and so
+ * still over-zoomed, which is the thing being guarded against.
+ */
+function expandDomainToMinSpan(
+  domain: Tuple<number>,
+  minSpan?: number
+): Tuple<number> {
+  if (isNil(minSpan) || minSpan <= 0) return domain;
+  const [min, max] = domain;
+  if (max - min >= minSpan) return domain;
+
+  const target = Math.min(minSpan, 1);
+  const mid = (min + max) / 2;
+  let lower = mid - target / 2;
+  let upper = mid + target / 2;
+  if (lower < 0) {
+    upper -= lower;
+    lower = 0;
+  }
+  if (upper > 1) {
+    lower -= upper - 1;
+    upper = 1;
+  }
+  return [Math.max(0, lower), Math.min(1, upper)];
 }
 
 // Define a custom "X" symbol function

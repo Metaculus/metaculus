@@ -1,8 +1,11 @@
 import { config } from "@fortawesome/fontawesome-svg-core";
 import "@fortawesome/fontawesome-svg-core/styles.css";
 import type { Metadata } from "next";
+import { Suspense } from "react";
 
 import ShowActiveCommunityProvider from "@/app/(main)/c/components/community_context";
+import SigningInCurtain from "@/components/auth/signing_in_curtain";
+import EmailLinkEventToast from "@/components/email_link_event_toast";
 import { defaultDescription } from "@/constants/metadata";
 import { PrintOverrideProvider } from "@/contexts/theme_override_context";
 import { getPublicSettings } from "@/utils/public_settings.server";
@@ -46,6 +49,12 @@ export default async function RootLayout({
             )}
             <CookiesBanner />
             <VersionChecker />
+            <Suspense fallback={null}>
+              <EmailLinkEventToast />
+            </Suspense>
+            <Suspense fallback={null}>
+              <SigningInCurtain />
+            </Suspense>
           </div>
         </TopChromeHeaderProvider>
       </ShowActiveCommunityProvider>

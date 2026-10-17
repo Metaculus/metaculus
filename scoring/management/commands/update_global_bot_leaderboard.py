@@ -1,12 +1,13 @@
 import random
+import re
 from collections import defaultdict
 import csv
 from pathlib import Path
 
-from datetime import datetime, timedelta, timezone as dt_timezone
+from datetime import datetime, timedelta
 from django.conf import settings
 from django.core.management.base import BaseCommand
-from django.db.models import Exists, OuterRef, Prefetch, QuerySet, Q
+from django.db.models import Count, Exists, F, OuterRef, Prefetch, QuerySet, Q
 from django.utils import timezone
 import numpy as np
 from scipy import sparse, stats
@@ -18,7 +19,7 @@ from questions.constants import UnsuccessfulResolutionType
 from questions.models import AggregateForecast, Forecast, Question
 from questions.types import AggregationMethod
 from scoring.constants import ScoreTypes, LeaderboardScoreTypes
-from scoring.models import Leaderboard, LeaderboardEntry, Score, ExclusionStatuses
+from scoring.models import Leaderboard, LeaderboardEntry, ExclusionStatuses
 from scoring.score_math import (
     evaluate_forecasts_peer_accuracy,
     evaluate_forecasts_peer_spot_forecast,
@@ -29,6 +30,115 @@ from utils.the_math.aggregations import get_aggregation_history
 from utils.the_math.formulas import string_location_to_bucket_index
 
 SkillType = dict[int | str, float]
+
+# matches a trailing " (YYYY)" year tag on a year-split player id
+_YEAR_SUFFIX_RE = re.compile(r"^(?P<parent>.*) \(\d{4}\)$")
+
+
+def participation_parent_key(uid: int | str) -> int | str:
+    """Map a year-split player id (e.g. "Community Aggregate (2025)") to its
+    parent ("Community Aggregate"). Non-split ids are returned unchanged.
+
+    Used so the min-participation threshold applies to a player's combined
+    history across years rather than to each per-year slice independently.
+    """
+    if isinstance(uid, str):
+        match = _YEAR_SUFFIX_RE.match(uid)
+        if match:
+            return match.group("parent")
+    return uid
+
+
+# 95% normal critical value, used to convert CI half-widths to/from SEs.
+_CI_Z = 1.959963985
+
+
+def combine_year_split_players(
+    skills: SkillType,
+    ci_lower: dict[int | str, float],
+    ci_upper: dict[int | str, float],
+    player_stats: dict[int | str, list],
+) -> tuple[
+    SkillType, dict[int | str, float], dict[int | str, float], dict[int | str, list]
+]:
+    """Collapse year-split players (e.g. "Community Aggregate (2025)" or
+    "SomeBot (2024)") into a single combined entry per parent, so the
+    leaderboard reports one number per model rather than one per year.
+
+    - score: contribution-count-weighted mean of the per-year skills, with
+      weight = max(distinct-question count, 1).
+    - CI: per-year half-widths are converted to SEs and propagated through the
+      same normalized weights -- se_combined = sqrt(Σ (wᵢ/W)² · seᵢ²), then
+      score ± z·se_combined. Combining estimates *narrows* the interval. CI is
+      dropped unless every member has both bounds.
+    - match count / distinct questions / coverage: combined across the year
+      slices (which are disjoint in questions).
+
+    Note: The scores + CIs generated with this process are similar to what they would have
+    been if players were never split by year to begin with, though they do not result
+    in the exact same values. We score by year because these forecasters change w.r.t time.
+
+    Single-member groups (including non-year-split players and integer
+    metac/third-party bot ids) pass through unchanged except for being renamed
+    to their parent key, preserving the original (possibly asymmetric) CI.
+    """
+    groups: dict[int | str, list[int | str]] = defaultdict(list)
+    for uid in skills:
+        groups[participation_parent_key(uid)].append(uid)
+
+    new_skills: SkillType = {}
+    new_ci_lower: dict[int | str, float] = {}
+    new_ci_upper: dict[int | str, float] = {}
+    new_player_stats: dict[int | str, list] = {}
+    for parent, members in groups.items():
+        match_count = sum(player_stats[m][0] for m in members)
+        questions: set[int] = set()
+        for m in members:
+            questions |= player_stats[m][1]
+        coverage_total = sum(player_stats[m][2] for m in members)
+        new_player_stats[parent] = [match_count, questions, coverage_total]
+
+        if len(members) == 1:
+            # Preserve the original (possibly asymmetric) bootstrap CI.
+            member = members[0]
+            new_skills[parent] = skills[member]
+            if member in ci_lower:
+                new_ci_lower[parent] = ci_lower[member]
+            if member in ci_upper:
+                new_ci_upper[parent] = ci_upper[member]
+            continue
+
+        weights = [max(len(player_stats[m][1]), 1) for m in members]
+        total_weight = sum(weights)
+        combined_score = (
+            sum(skills[m] * w for m, w in zip(members, weights)) / total_weight
+        )
+        new_skills[parent] = combined_score
+
+        have_all_cis = all(
+            ci_lower.get(m) is not None and ci_upper.get(m) is not None for m in members
+        )
+        if have_all_cis:
+            combined_var = 0.0
+            for m, w in zip(members, weights):
+                se = (ci_upper[m] - ci_lower[m]) / (2 * _CI_Z)
+                norm_w = w / total_weight
+                combined_var += norm_w * norm_w * se * se
+            combined_se = float(np.sqrt(combined_var))
+            new_ci_lower[parent] = combined_score - _CI_Z * combined_se
+            new_ci_upper[parent] = combined_score + _CI_Z * combined_se
+
+    return new_skills, new_ci_lower, new_ci_upper, new_player_stats
+
+
+AIB_PROJECT_IDS = [
+    3349,  # aib q3 2024
+    32506,  # aib q4 2024
+    32627,  # aib q1 2025
+    32721,  # aib q2 2025
+    32813,  # aib fall 2025
+    32916,  # aib Q1 2026
+]
 
 
 def get_score_pair(
@@ -110,6 +220,8 @@ def gather_data(
 ) -> tuple[
     list[int | str], list[int | str], list[int], list[float], list[float], list[float]
 ]:
+    requested_question_ids = set(questions.values_list("id", flat=True))
+
     user1_ids: list[int | str] = []
     user2_ids: list[int | str] = []
     question_ids: list[int] = []
@@ -131,9 +243,12 @@ def gather_data(
         with csv_path.open("r") as input_file:
             reader = csv.DictReader(input_file)
             for row in reader:
+                question_id = int(row["questionid"])
+                if question_id not in requested_question_ids:
+                    continue
                 user1_ids.append(_deserialize_user(row["user1"]))
                 user2_ids.append(_deserialize_user(row["user2"]))
-                question_ids.append(int(row["questionid"]))
+                question_ids.append(question_id)
                 scores.append(float(row["score"]))
                 coverages.append(float(row["coverage"]))
                 timestamps.append(float(row["timestamp"]))
@@ -157,16 +272,7 @@ def gather_data(
 
     # TODO: make authoritative mapping
     print("creating AIB <> Pro AIB question mapping...", end="\r")
-    aib_projects = Project.objects.filter(
-        id__in=[
-            3349,  # Q3 2024
-            32506,  # Q4 2024
-            32627,  # Q1 2025
-            32721,  # Q2 2025
-            32813,  # fall 2025
-            32916,  # Q1 2026
-        ]
-    )
+    aib_projects = Project.objects.filter(id__in=AIB_PROJECT_IDS)
     aib_to_pro_version = {
         3349: 3345,
         32506: 3673,
@@ -196,6 +302,11 @@ def gather_data(
             )
     print("creating AIB <> Pro AIB question mapping...DONE\n")
     #
+    minibench_question_ids: set[int] = set(
+        Question.objects.filter(
+            post__default_project__slug__startswith="minibench"
+        ).values_list("id", flat=True)
+    )
     user_ids = users.values_list("id", flat=True)
     t0 = datetime.now()
     question_count = questions.count()
@@ -233,7 +344,8 @@ def gather_data(
             forecast_dict[f.author_id].append(f)
         # human aggregate forecasts - conditional on a bunch of stuff
         human_question: Question | None = aib_question_map.get(question, question)
-        if not human_question:
+        if not human_question or question.id in minibench_question_ids:
+            # No real human crowd to aggregate (minibench, or unmapped AIB).
             aggregate_forecasts: list[AggregateForecast] = []
         else:
             if question in aib_question_map:
@@ -243,9 +355,6 @@ def gather_data(
                 if question.default_score_type == ScoreTypes.SPOT_PEER
                 else AggregationMethod.RECENCY_WEIGHTED
             )
-            # aggregate_forecasts = human_question.aggregate_forecasts.filter(
-            #     method=aggregation_method
-            # ).order_by("start_time")
             aggregate_forecasts = get_aggregation_history(
                 human_question,
                 [aggregation_method],
@@ -339,9 +448,12 @@ def gather_data(
         with csv_path.open("r") as input_file:
             reader = csv.DictReader(input_file)
             for row in reader:
+                question_id = int(row["questionid"])
+                if question_id not in requested_question_ids:
+                    continue
                 user1_ids.append(_deserialize_user(row["user1"]))
                 user2_ids.append(_deserialize_user(row["user2"]))
-                question_ids.append(int(row["questionid"]))
+                question_ids.append(question_id)
                 scores.append(float(row["score"]))
                 coverages.append(float(row["coverage"]))
                 timestamps.append(float(row["timestamp"]))
@@ -379,12 +491,27 @@ def estimate_variances_from_head_to_head(
     min_questions_for_true=100,
     min_paired_matches=100,
     verbose: bool | None = None,
-) -> float:
+    include_discrimination: bool = False,
+    min_matches_per_question_for_disc: int = 30,
+) -> tuple[float, float | None]:
     """
     Helper function: Estimate σ_error and σ_true from head-to-head data.
 
     Returns:
-        alpha: estimated standard deviations and regularization parameter
+        `(alpha_skill, alpha_disc)` where `alpha_skill` is the skill ridge
+        regularization parameter σ²_error / σ²_true. `alpha_disc` is `None`
+        unless `include_discrimination=True`.
+
+    When `include_discrimination=True`, also estimates σ²_D (the spread of
+    per-question discriminations around 1) and populates `alpha_disc` with
+    `σ²_error / σ²_D`. This is
+    the empirical-Bayes regularization for D, returned *uncapped*: σ²_D is
+    estimated by fitting a per-question least-squares discrimination on the
+    warm-start skill fit (questions with at least
+    `min_matches_per_question_for_disc` matches) and taking the variance of
+    those D estimates around 1. Note this estimator can be large when
+    σ_error is large; see the FutureEval notebook for why that tends to
+    push D toward 1.
     """
     verbose = False if verbose is None else verbose
     # Estimate σ_error from paired matches
@@ -447,7 +574,9 @@ def estimate_variances_from_head_to_head(
     )
     skill_variance = 1 if np.isnan(skill_variance) else skill_variance
 
-    alpha = (error / skill_variance) ** 2
+    # Ridge regularization: λ = σ²_error / σ²_true (ratio of variances).
+    # `error` is a standard deviation, `skill_variance` is already a variance.
+    alpha = error**2 / skill_variance
     if verbose:
         print(
             f"Found {len(rematch_variances)} matchups with >={min_paired_matches} rematches"
@@ -456,9 +585,48 @@ def estimate_variances_from_head_to_head(
         print(
             f"Found {len(high_match_skills)} players with >={min_questions_for_true} questions"
         )
-        print(f"σ_true (skill variance): {skill_variance:.4f}")
-        print(f"alpha = (σ_error / σ_true)² = {alpha:.4f}")
-    return alpha
+        print(f"σ²_true (skill variance): {skill_variance:.4f}")
+        print(f"alpha = σ²_error / σ²_true = {alpha:.4f}")
+
+    if not include_discrimination:
+        return alpha, None
+
+    # Estimate σ²_D from the warm-start skills: for each question with
+    # enough matches, fit a 1-parameter (unregularized) least-squares regression
+    matches_by_q: dict[int, list[tuple[float, float, float]]] = defaultdict(list)
+    for u1id, u2id, qid, score, weight in zip(
+        user1_ids, user2_ids, question_ids, scores, weights
+    ):
+        s_diff = skills[player_to_idx[u1id]] - skills[player_to_idx[u2id]]
+        matches_by_q[qid].append((float(weight), float(s_diff), float(score)))
+
+    d_estimates: list[float] = []
+    for qid, rows in matches_by_q.items():
+        if len(rows) < min_matches_per_question_for_disc:
+            continue
+        num = 0.0
+        den = 0.0
+        for wt, sd, sc in rows:
+            num += wt * sd * sc
+            den += wt * sd * sd
+        if den > 0:
+            d_estimates.append(num / den)
+    if len(d_estimates) > 1:
+        sigma_D_sq = float(np.var(np.array(d_estimates) - 1.0, ddof=1))
+    else:
+        sigma_D_sq = 1.0
+    if np.isnan(sigma_D_sq) or sigma_D_sq <= 0:
+        sigma_D_sq = 1.0
+
+    alpha_disc = error**2 / sigma_D_sq
+    if verbose:
+        print(
+            f"Found {len(d_estimates)} questions with "
+            f">={min_matches_per_question_for_disc} matches for D estimation"
+        )
+        print(f"σ²_D (discrimination variance around 1): {sigma_D_sq:.4f}")
+        print(f"alpha_disc = σ²_error / σ²_D = {alpha_disc:.4f} (uncapped)")
+    return alpha, alpha_disc
 
 
 def compute_skills(
@@ -503,10 +671,161 @@ def compute_skills(
     return skills
 
 
+def compute_skills_and_discriminations_als(
+    user1_ids: list[int | str],
+    user2_ids: list[int | str],
+    question_ids: list[int],
+    scores: list[float],
+    weights: list[float],
+    alpha_skill: float,
+    alpha_disc: float,
+    max_iter: int = 40,
+    tol: float = 1e-4,
+    verbose: bool | None = None,
+    init: str = "zeros",
+    seed: int | None = None,
+) -> tuple[SkillType, dict[int, float]]:
+    """
+    Compute player skills and per-question discriminations via Alternating
+    Least Squares with ridge regularization.
+
+    The model: For each match i on question q(i):
+        score_i = (skill[player_a_i] - skill[player_b_i]) * D[q(i)] + error_i
+
+    D_q == 1 reproduces the simpler skill-only model already used by
+    `compute_skills`. Large |D_q| means the question discriminates strongly
+    between skill levels; negative D_q inverts the skill ordering on that
+    question.
+
+    Each iteration alternates:
+      (a) discrimination step: per-question closed-form ridge toward 1.
+          D_q is then clipped to `[-1, 1]` to limit per-question leverage
+          and sign-flip instability from low-participation questions.
+      (b) skill step: ridge regression with row i having
+          X[i, u1]=+D_q(i), X[i, u2]=-D_q(i), y[i]=score_i,
+          regularized toward 0 with alpha_skill.
+    After each pass we renormalize so the coverage-weighted mean of D
+    equals 1 (and absorb the inverse factor into skills), to break the
+    scale ambiguity between skills and D. This `mean(D)=1` gauge keeps the
+    skill-step regularization (alpha_skill) on a stable scale across
+    iterations.
+
+    Once converged, the *reporting* gauge is switched to `max|D| = 1` so
+    the returned discriminations are bounded in `[-1, 1]` (1 = most skill-
+    discriminating question, 0 = luck, -1 = most skill-inverting).
+
+    Initialization (`init`):
+      - "zeros": skills=0. Because the discrimination step runs first and
+        the data term vanishes when skills=0, iteration 1 sets D≡1 and the
+        first skill step is exactly the skill-only ridge — i.e. an implicit
+        skill-only warm start.
+      - "random": cold start with skills ~ N(0, σ) where σ matches the
+        skill-only fit's spread; `seed` controls reproducibility. Use this
+        (with several seeds) to probe whether the non-convex ALS objective
+        has multiple basins.
+    """
+    verbose = False if verbose is None else verbose
+
+    match_count = len(scores)
+    if match_count == 0:
+        return {}, {}
+
+    user_ids = list(set(user1_ids) | set(user2_ids))
+    player_to_idx = {p: i for i, p in enumerate(user_ids)}
+    n_players = len(user_ids)
+
+    u1_idx = np.array([player_to_idx[u] for u in user1_ids], dtype=np.int64)
+    u2_idx = np.array([player_to_idx[u] for u in user2_ids], dtype=np.int64)
+    y = np.asarray(scores, dtype=float)
+    w = np.asarray(weights, dtype=float)
+
+    unique_questions = list(set(question_ids))
+    q_to_idx = {q: i for i, q in enumerate(unique_questions)}
+    q_arr = np.array([q_to_idx[q] for q in question_ids], dtype=np.int64)
+    q_total_weight = np.zeros(len(unique_questions))
+    np.add.at(q_total_weight, q_arr, w)
+    n_questions = len(unique_questions)
+
+    rows_template = np.concatenate([np.arange(match_count), np.arange(match_count)])
+    cols_template = np.concatenate([u1_idx, u2_idx])
+
+    if init == "zeros":
+        skills_arr = np.zeros(n_players)
+    elif init == "random":
+        # Random cold start scaled to the skill-only fit's spread, to probe
+        # whether the non-convex ALS objective has multiple basins.
+        warm = compute_skills(user1_ids, user2_ids, scores, weights, alpha_skill)
+        scale = float(np.std(np.array(list(warm.values())))) or 1.0
+        skills_arr = np.random.default_rng(seed).normal(0.0, scale, n_players)
+    else:
+        raise ValueError(f"Unknown init {init!r}; expected zeros|random")
+    # D is recomputed in the discrimination step before use, so its initial
+    # value is irrelevant; ones keeps it on the natural scale.
+    D_per_q = np.ones(n_questions)
+    prev_skills = skills_arr.copy()
+
+    for iteration in range(max_iter):
+        # Discrimination step (fix skills)
+        s_diff = skills_arr[u1_idx] - skills_arr[u2_idx]
+        num = np.full(n_questions, alpha_disc, dtype=float)
+        den = np.full(n_questions, alpha_disc, dtype=float)
+        np.add.at(num, q_arr, w * s_diff * y)
+        np.add.at(den, q_arr, w * s_diff * s_diff)
+        D_per_q = num / np.where(den > 0, den, 1.0)
+        D_per_q = np.clip(D_per_q, -1.0, 1.0)
+
+        # Renormalize: coverage-weighted mean(D) -> 1
+        total_w = q_total_weight.sum()
+        c = float(np.sum(D_per_q * q_total_weight) / total_w) if total_w > 0 else 1.0
+        if abs(c) < 1e-9:
+            c = 1.0
+        D_per_q = D_per_q / c
+        skills_arr = skills_arr * c
+
+        # Skill step (fix D)
+        D_per_match = D_per_q[q_arr]
+        X = sparse.csr_matrix(
+            (
+                np.concatenate([D_per_match, -D_per_match]),
+                (rows_template, cols_template),
+            ),
+            shape=(match_count, n_players),
+        )
+        model = Ridge(alpha=alpha_skill, fit_intercept=False, solver="lsqr")
+        model.fit(X, y, sample_weight=w)
+        skills_arr = np.asarray(model.coef_, dtype=float)
+
+        delta = float(np.max(np.abs(skills_arr - prev_skills)))
+        if verbose:
+            print(
+                f"  ALS iter {iteration + 1:>2}: max|Δskill|={delta:.6f}  "
+                f"scale={c:.4f}  D mean={D_per_q.mean():.3f}  D std={D_per_q.std():.3f}"
+            )
+        if iteration > 0 and delta < tol:
+            break
+        prev_skills = skills_arr.copy()
+
+    # Final reporting gauge: anchor max|D| = 1 so discriminations stay in
+    # [-1, 1]. Absorbing the reciprocal into skills preserves every
+    # prediction D·(s_A - s_B); skills are variance-rematched downstream,
+    # so the leaderboard is unchanged.
+    max_abs_D = float(np.max(np.abs(D_per_q))) if n_questions else 1.0
+    if max_abs_D > 1e-9:
+        D_per_q = D_per_q / max_abs_D
+        skills_arr = skills_arr * max_abs_D
+
+    skills: SkillType = {p: float(skills_arr[player_to_idx[p]]) for p in user_ids}
+    discriminations: dict[int, float] = {
+        q: float(D_per_q[q_to_idx[q]]) for q in unique_questions
+    }
+    return skills, discriminations
+
+
 def rescale_skills_(
     skills: SkillType,
     baseline_player: int | str,
     var_avg_scores: float,
+    verbose: bool | None = None,
 ) -> SkillType:
     """
     rescaled to have skills in same range as peer scores
@@ -521,7 +840,8 @@ def rescale_skills_(
     scale_factor = np.sqrt(var_avg_scores / var_skills)
     for uid in skills:
         skills[uid] *= scale_factor
-    print("Scale factor", scale_factor)
+    if verbose:
+        print("Scale factor", scale_factor)
     return skills
 
 
@@ -534,29 +854,88 @@ def get_skills(
     baseline_player: int | str,
     var_avg_scores: float,
     verbose: bool | None = None,
-) -> SkillType:
-    alpha = estimate_variances_from_head_to_head(
-        user1_ids=user1_ids,
-        user2_ids=user2_ids,
-        question_ids=question_ids,
-        scores=scores,
-        weights=weights,
-        verbose=verbose,
-    )
-    skills = compute_skills(
-        user1_ids=user1_ids,
-        user2_ids=user2_ids,
-        scores=scores,
-        weights=weights,
-        alpha=alpha,
-    )
+    use_discrimination: bool = False,
+    alpha_disc: float = 0.25,
+    use_bayesian_alpha_disc: bool = False,
+    als_init: str = "zeros",
+    als_seed: int | None = None,
+) -> tuple[SkillType, dict[int, float]]:
+    """
+    Estimate forecaster skills (and optionally per-question discriminations)
+    from head-to-head scores, then rescale to peer-score units.
+
+    When `use_discrimination=False` this runs the legacy
+    `compute_skills` ridge regression. When True, it runs the ALS variant
+    `compute_skills_and_discriminations_als` instead, which jointly fits
+    skills and per-question discriminations D_q (see the FutureEval
+    notebook's "Future improvements → Question difficulty" section).
+
+    ALS-only knobs (ignored when use_discrimination=False):
+      - alpha_disc: ridge strength pulling each per-question D_q toward 1.
+      - use_bayesian_alpha_disc: when True, ignore the manual `alpha_disc`
+        and instead derive it empirically as σ²_error / σ²_D (uncapped),
+        mirroring how alpha_skill is computed.
+
+    Returns `(skills, discriminations)`. `discriminations` is `{}` when
+    `use_discrimination=False`.
+    """
+    if use_discrimination:
+        if use_bayesian_alpha_disc:
+            alpha_skill, alpha_disc = estimate_variances_from_head_to_head(
+                user1_ids=user1_ids,
+                user2_ids=user2_ids,
+                question_ids=question_ids,
+                scores=scores,
+                weights=weights,
+                verbose=verbose,
+                include_discrimination=True,
+            )
+        else:
+            alpha_skill, _ = estimate_variances_from_head_to_head(
+                user1_ids=user1_ids,
+                user2_ids=user2_ids,
+                question_ids=question_ids,
+                scores=scores,
+                weights=weights,
+                verbose=verbose,
+            )
+        skills, discriminations = compute_skills_and_discriminations_als(
+            user1_ids=user1_ids,
+            user2_ids=user2_ids,
+            question_ids=question_ids,
+            scores=scores,
+            weights=weights,
+            alpha_skill=alpha_skill,
+            alpha_disc=alpha_disc,
+            verbose=verbose,
+            init=als_init,
+            seed=als_seed,
+        )
+    else:
+        alpha, _ = estimate_variances_from_head_to_head(
+            user1_ids=user1_ids,
+            user2_ids=user2_ids,
+            question_ids=question_ids,
+            scores=scores,
+            weights=weights,
+            verbose=verbose,
+        )
+        skills = compute_skills(
+            user1_ids=user1_ids,
+            user2_ids=user2_ids,
+            scores=scores,
+            weights=weights,
+            alpha=alpha,
+        )
+        discriminations = {}
     # Apply baseline and variance rescaling
     skills = rescale_skills_(
         skills=skills,
         baseline_player=baseline_player,
         var_avg_scores=var_avg_scores,
+        verbose=verbose,
     )
-    return skills
+    return skills, discriminations
 
 
 def bootstrap_skills(
@@ -567,7 +946,13 @@ def bootstrap_skills(
     weights: list[float],
     var_avg_scores: float,
     baseline_player: int | str = 269196,
-    bootstrap_iterations: int = 30,
+    verbose: bool | None = None,
+    bootstrap_count: int = 30,
+    use_discrimination: bool = False,
+    alpha_disc: float = 0.25,
+    use_bayesian_alpha_disc: bool = False,
+    als_init: str = "zeros",
+    als_seed: int | None = None,
 ) -> tuple[SkillType, SkillType]:
     """
     get Confidence Intervals around the skills using Bootstrapping
@@ -587,6 +972,9 @@ def bootstrap_skills(
 
     Uses the 2.5 and 97.5 percentiles of bootstrap distribution for 95% CIs.
     """
+    if not bootstrap_count:
+        return {}, {}
+
     # setup
     bootstrap_results: dict[int | str, list[float]] = defaultdict(list)
     question_ids_set = list(set(question_ids))
@@ -605,18 +993,7 @@ def bootstrap_skills(
     print("Bootstrapping (method - question):")
     print("| Bootstrap |    Duration    | Est. Duration  |")
     t0 = datetime.now()
-    for i in range(bootstrap_iterations):
-        duration = datetime.now() - t0
-        est_duration = duration / (i + 1) * bootstrap_iterations
-        print(
-            f"\033[K"
-            f"| {i + 1:>4}/{bootstrap_iterations:<4} "
-            f"| {duration} "
-            f"| {est_duration} "
-            "|",
-            end="\r",
-        )
-
+    for i in range(bootstrap_count):
         boot_user1_ids: list[int | str] = []
         boot_user2_ids: list[int | str] = []
         boot_question_ids: list[int] = []
@@ -632,7 +1009,7 @@ def bootstrap_skills(
             boot_weights.extend(data[3])
 
         # Recompute skills with bootstrap-specific alpha
-        boot_skills = get_skills(
+        boot_skills, _ = get_skills(
             user1_ids=boot_user1_ids,
             user2_ids=boot_user2_ids,
             question_ids=boot_question_ids,
@@ -640,11 +1017,23 @@ def bootstrap_skills(
             weights=boot_weights,
             baseline_player=baseline_player,
             var_avg_scores=var_avg_scores,
-            verbose=False,
+            verbose=verbose,
+            use_discrimination=use_discrimination,
+            alpha_disc=alpha_disc,
+            use_bayesian_alpha_disc=use_bayesian_alpha_disc,
+            als_init=als_init,
+            als_seed=als_seed,
         )
 
         for player, boot_skill in boot_skills.items():
             bootstrap_results[player].append(boot_skill)
+
+        duration = datetime.now() - t0
+        est_duration = duration / (i + 1) * bootstrap_count
+        print(
+            f"\033[K| {i + 1:>4}/{bootstrap_count:<4} | {duration} | {est_duration} |",
+            end="\r",
+        )
 
     ci_lower: SkillType = {}
     ci_upper: SkillType = {}
@@ -656,40 +1045,73 @@ def bootstrap_skills(
     return ci_lower, ci_upper
 
 
-def run_update_global_bot_leaderboard(
+def run_update_global_bot_leaderboard(  # noqa: C901
+    # run settings
+    baseline_player: int | str = 236038,
+    bootstrap_count: int = 30,
+    min_participation_count: int = 100,
+    min_human_forecasters: int = 10,
+    metac_bot_age: int = 365,
+    include_minibench: bool = False,
+    aib_minibench_only: bool = False,
+    cp_by_years: bool = False,
+    pro_by_years: bool = False,
+    include_non_metac_bots: bool = False,
+    non_metac_bots_by_year: bool = False,
+    bot_recency: int = 3 * 30,
+    bot_recent_scores: int = 0,
+    bot_recent_coverage: int = 400,
+    scale_weight_by_participants: bool = True,
+    use_discrimination: bool = True,
+    alpha_disc: float = 0.25,
+    use_bayesian_alpha_disc: bool = False,
+    als_init: str = "zeros",
+    als_seed: int | None = None,
+    verbose: bool | None = None,
+    # performance/logging
     cache_use: str = "partial",
+    store_results_csv: bool = False,
 ) -> None:
-    baseline_player: int | str = 236038  # metac-gpt-4o+asknews
-    bootstrap_iterations = 30
+    # input validation
+    if isinstance(baseline_player, int):
+        assert User.objects.filter(id=baseline_player).exists(), (
+            "baseline_player does not exist"
+        )
+    else:
+        ...  # TODO: validate string baseline player
+    if bot_recency:
+        assert bot_recent_scores or bot_recent_coverage, (
+            "bot_recency requires bot_recent_scores or bot_recent_coverage to be set"
+        )
+    assert not bot_recent_coverage or not bot_recent_scores, (
+        "can only set one of bot_recent_coverage or bot_recent_scores"
+    )
+    assert not non_metac_bots_by_year or include_non_metac_bots, (
+        "non_metac_bots_by_year requires include_non_metac_bots to be set"
+    )
 
     # SETUP: users to evaluate & questions
     print("Initializing...")
-    users: QuerySet[User] = User.objects.filter(
-        is_bot=True,
-        # metadata__bot_details__metac_bot=True,
-        # metadata__bot_details__include_in_calculations=True,
-        # metadata__bot_details__display_in_leaderboard=True,
-    ).order_by("id")
+    users: QuerySet[User] = User.objects.filter(is_bot=True).order_by("id")
     user_forecast_exists = Forecast.objects.filter(
         question_id=OuterRef("pk"), author__in=users
     )
+    if aib_minibench_only:
+        project_filter = Q(post__default_project_id__in=AIB_PROJECT_IDS) | Q(
+            post__default_project__slug__startswith="minibench"
+        )
+    else:
+        project_filter = Q(
+            post__default_project__default_permission__in=["viewer", "forecaster"]
+        ) | Q(post__default_project_id__in=AIB_PROJECT_IDS)
     questions: QuerySet[Question] = (
         Question.objects.filter(
-            Q(post__default_project__default_permission__in=["viewer", "forecaster"])
-            | Q(
-                post__default_project_id__in=[
-                    3349,  # aib q3 2024
-                    32506,  # aib q4 2024
-                    32627,  # aib q1 2025
-                    32721,  # aib q2 2025
-                    32813,  # aib fall 2025
-                ]
-            ),
+            project_filter,
             post__curation_status=Post.CurationStatus.APPROVED,
             resolution__isnull=False,
+            actual_close_time__isnull=False,
             scheduled_close_time__lte=timezone.now(),
         )
-        .exclude(post__default_project__slug__startswith="minibench")
         .exclude(resolution__in=UnsuccessfulResolutionType)
         .filter(Exists(user_forecast_exists))
         .prefetch_related(  # only prefetch forecasts from those users
@@ -699,6 +1121,47 @@ def run_update_global_bot_leaderboard(
         )
         .distinct("id")
     )
+    for question in questions:
+        if question.default_score_type == "spot_peer":
+            break
+    if not include_minibench and not aib_minibench_only:
+        questions = questions.exclude(
+            post__default_project__slug__startswith="minibench"
+        )
+    # Questions with too few human forecasters: drop them entirely. We primarily
+    # evaluate bot-vs-bot on minibench / AIB questions, so these low-signal community
+    # questions aren't needed and dropping them keeps the logic simple. (Minibench has
+    # no real human crowd, so its Community Aggregate is already skipped in gather_data.)
+    if min_human_forecasters:
+        low_human_question_ids = set(
+            Question.objects.filter(
+                project_filter,
+                post__curation_status=Post.CurationStatus.APPROVED,
+                resolution__isnull=False,
+                actual_close_time__isnull=False,
+                scheduled_close_time__lte=timezone.now(),
+            )
+            .exclude(resolution__in=UnsuccessfulResolutionType)
+            .exclude(post__default_project_id__in=AIB_PROJECT_IDS)
+            .exclude(post__default_project__slug__startswith="minibench")
+            .annotate(
+                human_forecaster_count=Count(
+                    "user_forecasts__author",
+                    filter=Q(
+                        user_forecasts__author__is_bot=False,
+                        user_forecasts__start_time__lte=F("actual_close_time"),
+                    ),
+                    distinct=True,
+                )
+            )
+            .filter(human_forecaster_count__lt=min_human_forecasters)
+            .values_list("id", flat=True)
+        )
+        print(
+            f"Dropping {len(low_human_question_ids)} community questions with "
+            f"< {min_human_forecasters} human forecasters"
+        )
+        questions = questions.exclude(id__in=low_human_question_ids)
     print("Initializing... DONE")
 
     # Gather head to head scores
@@ -706,8 +1169,104 @@ def run_update_global_bot_leaderboard(
         users, questions, cache_use=cache_use
     )
 
-    # for pro aggregation, community aggregate, and any non-metac bot,
-    # duplicate rows indicating year-specific achievements
+    # sort by most recent!
+    sorted_indices = sorted(
+        range(len(timestamps)), key=lambda i: timestamps[i], reverse=True
+    )
+    user1_ids = [user1_ids[i] for i in sorted_indices]
+    user2_ids = [user2_ids[i] for i in sorted_indices]
+    question_ids = [question_ids[i] for i in sorted_indices]
+    scores = [scores[i] for i in sorted_indices]
+    coverages = [coverages[i] for i in sorted_indices]
+    timestamps = [timestamps[i] for i in sorted_indices]
+
+    ######################################################################
+    # Augmenting and filtering data
+
+    # map some users to other users
+    userid_mapping = {
+        189585: 236038,  # mf-bot-1 -> metac-gpt-4o+asknews
+        189588: 236041,  # mf-bot-3 -> metac-claude-3-5-sonnet-20240620+asknews
+        208405: 240416,  # mf-bot-4 -> metac-o1-preview
+        221727: 236040,  # mf-bot-5 -> metac-claude-3-5-sonnet-latest+asknews
+    }
+    temp_uer1_ids = []
+    temp_user2_ids = []
+    for user1_id, user2_id, timestamp in zip(user1_ids, user2_ids, timestamps):
+        user1_id = userid_mapping.get(user1_id, user1_id)
+        user2_id = userid_mapping.get(user2_id, user2_id)
+        if cp_by_years:
+            if user1_id == "Community Aggregate":
+                user1_id = (
+                    f"Community Aggregate ({datetime.fromtimestamp(timestamp).year})"
+                )
+            if user2_id == "Community Aggregate":
+                user2_id = (
+                    f"Community Aggregate ({datetime.fromtimestamp(timestamp).year})"
+                )
+        if pro_by_years:
+            if user1_id == "Pro Aggregate":
+                user1_id = f"Pro Aggregate ({datetime.fromtimestamp(timestamp).year})"
+            if user2_id == "Pro Aggregate":
+                user2_id = f"Pro Aggregate ({datetime.fromtimestamp(timestamp).year})"
+        temp_uer1_ids.append(user1_id)
+        temp_user2_ids.append(user2_id)
+    user1_ids = temp_uer1_ids
+    user2_ids = temp_user2_ids
+
+    # set up some user id sets & relevant exclusions
+    excluded_ids: set[int | str] = set()
+    # agent bots that have metac_bot=True in metadata but should not be scored
+    agent_bot_usernames = {"metac-azimuth", "metac-agent"}
+    metac_bots = User.objects.filter(
+        is_bot=True, metadata__bot_details__metac_bot=True
+    ).exclude(username__in=agent_bot_usernames)
+    metac_bot_releases: dict[int, datetime] = {}
+    for bot in metac_bots:
+        release_iso = bot.metadata["bot_details"]["base_models"][0]["releaseDate"]
+        if not release_iso or release_iso == "N/A":
+            excluded_ids.add(bot.id)
+            continue
+        if len(release_iso) == 7:
+            release_iso += "-01"
+        metac_bot_releases[bot.id] = datetime.fromisoformat(release_iso)
+    non_metac_bot_ids: set[int] = set(
+        User.objects.filter(is_bot=True)
+        .exclude(metadata__bot_details__metac_bot=True)
+        .values_list("id", flat=True)
+    )
+    if not include_non_metac_bots:
+        excluded_ids = excluded_ids.union(non_metac_bot_ids)
+
+    # split non-metac bots into per-year players, parallel to cp/pro aggregates.
+    # done here (after non_metac_bot_ids is known) rather than in the mapping loop
+    # above. converting these ids to year-tagged strings also removes them from
+    # non_metac_bot_ids membership, which intentionally bypasses the recency filter
+    # below so the full per-year history is retained.
+    if non_metac_bots_by_year:
+        non_metac_bot_usernames: dict[int, str] = dict(
+            User.objects.filter(id__in=non_metac_bot_ids).values_list("id", "username")
+        )
+        temp_user1_ids = []
+        temp_user2_ids = []
+        for user1_id, user2_id, timestamp in zip(user1_ids, user2_ids, timestamps):
+            year = datetime.fromtimestamp(timestamp).year
+            if user1_id in non_metac_bot_ids:
+                user1_id = f"{non_metac_bot_usernames[user1_id]} ({year})"
+            if user2_id in non_metac_bot_ids:
+                user2_id = f"{non_metac_bot_usernames[user2_id]} ({year})"
+            temp_user1_ids.append(user1_id)
+            temp_user2_ids.append(user2_id)
+        user1_ids = temp_user1_ids
+        user2_ids = temp_user2_ids
+
+    # initialize loop
+    print("Starting matches:", len(timestamps))
+    q_by_u: dict[int | str, set[int]] = defaultdict(set)  # ongoing question set
+    cov_by_q_by_u: dict[int | str, dict[int, float]] = defaultdict(
+        lambda: defaultdict(float)
+    )  # ongoing coverages
+    cov_by_u: dict[int | str, float] = defaultdict(float)  # total coverage per user
     new_user1_ids = []
     new_user2_ids = []
     new_question_ids = []
@@ -717,152 +1276,137 @@ def run_update_global_bot_leaderboard(
     for user1_id, user2_id, question_id, score, coverage, timestamp in zip(
         user1_ids, user2_ids, question_ids, scores, coverages, timestamps
     ):
-        if user1_id == "Community Aggregate":
-            new_user1_ids.append(
-                f"Community Aggregate ({datetime.fromtimestamp(timestamp).year})"
-            )
-            new_user2_ids.append(user2_id)
-            new_question_ids.append(question_id)
-            new_scores.append(score)
-            new_coverages.append(coverage)
-            new_timestamps.append(timestamp)
-        elif user2_id == "Community Aggregate":
-            new_user1_ids.append(user1_id)
-            new_user2_ids.append(
-                f"Community Aggregate ({datetime.fromtimestamp(timestamp).year})"
-            )
-            new_question_ids.append(question_id)
-            new_scores.append(score)
-            new_coverages.append(coverage)
-            new_timestamps.append(timestamp)
-        else:
-            new_user1_ids.append(user1_id)
-            new_user2_ids.append(user2_id)
-            new_question_ids.append(question_id)
-            new_scores.append(score)
-            new_coverages.append(coverage)
-            new_timestamps.append(timestamp)
-    user1_ids = new_user1_ids
-    user2_ids = new_user2_ids
-    question_ids = new_question_ids
-    scores = new_scores
-    coverages = new_coverages
-    timestamps = new_timestamps
+        # filter out old matches for non-metac bots
 
-    ###############
-    ###############
-    ###############
-    # Filter out entries we don't care about
-    # and map some users to other users
-    userid_mapping = {
-        189585: 236038,  # mf-bot-1 -> metac-gpt-4o+asknews
-        189588: 236041,  # mf-bot-3 -> metac-claude-3-5-sonnet-20240620+asknews
-        208405: 240416,  # mf-bot-4 -> metac-o1-preview
-        221727: 236040,  # mf-bot-5 -> metac-claude-3-5-sonnet-latest+asknews
-    }
-    print(f"Filtering {len(timestamps)} matches down to only relevant identities ...")
-    relevant_users = User.objects.filter(
-        metadata__bot_details__metac_bot=True,
-        # metadata__bot_details__include_in_calculations=True, # TODO: this should be
-        # but we don't have that data correct at the moment
-    )
-    # make sure they have at least 'minimum_resolved_questions' resolved questions
-    print("Filtering users.")
-    minimum_resolved_questions = 100
-    scored_question_counts: dict[int, int] = defaultdict(int)
-    c = relevant_users.count()
-    i = 0
-    for user in relevant_users:
-        i += 1
-        print(i, "/", c, end="\r")
-        scored_question_counts[user.id] = (
-            Score.objects.filter(
-                user=user,
-                score_type="peer",
-                question__in=questions,
-            )
-            .distinct("question_id")
-            .count()
+        # for non-metac bots, only keep this match if it's either within the last
+        # X days or within their most recent Y scores/coverage (whichever is more)
+        # NOTE: assumes data is sorted by most recent matches first
+        oldest_ts = (timezone.now() - timedelta(days=bot_recency)).timestamp()
+        # update both users' question and coverage state before making any skip
+        # decision, so accounting stays symmetric regardless of pairing order.
+        for uid in (user1_id, user2_id):
+            q_by_u[uid].add(question_id)
+            current_coverage = cov_by_q_by_u[uid][question_id]
+            if coverage > current_coverage:
+                cov_by_q_by_u[uid][question_id] = coverage
+                cov_by_u[uid] += coverage - current_coverage
+        # compute each user's recency-cap eligibility independently, then skip the
+        # match only after both users have been evaluated.
+        recency_active = bool(
+            bot_recency and (bot_recent_scores or bot_recent_coverage)
         )
-    excluded_ids = [
-        uid
-        for uid, count in scored_question_counts.items()
-        if count < minimum_resolved_questions
-    ]
-    relevant_users = relevant_users.exclude(id__in=excluded_ids)
-    print(f"Filtered {c} users down to {relevant_users.count()}.")
-    ###############
-    ###############
-    ###############
-
-    user_map = {user.id: user for user in relevant_users}
-    relevant_identities = set(relevant_users.values_list("id", flat=True)) | {
-        "Pro Aggregate",
-        "Community Aggregate",
-        # "Community Aggregate (2024)",
-        "Community Aggregate (2025)",
-        "Community Aggregate (2026)",
-    }
-    filtered_user1_ids = []
-    filtered_user2_ids = []
-    filtered_question_ids = []
-    filtered_scores = []
-    filtered_coverages = []
-    filtered_timestamps = []
-    for u1id, u2id, qid, score, coverage, timestamp in zip(
-        user1_ids, user2_ids, question_ids, scores, coverages, timestamps
-    ):
-        # replace userIds according to the mapping
-        u1id = userid_mapping.get(u1id, u1id)
-        u2id = userid_mapping.get(u2id, u2id)
-        # skip if either user is not in relevant identities
-        if (u1id not in relevant_identities) or (u2id not in relevant_identities):
-            continue
-        # skip if either user model is more than a year old at time of 'timestamp'
-        match_users = [user_map[u] for u in (u1id, u2id) if (u in user_map)]
-        skip = False
-        for user in match_users:
-            base_models = (
-                (user.metadata or dict())
-                .get("bot_details", dict())
-                .get("base_models", [])
-            )
-            if release_date := (
-                base_models[0].get("model_release_date") if base_models else None
+        skip_match = False
+        for uid in (user1_id, user2_id):
+            if (
+                recency_active
+                and (uid in non_metac_bot_ids)
+                and (timestamp < oldest_ts)
             ):
-                if len(release_date) == 7:
-                    release_date += "-01"
-                release = (
-                    datetime.fromisoformat(release_date)
-                    .replace(tzinfo=dt_timezone.utc)
-                    .timestamp()
-                )
-                if timestamp > release + timedelta(days=365).total_seconds():
-                    skip = True
-        if skip:
+                if bot_recent_scores and (len(q_by_u[uid]) > bot_recent_scores):
+                    skip_match = True
+                if bot_recent_coverage and (cov_by_u[uid] > bot_recent_coverage):
+                    skip_match = True
+        if skip_match:
             continue
 
-        # done
-        filtered_user1_ids.append(u1id)
-        filtered_user2_ids.append(u2id)
-        filtered_question_ids.append(qid)
-        filtered_scores.append(score)
-        filtered_coverages.append(coverage)
-        filtered_timestamps.append(timestamp)
-    user1_ids = filtered_user1_ids
-    user2_ids = filtered_user2_ids
-    question_ids = filtered_question_ids
-    scores = filtered_scores
-    coverages = filtered_coverages
-    timestamps = filtered_timestamps
-    print(f"Filtered down to {len(timestamps)} matches.\n")
-    # ###############
+        # filter out new matches for metac bots
+        if metac_bot_age:
+            max_age = timedelta(days=metac_bot_age)
+            if user1_id in metac_bot_releases:
+                if timestamp > (metac_bot_releases[user1_id] + max_age).timestamp():
+                    continue
+            if user2_id in metac_bot_releases:
+                if timestamp > (metac_bot_releases[user2_id] + max_age).timestamp():
+                    continue
 
-    # choose baseline player if not already chosen
-    if not baseline_player:
-        baseline_player = max(
-            set(user1_ids) | set(user2_ids), key=(user1_ids + user2_ids).count
-        )
+        new_user1_ids.append(user1_id)
+        new_user2_ids.append(user2_id)
+        new_question_ids.append(question_id)
+        new_scores.append(score)
+        new_coverages.append(coverage)
+        new_timestamps.append(timestamp)
+
+    # loop multiple times to exclude low-participation users
+    prev_exclusions = -1
+    while len(excluded_ids) != prev_exclusions:
+        print("Exclusions: ", len(excluded_ids))
+        prev_exclusions = len(excluded_ids)
+        # count total questions per user for min participation filtering
+        questions_forecasted: dict[int | str, set[int]] = defaultdict(set)
+        for u1id, u2id, qid in zip(new_user1_ids, new_user2_ids, new_question_ids):
+            if u1id in excluded_ids or u2id in excluded_ids:
+                continue
+            questions_forecasted[u1id].add(qid)
+            questions_forecasted[u2id].add(qid)
+        # year-split players (e.g. "Community Aggregate (2025)") share a parent;
+        # apply the participation threshold to the parent's combined question
+        # set so splitting an established aggregate/bot by year doesn't drop
+        # otherwise-sparse individual years.
+        parent_questions: dict[int | str, set[int]] = defaultdict(set)
+        for uid, qs in questions_forecasted.items():
+            parent_questions[participation_parent_key(uid)].update(qs)
+        for uid in questions_forecasted:
+            parent_count = len(parent_questions[participation_parent_key(uid)])
+            if parent_count < min_participation_count:
+                excluded_ids.add(uid)
+    user1_ids = []
+    user2_ids = []
+    question_ids = []
+    scores = []
+    coverages = []
+    timestamps = []
+    for u1id, u2id, qid, score, coverage, timestamp in zip(
+        new_user1_ids,
+        new_user2_ids,
+        new_question_ids,
+        new_scores,
+        new_coverages,
+        new_timestamps,
+    ):
+        if (u1id in excluded_ids) or (u2id in excluded_ids):
+            continue
+        user1_ids.append(u1id)
+        user2_ids.append(u2id)
+        question_ids.append(qid)
+        scores.append(score)
+        coverages.append(coverage)
+        timestamps.append(timestamp)
+
+    p_by_q: dict[int, set[int | str]] = defaultdict(set)
+    for u1id, u2id, qid in zip(user1_ids, user2_ids, question_ids):
+        p_by_q[qid].add(u1id)
+        p_by_q[qid].add(u2id)
+    pc_by_q: dict[int, int] = {
+        qid: len(participants) for qid, participants in p_by_q.items()
+    }
+
+    cov_by_q_by_u: dict[int | str, dict[int, float]] = defaultdict(
+        lambda: defaultdict(float)
+    )
+    cov_by_u: dict[int | str, float] = defaultdict(float)
+    rescaled_coverages = []
+    for u1id, u2id, qid, coverage in zip(user1_ids, user2_ids, question_ids, coverages):
+        if scale_weight_by_participants:
+            coverage = coverage / pc_by_q.get(qid, 1.0)
+        u1_current_coverage = cov_by_q_by_u[u1id][qid]
+        if coverage > u1_current_coverage:
+            cov_by_q_by_u[u1id][qid] = coverage
+            cov_by_u[u1id] += coverage - u1_current_coverage
+        u2_current_coverage = cov_by_q_by_u[u2id][qid]
+        if coverage > u2_current_coverage:
+            cov_by_q_by_u[u2id][qid] = coverage
+            cov_by_u[u2id] += coverage - u2_current_coverage
+        if scale_weight_by_participants:
+            rescaled_coverages.append(coverage)
+    if scale_weight_by_participants:
+        coverages = rescaled_coverages
+
+    print("Final matches:", len(timestamps))
+    ######################################################################
+    ######################################################################
+    ######################################################################
+    # analysis!
+
     # get variance of average scores (used in rescaling)
     avg_scores = get_avg_scores(user1_ids, user2_ids, scores, coverages)
     var_avg_scores = (
@@ -870,7 +1414,7 @@ def run_update_global_bot_leaderboard(
     )
 
     # compute skills initially
-    skills = get_skills(
+    skills, discriminations = get_skills(
         user1_ids=user1_ids,
         user2_ids=user2_ids,
         question_ids=question_ids,
@@ -878,7 +1422,12 @@ def run_update_global_bot_leaderboard(
         weights=coverages,
         baseline_player=baseline_player,
         var_avg_scores=var_avg_scores,
-        verbose=True,
+        verbose=verbose,
+        use_discrimination=use_discrimination,
+        alpha_disc=alpha_disc,
+        use_bayesian_alpha_disc=use_bayesian_alpha_disc,
+        als_init=als_init,
+        als_seed=als_seed,
     )
 
     # Compute bootstrap confidence intervals
@@ -890,23 +1439,43 @@ def run_update_global_bot_leaderboard(
         coverages,
         var_avg_scores,
         baseline_player=baseline_player,
-        bootstrap_iterations=bootstrap_iterations,
+        verbose=verbose,
+        bootstrap_count=bootstrap_count,
+        use_discrimination=use_discrimination,
+        alpha_disc=alpha_disc,
+        use_bayesian_alpha_disc=use_bayesian_alpha_disc,
+        als_init=als_init,
+        als_seed=als_seed,
     )
     print()
 
-    ordered_skills = sorted(
-        [(user, skill) for user, skill in skills.items()], key=lambda x: -x[1]
-    )
     player_stats: dict[int | str, list] = dict()
     for u1id, u2id, qid in zip(user1_ids, user2_ids, question_ids):
         if u1id not in player_stats:
-            player_stats[u1id] = [0, set()]
+            player_stats[u1id] = [0, set(), 0.0]
         if u2id not in player_stats:
-            player_stats[u2id] = [0, set()]
+            player_stats[u2id] = [0, set(), 0.0]
         player_stats[u1id][0] += 1
         player_stats[u1id][1].add(qid)
         player_stats[u2id][0] += 1
         player_stats[u2id][1].add(qid)
+
+    for uid, cov in cov_by_u.items():
+        if uid in player_stats:
+            player_stats[uid][2] = cov
+
+    # Collapse year-split players (community/pro aggregates and, under
+    # `non_metac_bots_by_year`, third-party bots) into one combined entry per
+    # model for the leaderboard + CSV output. The per-year `skills`/`ci_*`/
+    # `player_stats` are kept intact for the discrimination and
+    # skill-distribution diagnostics below.
+    (
+        combined_skills,
+        combined_ci_lower,
+        combined_ci_upper,
+        combined_player_stats,
+    ) = combine_year_split_players(skills, ci_lower, ci_upper, player_stats)
+    ordered_skills = sorted(combined_skills.items(), key=lambda x: -x[1])
 
     ##########################################################################
     ##########################################################################
@@ -928,12 +1497,12 @@ def run_update_global_bot_leaderboard(
     question_count = len(set(question_ids))
     seen = set()
     for uid, skill in ordered_skills:
-        contribution_count = len(player_stats[uid][1])
+        contribution_count = len(combined_player_stats[uid][1])
 
         excluded = False
         if isinstance(uid, int):
             user = User.objects.get(id=uid)
-            bot_details = user.metadata["bot_details"]
+            bot_details = (user.metadata or {}).get("bot_details", {})
             if not bot_details.get("display_in_leaderboard"):
                 excluded = True
 
@@ -949,8 +1518,8 @@ def run_update_global_bot_leaderboard(
         entry.contribution_count = contribution_count
         entry.coverage = contribution_count / question_count
         entry.calculated_on = timezone.now()
-        entry.ci_lower = ci_lower.get(uid, None)
-        entry.ci_upper = ci_upper.get(uid, None)
+        entry.ci_lower = combined_ci_lower.get(uid, None)
+        entry.ci_upper = combined_ci_upper.get(uid, None)
         # TODO: support for more efficient saving once this is implemented
         # for leaderboards with more than 100 entries
         entry.save()
@@ -969,47 +1538,162 @@ def run_update_global_bot_leaderboard(
     ##########################################################################
     # DISPLAY
     print("Results:")
-    print("|  2.5%  | Skill  | 97.5%  | Match  | Quest. |   ID   | Username ")
-    print("| Match  |        | Match  | Count  | Count  |        |          ")
+    print("|  2.5%  | Skill  | 97.5%  | Match  | Quest. |  Cov.  |   ID   | Username ")
+    print("| Match  |        | Match  | Count  | Count  | Total  |        |          ")
     print(
-        "=========================================="
-        "=========================================="
+        "==============================================="
+        "==============================================="
     )
     unevaluated = (
         set(user1_ids) | set(user2_ids) | set(users.values_list("id", flat=True))
     )
+    csv_rows = []
     for uid, skill in ordered_skills:
         if isinstance(uid, str):
             username = uid
         else:
             username = User.objects.get(id=uid).username
-        unevaluated.remove(uid)
-        lower = ci_lower.get(uid, 0)
-        upper = ci_upper.get(uid, 0)
+        unevaluated.discard(uid)
+        lower = combined_ci_lower.get(uid, 0)
+        upper = combined_ci_upper.get(uid, 0)
         print(
             f"| {round(lower, 2):>6} "
             f"| {round(skill, 2):>6} "
             f"| {round(upper, 2):>6} "
-            f"| {player_stats[uid][0]:>6} "
-            f"| {len(player_stats[uid][1]):>6} "
+            f"| {combined_player_stats[uid][0]:>6} "
+            f"| {len(combined_player_stats[uid][1]):>6} "
+            f"| {round(combined_player_stats[uid][2], 2):>6} "
             f"| {uid if isinstance(uid, int) else '':>6} "
             f"| {username}"
         )
-    # for uid in unevaluated:
-    #     if isinstance(uid, str):
-    #         username = uid
-    #     else:
-    #         username = User.objects.get(id=uid).username
-    #     print(
-    #         "| ------ "
-    #         "| ------ "
-    #         "| ------ "
-    #         "| ------ "
-    #         "| ------ "
-    #         f"| {uid if isinstance(uid, int) else '':>5} "
-    #         f"| {username}"
-    #     )
+        csv_rows.append(
+            [
+                round(lower, 2),
+                round(skill, 2),
+                round(upper, 2),
+                combined_player_stats[uid][0],
+                len(combined_player_stats[uid][1]),
+                round(combined_player_stats[uid][2], 2),
+                uid if isinstance(uid, int) else "",
+                username,
+            ]
+        )
     print()
+
+    if store_results_csv:
+        filename = "global_bot_leaderboard"
+
+        suffix = ""
+        suffix += f"_BS{bootstrap_count}"
+        if min_participation_count:
+            suffix += f"_MinQ{min_participation_count}"
+        if min_human_forecasters:
+            suffix += f"_MinHF{min_human_forecasters}"
+        if metac_bot_age:
+            suffix += f"_MBotAge{metac_bot_age}"
+        if aib_minibench_only:
+            suffix += "_AIBMiniB"
+        elif include_minibench:
+            suffix += "_MiniB"
+        if cp_by_years:
+            suffix += "_CPY"
+        if pro_by_years:
+            suffix += "_PROY"
+        if include_non_metac_bots:
+            suffix += "_NonMB"
+        if non_metac_bots_by_year:
+            suffix += "_NonMBY"
+        if include_non_metac_bots and bot_recency:
+            suffix += f"_NonMBRec{bot_recency}"
+        if include_non_metac_bots and bot_recent_scores:
+            suffix += f"_NonMBRS{bot_recent_scores}"
+        if include_non_metac_bots and bot_recent_coverage:
+            suffix += f"_NonMBRC{bot_recent_coverage}"
+        if scale_weight_by_participants:
+            suffix += "_SWP"
+        if use_discrimination:
+            suffix += "_ALS"
+            if use_bayesian_alpha_disc:
+                suffix += "_aDbayes"
+            else:
+                suffix += f"_aD{alpha_disc:g}"
+        if suffix:
+            suffix = "_" + suffix
+
+        csv_path = Path(f"{filename}{suffix}.csv")
+        with csv_path.open("w", newline="") as output_file:
+            writer = csv.writer(output_file)
+            writer.writerow(
+                ["2.5%", "Skill", "97.5%", "Match", "Quest.", "Cov.", "ID", "Username"]
+            )
+            writer.writerows(csv_rows)
+        print(f"Wrote CSV results to {csv_path}")
+
+        if use_discrimination and discriminations:
+            disc_path = Path(f"global_bot_question_discriminations{suffix}.csv")
+            participants_by_q: dict[int, int] = {
+                qid: len(participants) for qid, participants in p_by_q.items()
+            }
+            matches_by_q_count: dict[int, int] = defaultdict(int)
+            for qid in question_ids:
+                matches_by_q_count[qid] += 1
+
+            # collect per-question scores and skill diffs for std/correlation
+            scores_by_q: dict[int, list[float]] = defaultdict(list)
+            skill_diffs_by_q: dict[int, list[float]] = defaultdict(list)
+            for u1id, u2id, qid, score in zip(
+                user1_ids, user2_ids, question_ids, scores
+            ):
+                scores_by_q[qid].append(score)
+                skill_diffs_by_q[qid].append(skills.get(u1id, 0) - skills.get(u2id, 0))
+
+            # question titles for the questions in the leaderboard
+            disc_qids = list(discriminations.keys())
+            titles_by_q: dict[int, str] = dict(
+                Question.objects.filter(id__in=disc_qids).values_list("id", "title")
+            )
+
+            with disc_path.open("w", newline="") as output_file:
+                writer = csv.writer(output_file)
+                writer.writerow(
+                    [
+                        "question_id",
+                        "question_title",
+                        "discrimination",
+                        "n_matches",
+                        "n_participants",
+                        "score_std",
+                        "score_skill_corr",
+                    ]
+                )
+                for qid, d_val in sorted(
+                    discriminations.items(), key=lambda kv: -kv[1]
+                ):
+                    q_scores = np.array(scores_by_q.get(qid, []))
+                    q_skill_diffs = np.array(skill_diffs_by_q.get(qid, []))
+                    score_std = float(np.std(q_scores)) if len(q_scores) else 0.0
+                    if (
+                        len(q_scores) > 1
+                        and np.std(q_scores) > 0
+                        and np.std(q_skill_diffs) > 0
+                    ):
+                        score_skill_corr = float(
+                            np.corrcoef(q_scores, q_skill_diffs)[0][1]
+                        )
+                    else:
+                        score_skill_corr = 0.0
+                    writer.writerow(
+                        [
+                            qid,
+                            titles_by_q.get(qid, ""),
+                            round(d_val, 4),
+                            matches_by_q_count.get(qid, 0),
+                            participants_by_q.get(qid, 0),
+                            round(score_std, 4),
+                            round(score_skill_corr, 4),
+                        ]
+                    )
+            print(f"Wrote question discriminations to {disc_path}")
 
     ##########################################################################
     ##########################################################################
@@ -1078,4 +1762,61 @@ class Command(BaseCommand):
             cache_use = ""
         else:
             cache_use = "partial"
-        run_update_global_bot_leaderboard(cache_use=cache_use)
+
+        baseline_player = 236038  # metac-gpt-4o+asknews
+        aib_minibench_only = False  # only include questions from AIB and Minibench
+        include_minibench = True
+        cache_use = "partial"
+
+        bootstrap_count = 30
+        min_participation_count = 150
+        min_human_forecasters = (
+            10  # drop community predictions with fewer human forecasters; 0 disables
+        )
+        metac_bot_age = (
+            365  # don't include metac bots after this many days since creation
+        )
+        cp_by_years = True
+        pro_by_years = True
+        include_non_metac_bots = True
+        non_metac_bots_by_year = True
+        bot_recency = 3 * 30  # 3 months, 0 means no filter
+        bot_recent_scores = 150  # most recent scores, 0 means no filter
+        bot_recent_coverage = 0
+        scale_weight_by_participants = False
+        use_discrimination = (
+            False  # ALS for per-question difficulty; takes 30+ mins to run
+        )
+        alpha_disc = 10000  # ridge pull of per-question D toward 1; only used if use_discrimination is true
+        use_bayesian_alpha_disc = True  # derive alpha_disc = σ²_error/σ²_D (uncapped); ignores alpha_disc when True
+        als_init = "zeros"  # ALS skill init: zeros | random
+        als_seed = 123  # seed for als_init="random"
+
+        store_results_csv = True
+        verbose = True
+
+        run_update_global_bot_leaderboard(
+            baseline_player=baseline_player,
+            include_minibench=include_minibench,
+            aib_minibench_only=aib_minibench_only,
+            cp_by_years=cp_by_years,
+            pro_by_years=pro_by_years,
+            metac_bot_age=metac_bot_age,
+            bootstrap_count=bootstrap_count,
+            min_participation_count=min_participation_count,
+            min_human_forecasters=min_human_forecasters,
+            include_non_metac_bots=include_non_metac_bots,
+            non_metac_bots_by_year=non_metac_bots_by_year,
+            bot_recency=bot_recency,
+            bot_recent_scores=bot_recent_scores,
+            bot_recent_coverage=bot_recent_coverage,
+            scale_weight_by_participants=scale_weight_by_participants,
+            use_discrimination=use_discrimination,
+            alpha_disc=alpha_disc,
+            use_bayesian_alpha_disc=use_bayesian_alpha_disc,
+            als_init=als_init,
+            als_seed=als_seed,
+            verbose=verbose,
+            cache_use=cache_use,
+            store_results_csv=store_results_csv,
+        )

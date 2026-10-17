@@ -132,6 +132,15 @@ export enum CommunitySettingsMode {
   Settings = "settings",
 }
 
+/**
+ * Minimal project shape served by /projects/sitemap/ — only what getProjectLink
+ * needs to derive a URL.
+ */
+export type SitemapProject = Pick<Project, "id" | "slug"> & {
+  type: TournamentType;
+  lastmod: string | null;
+};
+
 export enum BotLeaderboardStatus {
   ExcludeAndHide = "exclude_and_hide",
   ExcludeAndShow = "exclude_and_show",
@@ -195,6 +204,12 @@ export type FeedProjectTile = {
   rule: FeedTileRule | null;
 };
 
+export enum TilePlacement {
+  QUESTIONS_FEED = "questions_feed",
+  QUESTION_SIDEBAR = "question_sidebar",
+  NEWS_FEED = "news_feed",
+}
+
 export type AdTileData = {
   title: string;
   description: string;
@@ -202,6 +217,7 @@ export type AdTileData = {
   cta_text: string;
   url: string;
   exposure_rate: number; // percent 1–100: chance this ad is shown in a given feed slot
+  placements: TilePlacement[];
   project_id: number | null;
 };
 

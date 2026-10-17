@@ -16,7 +16,10 @@ import CPRevealTime from "@/components/cp_reveal_time";
 import { getEffectiveVisibleCount } from "@/constants/questions";
 import { useAuth } from "@/contexts/auth_context";
 import useTimestampCursor from "@/hooks/use_timestamp_cursor";
-import { TimelineChartZoomOption } from "@/types/charts";
+import {
+  TimelineChartZoomOption,
+  TimelineYDomainOptions,
+} from "@/types/charts";
 import { ChoiceItem, ChoiceTooltipItem } from "@/types/choices";
 import { PostGroupOfQuestions, QuestionStatus } from "@/types/post";
 import { Question, QuestionWithNumericForecasts } from "@/types/question";
@@ -64,6 +67,7 @@ type Props = QuestionsDataProps & {
   hideTooltip?: boolean;
   headerLeft?: ReactNode;
   hideChartTitle?: boolean;
+  yDomainOptions?: TimelineYDomainOptions;
 };
 
 /**
@@ -100,6 +104,7 @@ const GroupTimeline: FC<Props> = ({
   hideTooltip,
   headerLeft,
   hideChartTitle,
+  yDomainOptions,
 }) => {
   const t = useTranslations();
   const { user } = useAuth();
@@ -373,6 +378,7 @@ const GroupTimeline: FC<Props> = ({
       hideTooltip={hideTooltip}
       headerLeft={headerLeft}
       hideChartTitle={hideChartTitle}
+      yDomainOptions={yDomainOptions}
     />
   );
 };

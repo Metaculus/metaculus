@@ -1,3 +1,4 @@
+from django.contrib.postgres.fields import ArrayField
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models.fields.files import ImageFieldFile
@@ -28,11 +29,36 @@ class ITNArticle(TimeStampedModel):
     )
     is_removed = models.BooleanField(default=False)
 
+    # Id of the near-duplicate cluster this article belongs to (the id of the
+    # cluster's representative article). Articles covering the same story share a
+    # cluster so that repeated coverage counts only once towards news hotness.
+    cluster_id = models.BigIntegerField(null=True, blank=True, db_index=True)
+
+
+class PostArticleQuerySet(models.QuerySet):
+    def annotate_article_post_count(self):
+        """Annotate each match with the number of distinct posts its article is
+        matched to, shadowing PostArticle.article_post_count's default.
+
+        Counts the article's matches in full: callers narrow which matches they
+        *score*, not which ones make an article broad.
+        """
+        return self.annotate(
+            article_post_count=models.Count(
+                "article__postarticle__post_id", distinct=True
+            )
+        )
+
 
 class PostArticle(TimeStampedModel):
     article = models.ForeignKey(ITNArticle, on_delete=models.CASCADE)
     post = models.ForeignKey(Post, on_delete=models.CASCADE)
     distance = models.FloatField(null=False, db_index=True)
+
+    objects = PostArticleQuerySet.as_manager()
+
+    # Number of distinct posts the article is matched to
+    article_post_count: int = 0
 
     class Meta:
         constraints = [
@@ -120,7 +146,19 @@ class UserDataAccess(TimeStampedModel):
         ]
 
 
+def default_ad_tile_placements() -> list[str]:
+    return [
+        AdTile.Placements.QUESTIONS_FEED.value,
+        AdTile.Placements.QUESTION_SIDEBAR.value,
+    ]
+
+
 class AdTile(TimeStampedModel):
+    class Placements(models.TextChoices):
+        QUESTIONS_FEED = "questions_feed"
+        QUESTION_SIDEBAR = "question_sidebar"
+        NEWS_FEED = "news_feed"
+
     title = models.CharField(
         max_length=200,
         blank=True,
@@ -172,6 +210,11 @@ class AdTile(TimeStampedModel):
         default=100,
         validators=[MinValueValidator(1), MaxValueValidator(100)],
         help_text="1-100. Percentage chance of being shown (rolled on the frontend).",
+    )
+    placements = ArrayField(
+        models.CharField(max_length=32, choices=Placements.choices),
+        default=default_ad_tile_placements,
+        help_text="Surfaces this tile may appear on. At least one is required.",
     )
 
     class Meta:

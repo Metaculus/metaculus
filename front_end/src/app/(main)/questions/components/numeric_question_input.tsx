@@ -19,6 +19,31 @@ import {
 import { ContinuousQuestionType, QuestionType } from "@/types/question";
 import { getQuestionDraft } from "@/utils/drafts/questionForm";
 
+import ViewportRender from "./viewport_render";
+
+const SCALING_ABS_TOLERANCE = 1e-9;
+const SCALING_REL_TOLERANCE = 16 * Number.EPSILON;
+
+export const isApproximatelyEqualScaling = (
+  a: number | null | undefined,
+  b: number | null | undefined
+): boolean => {
+  if (Object.is(a, b)) {
+    return true;
+  }
+  if (typeof a !== "number" || typeof b !== "number") {
+    return false;
+  }
+  if (!Number.isFinite(a) || !Number.isFinite(b)) {
+    return false;
+  }
+  const tolerance = Math.max(
+    SCALING_ABS_TOLERANCE,
+    SCALING_REL_TOLERANCE * Math.max(Math.abs(a), Math.abs(b))
+  );
+  return Math.abs(a - b) <= tolerance;
+};
+
 const NumericQuestionInput: React.FC<{
   onChange: ({
     range_min,
@@ -287,14 +312,24 @@ const NumericQuestionInput: React.FC<{
         );
         setZeroPoint(isNil(draftZeroPoint) ? zeroPoint : draftZeroPoint);
       } else {
-        onChange({
-          range_min: mn as number,
-          range_max: mx as number,
-          zero_point: zeroPoint,
-          open_lower_bound: openLowerBound,
-          open_upper_bound: openUpperBound,
-          inbound_outcome_count: inboundOutcomeCount,
-        });
+        const hasInitialValueChanges =
+          !isApproximatelyEqualScaling(mn, defaultMin) ||
+          !isApproximatelyEqualScaling(mx, defaultMax) ||
+          !isApproximatelyEqualScaling(zeroPoint, defaultZeroPoint) ||
+          !Object.is(openLowerBound, defaultOpenLowerBound) ||
+          !Object.is(openUpperBound, defaultOpenUpperBound) ||
+          !Object.is(inboundOutcomeCount, defaultInboundOutcomeCount);
+
+        if (hasInitialValueChanges) {
+          onChange({
+            range_min: mn as number,
+            range_max: mx as number,
+            zero_point: zeroPoint,
+            open_lower_bound: openLowerBound,
+            open_upper_bound: openUpperBound,
+            inbound_outcome_count: inboundOutcomeCount,
+          });
+        }
         shouldUpdateParrent.current = true;
       }
       isMounted.current = true;
@@ -573,7 +608,9 @@ const NumericQuestionInput: React.FC<{
         {errors.length === 0 && !isNil(max) && !isNil(min) && (
           <div>
             Example input chart:
-            <ExampleContinuousInput question={question} />
+            <ViewportRender>
+              <ExampleContinuousInput question={question} />
+            </ViewportRender>
           </div>
         )}
       </div>

@@ -1,20 +1,16 @@
-from datetime import datetime
-
 from django.conf import settings
 from django.core.mail import EmailMessage
-from django.http import JsonResponse
 from django.utils import timezone
 from django.views.decorators.cache import cache_page
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.exceptions import PermissionDenied
+from rest_framework.exceptions import NotFound, PermissionDenied
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import AllowAny
 from rest_framework.request import Request
 from rest_framework.response import Response
 
-from questions.constants import UnsuccessfulResolutionType
-from questions.models import Forecast, Question
+from utils.requests import is_internal_request
 
 from .models import Bulletin, BulletinViewedBy, ITNArticle, SidebarItem
 from .serializers import (
@@ -28,6 +24,8 @@ from .services.ad_tiles import (
     get_tile_object_by_id,
 )
 from .services.itn import remove_article
+from .services.sitemap import get_sitemap_payload
+from .services.stats import get_cached_site_stats
 from .utils import get_data_access_status
 
 
@@ -37,11 +35,32 @@ def contact_api_view(request: Request):
     serializer = ContactSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
 
+    subject = serializer.data.get("subject")
+    recipients_by_subject = {
+        ContactSerializer.SubjectType.PARTNERSHIP: settings.EMAIL_PARTNERSHIPS,
+        ContactSerializer.SubjectType.FEEDBACK: settings.EMAIL_FEEDBACK,
+        ContactSerializer.SubjectType.BUG: settings.EMAIL_SUPPORT,
+        ContactSerializer.SubjectType.FEATURE: settings.EMAIL_SUPPORT,
+        ContactSerializer.SubjectType.PRESS: settings.EMAIL_PRESS,
+        ContactSerializer.SubjectType.OTHER: settings.EMAIL_SUPPORT,
+    }
+
+    if subject not in recipients_by_subject:
+        subject = ContactSerializer.SubjectType.OTHER
+
+    recipient = recipients_by_subject[subject]
+    subject_label = ContactSerializer.SubjectType(subject).label
+
+    body = serializer.data["message"]
+    source_url = serializer.data.get("source_url")
+    if source_url:
+        body = f"{body}\n\n---\nSubmitted from: {source_url}"
+
     EmailMessage(
-        subject=serializer.data["subject"] or "Contact Form",
-        body=serializer.data["message"],
+        subject=subject_label,
+        body=body,
         from_email=settings.EMAIL_ACCOUNTS_SENDER,
-        to=[settings.EMAIL_FEEDBACK],
+        to=[recipient],
         reply_to=[serializer.data["email"]],
     ).send()
 
@@ -117,23 +136,10 @@ def get_dismissed_bulletin_ids(request):
     return Response({"dismissed_bulletin_ids": dismissed_bulletin_ids})
 
 
-@cache_page(60 * 60 * 24)
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def get_site_stats(request):
-    now_year = datetime.now().year
-    public_questions = Question.objects.filter_public()
-    stats = {
-        "predictions": Forecast.objects.filter(question__in=public_questions)
-        .exclude(source=Forecast.SourceChoices.AUTOMATIC)
-        .count(),
-        "questions": public_questions.count(),
-        "resolved_questions": public_questions.filter(actual_resolve_time__isnull=False)
-        .exclude(resolution__in=UnsuccessfulResolutionType)
-        .count(),
-        "years_of_predictions": now_year - 2015 + 1,
-    }
-    return JsonResponse(stats)
+    return Response(get_cached_site_stats())
 
 
 @api_view(["POST"])
@@ -204,3 +210,13 @@ def get_data_access_status_api_view(request: Request):
         },
         status=status.HTTP_200_OK,
     )
+
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def sitemap_api_view(request: Request):
+    # Internal-only; feeds the Next.js /sitemap.xml generator.
+    if not is_internal_request(request):
+        raise NotFound()
+
+    return Response(get_sitemap_payload())

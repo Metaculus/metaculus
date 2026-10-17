@@ -29,11 +29,11 @@ import CSPostHogProvider from "@/contexts/posthog_context";
 import PublicSettingsProvider from "@/contexts/public_settings_context";
 import { TranslationsBannerProvider } from "@/contexts/translations_banner_context";
 import ServerProfileApi from "@/services/api/profile/profile.server";
-import { CSRF_COOKIE_NAME } from "@/services/csrf";
 import { LanguageService } from "@/services/language_service";
 import { CurrentUser } from "@/types/users";
 import { logError } from "@/utils/core/errors";
 import { getFontsString } from "@/utils/fonts";
+import { getPostHogIdentity } from "@/utils/posthog_identity";
 import { getPublicSettings } from "@/utils/public_settings.server";
 
 import { AllBWPixelTagsForRegisteredUsers } from "./(campaigns-registration)/(bridgewater)/bridgewater/components/pixels-tags";
@@ -90,7 +90,6 @@ export default async function RootLayout({
   const publicSettings = getPublicSettings();
 
   const cookieStore = await cookies();
-  const csrfToken = cookieStore.get(CSRF_COOKIE_NAME)?.value || null;
   const feedLayoutCookie = cookieStore.get(FEED_LAYOUT_COOKIE)?.value;
   const nonce = (await headers()).get("x-nonce") ?? undefined;
 
@@ -122,8 +121,11 @@ export default async function RootLayout({
         <NuqsAdapter>
           <QueryClientProviderWrapper>
             <PolyfillProvider>
-              <CSPostHogProvider locale={locale}>
-                <AuthProvider user={user} locale={locale} csrfToken={csrfToken}>
+              <CSPostHogProvider
+                locale={locale}
+                identity={user ? getPostHogIdentity(user, locale) : null}
+              >
+                <AuthProvider user={user} locale={locale}>
                   <AppThemeProvider nonce={nonce}>
                     <NextIntlClientProvider messages={messages}>
                       <PublicSettingsProvider settings={publicSettings}>

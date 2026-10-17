@@ -1,13 +1,24 @@
 import { NextRequest, NextResponse } from "next/server";
 
+import {
+  AUTOTRANSLATION_HEADER,
+  SUBSCRIBE_CAPTURE_HEADER,
+} from "@/constants/experiments";
 import ServerAuthApi from "@/services/api/auth/auth.server";
 import { AuthCookieManager, AuthCookieReader } from "@/services/auth_tokens";
-import { CsrfManager } from "@/services/csrf";
+import {
+  getAutotranslationEnrollment,
+  setAssignmentCookieInResponse,
+} from "@/services/autotranslation_experiment";
 import {
   LanguageService,
   LOCALE_COOKIE_NAME,
 } from "@/services/language_service";
 import { getAlphaTokenSession } from "@/services/session";
+import {
+  getSubscribeCaptureEnrollment,
+  setSubscribeCaptureCookieInResponse,
+} from "@/services/subscribe_capture_experiment";
 import { getAlphaAccessToken } from "@/utils/alpha_access";
 import { ApiError } from "@/utils/core/errors";
 import { applyCspHeaders, buildCsp } from "@/utils/csp";
@@ -95,11 +106,52 @@ export async function proxy(request: NextRequest) {
     requestHeaders.set("Content-Security-Policy-Report-Only", cspHeader);
   }
 
+  // Auto-translation A/B experiment: enroll eligible anonymous visitors.
+  // The header lets getLocale() apply the variant on this same request
+  const autotranslationEnrollment = await getAutotranslationEnrollment(
+    request,
+    requestAuth,
+    shouldApplyCsp
+  );
+  if (autotranslationEnrollment) {
+    requestHeaders.set(
+      AUTOTRANSLATION_HEADER,
+      autotranslationEnrollment.variant
+    );
+  } else {
+    // Never trust a client-supplied variant header
+    requestHeaders.delete(AUTOTRANSLATION_HEADER);
+  }
+
+  // Subscribe-capture flow experiment: same enrollment mechanism, sharing
+  // the distinct_id if the auto-translation enrollment just minted one
+  const subscribeCaptureEnrollment = await getSubscribeCaptureEnrollment(
+    request,
+    requestAuth,
+    shouldApplyCsp,
+    autotranslationEnrollment?.distinctId ?? null
+  );
+  if (subscribeCaptureEnrollment) {
+    requestHeaders.set(
+      SUBSCRIBE_CAPTURE_HEADER,
+      subscribeCaptureEnrollment.variant
+    );
+  } else {
+    requestHeaders.delete(SUBSCRIBE_CAPTURE_HEADER);
+  }
+
   const response = NextResponse.next({ request: { headers: requestHeaders } });
   if (cspHeader) {
     applyCspHeaders(response, cspHeader);
   }
   const responseAuth = new AuthCookieManager(response.cookies);
+
+  if (autotranslationEnrollment) {
+    setAssignmentCookieInResponse(response, autotranslationEnrollment);
+  }
+  if (subscribeCaptureEnrollment) {
+    setSubscribeCaptureCookieInResponse(response, subscribeCaptureEnrollment);
+  }
 
   let hasSession = false;
   const accessToken = requestAuth.getAccessToken();
@@ -176,10 +228,6 @@ export async function proxy(request: NextRequest) {
     LanguageService.setLocaleCookieInResponse(response, locale_in_url);
   }
 
-  // Generate CSRF token if not present
-  const csrfManager = new CsrfManager(response.cookies);
-  csrfManager.generate(request.cookies);
-
   return response;
 }
 
@@ -189,8 +237,12 @@ export const config = {
       // Run for pages only
       // Ignores prefetch requests, all media files
       // And embedded urls
+      // `md` is excluded: those responses are anonymous and public, and
+      // agent_markdown/respond.ts re-checks the gate enforced above. Do NOT
+      // exclude by Accept header — this matcher is site-wide, so that would
+      // let any request skip the gate on paths that still render HTML.
       source:
-        "/((?!api|_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt|csp-report|questions/embed|experiments/embed|opengraph-image-|twitter-image-|app-version|.*\\..*).*)",
+        "/((?!api|md|_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt|csp-report|questions/embed|experiments/embed|opengraph-image-|twitter-image-|app-version|.*\\..*).*)",
       missing: [
         { type: "header", key: "next-router-prefetch" },
         { type: "header", key: "purpose", value: "prefetch" },

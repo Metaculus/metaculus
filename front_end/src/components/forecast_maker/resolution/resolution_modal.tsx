@@ -11,8 +11,9 @@ import { resolveQuestion } from "@/app/(main)/questions/actions";
 import BaseModal from "@/components/base_modal";
 import Button from "@/components/ui/button";
 import ButtonGroup from "@/components/ui/button_group";
+import Checkbox from "@/components/ui/checkbox";
 import DatetimeUtc from "@/components/ui/datetime_utc";
-import { FormError, Input } from "@/components/ui/form_field";
+import { FormError, FormErrorMessage, Input } from "@/components/ui/form_field";
 import LoadingSpinner from "@/components/ui/loading_spiner";
 import Select from "@/components/ui/select";
 import {
@@ -36,12 +37,14 @@ const schema = z.object({
   actualResolveTime: z
     .string()
     .transform((value) => new Date(value).toISOString()),
+  scoreAsTask: z.boolean(),
 });
 type FormData = z.infer<typeof schema>;
 
 const QuestionResolutionModal: FC<Props> = ({ isOpen, onClose, question }) => {
   const t = useTranslations();
   const [submitErrors, setSubmitErrors] = useState<ErrorResponse>([]);
+  const [resolutionValueError, setResolutionValueError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const currentDateTime = useMemo(
     () => format(new Date(), "yyyy-MM-dd'T'HH:mm"),
@@ -92,11 +95,13 @@ const QuestionResolutionModal: FC<Props> = ({ isOpen, onClose, question }) => {
             ? resolutionTypeOptions[0]?.value ?? ""
             : "",
         actualResolveTime: currentDateTime,
+        scoreAsTask: false,
       },
     });
 
   const resolutionType = watch("resolutionType");
   const unambiguousType = watch("unambiguousType");
+  const scoreAsTask = watch("scoreAsTask");
 
   const unambiguousOptions = useMemo(() => {
     const options = [{ value: "knownValue", label: "Known value" }];
@@ -118,6 +123,7 @@ const QuestionResolutionModal: FC<Props> = ({ isOpen, onClose, question }) => {
       resolutionType,
       resolutionValue,
       actualResolveTime,
+      scoreAsTask,
     }: FormData) => {
       setSubmitErrors([]);
 
@@ -125,7 +131,8 @@ const QuestionResolutionModal: FC<Props> = ({ isOpen, onClose, question }) => {
       const responses = await resolveQuestion(
         question.id,
         resolutionValue || resolutionType,
-        actualResolveTime
+        actualResolveTime,
+        scoreAsTask
       );
 
       setIsSubmitting(false);
@@ -159,6 +166,7 @@ const QuestionResolutionModal: FC<Props> = ({ isOpen, onClose, question }) => {
               value={resolutionType}
               options={resolutionTypeOptions}
               onChange={(event) => {
+                setResolutionValueError("");
                 setValue("resolutionType", event.target.value);
                 setValue("resolutionValue", undefined);
               }}
@@ -168,6 +176,7 @@ const QuestionResolutionModal: FC<Props> = ({ isOpen, onClose, question }) => {
               value={resolutionType}
               buttons={resolutionTypeOptions}
               onChange={(value) => {
+                setResolutionValueError("");
                 setValue("resolutionType", value);
                 setValue("resolutionValue", undefined);
               }}
@@ -179,6 +188,7 @@ const QuestionResolutionModal: FC<Props> = ({ isOpen, onClose, question }) => {
               value={unambiguousType ?? ""}
               buttons={unambiguousOptions}
               onChange={(value) => {
+                setResolutionValueError("");
                 setValue("unambiguousType", value);
                 value !== "knownValue"
                   ? setValue("resolutionValue", value)
@@ -244,6 +254,21 @@ const QuestionResolutionModal: FC<Props> = ({ isOpen, onClose, question }) => {
                 }
                 max={question?.scaling.range_max ?? undefined}
                 {...register("resolutionValue")}
+                onInvalid={(event) => {
+                  event.preventDefault();
+                  setResolutionValueError(
+                    event.currentTarget.validationMessage
+                  );
+                }}
+                onInput={() => setResolutionValueError("")}
+              />
+            )}
+          {question.type === QuestionType.Discrete &&
+            resolutionType === "unambiguous" &&
+            unambiguousType === "knownValue" && (
+              <FormErrorMessage
+                errors={resolutionValueError}
+                className="select-text text-center"
               />
             )}
           {question.type === QuestionType.Date &&
@@ -268,6 +293,21 @@ const QuestionResolutionModal: FC<Props> = ({ isOpen, onClose, question }) => {
               }
             />
           </label>
+          <div className="flex flex-col gap-1 self-stretch text-left">
+            <Checkbox
+              checked={scoreAsTask}
+              onChange={(checked) => setValue("scoreAsTask", checked)}
+              label="Score asynchronously"
+              className="items-start"
+              inputClassName="text-gray-900 dark:text-gray-900-dark"
+            />
+            <p className="m-0 pl-7 text-sm text-gray-700 dark:text-gray-700-dark">
+              Try first with this off. If the resolution fails (most likely due
+              to a timeout), turn this on. Scoring will then be done
+              asynchronously by the server. Check back in 5 minutes to verify
+              that scores are populated.
+            </p>
+          </div>
           <div className="flex justify-center">
             <Button
               type="submit"

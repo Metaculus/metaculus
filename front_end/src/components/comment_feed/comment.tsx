@@ -45,6 +45,7 @@ import { usePublicSettings } from "@/contexts/public_settings_context";
 import { useCommentDraft } from "@/hooks/use_comment_draft";
 import useContainerSize from "@/hooks/use_container_size";
 import useScrollTo from "@/hooks/use_scroll_to";
+import ClientCommentsApi from "@/services/api/comments/comments.client";
 import { CommentType } from "@/types/comment";
 import { ErrorResponse } from "@/types/fetch";
 import {
@@ -294,6 +295,24 @@ const Comment: FC<CommentProps> = ({
   }, [questionLayout?.scrollToCommentId, comment.id, questionLayout]);
   const [errorMessage, setErrorMessage] = useState<string | ErrorResponse>();
   const [commentMarkdown, setCommentMarkdown] = useState(comment.text);
+  // Long bot comments are archived to S3 with only a stub left in the row, so
+  // the full text has to be fetched on demand
+  const [isTruncated, setIsTruncated] = useState(comment.is_text_archived);
+  const [isLoadingFullText, setIsLoadingFullText] = useState(false);
+  const loadFullText = useCallback(async () => {
+    setIsLoadingFullText(true);
+    try {
+      const { text } = await ClientCommentsApi.getComment(comment.id);
+      setCommentMarkdown(text);
+      originalTextRef.current = text;
+      setIsTruncated(false);
+    } catch (err) {
+      logError(err);
+      toast.error(t("unexpectedError"));
+    } finally {
+      setIsLoadingFullText(false);
+    }
+  }, [comment.id, t]);
   const [tempCommentMarkdown, setTempCommentMarkdown] = useState("");
   const [includeEditForecast, setIncludeEditForecast] = useState(false);
   const [includedForecast, setIncludedForecast] = useState(
@@ -1007,6 +1026,16 @@ const Comment: FC<CommentProps> = ({
                     withCodeBlocks
                     contentEditableClassName="text-base font-normal leading-6 [&_p]:!text-gray-700 dark:[&_p]:!text-gray-700-dark [&_ul]:!text-gray-700 dark:[&_ul]:!text-gray-700-dark [&_ol]:!text-gray-700 dark:[&_ol]:!text-gray-700-dark"
                   />
+                )}
+                {isTruncated && (
+                  <Button
+                    size="xs"
+                    variant="tertiary"
+                    onClick={loadFullText}
+                    disabled={isLoadingFullText}
+                  >
+                    {isLoadingFullText ? t("loading") : t("loadFullComment")}
+                  </Button>
                 )}
                 {commentKeyFactors.length > 0 &&
                   canListKeyFactors &&

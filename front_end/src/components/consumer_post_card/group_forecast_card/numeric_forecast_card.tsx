@@ -265,7 +265,10 @@ const NumericForecastCard: FC<Props> = ({
   return (
     <div
       ref={containerRef}
-      className={cn("relative", effectiveFillHeight && "flex flex-1 flex-col")}
+      className={cn(
+        "relative w-full",
+        effectiveFillHeight && "flex flex-1 flex-col"
+      )}
     >
       <ForecastCardWrapper
         otherItemsCount={hiddenCount}

@@ -74,6 +74,7 @@ def aggregation_explorer_api_view(request) -> Response:
     aggregation_methods = params.get("aggregation_methods", [])
     only_include_user_ids = params.get("user_ids")
     include_bots = params.get("include_bots")
+    only_bots = params.get("only_bots") or False
     minimize = params.get("minimize", True)
     joined_before = params.get("joined_before_date")
 
@@ -88,6 +89,7 @@ def aggregation_explorer_api_view(request) -> Response:
             if include_bots is not None
             else question.include_bots_in_aggregates
         ),
+        only_bots=only_bots,
         histogram=True,
         include_future=False,
         joined_before=joined_before,
@@ -107,6 +109,8 @@ def aggregation_explorer_api_view(request) -> Response:
     forecasters_qs = question.get_forecasters()
     if only_include_user_ids:
         forecasters_qs = forecasters_qs.filter(id__in=only_include_user_ids)
+    elif only_bots:
+        forecasters_qs = forecasters_qs.filter(is_bot=True)
     elif not include_bots:
         forecasters_qs = forecasters_qs.filter(is_bot=False)
 
@@ -152,7 +156,7 @@ def validate_data_request(request: Request, **kwargs):
         for post in posts:
             permission = get_post_permission_for_user(post, user=user)
             ObjectPermission.can_view(permission, raise_exception=True)
-    elif question:
+    if question:
         post = question.get_post()
         if post:
             posts = [post]
@@ -220,10 +224,14 @@ def validate_data_request(request: Request, **kwargs):
         for post in posts:
             questions.extend(post.get_questions())
     elif project:
+        # A viewable project may still hold posts the user cannot see
+        # (drafts, rejected, restricted), so pull only from the viewable ones.
         questions = list(
             Question.objects.filter(
-                Q(post__default_project=project) | Q(post__projects=project)
-            ).distinct()
+                post_id__in=Post.objects.filter_permission(user=user)
+                .filter(Q(default_project=project) | Q(projects=project))
+                .values_list("id", flat=True)
+            )
         )
     if not questions:
         raise NotFound("No questions found")

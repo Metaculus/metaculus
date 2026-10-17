@@ -166,7 +166,22 @@ type BasePost = {
     title: string;
     description: string;
     image_url: string;
+    canonical_url: string;
   };
+};
+
+/**
+ * Minimal post shape served by /posts/sitemap/. Deliberately structural rather
+ * than a Pick<Post>: the endpoint returns only what getPostLink and
+ * getPostSeoMetadata need to derive a URL and its indexability.
+ */
+export type SitemapPost = Pick<
+  BasePost,
+  "id" | "slug" | "html_metadata_json"
+> & {
+  notebook: { id: number } | null;
+  projects: Pick<NonNullable<BasePost["projects"]>, "default_project">;
+  lastmod: string | null;
 };
 
 export type QuestionPost<QT = Question> = BasePost & {

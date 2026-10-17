@@ -2,7 +2,8 @@ import pytest
 from django.test import override_settings
 from rest_framework.reverse import reverse
 
-from authentication.services import SignupInviteService
+from authentication.jwt_session import SessionAccessToken, get_session_enforce_at
+from authentication.services.common import SignupInviteService, get_tokens_for_user
 from users.models import User
 
 
@@ -55,6 +56,21 @@ class TestVerifyEmail:
         assert user.last_login
         assert response.data["tokens"]
         mock_send_activation_email.assert_not_called()
+
+    def test_signup__reserved_username_prefix(self, anon_client):
+        response = anon_client.post(
+            self.url,
+            {
+                "email": "user@metaculus.com",
+                "username": "metac-new-bot",
+                "password": "StrongPassword@1",
+                "is_bot": False,
+            },
+        )
+
+        assert response.status_code == 400
+        assert "username" in response.data
+        assert not User.objects.filter(username="metac-new-bot").exists()
 
     @override_settings(PUBLIC_ALLOW_SIGNUP=False)
     def test_signup_invitation(self, anon_client):
@@ -135,12 +151,6 @@ class TestLogout:
     url = "/api/auth/logout/"
 
     def test_logout_with_token_revokes_session(self, anon_client, user1):
-        from authentication.services import get_tokens_for_user
-        from authentication.jwt_session import (
-            SessionAccessToken,
-            get_session_enforce_at,
-        )
-
         # Get tokens for the user
         tokens = get_tokens_for_user(user1)
         access_token = tokens["access"]

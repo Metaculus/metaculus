@@ -131,6 +131,20 @@
 div:has(.prism-code) + p:has(> br:only-child) {
   display: none;
 }
+
+/*
+ * Keep the editor from being widened by long-content children (code blocks,
+ * tables, embeds) when a caller drops it in a flex/grid container. Flex/grid
+ * items default to min-width: auto (= intrinsic content width), which
+ * defeats `w-full` on the wrapper and lets a wide code fence push the whole
+ * editor sideways.
+ */
+.markdown-editor {
+  min-width: 0;
+}
+.mdx-content-editable pre {
+  max-width: 100%;
+}
 @media (min-width: 1024px) {
   .markdown-editor.markdown-editor-read .tweets-wrapper {
     display: block;

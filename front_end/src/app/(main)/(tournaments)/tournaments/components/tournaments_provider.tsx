@@ -18,7 +18,7 @@ type TournamentsSectionCtxValue = {
   current: TournamentsSection;
   items: TournamentPreview[];
   count: number;
-  nowTs?: number;
+  nowTs: number;
   defaultSort: TournamentsSortBy;
   isSearching: boolean;
   infoOpen: boolean;
@@ -34,7 +34,7 @@ export function TournamentsSectionProvider(props: {
   tournaments: TournamentPreview[];
   current: TournamentsSection;
   children: React.ReactNode;
-  nowTs?: number;
+  nowTs: number;
 }) {
   const { tournaments, current, children, nowTs } = props;
   const [infoOpen, setInfoOpen] = useState(true);

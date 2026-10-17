@@ -13,8 +13,8 @@ from tests.unit.utils import datetime_aware
 
 @freeze_time("2025-01-10")
 def test_resolve_question_and_send_notifications(mocker, user1):
-    mocker.patch("questions.tasks.score_question")
-    mocker.patch("questions.tasks.build_question_forecasts")
+    mocker.patch("questions.services.lifecycle.score_question")
+    mocker.patch("questions.services.lifecycle.build_question_forecasts")
 
     question_binary = create_question(
         title="Question Title",

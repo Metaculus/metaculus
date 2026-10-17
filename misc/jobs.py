@@ -8,6 +8,7 @@ from misc.services.itn import (
     clear_old_itn_news,
     check_itn_enabled,
     generate_related_posts_for_article,
+    assign_article_clusters,
 )
 from utils.management import parallel_command_executor
 
@@ -58,6 +59,12 @@ def sync_itn_articles(num_processes: int = 1):
         index_itn_articles__worker,
         num_processes=num_processes,
     )
+
+    # Group near-duplicate articles and refresh per-article match counts. Both
+    # feed the news hotness score (near-duplicate de-duplication and the breadth
+    # penalty respectively) and are computed here, after all matches exist.
+    logger.info("Assigning ITN article clusters")
+    assign_article_clusters()
 
     print(
         f"\nCompleted processing {len(article_ids)} records in {round(time.time() - tm)}s"

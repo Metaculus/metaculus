@@ -260,6 +260,7 @@ const CommentsFeedProvider: FC<
       parent_id: parentId,
       created_at: nowIso,
       text_edited_at: nowIso,
+      is_text_archived: false,
       is_soft_deleted: false,
       text,
       is_private: false,

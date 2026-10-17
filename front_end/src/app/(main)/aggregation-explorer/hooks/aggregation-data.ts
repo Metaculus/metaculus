@@ -26,10 +26,12 @@ export function buildConfigId(
   optionId: string,
   includeBots: boolean,
   joinedBeforeDate?: string,
-  userIds?: number[]
+  userIds?: number[],
+  onlyBots?: boolean
 ): string {
   const parts = [optionId];
-  if (includeBots) parts.push("bots");
+  if (onlyBots) parts.push("obots");
+  else if (includeBots) parts.push("bots");
   if (joinedBeforeDate) parts.push(joinedBeforeDate);
   if (userIds?.length)
     parts.push(`u${[...userIds].sort((a, b) => a - b).join(",")}`);
@@ -42,6 +44,7 @@ export type SelectedAggregationConfig = {
   joinedBeforeDate?: string;
   userIds?: number[];
   includeBots?: boolean;
+  onlyBots?: boolean;
   enabled?: boolean;
 };
 
@@ -52,6 +55,7 @@ export type AggregationQueryResult = {
   chips: string[]; // filter chips derived from config (for display in label component)
   method: string; // option.id, used for API response lookup
   includeBots: boolean;
+  onlyBots: boolean;
   joinedBeforeDate?: string;
   userIds?: number[];
   isPending: boolean;
@@ -106,7 +110,7 @@ export function buildDisplayLabel(
   option: AggregationOption,
   config: Pick<
     SelectedAggregationConfig,
-    "joinedBeforeDate" | "userIds" | "includeBots" | "optionId"
+    "joinedBeforeDate" | "userIds" | "includeBots" | "onlyBots" | "optionId"
   >
 ): string {
   let label =
@@ -115,7 +119,9 @@ export function buildDisplayLabel(
       ? t("usersJoinedBefore", { date: config.joinedBeforeDate })
       : t(option.labelKey as Parameters<TranslateFunction>[0]);
 
-  if (option.supportsBotToggle && config.includeBots) {
+  if (option.supportsBotToggle && config.onlyBots) {
+    label += ` (${t("onlyBots")})`;
+  } else if (option.supportsBotToggle && config.includeBots) {
     label += ` (${t("withBots")})`;
   }
 
@@ -140,13 +146,14 @@ export function buildChips(
   t: TranslateFunction,
   config: Pick<
     SelectedAggregationConfig,
-    "joinedBeforeDate" | "userIds" | "includeBots"
+    "joinedBeforeDate" | "userIds" | "includeBots" | "onlyBots"
   >
 ): string[] {
   const chips: string[] = [];
   if (config.joinedBeforeDate)
     chips.push(t("beforeDate", { date: config.joinedBeforeDate }));
-  if (config.includeBots) chips.push(t("withBots"));
+  if (config.onlyBots) chips.push(t("onlyBots"));
+  else if (config.includeBots) chips.push(t("withBots"));
   if (config.userIds?.length)
     chips.push(t("usersFilterLabel", { ids: config.userIds.join(", ") }));
   return chips;
@@ -177,6 +184,7 @@ export function useAggregationData({
           postId,
           questionId,
           includeBots: config.includeBots,
+          onlyBots: config.onlyBots,
           aggregationMethods: option.id,
           joinedBeforeDate: config.joinedBeforeDate,
           userIds: config.userIds,
@@ -203,6 +211,7 @@ export function useAggregationData({
           chips: buildChips(t, config),
           method: option.id,
           includeBots: !!config.includeBots,
+          onlyBots: !!config.onlyBots,
           joinedBeforeDate: config.joinedBeforeDate,
           userIds: config.userIds,
           isPending: query.isPending,

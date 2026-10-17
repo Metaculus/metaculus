@@ -1,32 +1,46 @@
-import numpy as np
+from collections import defaultdict
+
+from django.db import transaction
 from django.http import Http404
 from django.utils import timezone
-from rest_framework import status
+import numpy as np
+from rest_framework import serializers, status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.exceptions import ValidationError
 from rest_framework.generics import get_object_or_404
-from rest_framework.permissions import AllowAny, IsAdminUser
+from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
-from rest_framework.serializers import DateTimeField
+from rest_framework.serializers import BooleanField, DateTimeField
 
+
+from comments.serializers.common import CommentWriteSerializer
+from comments.services.common import create_comment
 from posts.models import Post
 from posts.services.common import get_post_permission_for_user
 from posts.utils import get_post_slug
 from projects.permissions import ObjectPermission
+from projects.services.common import get_projects_qs
+from utils.acting_user import get_acting_user
+from utils.models import get_by_pk_or_slug
 from utils.requests import is_internal_request
 from utils.the_math.aggregations import get_aggregations_at_time
-from .constants import QuestionStatus
-from .models import Forecast, Question
-from .serializers.common import (
-    validate_question_resolution,
-    QuestionsCommunityPredictionsSerializer,
-    OldForecastWriteSerializer,
+from questions.constants import QuestionStatus
+from questions.models import Forecast, Question
+from questions.serializers.common import (
     ForecastWriteSerializer,
     ForecastWithdrawSerializer,
+    MyForecastSerializer,
+    OldForecastWriteSerializer,
+    QuestionsCommunityPredictionsSerializer,
     serialize_question,
+    validate_question_resolution,
 )
-from .services.forecasts import create_forecast_bulk, withdraw_forecast_bulk
-from .services.lifecycle import resolve_question, unresolve_question
+from questions.services.forecasts import (
+    create_forecast_bulk,
+    validate_and_create_forecasts,
+    withdraw_forecast_bulk,
+)
+from questions.services.lifecycle import resolve_question, unresolve_question
 
 
 @api_view(["GET"])
@@ -71,7 +85,15 @@ def resolve_api_view(request, pk: int):
     actual_resolve_time = DateTimeField().run_validation(
         request.data.get("actual_resolve_time")
     )
-    resolve_question(question, resolution, actual_resolve_time)
+    # Scoring runs inside this request by default, so that a failure or a timeout
+    # undoes the resolution. Opting in to `score_as_task` hands scoring back to a
+    # background task, which resolves immediately but reports nothing here.
+    score_as_task = BooleanField().run_validation(
+        request.data.get("score_as_task", False)
+    )
+    resolve_question(
+        question, resolution, actual_resolve_time, score_as_task=score_as_task
+    )
 
     return Response({"post_id": question.get_post().pk})
 
@@ -91,8 +113,9 @@ def unresolve_api_view(request, pk: int):
 
 @api_view(["POST"])
 def bulk_create_forecasts_api_view(request):
-    now = timezone.now()
-    serializer = ForecastWriteSerializer(data=request.data, many=True)
+    serializer = ForecastWriteSerializer(
+        data=request.data, many=True, context={"user": request.user}
+    )
     serializer.is_valid(raise_exception=True)
 
     validated_data = serializer.validated_data
@@ -106,47 +129,9 @@ def bulk_create_forecasts_api_view(request):
         else Forecast.SourceChoices.API
     )
 
-    # Prefetching questions for bulk optimization
-    questions = Question.objects.filter(
-        pk__in=[f["question"] for f in validated_data]
-    ).select_related("post")
-    questions_map: dict[int, Question] = {q.pk: q for q in questions}
-
-    # Replacing prefetched optimized questions
-    for forecast in validated_data:
-        question = questions_map.get(forecast["question"])
-
-        if not question:
-            raise ValidationError(f"Wrong question id {forecast['question']}")
-
-        forecast["question"] = question  # used in create_foreacst_bulk
-
-        # Check permissions
-        permission = get_post_permission_for_user(
-            question.get_post(), user=request.user
-        )
-        ObjectPermission.can_forecast(permission, raise_exception=True)
-
-        if (
-            question.post.curation_status != Post.CurationStatus.APPROVED
-            or not question.open_time
-        ):
-            return Response(
-                {
-                    "error": f"Question {question.id} is not scheduled for forecasting yet !"
-                },
-                status=status.HTTP_405_METHOD_NOT_ALLOWED,
-            )
-
-        if (question.scheduled_close_time < now) or (
-            question.actual_close_time and question.actual_close_time < now
-        ):
-            return Response(
-                {"error": f"Question {question.id} is already closed to forecasting !"},
-                status=status.HTTP_405_METHOD_NOT_ALLOWED,
-            )
-
-    create_forecast_bulk(user=request.user, forecasts=validated_data, source=source)
+    validate_and_create_forecasts(
+        user=request.user, validated_data=validated_data, source=source
+    )
 
     return Response({}, status=status.HTTP_201_CREATED)
 
@@ -162,9 +147,13 @@ def bulk_withdraw_forecasts_api_view(request):
     if not validated_data:
         raise ValidationError("At least one forecast must be withdawn")
 
-    # Prefetching questions for bulk optimization
+    # Prefetching questions for bulk optimization. Questions the user can't
+    # view are left out, so they fail exactly like ones that don't exist
     questions = (
-        Question.objects.filter(pk__in=[f["question"] for f in validated_data])
+        Question.objects.filter(
+            pk__in=[f["question"] for f in validated_data],
+            post__in=Post.objects.filter_permission(user=request.user),
+        )
         .select_related("post")
         .prefetch_related("user_forecasts")
     )
@@ -172,7 +161,8 @@ def bulk_withdraw_forecasts_api_view(request):
 
     # Replacing prefetched optimized questions
     for withdrawal in validated_data:
-        question = questions_map.get(withdrawal["question"])
+        question_id = withdrawal["question"]
+        question = questions_map.get(question_id)
         withdrawal["question"] = question  # used in withdraw_foreacst_bulk
         withdraw_at = withdrawal.get("withdraw_at", now)
         withdrawal["withdraw_at"] = withdraw_at  # used in withdraw_foreacst_bulk
@@ -184,7 +174,7 @@ def bulk_withdraw_forecasts_api_view(request):
             )
 
         if not question:
-            raise ValidationError(f"Wrong question id {withdrawal['question']}")
+            raise ValidationError(f"Wrong question id {question_id}")
 
         # Check permissions
         permission = get_post_permission_for_user(
@@ -270,6 +260,200 @@ def legacy_question_api_view(request, pk: int):
 
     return Response(
         {"question_id": pk, "post_id": post.pk, "post_slug": get_post_slug(post)}
+    )
+
+
+class BulkForecastAndCommentSerializer(serializers.Serializer):
+    forecasts = ForecastWriteSerializer(many=True, required=False, default=list)
+    comments = CommentWriteSerializer(many=True, required=False, default=list)
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def bulk_forecast_and_comment_api_view(request):
+    """
+    Submits forecasts and comments in a single atomic transaction, as the
+    requester or the account given by `acting_user`. See `utils.acting_user`
+    for which accounts the requester may act as.
+    """
+    user = get_acting_user(request, data=request.data)
+
+    # Validated as the acting user, so questions and posts hidden from them
+    # look the same as ones that don't exist
+    serializer = BulkForecastAndCommentSerializer(
+        data=request.data, context={"user": user}
+    )
+    serializer.is_valid(raise_exception=True)
+    data = serializer.validated_data
+
+    forecasts_data = data["forecasts"]
+    comments_data = data.get("comments", [])
+
+    now = timezone.now()
+    errors = []
+
+    # Validate forecasts and resolve question IDs to Question objects
+    questions_map = {
+        q.pk: q
+        for q in Question.objects.filter(
+            pk__in=[f["question"] for f in forecasts_data]
+        ).select_related("post")
+    }
+
+    for forecast in forecasts_data:
+        question_id = forecast["question"]
+        question = questions_map.get(question_id)
+        if not question:
+            errors.append(f"Question {question_id} does not exist.")
+            continue
+        forecast["question"] = question
+
+        post: Post = question.post
+        permission = get_post_permission_for_user(post, user=user)
+        if not ObjectPermission.can_forecast(permission):
+            errors.append(f"Question {question.id}: forecasting not permitted.")
+            continue
+
+        if (
+            post.curation_status != Post.CurationStatus.APPROVED
+            or not question.open_time
+            or not question.scheduled_close_time
+        ):
+            errors.append(f"Question {question.id} is not open for forecasting yet.")
+        elif (question.scheduled_close_time < now) or (
+            question.actual_close_time and question.actual_close_time < now
+        ):
+            errors.append(f"Question {question.id} is already closed to forecasting.")
+
+    # Validate comments
+    for i, comment in enumerate(comments_data):
+        on_post = comment["on_post"]
+        if not comment.get("is_private"):
+            errors.append(
+                f"Comment {i}: only private comments are allowed in bulk submissions."
+            )
+            continue
+        if comment.get("key_factors"):
+            errors.append(
+                f"Comment {i}: key_factors are not supported in bulk submissions."
+            )
+            continue
+        parent = comment.get("parent")
+        if parent and parent.on_post_id != on_post.id:
+            errors.append(
+                f"Comment {i}: parent comment belongs to post "
+                f"{parent.on_post_id}, not post {on_post.id}."
+            )
+            continue
+        permission = get_post_permission_for_user(
+            parent.on_post if parent else on_post, user=user
+        )
+        if not ObjectPermission.can_comment(permission):
+            errors.append(
+                f"Comment {i}: commenting not permitted on post {on_post.id}."
+            )
+
+    if errors:
+        raise ValidationError(errors)
+
+    source = (
+        Forecast.SourceChoices.UI
+        if is_internal_request(request)
+        else Forecast.SourceChoices.API
+    )
+
+    with transaction.atomic():
+        create_forecast_bulk(
+            user=user,
+            forecasts=forecasts_data,
+            source=source,
+        )
+
+        for comment_data in comments_data:
+            parent = comment_data.get("parent")
+            # Replies are persisted on the parent's post, so the included
+            # forecast must come from that post, not the submitted one.
+            on_post = parent.on_post if parent else comment_data["on_post"]
+            included_forecast_flag = comment_data.pop("included_forecast", False)
+            comment_data.pop("key_factors", None)
+
+            included_forecast = (
+                on_post.question.user_forecasts.filter(author_id=user.id)
+                .order_by("-start_time")
+                .first()
+                if included_forecast_flag and on_post.question_id
+                else None
+            )
+
+            create_comment(
+                **comment_data, included_forecast=included_forecast, user=user
+            )
+
+    return Response({}, status=status.HTTP_201_CREATED)
+
+
+class BulkForecastReadSerializer(serializers.Serializer):
+    question_ids = serializers.ListField(
+        child=serializers.IntegerField(), required=False, allow_empty=False
+    )
+    project = serializers.CharField(required=False, help_text="Project id or slug")
+
+    def validate(self, attrs):
+        if ("question_ids" in attrs) == ("project" in attrs):
+            raise serializers.ValidationError(
+                "Provide exactly one of question_ids or project."
+            )
+        return attrs
+
+
+@api_view(["GET", "POST"])
+@permission_classes([IsAuthenticated])
+def bulk_forecast_read_api_view(request):
+    """
+    Returns the acting user's forecasts on the given questions, or on every
+    question in the given project. Questions the acting user can't view are
+    omitted, exactly as if they didn't exist. Supports the `acting_user`
+    override from `utils.acting_user`. POST takes the same params as a JSON
+    body, for lists of question ids too long for a query string.
+    """
+    src = request.data if request.method == "POST" else request.query_params
+
+    user = get_acting_user(request, data=src)
+
+    serializer = BulkForecastReadSerializer(data=src)
+    serializer.is_valid(raise_exception=True)
+    data = serializer.validated_data
+
+    posts = Post.objects.filter_permission(user=user)
+
+    if "project" in data:
+        project = get_by_pk_or_slug(get_projects_qs(user=user), data["project"])
+        posts = posts.filter_projects(project)
+
+    questions = Question.objects.filter(post__in=posts)
+
+    if "question_ids" in data:
+        questions = questions.filter(id__in=data["question_ids"])
+
+    forecasts_by_question: dict[int, list[Forecast]] = defaultdict(list)
+
+    for forecast in Forecast.objects.filter(
+        author=user, question__in=questions
+    ).order_by("start_time"):
+        forecasts_by_question[forecast.question_id].append(forecast)
+
+    return Response(
+        {
+            "results": [
+                {
+                    "question_id": question_id,
+                    "forecasts": MyForecastSerializer(
+                        forecasts_by_question[question_id], many=True
+                    ).data,
+                }
+                for question_id in questions.order_by("id").values_list("id", flat=True)
+            ]
+        }
     )
 
 

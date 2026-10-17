@@ -3,7 +3,6 @@ import { CurrentUser } from "@/types/users";
 export type AuthContextType = {
   user: CurrentUser | null;
   setUser: (user: CurrentUser | null) => void;
-  csrfToken?: string | null;
 };
 
 export type AuthTokens = {

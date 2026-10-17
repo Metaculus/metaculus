@@ -1,6 +1,12 @@
 "use client";
+import {
+  faDownLeftAndUpRightToCenter,
+  faUpRightAndDownLeftFromCenter,
+} from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Tab, TabGroup, TabList } from "@headlessui/react";
 import { isNil } from "lodash";
+import { useTranslations } from "next-intl";
 import {
   forwardRef,
   Fragment,
@@ -10,7 +16,7 @@ import {
 } from "react";
 
 import { useIsEmbedMode } from "@/app/(embed)/questions/components/question_view_mode_context";
-import { TimelineChartZoomOption } from "@/types/charts";
+import { TimelineChartZoomOption, TimelineYDomainSource } from "@/types/charts";
 import { getChartZoomOptions } from "@/utils/charts/helpers";
 import cn from "@/utils/core/cn";
 
@@ -22,6 +28,8 @@ type Props = {
   headerLeft?: ReactNode;
   leftLegend?: React.ReactNode;
   headerExtra?: React.ReactNode;
+  yDomainSource?: TimelineYDomainSource;
+  onYDomainSourceChange?: (source: TimelineYDomainSource) => void;
 };
 
 const ChartContainer = forwardRef<HTMLDivElement, PropsWithChildren<Props>>(
@@ -35,9 +43,12 @@ const ChartContainer = forwardRef<HTMLDivElement, PropsWithChildren<Props>>(
       headerLeft,
       leftLegend,
       headerExtra,
+      yDomainSource,
+      onYDomainSourceChange,
     },
     ref
   ) => {
+    const t = useTranslations();
     const tabOptions = getChartZoomOptions();
     const [selectedIndex, setSelectedIndex] = useState(
       tabOptions.findIndex((option) => option.value === zoom)
@@ -101,7 +112,7 @@ const ChartContainer = forwardRef<HTMLDivElement, PropsWithChildren<Props>>(
                   )}
                 >
                   {!!zoom && (
-                    <div className="ChartZoomControls hidden md:flex">
+                    <div className="ChartZoomControls hidden items-center gap-0.5 md:flex">
                       <TabGroup
                         selectedIndex={selectedIndex}
                         onChange={handleTabChange}
@@ -133,6 +144,31 @@ const ChartContainer = forwardRef<HTMLDivElement, PropsWithChildren<Props>>(
                           ))}
                         </TabList>
                       </TabGroup>
+                      {!isNil(yDomainSource) && onYDomainSourceChange && (
+                        <button
+                          type="button"
+                          className="ChartZoomButton flex size-5 items-center justify-center rounded text-xs text-gray-600 hover:bg-gray-300 hover:text-blue-800 focus:outline-none focus-visible:ring-1 focus-visible:ring-blue-700 dark:text-gray-600-dark dark:hover:bg-gray-300-dark hover:dark:text-blue-800-dark"
+                          aria-label={t("includeTimelineUncertainty")}
+                          aria-pressed={yDomainSource === "intervals"}
+                          title={t("includeTimelineUncertainty")}
+                          onClick={() =>
+                            onYDomainSourceChange(
+                              yDomainSource === "intervals"
+                                ? "centers"
+                                : "intervals"
+                            )
+                          }
+                        >
+                          <FontAwesomeIcon
+                            icon={
+                              yDomainSource === "intervals"
+                                ? faUpRightAndDownLeftFromCenter
+                                : faDownLeftAndUpRightToCenter
+                            }
+                            className="size-3"
+                          />
+                        </button>
+                      )}
                     </div>
                   )}
                   {headerExtra}

@@ -172,6 +172,23 @@ describe("InitializedMarkdownEditor", () => {
     });
   });
 
+  describe("code blocks", () => {
+    it("renders existing code blocks in write mode when withCodeBlocks is false", async () => {
+      // Given
+      const markdown = "Before\n\n```\nconsole.log('hi');\n```\n\nAfter";
+
+      // When / Then — must not throw "Parsing of the following markdown
+      // structure failed: {type: code, name: N/A}".
+      await renderWithAct(
+        <MockedEditorComponent markdown={markdown} mode="write" />
+      );
+
+      const editor = screen.getByLabelText(EDITOR_LABEL);
+      expect(editor).toHaveTextContent("Before");
+      expect(editor).toHaveTextContent("After");
+    });
+  });
+
   describe("html tags", () => {
     it("properly preserves HTML tags with custom attributes", async () => {
       // Given

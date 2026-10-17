@@ -1,9 +1,12 @@
 import { Metadata } from "next";
 
 import { defaultDescription } from "@/constants/metadata";
+import { ExperimentsProvider } from "@/contexts/experiments_context";
+import { getSubscribeCaptureVariantForRequest } from "@/services/subscribe_capture_variant.server";
 import { SearchParams } from "@/types/navigation";
 import { getValidString } from "@/utils/formatters/string";
 import { getPostTitle } from "@/utils/questions/helpers";
+import { getPostSeoMetadata } from "@/utils/questions/metadata";
 
 import IndividualQuestionPage from "./page_component";
 import { cachedGetPostForMetadata } from "./utils/get_post";
@@ -22,6 +25,7 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
   }
   const questionTitle = getPostTitle(postData);
   return {
+    ...getPostSeoMetadata(postData),
     title:
       getValidString(postData.html_metadata_json?.title) ??
       getValidString(postData.short_title) ??
@@ -58,6 +62,13 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
 export default async function IndividualQuestionRoute(props: Props) {
   const searchParams = await props.searchParams;
   const params = await props.params;
+  // This route is dynamic already (per-request post data), so reading the
+  // experiment variant here costs nothing, unlike in a shared layout
+  const subscribeCaptureVariant = await getSubscribeCaptureVariantForRequest();
 
-  return <IndividualQuestionPage params={params} searchParams={searchParams} />;
+  return (
+    <ExperimentsProvider subscribeCaptureVariant={subscribeCaptureVariant}>
+      <IndividualQuestionPage params={params} searchParams={searchParams} />
+    </ExperimentsProvider>
+  );
 }

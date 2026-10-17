@@ -1,5 +1,7 @@
 import "server-only";
 
+import { match } from "@formatjs/intl-localematcher";
+import Negotiator from "negotiator";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { NextResponse } from "next/server";
@@ -11,6 +13,39 @@ const COOKIE_MAX_AGE = 60 * 60 * 24 * 365; // 1 year in seconds
 const LOCALES = ["cs", "en", "es", "zh", "zh-TW", "pt", "original"];
 // Read the translations documentation for more info on "original"
 const DEFAULT_LOCALE = "en";
+
+/**
+ * Resolve candidate locales against the supported LOCALES list
+ */
+export function matchLocale(options: string[]): string {
+  const candidates = options.filter((opt) => opt !== "*");
+  try {
+    return match(candidates, LOCALES, DEFAULT_LOCALE);
+  } catch {
+    return DEFAULT_LOCALE;
+  }
+}
+
+/**
+ * Map an Accept-Language header to a supported locale. Shared by locale
+ * resolution (i18n/request.ts) and experiment eligibility (proxy.ts) so both
+ * use identical BCP-47 mapping (e.g. zh-CN -> zh, pt-BR -> pt)
+ */
+export function negotiateLocale(acceptLang: string | null): string {
+  if (!acceptLang) return DEFAULT_LOCALE;
+
+  const parsedLanguages = new Negotiator({
+    headers: {
+      "accept-language": acceptLang,
+    },
+  }).languages();
+
+  return matchLocale(
+    parsedLanguages && parsedLanguages.length > 0
+      ? parsedLanguages
+      : [DEFAULT_LOCALE]
+  );
+}
 
 export class LanguageService {
   /**

@@ -48,10 +48,12 @@ import useContainerSize from "@/hooks/use_container_size";
 import usePrevious from "@/hooks/use_previous";
 import {
   Area,
+  DEFAULT_TIMELINE_Y_DOMAIN_OPTIONS,
   Line,
   LinePoint,
   Scale,
   TimelineChartZoomOption,
+  TimelineYDomainSource,
 } from "@/types/charts";
 import { QuestionStatus } from "@/types/post";
 import { ForecastAvailability, QuestionType } from "@/types/question";
@@ -81,13 +83,19 @@ type ChartData = {
 };
 
 type Props = {
-  buildChartData: (width: number, zoom: TimelineChartZoomOption) => ChartData;
+  buildChartData: (
+    width: number,
+    zoom: TimelineChartZoomOption,
+    yDomainSource: TimelineYDomainSource
+  ) => ChartData;
   chartTitle?: ReactNode;
   height?: number;
   hideCP?: boolean;
   hideCursorValueLabel?: boolean;
   defaultZoom?: TimelineChartZoomOption;
   withZoomPicker?: boolean;
+  withYDomainSourceToggle?: boolean;
+  defaultYDomainSource?: TimelineYDomainSource;
   resolutionPoint?: LinePoint[];
   yLabel?: string;
   tickFontSize?: number;
@@ -125,6 +133,8 @@ const NumericChart: FC<Props> = ({
   hideCP,
   defaultZoom = TimelineChartZoomOption.All,
   withZoomPicker = false,
+  withYDomainSourceToggle = false,
+  defaultYDomainSource = DEFAULT_TIMELINE_Y_DOMAIN_OPTIONS.source,
   resolutionPoint,
   yLabel,
   tickFontSize = CHART_FONT_SIZE.tick,
@@ -154,6 +164,11 @@ const NumericChart: FC<Props> = ({
   const { theme, getThemeColor } = useAppTheme();
   const [isChartReady, setIsChartReady] = useState(false);
   const [zoom, setZoom] = useState(defaultZoom);
+  const [yDomainSource, setYDomainSource] = useState(defaultYDomainSource);
+  useEffect(
+    () => setYDomainSource(defaultYDomainSource),
+    [defaultYDomainSource]
+  );
 
   const [isCursorActive, setIsCursorActive] = useState(false);
   const isContinuousConsumerView =
@@ -164,8 +179,8 @@ const NumericChart: FC<Props> = ({
   const { ref: chartContainerRef, width: chartWidth } =
     useContainerSize<HTMLDivElement>();
   const { line, area, points, yDomain, xDomain, yScale, xScale } = useMemo(
-    () => buildChartData(chartWidth, zoom),
-    [chartWidth, zoom, buildChartData]
+    () => buildChartData(chartWidth, zoom, yDomainSource),
+    [chartWidth, zoom, yDomainSource, buildChartData]
   );
   const shouldAdjustCursorLabel = line.at(-1)?.x !== xDomain.at(-1);
   const defaultCursor = useMemo(
@@ -623,6 +638,16 @@ const NumericChart: FC<Props> = ({
           height={height}
           zoom={withZoomPicker ? zoom : undefined}
           onZoomChange={setZoom}
+          yDomainSource={
+            withZoomPicker && withYDomainSourceToggle
+              ? yDomainSource
+              : undefined
+          }
+          onYDomainSourceChange={
+            withZoomPicker && withYDomainSourceToggle
+              ? setYDomainSource
+              : undefined
+          }
           chartTitle={chartTitle}
           leftLegend={leftLegend}
           headerExtra={

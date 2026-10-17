@@ -8,9 +8,9 @@ export const JOBS_INSIGHTS = {
     ),
     negative: (
       <>
-        By 2027, <strong>sales representatives</strong> are expected to see
-        early declines as AI begins to automate outreach and client
-        interactions.
+        By 2027, <strong>designers</strong> and{" "}
+        <strong>software developers</strong> are expected to see early declines
+        as AI begins to automate creative and coding work.
       </>
     ),
   },
@@ -18,18 +18,18 @@ export const JOBS_INSIGHTS = {
     positive: (
       <>
         By 2030, <strong>nurses</strong>, <strong>construction workers</strong>,
-        and <strong>restaurant servers</strong> are expected to see the largest
-        gains, driven by an aging population, infrastructure buildouts, and
-        continued demand for in-person service that AI is unlikely to displace
+        and <strong>physicians</strong> are expected to see the largest gains,
+        driven by an aging population&apos;s growing healthcare needs and
+        continued infrastructure buildouts that AI is unlikely to fully displace
         in the short term.
       </>
     ),
     negative: (
       <>
         By 2030, <strong>software developers</strong>,{" "}
-        <strong>financial specialists</strong>, and <strong>sales</strong> are
-        expected to see the largest declines as AI absorbs coding, rules-based
-        analysis, and outreach. Software development leads the drop, with rapid
+        <strong>designers</strong>, and <strong>lawyers and law clerks</strong>{" "}
+        are expected to see the largest declines as AI absorbs coding, creative,
+        and legal research work. Software development leads the drop, with rapid
         AI adoption and no legal protections.
       </>
     ),
@@ -46,12 +46,11 @@ export const JOBS_INSIGHTS = {
     negative: (
       <>
         By 2035, <strong>financial specialists</strong>,{" "}
-        <strong>lawyers and law clerks</strong>, and{" "}
-        <strong>laborers and movers</strong> are expected to see sharp staff
-        reductions as AI takes over analysis and research work while robotics
-        automates tasks in controlled indoor environments.{" "}
+        <strong>software developers</strong>, and{" "}
+        <strong>lawyers and law clerks</strong> are expected to see sharp staff
+        reductions as AI takes over legal research, analysis, and coding work.{" "}
         <strong>Sales representatives</strong> will also see reductions as AI
-        automates outreach and client work.
+        automates outreach work.
       </>
     ),
   },

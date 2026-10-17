@@ -4,7 +4,7 @@ from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from rest_framework import serializers, status
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.exceptions import PermissionDenied, ValidationError
+from rest_framework.exceptions import NotFound, PermissionDenied, ValidationError
 from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
 from rest_framework.request import Request
 from rest_framework.response import Response
@@ -24,19 +24,23 @@ from comments.serializers.common import (
     serialize_comments_of_the_week_many,
 )
 from comments.services.common import (
+    get_comment_permission_for_user,
     set_comment_excluded_from_week_top,
     create_comment,
+    perform_create_comment,
     pin_comment,
     unpin_comment,
     soft_delete_comment,
     update_comment,
     vote_comment,
     toggle_cmm,
+    publish_bot_private_comments,
 )
 from comments.services.feed import get_comments_feed
-from comments.services.key_factors.common import create_key_factors
+from comments.services.text_archive import get_full_text
 from notifications.services import send_comment_report_notification_to_staff
 from posts.services.common import get_post_permission_for_user
+from projects.models import Project
 from projects.permissions import ObjectPermission
 from users.models import User
 from utils.paginator import LimitOffsetPagination, CountlessLimitOffsetPagination
@@ -105,7 +109,7 @@ def comments_list_api_view(request: Request):
     paginated_comments = paginator.paginate_queryset(comments, request)
 
     data = serialize_comment_many(
-        paginated_comments, request.user, with_key_factors=True
+        paginated_comments, request.user, with_key_factors=True, request=request
     )
 
     return paginator.get_paginated_response(data)
@@ -127,36 +131,11 @@ def comment_delete_api_view(request: Request, pk: int):
 @transaction.atomic
 def comment_create_api_view(request: Request):
     user: User = request.user
-    serializer = CommentWriteSerializer(data=request.data)
+    # Posts and parent comments the user can't view fail like missing ones
+    serializer = CommentWriteSerializer(data=request.data, context={"user": user})
     serializer.is_valid(raise_exception=True)
 
-    on_post = serializer.validated_data["on_post"]
-    parent = serializer.validated_data.get("parent")
-    included_forecast = serializer.validated_data.pop("included_forecast", False)
-    key_factors = serializer.validated_data.pop("key_factors", None)
-
-    # Small validation
-    permission = get_post_permission_for_user(
-        parent.on_post if parent else on_post, user=user
-    )
-    ObjectPermission.can_comment(permission, raise_exception=True)
-
-    forecast = (
-        (
-            on_post.question.user_forecasts.filter(author_id=user.id)
-            .order_by("-start_time")
-            .first()
-        )
-        if included_forecast and on_post.question_id
-        else None
-    )
-
-    new_comment = create_comment(
-        **serializer.validated_data, included_forecast=forecast, user=user
-    )
-
-    if key_factors:
-        create_key_factors(new_comment, key_factors)
+    new_comment = perform_create_comment(user=user, **serializer.validated_data)
 
     return Response(
         serialize_comment_many([new_comment], with_key_factors=True)[0],
@@ -256,6 +235,44 @@ def comment_report_api_view(request, pk=int):
     send_comment_report_notification_to_staff(comment, reason, request.user)
 
     return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def comment_detail_api_view(request: Request, pk: int):
+    """
+    Returns a single comment with its untruncated text, reading the text back
+    from the archive if it has been moved out of the database.
+    """
+
+    comment = get_object_or_404(Comment, pk=pk)
+
+    # Staff read any comment, deleted or private. Archiving would otherwise
+    # take away the only view they had of a bot's full text:
+    # `get_comment_permission_for_user` resolves every private comment to no
+    # permission but the author's, and the row itself now holds only a stub.
+    is_staff = request.user.is_staff or request.user.is_superuser
+
+    if not is_staff:
+        permission = get_comment_permission_for_user(comment, user=request.user)
+        ObjectPermission.can_view(permission, raise_exception=True)
+
+        if comment.is_soft_deleted:
+            # Mirrors the comment serializer, which never exposes deleted text
+            raise PermissionDenied("This comment has been deleted.")
+
+    text = get_full_text(comment)
+
+    if text is None:
+        raise NotFound("The archived text of this comment could not be retrieved.")
+
+    data = serialize_comment_many([comment], request.user, with_key_factors=True)[0]
+    # The serializer reads the row, which holds only a stub once the comment is
+    # archived, and blanks the text of deleted comments that only staff reach
+    # here.
+    data["text"] = text
+
+    return Response(data)
 
 
 @api_view(["POST"])
@@ -358,3 +375,11 @@ def comment_set_excluded_from_week_top_view(request: Request, pk: int):
 
     set_comment_excluded_from_week_top(comment, excluded=excluded)
     return Response(status=status.HTTP_200_OK)
+
+
+@api_view(["POST"])
+@permission_classes([IsAdminUser])
+def publish_project_bot_comments_api_view(request: Request, project_id: int):
+    project = get_object_or_404(Project, pk=project_id)
+    published_count = publish_bot_private_comments(project)
+    return Response({"published_count": published_count})

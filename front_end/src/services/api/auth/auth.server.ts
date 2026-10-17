@@ -10,6 +10,8 @@ import {
   SocialProviderType,
 } from "@/types/auth";
 import { serverFetcher } from "@/utils/core/fetch/fetch.server";
+import { GatedActionWire } from "@/utils/gated_actions";
+import { encodeQueryParams } from "@/utils/navigation";
 
 export type SignUpProps = {
   email: string;
@@ -58,14 +60,26 @@ class ServerAuthApiClass extends ApiService {
   async exchangeSocialOauthCode(
     provider: SocialProviderType,
     code: string,
-    redirect_uri: string
+    redirect_uri: string,
+    gated_action?: GatedActionWire | null,
+    signup_source?: string | null
   ): Promise<SocialAuthResponse | null> {
     return this.post<
       SocialAuthResponse,
-      { code: string; redirect_uri: string }
+      {
+        code: string;
+        redirect_uri: string;
+        gated_action?: GatedActionWire | null;
+        signup_source?: string;
+      }
     >(
       `/auth/social/${provider}/`,
-      { code, redirect_uri },
+      {
+        code,
+        redirect_uri,
+        ...(gated_action ? { gated_action } : {}),
+        ...(signup_source ? { signup_source } : {}),
+      },
       {},
       { passAuthHeader: false }
     );
@@ -108,6 +122,31 @@ class ServerAuthApiClass extends ApiService {
     );
   }
 
+  async requestEmailLink(
+    body: {
+      email: string;
+      redirect_url?: string | null;
+      gated_action?: GatedActionWire | null;
+    },
+    headers: HeadersInit
+  ) {
+    return this.post<null>(
+      "/auth/email-link/",
+      body,
+      { headers },
+      { passAuthHeader: false }
+    );
+  }
+
+  async verifyEmailLink(userId: string, token: string) {
+    return this.post<AuthResponse, { user_id: string; token: string }>(
+      "/auth/email-link/verify/",
+      { user_id: userId, token },
+      {},
+      { passAuthHeader: false }
+    );
+  }
+
   async passwordResetRequest(login: string) {
     return this.post<null, { login: string }>(
       "/auth/password-reset/",
@@ -131,6 +170,23 @@ class ServerAuthApiClass extends ApiService {
     return this.post<AuthResponse>(
       `/auth/password-reset/change/?user_id=${user_id}&token=${token}`,
       { password },
+      {},
+      { passAuthHeader: false }
+    );
+  }
+
+  async checkEmailChangeRollback(token: string) {
+    return this.get<{ old_email: string; new_email: string }>(
+      `/auth/email-change/rollback/${encodeQueryParams({ token })}`,
+      {},
+      { passAuthHeader: false }
+    );
+  }
+
+  async rollbackEmailChange(token: string, password: string) {
+    return this.post<AuthResponse, { token: string; password: string }>(
+      "/auth/email-change/rollback/",
+      { token, password },
       {},
       { passAuthHeader: false }
     );

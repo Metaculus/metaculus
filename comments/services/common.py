@@ -1,6 +1,7 @@
 import datetime
 import difflib
 from collections import defaultdict
+import logging
 
 from django.db import IntegrityError, transaction
 from django.db.models import (
@@ -27,13 +28,17 @@ from comments.models import (
     KeyFactor,
     KeyFactorVote,
 )
+from comments.services.key_factors.common import create_key_factors
 from comments.services.spam_detection import check_and_handle_comment_spam
 from posts.models import Post, PostUserSnapshot
+from posts.services.common import get_post_permission_for_user
 from projects.models import Project
 from projects.permissions import ObjectPermission
 from questions.models import Forecast
 from users.models import User
 from ..tasks import run_on_post_comment_create
+
+logger = logging.getLogger(__name__)
 
 spam_error = ValidationError(
     detail="This comment seems to be spam. Please contact "
@@ -134,9 +139,68 @@ def create_comment(
     return obj
 
 
+def perform_create_comment(
+    user: User,
+    on_post: Post,
+    parent: Comment | None = None,
+    text: str | None = None,
+    is_private: bool = False,
+    included_forecast: bool = False,
+    key_factors: list[dict] | None = None,
+) -> Comment:
+    """
+    Create a comment (optionally with key factors), including the permission
+    check and the included_forecast lookup. Shared by the comment-create
+    endpoint and the create_comment gated action, so both apply the same rules.
+
+    included_forecast is a flag here (as sent by the client); it is resolved to
+    the user's latest forecast before reaching create_comment.
+    """
+    permission = get_post_permission_for_user(
+        parent.on_post if parent else on_post, user=user
+    )
+    ObjectPermission.can_comment(permission, raise_exception=True)
+
+    forecast = (
+        (
+            on_post.question.user_forecasts.filter(author_id=user.id)
+            .order_by("-start_time")
+            .first()
+        )
+        if included_forecast and on_post.question_id
+        else None
+    )
+
+    with transaction.atomic():
+        new_comment = create_comment(
+            user=user,
+            on_post=on_post,
+            parent=parent,
+            text=text,
+            is_private=is_private,
+            included_forecast=forecast,
+        )
+
+        if key_factors:
+            create_key_factors(new_comment, key_factors)
+
+    return new_comment
+
+
 def update_comment(
     comment: Comment, text: str = None, included_forecast: Forecast = None
 ):
+    if comment.is_text_archived:
+        # Only a stub of the text remains in the db, so we can neither diff
+        # against it nor let it be overwritten
+        logger.info(
+            f"Attempt to update archived comment {comment.id} by "
+            f"user {comment.author_id}"
+        )
+        raise ValidationError(
+            "This comment's text has been archived and can no longer be edited."
+        )
+
     differ = difflib.Differ()
 
     diff = list(differ.compare(comment.text.splitlines(), text.splitlines()))
@@ -515,3 +579,16 @@ def privatize_user_comments(user) -> int:
     if to_privatize:
         Comment.objects.filter(id__in=to_privatize).update(is_private=True)
     return len(to_privatize)
+
+
+def publish_bot_private_comments(project: Project) -> int:
+    """
+    Makes bots' private comments public on the project's questions whose
+    community prediction is already revealed. Returns the number published.
+    """
+    return Comment.objects.filter(
+        on_post__default_project=project,
+        author__is_bot=True,
+        on_post__question__cp_reveal_time__lt=timezone.now(),
+        is_private=True,
+    ).update(is_private=False)

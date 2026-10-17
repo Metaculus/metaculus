@@ -1,6 +1,6 @@
 from django.urls import path
 
-from .views import common, social
+from .views import common, email_link, social
 
 urlpatterns = [
     path("auth/login/token/", common.login_api_view),
@@ -15,12 +15,28 @@ urlpatterns = [
     ),
     path("auth/signup/resend/", common.resend_activation_link_api_view),
     path("auth/signup/activate/", common.signup_activate_api_view),
+    path(
+        "auth/email-link/",
+        email_link.email_link_request_api_view,
+        name="auth-email-link",
+    ),
+    path(
+        "auth/email-link/verify/",
+        email_link.email_link_verify_api_view,
+        name="auth-email-link-verify",
+    ),
     # Social auth
     path("auth/social/", social.social_providers_api_view),
     path("auth/social/<str:provider>/", social.SocialCodeAuth.as_view()),
     # Password Reset
     path("auth/password-reset/", common.password_reset_api_view),
     path("auth/password-reset/change/", common.password_reset_confirm_api_view),
+    # Email change rollback
+    path(
+        "auth/email-change/rollback/",
+        common.email_change_rollback_api_view,
+        name="auth-email-change-rollback",
+    ),
     # Invite user
     path("auth/invite/", common.invite_user_api_view),
     # API Key

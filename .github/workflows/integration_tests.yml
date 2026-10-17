@@ -97,6 +97,13 @@ jobs:
       - name: Install node_modules
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
         run: cd front_end && bun ci
+      # Email templates are compiled from .mjml and not committed, so a checkout
+      # has none until this runs.
+      # Keep this version in sync with ARG MJML_VERSION in the Dockerfile.
+      - name: Compose MJML email templates
+        run: |
+          bun add -g mjml@5.4.0
+          uv run ./manage.py mjml_compose
       - name: Build the frontend
         run: cd front_end && NODE_OPTIONS=--max-old-space-size=8192 bun run build
       - name: Run the integration tests

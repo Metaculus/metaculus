@@ -3,10 +3,12 @@ import { redirect } from "next/navigation";
 import { remark } from "remark";
 import strip from "strip-markdown";
 
+import { getMarkdownAlternateTypes } from "@/agent_markdown/respond";
 import { defaultDescription } from "@/constants/metadata";
 import ServerPostsApi from "@/services/api/posts/posts.server";
 import { getValidString } from "@/utils/formatters/string";
 import { getPostLink } from "@/utils/navigation";
+import { getPostSeoMetadata } from "@/utils/questions/metadata";
 
 import IndividualNotebookPage from "./page_compotent";
 
@@ -24,8 +26,14 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
 
   const file = remark().use(strip).processSync(postData.notebook?.markdown);
   const parsedDescription = String(file).split("\n")[0];
+  const seoMetadata = getPostSeoMetadata(postData);
 
   return {
+    ...seoMetadata,
+    alternates: {
+      ...seoMetadata.alternates,
+      types: getMarkdownAlternateTypes(getPostLink(postData)),
+    },
     title:
       getValidString(postData.html_metadata_json?.title) ??
       getValidString(postData.short_title) ??

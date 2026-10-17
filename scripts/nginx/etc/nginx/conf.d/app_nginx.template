@@ -64,6 +64,10 @@ server {
         client_max_body_size 10M;
     }
 
+    location = /_next/static/ {
+        return 404;
+    }
+
     location /_next/static/ {
         alias /app/front_end/.next/static/;
         expires 1y;

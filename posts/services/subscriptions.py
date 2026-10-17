@@ -5,6 +5,7 @@ from django.contrib.postgres.aggregates import ArrayAgg
 from django.db.models import Q, F, OuterRef, Case, When, Value, IntegerField
 from django.db.models.functions import Coalesce
 from django.utils import timezone
+from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 from sql_util.aggregates import SubqueryAggregate
 
@@ -583,3 +584,58 @@ def enable_global_cp_reminders(user: User):
         ],
         ignore_conflicts=True,
     )
+
+
+def update_post_subscriptions(
+    user: User, post: Post, subscriptions_data: list[dict]
+) -> list[PostSubscription]:
+    """
+    Bulk create/update/delete of a user's subscriptions on a post.
+    Shared by the subscriptions endpoint and the post_subscribe gated action.
+    """
+    from posts.serializers import get_subscription_serializer_by_type
+
+    existing_subscriptions = post.subscriptions.filter(user=user).exclude(
+        is_global=True
+    )
+
+    validated_data = []
+    keep_ids = set()
+
+    for data in serializers.ListField().run_validation(subscriptions_data):
+        subscription_type = data.get("type")
+        subscription_id = data.pop("id", None)
+
+        serializer = get_subscription_serializer_by_type(subscription_type)(data=data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+        data.pop("created_at", None)
+
+        existing_subscription = next(
+            (sub for sub in existing_subscriptions if sub.id == subscription_id),
+            None,
+        )
+        create = not existing_subscription
+
+        if existing_subscription:
+            for key, value in data.items():
+                if getattr(existing_subscription, key) != value:
+                    create = True
+                    break
+
+        if create:
+            validated_data.append(data)
+        else:
+            keep_ids.add(subscription_id)
+
+    existing_subscriptions.exclude(id__in=keep_ids).delete()
+
+    for data in validated_data:
+        create_subscription(
+            subscription_type=data.pop("type"),
+            post=post,
+            user=user,
+            **data,
+        )
+
+    return list(existing_subscriptions.all())

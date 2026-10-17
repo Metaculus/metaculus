@@ -198,14 +198,14 @@ export default function LaborAutomationHubPage() {
               </span>
               , <strong>median wages are expected to grow.</strong> The workweek
               is also expected to become{" "}
-              <strong>about three hours shorter by 2035</strong> among all
+              <strong>nearly two hours shorter by 2035</strong> among all
               workers, while productivity grows.
             </ContentParagraph>
             <ContentParagraph>
               Lower income households are expected to see their government
-              benefits outpace their basic needs, while higher income households
-              are expected to see much stronger growth in resources relative to
-              needs.
+              benefits keep pace with their basic needs, while higher income
+              households are expected to see much stronger growth in resources
+              relative to needs.
             </ContentParagraph>
           </DualPaneSectionLeft>
           <DualPaneSectionRight className="lg:mt-16 print:mt-12">
@@ -342,10 +342,22 @@ export default function LaborAutomationHubPage() {
               chartProps={{
                 showTickLabels: true,
                 valueFormat: "number",
+                yAxisMin: 0,
               }}
             />
+            <ActivityCard
+              avatar="https://cdn.metaculus.com/labor-hub/lubossaloky_256.jpg"
+              username="Ľuboš Saloky (lubossaloky)"
+              subtitle="Pro Forecaster"
+              link="https://www.metaculus.com/questions/43043/well-being-ratio-for-the-80th-percentile-us-family/#comment-916433"
+            >
+              I am somewhat concerned about frontier models not being available
+              to the public (e.g., Fable, GPT-5.6). Delayed release provides
+              workers more time to adapt, but it also advantages a narrow subset
+              of governments and organizations at everyone else&apos;s expense.
+            </ActivityCard>
             <ContentParagraph small>
-              With only 13% of workers using AI daily as of early 2026, the
+              With only 15% of workers using AI daily as of May 2026, the
               workplace is still in the early stages of an adoption curve that
               could fundamentally change how most Americans do their jobs within
               a decade. But forecasters note that some people may only think
@@ -366,6 +378,7 @@ export default function LaborAutomationHubPage() {
                 showTickLabels: true,
                 valueFormat: "percentage",
                 decimals: 1,
+                yAxisMin: 0,
               }}
             />
           </DualPaneSectionRight>
@@ -440,6 +453,7 @@ export default function LaborAutomationHubPage() {
                 chartProps={{
                   showTickLabels: true,
                   valueFormat: "percentage",
+                  yAxisMin: 0,
                 }}
               />
             </ThemeOverrideContainer>
@@ -454,9 +468,9 @@ export default function LaborAutomationHubPage() {
             </ContentParagraph>
             <ContentParagraph>
               Four-year degrees are expected to decline modestly by 2035, with
-              humanities falling substantially and STEM increasingly too, led by
-              computer science, while trade schools and community colleges see
-              significant growth in degrees and certificates awarded.
+              humanities falling substantially and STEM declining more modestly,
+              while trade schools and community colleges see significant growth
+              in degrees and certificates awarded.
             </ContentParagraph>
           </DualPaneSectionLeft>
           <DualPaneSectionRight className="lg:mt-24 print:mt-12">
@@ -466,8 +480,8 @@ export default function LaborAutomationHubPage() {
               years of falling enrollment drive the decline; AI compounds it by
               making students doubt that degrees in automatable fields will lead
               to jobs, though students already enrolled delay its effect until
-              after 2030. Computer science is expected to be hit hardest, while
-              humanities continue their long slide.
+              after 2030. Humanities is expected to be hit hardest, while STEM
+              sees a more modest decline.
             </ContentParagraph>
             <FlippableMultiQuestionCard
               prefer="timeline"
@@ -651,32 +665,49 @@ export default function LaborAutomationHubPage() {
                 showTickLabels: true,
                 valueFormat: "number",
                 decimals: 0,
+                yAxisMin: 0,
               }}
             />
             <ActivityCard
-              avatar="https://cdn.metaculus.com/labor-hub/lubossaloky_256.jpg"
-              username="Ľuboš Saloky (lubossaloky)"
+              username="Marcos Ortega (MarcosO)"
+              avatar="https://cdn.metaculus.com/labor-hub/marcoso_256.jpg"
               subtitle="Pro Forecaster"
-              link="https://www.metaculus.com/questions/41313/#comment-819256"
+              link="https://www.metaculus.com/questions/41307/us-employment-level-change-vs-2025/#comment-945687"
             >
               <p>
-                Even during periods when total unemployment rates spike
-                significantly, the rate of long-term unemployment relative to
-                the labor force stays relatively low. People do exit the
-                unemployment statistics without finding employment. When workers
-                become discouraged and stop looking for employment, they leave
-                the labor force. Also when someone transitions from being
-                unemployed to returning to school, retiring early, or focusing
-                on family care, they disappear from unemployment statistics.
+                For 2030, I expect the{" "}
+                <a
+                  href="https://en.wikipedia.org/wiki/O-ring_theory_of_economic_development"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline"
+                >
+                  O-ring concept
+                </a>{" "}
+                to reduce the number of jobs actually removed because many still
+                require a human component to be completed successfully, even if
+                there are parts that can be fully automated. I also expect new
+                jobs to come into existence, which has happened in every past
+                technological revolution, along with an increase in demand in
+                certain jobs due to the nature of Jevon&apos;s paradox, where a
+                cheaper good/service becomes more widely used.
               </p>
               <p>
-                When discouraged workers fall off the unemployment rolls, the
-                unemployment rate looks artificially lower. I’m forecasting a
-                −2% change in overall employment by 2030 and −11% by 2035.
+                For 2035, I expect the increase in AI by then to be so
+                significant that it will outweigh the impact of new jobs, O-ring
+                jobs, and the upward increase in demand from cheaper labor.
+                It&apos;s difficult to know how the economy will react in
+                aggregate to automation, so I&apos;m very uncertain this far out
+                because it&apos;s possible that the pushback against AI leads to
+                a pause or slowdown, allowing for a typical unemployment rate.
+                It&apos;s also possible there&apos;s some other form of a
+                roadblock that prevents the expected exponential continuation of
+                progress.
               </p>
               <p>
-                However, I don’t expect these declines to be fully reflected in
-                the long-term unemployment rate.
+                Across all potential scenarios, probabilistically weighted, I
+                maintain there&apos;ll be mass unemployment, relative to our
+                standard of ~4%.
               </p>
             </ActivityCard>
             <FlippableChartTimelineCard
@@ -701,6 +732,7 @@ export default function LaborAutomationHubPage() {
                 showTickLabels: true,
                 valueFormat: "percentage",
                 decimals: 2,
+                yAxisMin: 0,
               }}
             />
             <ContentParagraph small>
@@ -753,11 +785,11 @@ export default function LaborAutomationHubPage() {
             <ContentParagraph>
               The healthcare sector (employing 13% of Washington residents) is
               forecasted to grow through 2027, largely unaffected by AI in this
-              timeframe. Aerospace (employing 2%) is expected to see minor
+              timeframe. Aerospace (employing 2%) is expected to see similar
               growth in the short-term, while technology (employing 10%) is
-              expected to see marginal growth, largely consistent with
-              historical trends. These forecasts are short-term, leading to
-              minimal predicted change.
+              expected to stay roughly flat, largely consistent with historical
+              trends. These forecasts are short-term, leading to minimal
+              predicted change.
             </ContentParagraph>
           </DualPaneSectionLeft>
           <DualPaneSectionRight className="lg:mt-16 print:mt-12">

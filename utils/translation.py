@@ -117,6 +117,13 @@ async def agoogle_translate_text(source_language, target_language, text):
 
 
 # Other utils
+def automatic_translations_enabled():
+    return bool(
+        settings.AUTOMATIC_TRANSLATIONS_ENABLED
+        and settings.GOOGLE_TRANSLATE_SERVICE_ACCOUNT_KEY
+    )
+
+
 def get_translation_fields_for_model(model):
     opts = translator.get_options_for_model(model)
     return sorted(list(opts.all_fields.keys()))

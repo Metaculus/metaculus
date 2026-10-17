@@ -1,13 +1,12 @@
 import { useEffect, useState } from "react";
 
 import { getSocialProviders } from "@/app/(main)/actions";
-import { useAuth } from "@/contexts/auth_context";
 import { SocialProvider } from "@/types/auth";
+import { getOrMintCsrfToken } from "@/utils/csrf";
 import { addUrlParams } from "@/utils/navigation";
 
 const useSocialAuth = () => {
   const [socialProviders, setSocialProviders] = useState<SocialProvider[]>();
-  const { csrfToken } = useAuth();
 
   useEffect(() => {
     getSocialProviders()
@@ -25,7 +24,10 @@ const useSocialAuth = () => {
     return addUrlParams(provider.auth_url, [
       {
         paramName: "state",
-        paramValue: JSON.stringify({ redirect: redirectUrl, nonce: csrfToken }),
+        paramValue: JSON.stringify({
+          redirect: redirectUrl,
+          nonce: getOrMintCsrfToken(),
+        }),
       },
     ]);
   };

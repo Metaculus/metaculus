@@ -16,6 +16,7 @@ import KeyFactorsCarousel from "@/app/(main)/questions/[id]/components/key_facto
 import CommentVoter from "@/components/comment_feed/comment_voter";
 import MarkdownEditor from "@/components/markdown_editor";
 import Button from "@/components/ui/button";
+import RelativeTime from "@/components/ui/relative_time";
 import { BECommentType, KeyFactor } from "@/types/comment";
 import { parseUserMentions } from "@/utils/comments";
 import cn from "@/utils/core/cn";
@@ -115,13 +116,20 @@ const ExpandableCommentContent = ({
           >
             {formatUsername(comment.author)}
           </Link>
-          <span
-            className="shrink-0 text-sm font-normal leading-5 text-gray-500 dark:text-gray-500-dark"
-            suppressHydrationWarning
-          >
-            {t("onDate", {
-              date: formatDate(locale, new Date(comment.created_at)),
-            })}
+          <span className="shrink-0 text-sm font-normal leading-5 text-gray-500 dark:text-gray-500-dark">
+            <RelativeTime
+              datetime={comment.created_at}
+              format="relative"
+              threshold="P1D"
+              prefix={t("onDate", { date: "" }).trim()}
+              year="numeric"
+              month="short"
+              day="numeric"
+            >
+              {t("onDate", {
+                date: formatDate(locale, new Date(comment.created_at)),
+              })}
+            </RelativeTime>
           </span>
         </div>
         {commentUrl && (
