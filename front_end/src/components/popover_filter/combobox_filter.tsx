@@ -11,7 +11,7 @@ import {
   ComboboxOptions,
 } from "@headlessui/react";
 import { debounce } from "lodash";
-import { FC, useCallback, useEffect, useMemo, useState } from "react";
+import { FC, useEffect, useMemo, useState } from "react";
 
 import { FilterOption } from "@/components/popover_filter/types";
 import Chip, { ChipColor } from "@/components/ui/chip";
@@ -44,11 +44,11 @@ const ComboboxFilter: FC<Props> = ({
   );
   const [searchedOptions, setSearchedOptions] = useState<FilterOption[]>([]);
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const fetchOptions = useCallback(
-    debounce((q) => {
-      if (optionsFetcher) optionsFetcher(q).then(setSearchedOptions);
-    }, 200),
+  const fetchOptions = useMemo(
+    () =>
+      debounce((q) => {
+        if (optionsFetcher) optionsFetcher(q).then(setSearchedOptions);
+      }, 200),
     [optionsFetcher]
   );
 

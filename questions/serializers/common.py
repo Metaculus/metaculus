@@ -593,7 +593,16 @@ class ForecastWriteSerializer(serializers.ModelSerializer):
         question_id = data.get("question")
         if not question_id:
             raise serializers.ValidationError("question is required")
-        question = Question.objects.filter(id=question_id).first()
+
+        questions = Question.objects.filter(id=question_id)
+        # With a user in context, questions they can't view are treated exactly
+        # like missing ones, so their ids, types and options can't be probed
+        if "user" in self.context:
+            questions = questions.filter(
+                post__in=Post.objects.filter_permission(user=self.context["user"])
+            )
+
+        question = questions.first()
         if not question:
             raise serializers.ValidationError(
                 f"question with id {question_id} does not exist. "

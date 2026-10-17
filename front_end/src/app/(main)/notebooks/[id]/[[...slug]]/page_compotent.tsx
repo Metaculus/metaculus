@@ -25,7 +25,8 @@ import ServerProjectsApi from "@/services/api/projects/projects.server";
 import { PostStatus } from "@/types/post";
 import { TournamentType } from "@/types/projects";
 import { formatDate } from "@/utils/formatters/date";
-import { estimateReadingTime } from "@/utils/markdown";
+import { estimateReadingTime, replaceEmbedsWithLinks } from "@/utils/markdown";
+import { getPublicSettings } from "@/utils/public_settings.server";
 import { getPostTitle, isNotebookPost } from "@/utils/questions/helpers";
 
 const IndividualNotebookPage: FC<{
@@ -162,6 +163,13 @@ const IndividualNotebookPage: FC<{
               postData={postData}
               contentId={NOTEBOOK_CONTENT_SECTION}
             />
+            {/* For agents and crawlers: class-hidden, as extractors drop [hidden] */}
+            <pre className="hidden">
+              {replaceEmbedsWithLinks(
+                postData.notebook.markdown,
+                getPublicSettings().PUBLIC_APP_URL
+              )}
+            </pre>
             <CommentsFeedProvider
               postData={postData}
               rootCommentStructure={true}

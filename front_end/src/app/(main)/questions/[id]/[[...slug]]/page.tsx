@@ -16,12 +16,6 @@ type Props = {
   searchParams: Promise<SearchParams>;
 };
 
-const NOINDEX_DEFAULT_PROJECT_KEYWORDS = [
-  "futureeval",
-  "AI Forecasting Benchmark Tournament",
-  "minibench",
-];
-
 export async function generateMetadata(props: Props): Promise<Metadata> {
   const params = await props.params;
   const postData = await cachedGetPostForMetadata(params.id);
@@ -30,10 +24,6 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
     return {};
   }
   const questionTitle = getPostTitle(postData);
-  const defaultProjectName = postData.projects?.default_project?.name ?? "";
-  const shouldNoindex = NOINDEX_DEFAULT_PROJECT_KEYWORDS.some((keyword) =>
-    defaultProjectName.toLowerCase().includes(keyword.toLowerCase())
-  );
   return {
     ...getPostSeoMetadata(postData),
     title:
@@ -66,7 +56,6 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
         alt: "community predictions",
       },
     },
-    ...(shouldNoindex ? { robots: { index: false, follow: false } } : {}),
   };
 }
 

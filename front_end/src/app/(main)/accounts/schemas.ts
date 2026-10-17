@@ -85,26 +85,35 @@ export type PasswordResetRequestSchema = z.infer<
   typeof passwordResetRequestSchema
 >;
 
+const newPasswordFields = {
+  password: z
+    .string()
+    .min(8, { message: "Password must be at least 8 characters" }),
+  passwordAgain: z
+    .string()
+    .min(8, { message: "Password must be at least 8 characters" }),
+};
+
+function checkPasswordsMatch(
+  { password, passwordAgain }: { password: string; passwordAgain: string },
+  ctx: z.RefinementCtx
+) {
+  if (passwordAgain !== password) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "The passwords did not match",
+      path: ["passwordAgain"],
+    });
+  }
+}
+
 export const passwordResetConfirmSchema = z
-  .object({
-    user_id: z.any(),
-    token: z.string(),
-    password: z
-      .string()
-      .min(8, { message: "Password must be at least 8 characters" }),
-    passwordAgain: z
-      .string()
-      .min(8, { message: "Password must be at least 8 characters" }),
-  })
-  .superRefine(({ passwordAgain, password }, ctx) => {
-    if (passwordAgain !== password) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "The passwords did not match",
-        path: ["passwordAgain"],
-      });
-    }
-  });
+  .object({ user_id: z.any(), token: z.string(), ...newPasswordFields })
+  .superRefine(checkPasswordsMatch);
 export type PasswordResetConfirmSchema = z.infer<
   typeof passwordResetConfirmSchema
 >;
+
+export const emailRollbackSchema = z
+  .object({ token: z.string().min(1), ...newPasswordFields })
+  .superRefine(checkPasswordsMatch);

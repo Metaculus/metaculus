@@ -403,9 +403,7 @@ class NotificationNewComments(NotificationTypeSimilarPostsMixin, NotificationTyp
                 {
                     "author_username": comment.author.username,
                     "preview_text": preview_text,
-                    "url": build_post_comment_url(
-                        comment.on_post_id, comment.on_post.title, comment.id
-                    ),
+                    "url": build_post_comment_url(comment.on_post, comment.id),
                 }
             )
 
@@ -748,9 +746,7 @@ def send_comment_mention_notification(recipient, comment: Comment, mention: str)
                 "author_username": comment.author.username,
                 "mention_label": mention_label,
                 "preview_text": preview_text,
-                "comment_url": build_post_comment_url(
-                    comment.on_post_id, comment.on_post.title, comment.id
-                ),
+                "comment_url": build_post_comment_url(comment.on_post, comment.id),
             },
         },
         use_async=False,
@@ -779,9 +775,7 @@ def send_comment_report_notification_to_staff(
                 "preview_text": generate_email_comment_preview_text(
                     comment.text, max_chars=300
                 )[0],
-                "comment_url": build_post_comment_url(
-                    comment.on_post_id, comment.on_post.title, comment.id
-                ),
+                "comment_url": build_post_comment_url(comment.on_post, comment.id),
                 "reporter": reporter,
                 "reason": reason,
             },
@@ -811,9 +805,7 @@ def send_key_factor_report_notification_to_staff(
             "params": {
                 "post_title": comment.on_post.title,
                 "key_factor": key_factor,
-                "comment_url": build_post_comment_url(
-                    comment.on_post_id, comment.on_post.title, comment.id
-                ),
+                "comment_url": build_post_comment_url(comment.on_post, comment.id),
                 "reporter": reporter,
                 "reason": reason,
             },

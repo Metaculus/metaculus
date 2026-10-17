@@ -30,7 +30,7 @@ const Header: FC<Props> = ({ className }) => {
   const { user } = useAuth();
   const pathname = usePathname();
   const { navbarLinks, menuLinks, LINKS } = useNavbarLinks();
-  const { lgLinks, smLinks, xsLinks, xxsLinks } = navbarLinks;
+  const { fullLinks, mdLinks, smLinks, xsLinks, xxsLinks } = navbarLinks;
 
   return (
     <header
@@ -43,10 +43,14 @@ const Header: FC<Props> = ({ className }) => {
         <NavbarLogo className="mr-1 lg:mr-5" />
 
         {/* Regular links */}
-        <NavbarLinks links={lgLinks} className="hidden lg:flex" />
+        <NavbarLinks links={fullLinks} className="hidden min-[1100px]:flex" />
+        <NavbarLinks
+          links={mdLinks}
+          className="hidden justify-end min-[880px]:max-[1099px]:flex"
+        />
         <NavbarLinks
           links={smLinks}
-          className="hidden justify-start min-[512px]:max-lg:flex md:justify-end"
+          className="hidden justify-start min-[512px]:max-[879px]:flex md:justify-end"
         />
         <NavbarLinks
           links={xsLinks}

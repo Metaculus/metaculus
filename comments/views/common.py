@@ -34,11 +34,13 @@ from comments.services.common import (
     update_comment,
     vote_comment,
     toggle_cmm,
+    publish_bot_private_comments,
 )
 from comments.services.feed import get_comments_feed
 from comments.services.text_archive import get_full_text
 from notifications.services import send_comment_report_notification_to_staff
 from posts.services.common import get_post_permission_for_user
+from projects.models import Project
 from projects.permissions import ObjectPermission
 from users.models import User
 from utils.paginator import LimitOffsetPagination, CountlessLimitOffsetPagination
@@ -129,7 +131,8 @@ def comment_delete_api_view(request: Request, pk: int):
 @transaction.atomic
 def comment_create_api_view(request: Request):
     user: User = request.user
-    serializer = CommentWriteSerializer(data=request.data)
+    # Posts and parent comments the user can't view fail like missing ones
+    serializer = CommentWriteSerializer(data=request.data, context={"user": user})
     serializer.is_valid(raise_exception=True)
 
     new_comment = perform_create_comment(user=user, **serializer.validated_data)
@@ -372,3 +375,11 @@ def comment_set_excluded_from_week_top_view(request: Request, pk: int):
 
     set_comment_excluded_from_week_top(comment, excluded=excluded)
     return Response(status=status.HTTP_200_OK)
+
+
+@api_view(["POST"])
+@permission_classes([IsAdminUser])
+def publish_project_bot_comments_api_view(request: Request, project_id: int):
+    project = get_object_or_404(Project, pk=project_id)
+    published_count = publish_bot_private_comments(project)
+    return Response({"published_count": published_count})

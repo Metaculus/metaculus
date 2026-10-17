@@ -15,11 +15,11 @@ import LoadingSpinner from "@/components/ui/loading_spiner";
 import { useServerAction } from "@/hooks/use_server_action";
 import { ErrorResponse } from "@/types/fetch";
 
-const contactUsSchema = z.object({
+const changeEmailSchema = z.object({
   email: z.string().min(1, { message: "Email is required" }),
   password: z.string().min(1, { message: "Password is required" }),
 });
-type ContactUsSchema = z.infer<typeof contactUsSchema>;
+type ChangeEmailSchema = z.infer<typeof changeEmailSchema>;
 
 type Props = {
   isOpen: boolean;
@@ -35,8 +35,8 @@ const ChangeEmailModal: FC<Props> = ({ isOpen, onClose }) => {
     register,
     handleSubmit,
     reset,
-  } = useForm<ContactUsSchema>({
-    resolver: zodResolver(contactUsSchema),
+  } = useForm<ChangeEmailSchema>({
+    resolver: zodResolver(changeEmailSchema),
   });
 
   const handleClose = useCallback(
@@ -49,14 +49,14 @@ const ChangeEmailModal: FC<Props> = ({ isOpen, onClose }) => {
   );
 
   const onSubmit = useCallback(
-    async ({ email, password }: ContactUsSchema) => {
+    async ({ email, password }: ChangeEmailSchema) => {
       setSubmitErrors(undefined);
       const response = await changeEmail(email, password);
       if (response && "errors" in response && !!response.errors) {
         setSubmitErrors(response.errors);
       } else {
         handleClose(false);
-        toast(t("settingsChangeEmailAddressSuccess"));
+        toast(t("settingsChangeEmailAddressSuccess", { email }));
       }
     },
     [handleClose, t]

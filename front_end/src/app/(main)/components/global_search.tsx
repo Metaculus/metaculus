@@ -3,7 +3,7 @@
 import { debounce } from "lodash";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import React, { useCallback, useState } from "react";
+import React, { useMemo, useState } from "react";
 
 import SearchInput from "@/components/search_input";
 import {
@@ -30,13 +30,13 @@ const GlobalSearch: React.FC<GlobalSearchProps> = ({
   const router = useRouter();
   const [search, setSearch] = useState("");
   const [isSearched, setIsSearched] = useState(false);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const debouncedAnalyticsEvent = useCallback(
-    debounce(() => {
-      sendAnalyticsEvent("feedSearch", {
-        event_category: "fromNavbar",
-      });
-    }, 2000),
+  const debouncedAnalyticsEvent = useMemo(
+    () =>
+      debounce(() => {
+        sendAnalyticsEvent("feedSearch", {
+          event_category: "fromNavbar",
+        });
+      }, 2000),
     []
   );
 

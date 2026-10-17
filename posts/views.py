@@ -55,6 +55,7 @@ from projects.models import Project
 from projects.permissions import ObjectPermission
 from projects.services.common import get_project_permission_for_user
 from questions.serializers.common import QuestionApproveSerializer
+from utils.acting_user import get_acting_user
 from utils.csv_utils import export_data_for_questions
 from utils.files import validate_and_upload_image
 from utils.paginator import CountlessLimitOffsetPagination, LimitOffsetPagination
@@ -228,7 +229,8 @@ def post_detail_oldapi_view(request: Request, pk):
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def post_detail(request: Request, pk):
-    user = request.user if request.user.is_authenticated else None
+    acting_user = get_acting_user(request)
+    user = acting_user if acting_user.is_authenticated else None
 
     # Extra params
     with_cp = serializers.BooleanField(allow_null=True).run_validation(
@@ -238,7 +240,7 @@ def post_detail(request: Request, pk):
     qs = Post.objects.filter_permission(user=user).filter(pk=pk)
     posts = serialize_post_many(
         qs,
-        current_user=request.user,
+        current_user=acting_user,
         with_cp=with_cp,
         with_subscriptions=True,
         with_key_factors=True,
@@ -257,6 +259,12 @@ def post_detail(request: Request, pk):
 
 @api_view(["POST"])
 def post_create_api_view(request):
+    """
+    `acting_user` sets the post's author (see `utils.acting_user`); permission
+    and spam checks still apply to the requesting user.
+    """
+    author = get_acting_user(request, data=request.data)
+
     # manually convert scaling to range_min, range_max, zero_point
     # TODO: move scaling handling
     qdatas = []
@@ -272,7 +280,7 @@ def post_create_api_view(request):
 
     serializer = PostWriteSerializer(data=request.data, context={"user": request.user})
     serializer.is_valid(raise_exception=True)
-    post = create_post(**serializer.validated_data, author=request.user)
+    post = create_post(**serializer.validated_data, author=author)
 
     user_permission = get_post_permission_for_user(post, user=request.user)
     is_user_admin = user_permission == ObjectPermission.ADMIN

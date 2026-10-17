@@ -35,7 +35,7 @@ from projects.services.common import (
 )
 from projects.services.subscriptions import subscribe_project, unsubscribe_project
 from questions.models import Question
-from scoring.constants import LeaderboardScoreTypes
+from scoring.constants import ExclusionStatuses, LeaderboardScoreTypes
 from scoring.models import Leaderboard
 from users.services.common import get_users_by_usernames
 from utils.csv_utils import export_data_for_questions
@@ -279,6 +279,9 @@ def tournament_forecast_flow_posts_api_view(request: Request, slug: str):
 def project_create_api_view(request: Request):
     serializer = ProjectSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
+    leaderboard_bot_exclusion_status = serializers.ChoiceField(
+        choices=ExclusionStatuses.choices, allow_null=True
+    ).run_validation(request.data.get("leaderboard_bot_exclusion_status"))
     project: Project = serializer.save()
     if not project.primary_leaderboard:
         leaderboard = Leaderboard.objects.create(
@@ -294,6 +297,9 @@ def project_create_api_view(request: Request):
         leaderboard.score_type = request.data.get(
             "leaderboard_score_type", LeaderboardScoreTypes.PEER_TOURNAMENT
         )
+        leaderboard.save()
+    if leaderboard_bot_exclusion_status is not None:
+        leaderboard.bot_exclusion_status = leaderboard_bot_exclusion_status
         leaderboard.save()
     project.update_and_maybe_translate()
 

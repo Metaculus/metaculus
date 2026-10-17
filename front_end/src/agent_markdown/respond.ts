@@ -45,6 +45,14 @@ function isNextControlFlow(error: unknown): boolean {
   return typeof digest === "string" && digest.startsWith("NEXT_");
 }
 
+/** `Metadata.alternates.types` entry; the URL serves markdown via Accept. */
+export function getMarkdownAlternateTypes(
+  path: string
+): Record<string, string> | undefined {
+  if (isGated()) return undefined;
+  return { "text/markdown": absolute(path) };
+}
+
 function serialize(document: MarkdownDocument): string {
   return `${serializeFrontmatter(document.frontmatter)}\n\n${document.body}`;
 }
