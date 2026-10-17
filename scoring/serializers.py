@@ -67,6 +67,8 @@ class LeaderboardSerializer(serializers.Serializer):
     prize_pool = serializers.SerializerMethodField()
     max_coverage = serializers.SerializerMethodField()
     display_config = serializers.JSONField()
+    bot_exclusion_status = serializers.IntegerField()
+    human_exclusion_status = serializers.IntegerField()
 
     class Meta:
         model = Leaderboard
@@ -86,6 +88,8 @@ class LeaderboardSerializer(serializers.Serializer):
             "prize_pool",
             "max_coverage",
             "display_config",
+            "bot_exclusion_status",
+            "human_exclusion_status",
         ]
 
     def get_prize_pool(self, obj: Leaderboard):
