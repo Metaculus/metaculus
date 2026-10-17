@@ -54,3 +54,42 @@ def test_initialize_multiple_choice_question():
     assert (
         question.options_history and question.options_history[0][1] == question.options
     )
+
+
+@pytest.mark.parametrize(
+    "open_time,scheduled_close_time,actual_close_time,expected",
+    [
+        # Stays open until its scheduled close: fully attainable
+        [
+            datetime_aware(2025, 1, 1),
+            datetime_aware(2025, 2, 1),
+            None,
+            1.0,
+        ],
+        # Closes exactly at scheduled close: fully attainable
+        [
+            datetime_aware(2025, 1, 1),
+            datetime_aware(2025, 2, 1),
+            datetime_aware(2025, 2, 1),
+            1.0,
+        ],
+        # Closes halfway through the scheduled window
+        [
+            datetime_aware(2025, 1, 1),
+            datetime_aware(2025, 1, 3),
+            datetime_aware(2025, 1, 2),
+            0.5,
+        ],
+    ],
+)
+def test_get_attainable_coverage(
+    open_time, scheduled_close_time, actual_close_time, expected
+):
+    question = create_question(
+        question_type=Question.QuestionType.BINARY,
+        open_time=open_time,
+        scheduled_close_time=scheduled_close_time,
+        actual_close_time=actual_close_time,
+    )
+
+    assert question.get_attainable_coverage() == pytest.approx(expected)

@@ -151,6 +151,7 @@ export type LeaderboardFilters = {
 export type Contribution = {
   score: number | null;
   coverage: number | null;
+  attainable_coverage?: number | null;
   question_type?: QuestionType;
   question_resolution?: Resolution | "string";
   question_title?: string;
