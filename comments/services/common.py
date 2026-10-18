@@ -236,13 +236,17 @@ def update_comment(
         if should_soft_delete:
             soft_delete_comment(comment)
 
-    trigger_update_comment_translations(comment)
+    # Setting `comment.text` only wrote the active language's column, so the other
+    # localized columns are refreshed even for comments that are never translated
+    comment.update_and_maybe_translate(
+        should_translate_if_dirty=should_translate_comment(comment)
+    )
 
     if should_soft_delete:
         raise spam_error
 
 
-def trigger_update_comment_translations(comment: Comment):
+def should_translate_comment(comment: Comment) -> bool:
     on_post = comment.on_post
     author = comment.author
 
@@ -250,13 +254,17 @@ def trigger_update_comment_translations(comment: Comment):
     comment_too_long = len(comment.text) > 10000
 
     on_private_post = on_post.is_private()
-    if (
+    return (
         not author.is_bot
         and not on_private_post
         and not comment_too_long
         and not comment.is_private
         and comment.is_automatically_translated
-    ):
+    )
+
+
+def trigger_update_comment_translations(comment: Comment):
+    if should_translate_comment(comment):
         comment.update_and_maybe_translate()
 
 
