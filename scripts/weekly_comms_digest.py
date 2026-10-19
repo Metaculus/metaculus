@@ -104,9 +104,7 @@ def _get_linked_issues(pr_number):
       }
     }
     """
-    result = _gh_graphql(
-        query, {"owner": owner, "name": name, "number": pr_number}
-    )
+    result = _gh_graphql(query, {"owner": owner, "name": name, "number": pr_number})
     nodes = (
         result.get("data", {})
         .get("repository", {})
@@ -115,8 +113,7 @@ def _get_linked_issues(pr_number):
         .get("nodes", [])
     )
     return [
-        {"title": n["title"], "body": _truncate(n.get("body", ""), 300)}
-        for n in nodes
+        {"title": n["title"], "body": _truncate(n.get("body", ""), 300)} for n in nodes
     ]
 
 
@@ -232,9 +229,9 @@ Either array may be empty. Do NOT include PR numbers, links, or author names in 
 
 def classify_prs(in_flight_data, shipped_data):
     """Call Claude Sonnet to classify PRs. Returns parsed JSON."""
-    api_key = os.environ.get("ANTHROPIC_API_KEY", "")
+    api_key = os.environ.get("OPENROUTER_API_KEY", "")
     if not api_key:
-        print("ERROR: ANTHROPIC_API_KEY not set", file=sys.stderr)
+        print("ERROR: OPENROUTER_API_KEY not set", file=sys.stderr)
         sys.exit(1)
 
     in_flight_text = json.dumps(in_flight_data, indent=2) if in_flight_data else "None"
@@ -243,25 +240,28 @@ def classify_prs(in_flight_data, shipped_data):
 
     body = json.dumps(
         {
-            "model": "claude-sonnet-4-20250514",
+            "model": "anthropic/claude-sonnet-5.5",
             "max_tokens": 1024,
             "messages": [{"role": "user", "content": prompt}],
+            # Feature tag, see docs/llm-usage.md
+            "user": "comms-digest",
         }
     ).encode()
 
     req = urllib.request.Request(
-        "https://api.anthropic.com/v1/messages",
+        "https://openrouter.ai/api/v1/chat/completions",
         data=body,
         headers={
             "Content-Type": "application/json",
-            "x-api-key": api_key,
-            "anthropic-version": "2023-06-01",
+            "Authorization": f"Bearer {api_key}",
+            "HTTP-Referer": "https://www.metaculus.com",
+            "X-OpenRouter-Title": "Metaculus",
         },
     )
     with urllib.request.urlopen(req) as resp:
         result = json.loads(resp.read())
 
-    text = result["content"][0]["text"]
+    text = result["choices"][0]["message"]["content"]
     # Extract JSON from response (handle potential markdown fencing)
     if "```" in text:
         text = text.split("```")[1]

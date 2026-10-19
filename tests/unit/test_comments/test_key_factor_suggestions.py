@@ -236,7 +236,7 @@ class TestGenerateKeyfactors:
         mock_client.chat.completions.create.return_value = mock_response
         return mock_client
 
-    @patch("comments.services.key_factors.suggestions.get_openai_client")
+    @patch("comments.services.key_factors.suggestions.get_llm_client")
     def test_successful_generation(self, mock_get_client):
         mock_client = self._mock_response(
             {
@@ -269,7 +269,7 @@ class TestGenerateKeyfactors:
         assert isinstance(result[1], NewsResponse)
         assert isinstance(result[2], BaseRateResponse)
 
-    @patch("comments.services.key_factors.suggestions.get_openai_client")
+    @patch("comments.services.key_factors.suggestions.get_llm_client")
     def test_handles_none_response(self, mock_get_client):
         mock_client = self._mock_response({"key_factors": []})
         mock_get_client.return_value = mock_client
@@ -282,7 +282,7 @@ class TestGenerateKeyfactors:
         )
         assert result == []
 
-    @patch("comments.services.key_factors.suggestions.get_openai_client")
+    @patch("comments.services.key_factors.suggestions.get_llm_client")
     def test_handles_api_errors(self, mock_get_client):
         mock_client = Mock()
         mock_client.chat.completions.create.side_effect = Exception("API Error")

@@ -3,8 +3,8 @@ import logging
 import textwrap
 from typing import Literal, Optional, Union
 
-from django.conf import settings
 from django.core.validators import URLValidator
+from openai.types.shared_params import ResponseFormatJSONSchema
 from pydantic import (
     field_validator,
     ValidationInfo,
@@ -18,7 +18,7 @@ from rest_framework.exceptions import ValidationError
 from comments.models import KeyFactor, KeyFactorDriver, KeyFactorNews, KeyFactorBaseRate
 from posts.models import Post
 from questions.models import Question
-from utils.openai import pydantic_to_openai_json_schema, get_openai_client
+from utils.llm import LLMFeature, get_llm_client, llm_options
 
 MAX_LENGTH = 50
 
@@ -160,6 +160,17 @@ KeyFactorResponseType = Union[DriverResponse, NewsResponse, BaseRateResponse]
 
 class KeyFactorsResponse(BaseModel):
     key_factors: list[KeyFactorResponseType]
+
+
+KEY_FACTORS_RESPONSE_FORMAT: ResponseFormatJSONSchema = {
+    "type": "json_schema",
+    "json_schema": {
+        "name": "key_factors_response",
+        "schema": KeyFactorsResponse.model_json_schema(),
+        # OpenRouter defaults OpenAI models to strict; this schema isn't strict-compatible
+        "strict": False,
+    },
+}
 
 
 def _create_driver_key_factor(post: Post, response: DriverResponse) -> KeyFactor:
@@ -386,19 +397,16 @@ def generate_keyfactors(
         """
     )
 
-    client = get_openai_client(settings.OPENAI_API_KEY_FACTORS)
-
-    response_format = pydantic_to_openai_json_schema(KeyFactorsResponse)
-
     try:
-        response = client.chat.completions.create(
-            model="gpt-6-luna",
+        response = get_llm_client().chat.completions.create(
+            model="openai/gpt-6-luna",
             reasoning_effort="none",
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt},
             ],
-            response_format=response_format,
+            response_format=KEY_FACTORS_RESPONSE_FORMAT,
+            **llm_options(LLMFeature.KEY_FACTORS),
         )
     except Exception:
         return []

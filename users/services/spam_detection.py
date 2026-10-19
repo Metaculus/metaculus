@@ -14,7 +14,7 @@ from posts.models import Post
 from users.models import User, UserSpamActivity
 from users.serializers import UserUpdateProfileSerializer
 from utils.email import send_notification_email_with_template
-from utils.openai import generate_text_async, run_spam_analysis
+from utils.llm import LLMFeature, generate_text_async, run_spam_analysis
 
 logger = logging.getLogger(__name__)
 CONFIDENCE_THRESHOLD = 0.9
@@ -182,7 +182,7 @@ def check_profile_update_for_spam(
 
 
 async def ask_gpt_to_check_profile_for_spam(bio_plus_websites: str) -> tuple[bool, str]:
-    if not settings.OPENAI_API_KEY:
+    if not settings.OPENROUTER_API_KEY:
         return False, "No API key set, so not checking for spam"
 
     system_prompt = textwrap.dedent(
@@ -212,7 +212,8 @@ async def ask_gpt_to_check_profile_for_spam(bio_plus_websites: str) -> tuple[boo
     )
     try:
         gpt_response = await generate_text_async(
-            model="gpt-6-luna",
+            model="openai/gpt-6-luna",
+            feature=LLMFeature.SPAM_BIO,
             system_prompt=system_prompt,
             prompt=prompt,
             timeout=10,

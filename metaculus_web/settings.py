@@ -453,10 +453,8 @@ TURNSTILE_SECRET_KEY = os.environ.get("TURNSTILE_SECRET_KEY")
 # If none -> not restricted
 ALPHA_ACCESS_TOKEN = os.environ.get("ALPHA_ACCESS_TOKEN")
 
-# OpenAI configuration
-OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
-# use a default value, otherwise openai lib will use the value from the default OPENAI_API_KEY variable
-OPENAI_API_KEY_FACTORS = os.environ.get("OPENAI_API_KEY_FACTORS", "nokey")
+# All LLM calls go through OpenRouter, see docs/llm-usage.md
+OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY")
 
 # Serper Google API key
 SERPER_API_KEY = os.environ.get("SERPER_API_KEY")
