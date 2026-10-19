@@ -212,7 +212,7 @@ async def ask_gpt_to_check_profile_for_spam(bio_plus_websites: str) -> tuple[boo
     )
     try:
         gpt_response = await generate_text_async(
-            model="openai/gpt-6-luna",
+            model=settings.GENERAL_LLM_MODEL,
             feature=LLMFeature.SPAM_BIO,
             system_prompt=system_prompt,
             prompt=prompt,

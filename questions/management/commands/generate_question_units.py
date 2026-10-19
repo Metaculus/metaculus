@@ -2,6 +2,7 @@ import json
 import logging
 
 from dateutil.parser import parse as date_parse
+from django.conf import settings
 from django.core.management.base import BaseCommand, CommandParser
 from django.utils.timezone import make_aware
 from openai.types.chat import ChatCompletionMessageParam
@@ -97,7 +98,7 @@ def generate_units(questions: list[Question]):
         {"role": "user", "content": json.dumps(question_contents, indent=2)},
     ]
     response = get_llm_client().chat.completions.create(
-        model="openai/gpt-6-luna",
+        model=settings.GENERAL_LLM_MODEL,
         messages=messages,
         response_format={"type": "json_object"},
         **llm_options(LLMFeature.QUESTION_UNITS),

@@ -3,6 +3,7 @@ import logging
 import textwrap
 from typing import Literal, Optional, Union
 
+from django.conf import settings
 from django.core.validators import URLValidator
 from openai.types.shared_params import ResponseFormatJSONSchema
 from pydantic import (
@@ -399,7 +400,7 @@ def generate_keyfactors(
 
     try:
         response = get_llm_client().chat.completions.create(
-            model="openai/gpt-6-luna",
+            model=settings.GENERAL_LLM_MODEL,
             reasoning_effort="none",
             messages=[
                 {"role": "system", "content": system_prompt},

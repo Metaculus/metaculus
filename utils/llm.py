@@ -13,7 +13,6 @@ OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
 # Prefer OpenAI-hosted endpoints; skip endpoints that don't support every sent param
 OPENROUTER_PROVIDER = {"order": ["openai"], "require_parameters": True}
 
-EMBEDDING_MODEL = "openai/text-embedding-3-large"
 EMBEDDING_CTX_LENGTH = 8191
 EMBEDDING_ENCODING = "cl100k_base"
 
@@ -146,7 +145,7 @@ async def generate_text_async(
 
 def generate_text_embed_vector(text: str, feature: LLMFeature) -> list[float]:
     response = get_llm_client().embeddings.create(
-        input=text, model=EMBEDDING_MODEL, **llm_options(feature)
+        input=text, model=settings.LLM_EMBEDDING_MODEL, **llm_options(feature)
     )
     vector = response.data[0].embedding
 
@@ -159,7 +158,7 @@ async def generate_text_embed_vector_async(
     async with get_llm_client_async() as client:
         response = await client.embeddings.create(
             input=text,
-            model=EMBEDDING_MODEL,
+            model=settings.LLM_EMBEDDING_MODEL,
             # Set a timeout not to block worker
             timeout=5,
             **llm_options(feature),
@@ -216,7 +215,7 @@ def run_spam_analysis(text: str, content_type: str) -> SpamAnalysisResult:
         {"role": "user", "content": user_prompt},
     ]
     response = get_llm_client().chat.completions.parse(
-        model="openai/gpt-6-luna",
+        model=settings.GENERAL_LLM_MODEL,
         messages=messages,
         response_format=SpamAnalysisResult,
         **llm_options(LLMFeature.SPAM_CONTENT),

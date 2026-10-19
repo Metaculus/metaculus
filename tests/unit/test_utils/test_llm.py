@@ -21,6 +21,8 @@ from utils.llm import (
 )
 
 OPENROUTER_URL = "https://openrouter.ai/api/v1"
+CHAT_MODEL = "test/chat-model"
+EMBEDDING_MODEL = "test/embedding-model"
 
 
 class FakeOpenRouter:
@@ -68,6 +70,8 @@ class FakeOpenRouter:
 @pytest.fixture
 def openrouter(mocker, settings):
     settings.OPENROUTER_API_KEY = "sk-or-test"
+    settings.GENERAL_LLM_MODEL = CHAT_MODEL
+    settings.LLM_EMBEDDING_MODEL = EMBEDDING_MODEL
     fake = FakeOpenRouter()
     transport = httpx.MockTransport(fake.handle)
     mocker.patch(
@@ -94,7 +98,7 @@ def test_requests_go_to_openrouter_with_app_attribution(openrouter):
     assert request.headers["Authorization"] == "Bearer sk-or-test"
     assert request.headers["X-OpenRouter-Title"] == "Metaculus"
     assert request.headers["HTTP-Referer"]
-    assert body["model"] == "openai/text-embedding-3-large"
+    assert body["model"] == EMBEDDING_MODEL
     assert_routed(body, LLMFeature.EMBEDDINGS_SEARCH)
 
 
@@ -130,7 +134,7 @@ def test_spam_content_analysis_is_tagged(openrouter):
 
     _, body = openrouter.last
     assert result.is_spam is True
-    assert body["model"] == "openai/gpt-6-luna"
+    assert body["model"] == CHAT_MODEL
     assert_routed(body, LLMFeature.SPAM_CONTENT)
 
 
@@ -142,7 +146,7 @@ def test_spam_bio_check_is_tagged(openrouter):
     request, body = openrouter.last
     assert is_spam is True
     assert str(request.url) == f"{OPENROUTER_URL}/chat/completions"
-    assert body["model"] == "openai/gpt-6-luna"
+    assert body["model"] == CHAT_MODEL
     assert_routed(body, LLMFeature.SPAM_BIO)
 
 
@@ -166,7 +170,7 @@ def test_key_factors_are_tagged_without_reasoning(openrouter):
 
     _, body = openrouter.last
     assert len(result) == 1
-    assert body["model"] == "openai/gpt-6-luna"
+    assert body["model"] == CHAT_MODEL
     assert body["reasoning_effort"] == "none"
     assert body["response_format"]["json_schema"]["strict"] is False
     assert_routed(body, LLMFeature.KEY_FACTORS)
@@ -180,5 +184,5 @@ def test_question_units_are_tagged(openrouter):
 
     _, body = openrouter.last
     assert units == {question: "%"}
-    assert body["model"] == "openai/gpt-6-luna"
+    assert body["model"] == CHAT_MODEL
     assert_routed(body, LLMFeature.QUESTION_UNITS)

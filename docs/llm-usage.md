@@ -4,7 +4,7 @@ All LLM calls go through [OpenRouter](https://openrouter.ai). No direct OpenAI/A
 
 - Key: `OPENROUTER_API_KEY` (backend `.env`, `front_end/.env`, GitHub secrets).
 - Backend: use `get_llm_client()` / `get_llm_client_async()` from `utils/llm.py`.
-- Models: OpenRouter ids, e.g. `openai/gpt-6-luna`, `openai/text-embedding-3-large`.
+- Models: `GENERAL_LLM_MODEL` and `LLM_EMBEDDING_MODEL` in `metaculus_web/settings.py` (OpenRouter ids).
 
 ## Tag every request
 
@@ -12,7 +12,7 @@ Pass a feature tag as `user`. OpenRouter Activity filters and groups spend by it
 
 ```python
 get_llm_client().chat.completions.create(
-    model="openai/gpt-6-luna",
+    model=settings.GENERAL_LLM_MODEL,
     messages=[...],
     **llm_options(LLMFeature.KEY_FACTORS),
 )

@@ -455,6 +455,9 @@ ALPHA_ACCESS_TOKEN = os.environ.get("ALPHA_ACCESS_TOKEN")
 
 # All LLM calls go through OpenRouter, see docs/llm-usage.md
 OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY")
+GENERAL_LLM_MODEL = "openai/gpt-6-luna"
+# Stored Post/ITNArticle embedding vectors depend on it; changing requires re-embedding
+LLM_EMBEDDING_MODEL = "openai/text-embedding-3-large"
 
 # Serper Google API key
 SERPER_API_KEY = os.environ.get("SERPER_API_KEY")
