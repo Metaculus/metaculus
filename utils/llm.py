@@ -94,10 +94,11 @@ class LLMFeature(StrEnum):
 
 
 def _client_options() -> dict:
+    if not settings.OPENROUTER_API_KEY:
+        return {"api_key": settings.OPENAI_API_KEY}
     return {
         "base_url": OPENROUTER_BASE_URL,
-        # "" blocks the SDK's fallback to the OPENAI_API_KEY env var
-        "api_key": settings.OPENROUTER_API_KEY or "",
+        "api_key": settings.OPENROUTER_API_KEY,
         "default_headers": {
             "HTTP-Referer": settings.PUBLIC_APP_URL,
             "X-OpenRouter-Title": "Metaculus",
@@ -114,6 +115,8 @@ def get_llm_client_async() -> AsyncOpenAI:
 
 
 def llm_options(feature: LLMFeature) -> dict:
+    if not settings.OPENROUTER_API_KEY:
+        return {}
     return {"user": feature, "extra_body": {"provider": OPENROUTER_PROVIDER}}
 
 

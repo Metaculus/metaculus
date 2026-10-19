@@ -3,8 +3,9 @@
 All LLM calls go through [OpenRouter](https://openrouter.ai). No direct OpenAI/Anthropic keys or endpoints.
 
 - Key: `OPENROUTER_API_KEY` (backend `.env`, `front_end/.env`, GitHub secrets).
+- Backend fallback: without `OPENROUTER_API_KEY`, calls go to OpenAI directly with `OPENAI_API_KEY`, untagged.
 - Backend: use `get_llm_client()` / `get_llm_client_async()` from `utils/llm.py`.
-- Models: `GENERAL_LLM_MODEL` and `LLM_EMBEDDING_MODEL` in `metaculus_web/settings.py` (OpenRouter ids).
+- Models: `GENERAL_LLM_MODEL` and `LLM_EMBEDDING_MODEL` in `metaculus_web/settings.py`.
 
 ## Tag every request
 

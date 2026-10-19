@@ -182,7 +182,7 @@ def check_profile_update_for_spam(
 
 
 async def ask_gpt_to_check_profile_for_spam(bio_plus_websites: str) -> tuple[bool, str]:
-    if not settings.OPENROUTER_API_KEY:
+    if not settings.OPENROUTER_API_KEY and not settings.OPENAI_API_KEY:
         return False, "No API key set, so not checking for spam"
 
     system_prompt = textwrap.dedent(

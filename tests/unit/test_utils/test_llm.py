@@ -102,16 +102,17 @@ def test_requests_go_to_openrouter_with_app_attribution(openrouter):
     assert_routed(body, LLMFeature.EMBEDDINGS_SEARCH)
 
 
-def test_missing_key_never_sends_legacy_openai_env_key(
-    openrouter, settings, monkeypatch
-):
+def test_falls_back_to_openai_without_openrouter_key(openrouter, settings):
     settings.OPENROUTER_API_KEY = None
-    monkeypatch.setenv("OPENAI_API_KEY", "sk-legacy-openai")
+    settings.OPENAI_API_KEY = "sk-openai-test"
 
     generate_text_embed_vector("text", LLMFeature.EMBEDDINGS_ITN)
 
-    request, _ = openrouter.last
-    assert "sk-legacy-openai" not in request.headers.get("Authorization", "")
+    request, body = openrouter.last
+    assert str(request.url) == "https://api.openai.com/v1/embeddings"
+    assert request.headers["Authorization"] == "Bearer sk-openai-test"
+    assert "provider" not in body
+    assert "user" not in body
 
 
 def test_async_embeddings_are_tagged(openrouter):
