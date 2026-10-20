@@ -10,8 +10,12 @@ from openai.types.chat import ChatCompletionMessageParam
 from pydantic import BaseModel
 
 OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
-# Prefer OpenAI-hosted endpoints; skip endpoints that don't support every sent param
-OPENROUTER_PROVIDER = {"order": ["openai"], "require_parameters": True}
+# OpenAI-hosted endpoints only; skip endpoints that don't support every sent param
+OPENROUTER_PROVIDER = {
+    "order": ["openai"],
+    "allow_fallbacks": False,
+    "require_parameters": True,
+}
 
 EMBEDDING_CTX_LENGTH = 8191
 EMBEDDING_ENCODING = "cl100k_base"

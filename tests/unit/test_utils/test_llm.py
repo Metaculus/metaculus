@@ -87,7 +87,11 @@ def openrouter(mocker, settings):
 
 def assert_routed(body: dict, feature: LLMFeature):
     assert body["user"] == feature
-    assert body["provider"] == {"order": ["openai"], "require_parameters": True}
+    assert body["provider"] == {
+        "order": ["openai"],
+        "allow_fallbacks": False,
+        "require_parameters": True,
+    }
 
 
 def test_requests_go_to_openrouter_with_app_attribution(openrouter):

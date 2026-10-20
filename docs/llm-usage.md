@@ -20,7 +20,7 @@ get_llm_client().chat.completions.create(
 ```
 
 - Backend tags: `LLMFeature` in `utils/llm.py`. New feature → new member.
-- `llm_options()` also pins routing: OpenAI-hosted endpoints first, only endpoints that support every sent parameter.
+- `llm_options()` also pins routing: OpenAI-hosted endpoints only (no Azure/Bedrock fallback), only endpoints that support every sent parameter.
 - Scripts outside Django set `user` directly: `comms-digest` (`scripts/weekly_comms_digest.py`), `translations` (`front_end/scripts/add_missing_translations.mjs`).
 
 ## Defaults

@@ -227,6 +227,23 @@ Either array may be empty. Do NOT include PR numbers, links, or author names in 
 """
 
 
+_THEMES_SCHEMA = {
+    "type": "array",
+    "items": {
+        "type": "object",
+        "properties": {"name": {"type": "string"}},
+        "required": ["name"],
+        "additionalProperties": False,
+    },
+}
+CLASSIFICATION_SCHEMA = {
+    "type": "object",
+    "properties": {"in_flight": _THEMES_SCHEMA, "shipped": _THEMES_SCHEMA},
+    "required": ["in_flight", "shipped"],
+    "additionalProperties": False,
+}
+
+
 def classify_prs(in_flight_data, shipped_data):
     """Call Claude Sonnet to classify PRs. Returns parsed JSON."""
     api_key = os.environ.get("OPENROUTER_API_KEY", "")
@@ -243,6 +260,16 @@ def classify_prs(in_flight_data, shipped_data):
             "model": "anthropic/claude-sonnet-5.5",
             "max_tokens": 1024,
             "messages": [{"role": "user", "content": prompt}],
+            "response_format": {
+                "type": "json_schema",
+                "json_schema": {
+                    "name": "comms_digest",
+                    "strict": True,
+                    "schema": CLASSIFICATION_SCHEMA,
+                },
+            },
+            # Some endpoints accept response_format without enforcing the schema
+            "provider": {"require_parameters": True},
             # Feature tag, see docs/llm-usage.md
             "user": "comms-digest",
         }
@@ -261,13 +288,7 @@ def classify_prs(in_flight_data, shipped_data):
     with urllib.request.urlopen(req) as resp:
         result = json.loads(resp.read())
 
-    text = result["choices"][0]["message"]["content"]
-    # Extract JSON from response (handle potential markdown fencing)
-    if "```" in text:
-        text = text.split("```")[1]
-        if text.startswith("json"):
-            text = text[4:]
-    return json.loads(text.strip())
+    return json.loads(result["choices"][0]["message"]["content"])
 
 
 # ---------------------------------------------------------------------------
