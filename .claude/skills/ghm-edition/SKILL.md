@@ -7,6 +7,12 @@ description: Draft the next monthly Global Health Monitor edition (key takeaways
 
 The dashboard lives in `front_end/src/app/(main)/global-health-monitor/`. Each edition is a TSX file in `editions/`, registered newest first in `EDITIONS` in `editions/index.ts`. Read the latest edition before writing: follow its structure, tokens and voice.
 
+Only the latest edition is live. Past editions are a frozen snapshot of their publication day: their layout, cards, charts and numbers as they stood at their `asOf`.
+
+## Cadence
+
+Editions are monthly, with no fixed day. Pro Forecasters are prompted around the 5th and Grace writes around the 15th; the request issue gives the publication date. Claude drafts the edition as a pull request, and each month an engineer picks up that draft PR and takes it through review, finalizing and merge.
+
 ## 1. Gather inputs
 
 1. Find the latest edition: the first entry of `EDITIONS`. Its date is the day part of its `asOf`.
@@ -18,9 +24,9 @@ The dashboard lives in `front_end/src/app/(main)/global-health-monitor/`. Each e
 
 ## 2. Write the edition
 
-Editions are named by month ("October 2026"); the page never shows the publication day. Create `editions/edition_YYYY_MM.tsx` for the publication month (the issue's date, or today), exporting `EDITION_YYYY_MM: Edition`:
+Editions are named by month ("October 2026"), and the page also shows the publication day from `asOf` ("Published October 15, 2026"). Create `editions/edition_YYYY_MM.tsx` for the publication month (the issue's date, or today), exporting `EDITION_YYYY_MM: Edition`:
 
-- `slug: "YYYY-MM"`, `asOf: "YYYY-MM-DDT12:00:00Z"` (the publication day, used to compare forecasts).
+- `slug: "YYYY-MM"`, `asOf: "YYYY-MM-DDT12:00:00Z"` (the publication day, used to compare forecasts; finalizing replaces it with the exact time).
 - `takeaways`: 4 to 6, only for diseases that moved or matter this month. Each has `id`, `diseases`, `lead` (the value key whose chart sits next to the takeaways) and `content`.
 - `sections`: one entry per disease covered:
   - `body`: 1 to 3 short paragraphs: what the data shows (with sources), what forecasters expect, and why it moved.
@@ -28,7 +34,7 @@ Editions are named by month ("October 2026"); the page never shows the publicati
   - `quote` (optional): a verbatim excerpt of one Pro comment, with its `commentId`, `author` and `date`.
   - `sources`: the `SourceSnapshot`s used in the body.
 - Diseases with nothing new can be left out; the page still shows their title and live forecasts.
-- Diseases laid out as `column` in `config/sections.ts` show only their title and chart, grouped as "Other diseases". Don't write a section for them; move a disease out of `column` when it needs text.
+- Diseases laid out as `column` in `config/sections.ts` show only their title and cards, together in the "Other emerging diseases" row. Don't write a section for them; promote the disease (see below) when it needs text.
 
 Writing rules:
 
@@ -44,8 +50,10 @@ Writing rules:
 ## 3. Update the config
 
 - Put the new edition first in `EDITIONS`.
-- Section layout comes from `config/sections.ts`: 4+ cards get a carousel, fewer get text beside charts, and `layout: "column"` puts consecutive small sections side by side (up to three per row). Use `column` for diseases with one question and little news.
-- Remove the cards of questions that resolved before the previous edition from `config/sections.ts`. Keep their keys in `config/questions.ts`, because past editions use them.
+- The live layout is `SECTIONS` in `config/sections.ts`. Every full section shows its text, Pro summary and Latest data on the left and all its cards stacked on the right. All `layout: "column"` sections share the "Other emerging diseases" row. Use `column` for diseases with one question and little news.
+- Keep the default order: Respiratory, Measles, Ebola, then the other diseases.
+- **Promoting a disease.** When a minor disease is in the news (e.g. a large mpox outbreak), give it a full section for this edition: remove its `layout: "column"`, move it up `SECTIONS` to where it matters in the order, and write its section (body, Pro summary, sources) in the edition. Demote it the same way once the news fades. Archived editions keep the layout they were published with, so this never changes them.
+- Remove the cards of questions that resolved since the previous edition from `SECTIONS`; the live page showed their result until now. Mention notable resolutions in the takeaways. Keep their keys in `config/questions.ts`, because past editions use them.
 - Add new questions listed in `inputs.md`: value keys in `config/questions.ts` (match sub-questions by ID, never by label; set `tone` for good/bad colours) and cards in the right section. A card for a single question takes `value` (the key whose move since the last edition shows on the card); group cards take none. Flag anything you weren't sure how to place.
 
 ## 4. Check and open the PR
@@ -60,4 +68,10 @@ Writing rules:
 
 ## Finalizing (right before merge)
 
-When asked to finalize, run `cd front_end && bun run ghm:bake` and paste the printed `asOf` and `frozen` values into the new edition. This freezes the publication-day numbers for when the edition is archived.
+When asked to finalize, run `cd front_end && bun run ghm:bake --slug YYYY-MM`. It needs `METACULUS_API_TOKEN` against metaculus.com.
+
+1. It writes `editions/archives/edition_YYYY_MM.ts`: the current `SECTIONS` layout and the Community Prediction distribution of every numeric, discrete and date question. Never edit it by hand.
+2. It prints `asOf` and `frozen`. Paste both into the new edition, and add `archive: ARCHIVE_YYYY_MM`, imported from `./archives/edition_YYYY_MM`.
+3. Run `bun run format` and the tests.
+
+This freezes the publication-day layout, numbers and charts for when the edition is archived. The tests fail if a past edition has no archive. If one was merged without it, backfill it with `bun run ghm:bake --slug YYYY-MM --at <that edition's asOf>`, which reads the distributions at that time from the aggregation explorer.

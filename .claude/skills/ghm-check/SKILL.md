@@ -1,9 +1,11 @@
 ---
 name: ghm-check
-description: Check that the latest Global Health Monitor edition's wording still matches the live forecasts, and open a minimal fix PR if it has drifted. Use for the scheduled daily check.
+description: Check that the latest Global Health Monitor edition's wording still matches the live forecasts, and open a minimal fix PR if it has drifted. Use for the scheduled twice-weekly check.
 ---
 
-# Daily Global Health Monitor wording check
+# Twice-weekly Global Health Monitor wording check
+
+A cloud routine runs this on Mondays and Thursdays, like Labor Hub's checker. It is created once the dashboard is merged.
 
 Only the latest edition is in scope: the first entry of `EDITIONS` in `front_end/src/app/(main)/global-health-monitor/editions/index.ts`. Forecast numbers are live tokens and `<Trend>` wording updates itself, so only hand-written interpretation can drift.
 

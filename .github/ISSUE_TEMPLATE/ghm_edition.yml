@@ -1,5 +1,5 @@
 name: Global Health Monitor edition
-description: Ask Claude to draft the next monthly Global Health Monitor edition as a pull request.
+description: Ask Claude to draft the next monthly Global Health Monitor edition as a pull request. Editions have no fixed day; Pros are prompted around the 5th and Grace writes around the 15th. An engineer picks up Claude's draft PR and takes it through review and merge.
 title: "@claude Global Health Monitor edition: <Month YYYY>"
 labels: ["global-health-monitor"]
 body:
@@ -16,7 +16,7 @@ body:
     id: date
     attributes:
       label: Publication date
-      description: YYYY-MM-DD. Leave empty to use the day the draft runs. The page shows only the month.
+      description: YYYY-MM-DD. Leave empty to use the day the draft runs. The edition is named by its month; the page also shows this day as its publication date.
   - type: textarea
     id: notes
     attributes:
