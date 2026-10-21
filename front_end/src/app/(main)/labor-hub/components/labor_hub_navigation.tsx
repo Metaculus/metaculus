@@ -125,7 +125,7 @@ export default function LaborHubNavigation({
   const surfaceClassName = "bg-gray-0 dark:bg-gray-0-dark";
   const fadeToSurfaceClassName = "to-gray-0 dark:to-gray-0-dark";
   const tabEndSpacingClassName = actions
-    ? "after:w-36 sm:after:w-56 lg:after:w-60"
+    ? "after:w-28 sm:after:w-44 lg:after:w-48"
     : "after:w-28 sm:after:w-32 md:after:w-36 lg:after:w-40";
   const actionRailClassName =
     "pointer-events-auto absolute inset-y-0 right-0 flex items-center pr-4 gap-2 sm:pr-6 md:pr-8";

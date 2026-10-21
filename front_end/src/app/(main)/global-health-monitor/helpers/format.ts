@@ -133,10 +133,15 @@ function editionMonth(slug: string) {
   return new Date(`${slug}-01T00:00:00Z`);
 }
 
-export function formatEditionLabel(slug: string, locale = PROSE_LOCALE) {
+// "September 2026", or "Sep 2026" with a short month.
+export function formatEditionLabel(
+  slug: string,
+  locale = PROSE_LOCALE,
+  month: "long" | "short" = "long"
+) {
   return new Intl.DateTimeFormat(locale, {
     timeZone: "UTC",
-    month: "long",
+    month,
     year: "numeric",
   }).format(editionMonth(slug));
 }

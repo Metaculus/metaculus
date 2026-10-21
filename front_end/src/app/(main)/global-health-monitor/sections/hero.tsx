@@ -4,6 +4,7 @@ import {
   HubPdf,
   PdfDownloadButton,
 } from "@/app/(main)/labor-hub/components/pdf_download_button";
+import Tooltip from "@/components/ui/tooltip";
 
 import { EditionSelector } from "../components/edition_selector";
 import { EditionStatus } from "../components/edition_status";
@@ -30,11 +31,21 @@ export async function HeroSection({
             {t("globalHealthMonitorHeroTitleLine2")}
           </span>
         </h1>
-        <PdfDownloadButton
-          pdf={pdf}
-          labelled
-          className="shrink-0 print:hidden"
-        />
+        <div className="flex shrink-0 items-center gap-2">
+          <EditionSelector
+            editions={snapshot.editions}
+            currentSlug={snapshot.edition.slug}
+            latestSlug={latestSlug}
+          />
+          <Tooltip
+            tooltipContent={t("hubDownloadPdf")}
+            placement="bottom"
+            className="print:hidden"
+            tooltipClassName="px-2 py-1 text-xs"
+          >
+            <PdfDownloadButton pdf={pdf} />
+          </Tooltip>
+        </div>
       </div>
       <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-end sm:gap-6">
         <p className="my-0 max-w-2xl text-base text-blue-700 [text-wrap:pretty] dark:text-blue-700-dark md:text-lg">
@@ -45,17 +56,10 @@ export async function HeroSection({
             {t("globalHealthMonitorHeroSubtitle")}
           </span>
         </p>
-        <div className="flex shrink-0 flex-col gap-2 sm:items-end">
-          <EditionSelector
-            editions={snapshot.editions}
-            currentSlug={snapshot.edition.slug}
-            latestSlug={latestSlug}
-          />
-          <EditionStatus
-            edition={snapshot.edition}
-            isLatest={snapshot.isLatest}
-          />
-        </div>
+        <EditionStatus
+          edition={snapshot.edition}
+          isLatest={snapshot.isLatest}
+        />
       </div>
     </section>
   );

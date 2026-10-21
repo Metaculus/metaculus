@@ -2549,7 +2549,7 @@
   "globalHealthMonitorPastEditionBanner": "Você está vendo a edição de {date}. As previsões aparecem como estavam quando ela foi publicada.",
   "globalHealthMonitorForecastAtPublication": "Previsão na publicação",
   "globalHealthMonitorBackToLatest": "Ver a edição mais recente",
-  "globalHealthMonitorTakeawaysChartHint": "Passe o cursor sobre uma conclusão ou clique nela para ver sua previsão.",
+  "globalHealthMonitorTakeawaysChartHint": "Passe o cursor sobre uma conclusão à esquerda para ver sua previsão.",
   "globalHealthMonitorChangeSince": "{change} desde {date}",
   "globalHealthMonitorSinceEdition": "desde a edição de {date}",
   "globalHealthMonitorInterval": "Intervalo de previsão de 50%: {range}",

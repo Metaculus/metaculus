@@ -62,6 +62,8 @@ export type EditionLabel = {
   slug: string;
   // "September 2026", in the page locale.
   label: string;
+  // "Sep 2026", in the page locale.
+  abbreviatedLabel: string;
   // "September", for English prose.
   shortLabel: string;
   // "September 17, 2026", in the page locale.
@@ -96,6 +98,7 @@ function getEditionLabel(edition: Edition, locale: string): EditionLabel {
   return {
     slug: edition.slug,
     label: formatEditionLabel(edition.slug, locale),
+    abbreviatedLabel: formatEditionLabel(edition.slug, locale, "short"),
     shortLabel: formatEditionMonth(edition.slug),
     published: formatPublishedDate(edition.asOf, locale),
   };

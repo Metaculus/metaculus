@@ -2553,7 +2553,7 @@
   "globalHealthMonitorPastEditionBanner": "您正在查看 {date} 这一期。预测按该期发布时的数值显示。",
   "globalHealthMonitorForecastAtPublication": "发布时的预测",
   "globalHealthMonitorBackToLatest": "查看最新一期",
-  "globalHealthMonitorTakeawaysChartHint": "将鼠标悬停在某条结论上或点击它，即可查看其预测。",
+  "globalHealthMonitorTakeawaysChartHint": "将鼠标悬停在左侧的某条结论上，即可查看其预测。",
   "globalHealthMonitorChangeSince": "自 {date} 以来 {change}",
   "globalHealthMonitorSinceEdition": "自 {date} 那一期以来",
   "globalHealthMonitorInterval": "50% 预测区间：{range}",

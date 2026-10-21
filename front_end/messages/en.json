@@ -2540,7 +2540,7 @@
   "globalHealthMonitorPastEditionBanner": "You’re viewing the {date} edition. Forecasts are shown as they were when it was published.",
   "globalHealthMonitorForecastAtPublication": "Forecast at publication",
   "globalHealthMonitorBackToLatest": "View the latest edition",
-  "globalHealthMonitorTakeawaysChartHint": "Hover over or click a takeaway to see its forecast.",
+  "globalHealthMonitorTakeawaysChartHint": "Hover over a takeaway on the left side to see its forecast.",
   "globalHealthMonitorChangeSince": "{change} since {date}",
   "globalHealthMonitorSinceEdition": "since the {date} edition",
   "globalHealthMonitorInterval": "50% prediction interval: {range}",

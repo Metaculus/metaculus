@@ -79,11 +79,6 @@ export async function DiseaseSection({
   );
 }
 
-const XL_COLUMNS_CLASS_NAMES: Record<number, string> = {
-  3: "xl:grid-cols-3",
-  4: "xl:grid-cols-4",
-};
-
 export async function DiseaseSectionRow({
   diseases,
   children,
@@ -110,8 +105,7 @@ export async function DiseaseSectionRow({
       <div
         className={cn(
           "mt-6 grid grid-cols-1 gap-10 md:mt-8 lg:gap-8 print:grid-cols-2 print:gap-6",
-          diseases.length > 1 && "md:grid-cols-2",
-          XL_COLUMNS_CLASS_NAMES[Math.min(diseases.length, 4)]
+          diseases.length > 1 && "md:grid-cols-2"
         )}
       >
         {children}
