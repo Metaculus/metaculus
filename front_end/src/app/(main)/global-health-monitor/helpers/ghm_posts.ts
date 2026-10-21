@@ -8,7 +8,8 @@ import { GroupOfQuestionsGraphType, PostWithForecasts } from "@/types/post";
 import { logError } from "@/utils/core/errors";
 
 import { GHM_REVALIDATE_SECONDS } from "../config/season";
-import { getAllGhmPostIds } from "../config/sections";
+import { getAllGhmPostIds, getSectionPostIds } from "../config/sections";
+import { EDITIONS } from "../editions";
 
 // Keeps each cached list response well under Next's 2 MB fetch-cache limit.
 const LIST_CHUNK_SIZE = 8;
@@ -53,9 +54,21 @@ async function fetchDetail(id: number): Promise<PostWithForecasts | null> {
   }
 }
 
+// Past editions can show cards that have since left the live layout.
+function getPagePostIds(): number[] {
+  return [
+    ...new Set([
+      ...getAllGhmPostIds(),
+      ...EDITIONS.flatMap((edition) =>
+        getSectionPostIds(edition.archive?.layout ?? [])
+      ),
+    ]),
+  ];
+}
+
 export const fetchGhmPosts = cache(
   async (): Promise<Map<number, PostWithForecasts>> => {
-    const chunks = chunk(getAllGhmPostIds(), LIST_CHUNK_SIZE);
+    const chunks = chunk(getPagePostIds(), LIST_CHUNK_SIZE);
     const listed = (await Promise.all(chunks.map(fetchListChunk))).flat();
     const posts = new Map(listed.map((post) => [post.id, post]));
 

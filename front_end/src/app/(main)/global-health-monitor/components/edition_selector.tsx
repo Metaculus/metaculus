@@ -93,6 +93,11 @@ export function EditionSelector({
                   )}
                 >
                   {edition.label}
+                  {edition.slug === latestSlug && (
+                    <span className="ml-1.5 text-xs font-normal text-gray-600 dark:text-gray-600-dark">
+                      · {t("globalHealthMonitorLatestTag")}
+                    </span>
+                  )}
                 </button>
               </MenuItem>
             ))}

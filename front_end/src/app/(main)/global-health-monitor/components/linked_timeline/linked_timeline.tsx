@@ -1,9 +1,7 @@
 "use client";
 
-import { faThumbtack } from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useTranslations } from "next-intl";
-import { MouseEvent, ReactNode, useMemo } from "react";
+import { ReactNode, useMemo } from "react";
 
 import cn from "@/utils/core/cn";
 
@@ -29,29 +27,29 @@ function TakeawayCard({ takeaway }: { takeaway: TakeawayView }) {
   const linkedTimeline = useLinkedTimeline();
   const lead = snapshot?.values[takeaway.lead];
   const isActive = linkedTimeline?.activeKey === takeaway.lead;
-  const isPinned = linkedTimeline?.pinnedKey === takeaway.lead;
-
-  const togglePin = () =>
-    linkedTimeline?.setPinnedKey(isPinned ? null : takeaway.lead);
+  const select = () => linkedTimeline?.select(takeaway.lead);
 
   return (
     <div
-      onMouseEnter={() => linkedTimeline?.setHoveredKey(takeaway.lead)}
-      onMouseLeave={() => linkedTimeline?.setHoveredKey(null)}
-      onClick={(event: MouseEvent<HTMLDivElement>) => {
-        if (!(event.target as HTMLElement).closest("a, button")) {
-          togglePin();
-        }
-      }}
+      onMouseEnter={select}
+      onClick={select}
+      onFocus={select}
       className={cn(
         "relative break-inside-avoid rounded-lg border bg-blue-100 px-4 py-2 transition-[border-color,box-shadow] dark:bg-blue-100-dark",
         isActive
-          ? "border-blue-600 ring-2 ring-blue-600 dark:border-blue-600-dark dark:ring-blue-600-dark"
+          ? "border-blue-600 ring-1 ring-blue-600 dark:border-blue-600-dark dark:ring-blue-600-dark"
           : "border-blue-300 hover:border-blue-500 dark:border-blue-300-dark dark:hover:border-blue-500-dark",
         "print:ring-0"
       )}
     >
-      <div className="mb-1 flex flex-wrap items-center gap-2 pr-8">
+      {/* Points at the chart, which shares the active border. */}
+      {isActive && (
+        <span
+          aria-hidden
+          className="absolute -right-[7px] top-1/2 hidden size-3 -translate-y-1/2 rotate-45 border-r-2 border-t-2 border-blue-600 bg-blue-100 dark:border-blue-600-dark dark:bg-blue-100-dark md:block print:hidden"
+        />
+      )}
+      <div className="mb-1 flex flex-wrap items-center gap-2">
         {takeaway.diseases.map((disease) => (
           <span
             key={disease}
@@ -67,21 +65,6 @@ function TakeawayCard({ takeaway }: { takeaway: TakeawayView }) {
           />
         )}
       </div>
-      <button
-        type="button"
-        onClick={togglePin}
-        aria-pressed={isPinned}
-        aria-label={t("globalHealthMonitorShowOnChart")}
-        title={t("globalHealthMonitorShowOnChart")}
-        className={cn(
-          "absolute right-2 top-2 flex size-7 items-center justify-center rounded-full text-xs transition-colors print:hidden",
-          isPinned
-            ? "bg-blue-700 text-gray-0 dark:bg-blue-700-dark dark:text-gray-0-dark"
-            : "text-blue-600 hover:bg-blue-200 dark:text-blue-600-dark dark:hover:bg-blue-200-dark"
-        )}
-      >
-        <FontAwesomeIcon icon={faThumbtack} />
-      </button>
       <div className="text-sm leading-normal text-blue-900 [text-wrap:pretty] dark:text-blue-900-dark">
         {takeaway.content}
       </div>

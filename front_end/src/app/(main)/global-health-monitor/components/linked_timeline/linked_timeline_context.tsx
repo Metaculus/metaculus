@@ -6,9 +6,10 @@ import { GhmValueKey } from "../../config/questions";
 
 type LinkedTimelineContextValue = {
   activeKey: GhmValueKey;
-  pinnedKey: GhmValueKey | null;
-  setHoveredKey: (key: GhmValueKey | null) => void;
-  setPinnedKey: (key: GhmValueKey | null) => void;
+  // The last hovered or clicked takeaway's lead; it stays until another takeaway takes over.
+  select: (key: GhmValueKey) => void;
+  // A hovered forecast token shows its own chart until the pointer leaves it.
+  setPreviewKey: (key: GhmValueKey | null) => void;
   // Keys that have a chart in the linked timeline; other tokens don't switch it.
   chartKeys: GhmValueKey[];
 };
@@ -26,18 +27,17 @@ export function LinkedTimelineProvider({
   chartKeys: GhmValueKey[];
   children: ReactNode;
 }) {
-  const [hoveredKey, setHoveredKey] = useState<GhmValueKey | null>(null);
-  const [pinnedKey, setPinnedKey] = useState<GhmValueKey | null>(null);
+  const [selectedKey, setSelectedKey] = useState<GhmValueKey>(defaultKey);
+  const [previewKey, setPreviewKey] = useState<GhmValueKey | null>(null);
 
   const value = useMemo(
     () => ({
-      activeKey: hoveredKey ?? pinnedKey ?? defaultKey,
-      pinnedKey,
-      setHoveredKey,
-      setPinnedKey,
+      activeKey: previewKey ?? selectedKey,
+      select: setSelectedKey,
+      setPreviewKey,
       chartKeys,
     }),
-    [chartKeys, defaultKey, hoveredKey, pinnedKey]
+    [chartKeys, previewKey, selectedKey]
   );
 
   return (

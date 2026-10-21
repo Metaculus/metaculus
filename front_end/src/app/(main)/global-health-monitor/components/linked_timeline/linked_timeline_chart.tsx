@@ -22,7 +22,7 @@ export function LinkedTimelineChart({
       variant="primary"
       postIds={[post.id]}
       subheader={<ChartHeadline valueKey={valueKey} />}
-      className="border border-blue-400 dark:border-blue-400-dark"
+      className="border border-blue-600 ring-1 ring-blue-600 dark:border-blue-600-dark dark:ring-blue-600-dark print:ring-0"
     >
       <BasicQuestionContent
         postData={post}

@@ -1,6 +1,7 @@
 import { EDITIONS, getPreviousEdition } from "..";
 import { DISEASE_IDS } from "../../config/diseases";
-import { GHM_VALUES } from "../../config/questions";
+import { GHM_VALUES, ValueRef } from "../../config/questions";
+import { getSectionPostIds } from "../../config/sections";
 
 const SLUG_PATTERN = /^\d{4}-\d{2}$/;
 
@@ -49,6 +50,58 @@ describe("editions", () => {
       edition.takeaways.forEach(({ lead }) =>
         expect(edition.frozen).toHaveProperty(lead)
       );
+    });
+  });
+
+  it("archives every past edition with a layout of known diseases and values", () => {
+    EDITIONS.slice(1).forEach((edition) => {
+      expect(edition.archive?.layout.length).toBeGreaterThan(0);
+      edition.archive?.layout.forEach((section) => {
+        expect(DISEASE_IDS).toContain(section.id);
+        section.cards.forEach(
+          ({ value }) => value && expect(GHM_VALUES).toHaveProperty(value)
+        );
+      });
+    });
+  });
+
+  it("archives a distribution for each numeric and date value shown", () => {
+    EDITIONS.forEach((edition) => {
+      if (!edition.archive) {
+        return;
+      }
+      const { layout, distributions } = edition.archive;
+      const postIds = new Set(getSectionPostIds(layout));
+      const continuousRefs = Object.values(
+        GHM_VALUES as Record<string, ValueRef>
+      )
+        .filter((ref) => postIds.has(ref.postId))
+        .filter(
+          (ref) =>
+            ref.format.kind !== "probability" ||
+            ref.mode === "pAbove" ||
+            ref.mode === "pBelow"
+        );
+      continuousRefs.forEach((ref) => {
+        const found = ref.subQuestionId
+          ? !!distributions[ref.subQuestionId]
+          : Object.values(distributions).some(
+              (distribution) => distribution.postId === ref.postId
+            );
+        expect([ref.label, found]).toEqual([ref.label, true]);
+      });
+    });
+  });
+
+  it("archives non-decreasing CDFs within [0, 1]", () => {
+    EDITIONS.forEach((edition) => {
+      Object.values(edition.archive?.distributions ?? {}).forEach(({ cdf }) => {
+        cdf.forEach((value, index) => {
+          expect(value).toBeGreaterThanOrEqual(0);
+          expect(value).toBeLessThanOrEqual(1);
+          expect(value).toBeGreaterThanOrEqual(cdf[index - 1] ?? 0);
+        });
+      });
     });
   });
 

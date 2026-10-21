@@ -159,6 +159,16 @@ export function formatIsoDate(date: string, locale = PROSE_LOCALE) {
   }).format(new Date(`${date}T00:00:00Z`));
 }
 
+// Publication day of an edition, from its asOf instant: "September 17, 2026".
+export function formatPublishedDate(asOf: string, locale: string) {
+  return new Intl.DateTimeFormat(locale, {
+    timeZone: "UTC",
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  }).format(new Date(asOf));
+}
+
 export function formatTimestamp(timestampSeconds: number, locale: string) {
   return new Intl.DateTimeFormat(locale, {
     timeZone: "UTC",

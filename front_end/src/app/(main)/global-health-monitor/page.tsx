@@ -5,19 +5,23 @@ import LaborHubNavigation from "@/app/(main)/labor-hub/components/labor_hub_navi
 import { HubPdf } from "@/app/(main)/labor-hub/components/pdf_download_button";
 import { PrintAttribution } from "@/app/(main)/labor-hub/components/print_attribution";
 import { SearchParams } from "@/types/navigation";
-import cn from "@/utils/core/cn";
 import { getPublicSettings } from "@/utils/public_settings.server";
 
-import { CloserLookTabs } from "./components/closer_look_tabs";
 import {
   DiseaseSection,
   DiseaseSectionRow,
 } from "./components/disease_section";
+import { EditionNavChip } from "./components/edition_status";
 import { GhmDataProvider } from "./components/ghm_data_provider";
-import { ModeSwitcher } from "./components/mode_switcher";
+import { PastEditionBanner } from "./components/past_edition_banner";
 import { DISEASE_NAME_KEYS } from "./config/diseases";
 import { GHM_ROUTE } from "./config/season";
-import { getSectionRows, SectionConfig, SECTIONS } from "./config/sections";
+import {
+  getSectionRows,
+  OTHER_DISEASES_ID,
+  SectionConfig,
+  SECTIONS,
+} from "./config/sections";
 import {
   EDITIONS,
   getLatestEdition,
@@ -26,13 +30,13 @@ import {
 } from "./editions";
 import { formatEditionLabel } from "./helpers/format";
 import { fetchGhmPosts } from "./helpers/ghm_posts";
-import { getGhmQuery, parseGhmMode } from "./helpers/mode";
+import { getEditionQuery } from "./helpers/links";
 import { buildGhmSnapshot } from "./helpers/snapshot";
+import { snapshotPostsAt } from "./helpers/snapshot_posts";
 import { EngagementSection } from "./sections/engagement";
 import { HeroSection } from "./sections/hero";
 import { KeyTakeawaysSection } from "./sections/key_takeaways";
 import { MethodologySection } from "./sections/methodology";
-import { SimpleTakeawaysSection } from "./sections/simple_takeaways";
 
 type Props = { searchParams: Promise<SearchParams> };
 
@@ -78,27 +82,36 @@ export async function generateMetadata({
 export default async function GlobalHealthMonitorPage({ searchParams }: Props) {
   const t = await getTranslations();
   const locale = await getLocale();
-  const params = await searchParams;
-  const mode = parseGhmMode(params.mode);
   const latest = getLatestEdition();
-  const edition = resolveEdition(getParam(params, "edition"));
-  const posts = await fetchGhmPosts();
+  const edition = resolveEdition(getParam(await searchParams, "edition"));
+  const isLatest = edition.slug === latest.slug;
+  const livePosts = await fetchGhmPosts();
+
+  // Only the latest edition is live. Past ones render their published layout, with every
+  // card, chart and value as of their publication.
+  const asOfTime = isLatest ? undefined : Date.parse(edition.asOf);
+  const layout = isLatest ? SECTIONS : edition.archive?.layout ?? SECTIONS;
+  const posts =
+    asOfTime === undefined
+      ? livePosts
+      : snapshotPostsAt(
+          livePosts,
+          Math.floor(asOfTime / 1000),
+          edition.archive?.distributions ?? {}
+        );
+
   const snapshot = buildGhmSnapshot({
     posts,
     editions: EDITIONS,
     edition,
     previousEdition: getPreviousEdition(edition),
-    isLatest: edition.slug === latest.slug,
+    isLatest,
     locale,
   });
   const pdf: HubPdf = {
-    url: `${GHM_ROUTE}pdf/${getGhmQuery({
-      edition: snapshot.isLatest ? null : edition.slug,
-      mode,
-    })}`,
+    url: `${GHM_ROUTE}pdf/${getEditionQuery(isLatest ? null : edition.slug)}`,
     fileName: `global-health-monitor-${edition.slug}.pdf`,
   };
-  const latestHref = `${GHM_ROUTE}${getGhmQuery({ edition: null, mode })}`;
 
   const renderSection = (section: SectionConfig) => (
     <DiseaseSection
@@ -106,25 +119,24 @@ export default async function GlobalHealthMonitorPage({ searchParams }: Props) {
       section={section}
       content={edition.sections[section.id]}
       posts={posts}
+      asOfTime={asOfTime}
     />
   );
-  // A row is one full section, or several small ones side by side.
-  const sectionRows = getSectionRows(SECTIONS).map((row) =>
+  // A row is one full section, or all the small ones side by side.
+  const sectionRows = getSectionRows(layout).map((row) =>
     row.kind === "section"
       ? {
           id: row.section.id,
           label: t(DISEASE_NAME_KEYS[row.section.id]),
-          aliases: [],
           content: renderSection(row.section),
         }
       : {
-          id: row.sections.map((section) => section.id).join("-"),
+          id: OTHER_DISEASES_ID,
           label: t("globalHealthMonitorOtherDiseases"),
-          aliases: row.sections.map((section) => section.id),
           content: (
             <DiseaseSectionRow
-              key={row.sections.map((section) => section.id).join("-")}
-              columns={row.sections.length}
+              key={OTHER_DISEASES_ID}
+              diseases={row.sections.map((section) => section.id)}
             >
               {row.sections.map(renderSection)}
             </DiseaseSectionRow>
@@ -132,83 +144,37 @@ export default async function GlobalHealthMonitorPage({ searchParams }: Props) {
         }
   );
 
-  const contentClassName =
-    "mx-auto flex w-full max-w-7xl flex-col gap-5 px-1 sm:gap-6 sm:px-8 md:gap-8 xl:px-16 print:gap-8 print:px-0";
-  const blockSpacingClassName = "mt-5 sm:mt-6 md:mt-8 print:mt-8";
-  const trailingSections = (
-    <>
-      <MethodologySection />
-      <PrintAttribution />
-      <EngagementSection />
-    </>
-  );
-
   return (
     <main className="relative mb-24 min-h-screen xl:mt-12 print:mb-0 print:mt-0 print:[zoom:0.75] [&_[id]]:scroll-mt-24">
       <GhmDataProvider snapshot={snapshot}>
         <div className="mx-auto w-full max-w-7xl xl:px-16 print:mb-6 print:px-0">
-          <ModeSwitcher mode={mode} />
-          <HeroSection latestSlug={latest.slug} mode={mode} pdf={pdf} />
+          <HeroSection snapshot={snapshot} latestSlug={latest.slug} pdf={pdf} />
         </div>
-        {mode === "simple" ? (
-          <>
-            <div className={cn(contentClassName, blockSpacingClassName)}>
-              <SimpleTakeawaysSection
-                edition={edition}
-                snapshot={snapshot}
-                latestSlug={latest.slug}
-              />
-            </div>
-            {/* Outside the content column so the sticky tab bar spans the viewport. */}
-            <div className={blockSpacingClassName}>
-              <CloserLookTabs
-                id="closer-look"
-                title={t("globalHealthMonitorCloserLook")}
-                tabs={sectionRows.map(({ id, label, aliases, content }) => ({
-                  id,
-                  label,
-                  aliases,
-                  panel: content,
-                }))}
-              />
-            </div>
-            <div className={cn(contentClassName, blockSpacingClassName)}>
-              {trailingSections}
-            </div>
-          </>
-        ) : (
-          <>
-            <LaborHubNavigation
-              sections={[
-                {
-                  id: "takeaways",
-                  label: t("globalHealthMonitorNavTakeaways"),
-                },
-                ...SECTIONS.map((section) => ({
-                  id: section.id,
-                  label: t(DISEASE_NAME_KEYS[section.id]),
-                })),
-                {
-                  id: "methodology",
-                  label: t("globalHealthMonitorNavMethodology"),
-                },
-              ]}
-              pdf={null}
-              showNewsletter={false}
-            />
-            <div className={contentClassName}>
-              <KeyTakeawaysSection
-                edition={edition}
-                snapshot={snapshot}
-                latestSlug={latest.slug}
-                latestHref={latestHref}
-                posts={posts}
-              />
-              {sectionRows.map((row) => row.content)}
-              {trailingSections}
-            </div>
-          </>
-        )}
+        <LaborHubNavigation
+          sections={[
+            { id: "takeaways", label: t("globalHealthMonitorNavTakeaways") },
+            ...sectionRows.map(({ id, label }) => ({ id, label })),
+            {
+              id: "methodology",
+              label: t("globalHealthMonitorNavMethodology"),
+            },
+          ]}
+          pdf={null}
+          showNewsletter={false}
+          actions={
+            isLatest ? undefined : <EditionNavChip edition={snapshot.edition} />
+          }
+        />
+        <div className="mx-auto flex w-full max-w-7xl flex-col gap-5 px-1 sm:gap-6 sm:px-8 md:gap-8 xl:px-16 print:gap-8 print:px-0">
+          {!isLatest && (
+            <PastEditionBanner date={snapshot.edition.label} href={GHM_ROUTE} />
+          )}
+          <KeyTakeawaysSection edition={edition} posts={posts} />
+          {sectionRows.map((row) => row.content)}
+          <MethodologySection />
+          <PrintAttribution />
+          <EngagementSection />
+        </div>
       </GhmDataProvider>
     </main>
   );

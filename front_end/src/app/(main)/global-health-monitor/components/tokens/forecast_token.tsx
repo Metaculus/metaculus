@@ -160,7 +160,7 @@ export function Forecast({
       content={<ForecastHoverContent datum={datum} />}
       onActiveChange={(active) => {
         if (chartKey) {
-          linkedTimeline?.setHoveredKey(active ? chartKey : null);
+          linkedTimeline?.setPreviewKey(active ? chartKey : null);
         }
       }}
       className={cn(

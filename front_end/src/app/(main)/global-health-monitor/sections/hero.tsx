@@ -1,35 +1,28 @@
-import { getLocale, getTranslations } from "next-intl/server";
+import { getTranslations } from "next-intl/server";
 
 import {
   HubPdf,
   PdfDownloadButton,
 } from "@/app/(main)/labor-hub/components/pdf_download_button";
-import LiveBadge from "@/app/(main)/midterms-2026/components/live_badge";
-import cn from "@/utils/core/cn";
 
-import { formatEditionLabel } from "../helpers/format";
-import { GhmMode } from "../helpers/mode";
+import { EditionSelector } from "../components/edition_selector";
+import { EditionStatus } from "../components/edition_status";
+import { GhmSnapshot } from "../helpers/snapshot";
 
 export async function HeroSection({
+  snapshot,
   latestSlug,
-  mode,
   pdf,
 }: {
+  snapshot: GhmSnapshot;
   latestSlug: string;
-  mode: GhmMode;
   pdf: HubPdf;
 }) {
   const t = await getTranslations();
-  const locale = await getLocale();
 
   return (
-    <section
-      className={cn(
-        "flex flex-col gap-4 bg-gray-0 px-5 pt-5 dark:bg-gray-0-dark sm:px-8 sm:pt-8 md:gap-6 md:px-10 md:pt-10 print:px-0 print:pt-4",
-        // In full mode the section tabs continue this card; simple mode has none.
-        mode === "simple" ? "rounded-md pb-5 sm:pb-8 md:pb-10" : "rounded-t-md"
-      )}
-    >
+    // The section tabs continue this card.
+    <section className="flex flex-col gap-4 rounded-t-md bg-gray-0 px-5 pt-5 dark:bg-gray-0-dark sm:px-8 sm:pt-8 md:gap-6 md:px-10 md:pt-10 print:px-0 print:pt-4">
       <div className="flex flex-wrap items-start justify-between gap-x-6 gap-y-4">
         <h1 className="my-0 text-2xl/tight font-bold tracking-tight text-blue-800 dark:text-blue-800-dark sm:text-3xl md:text-4xl lg:text-5xl">
           {t("globalHealthMonitorHeroTitleLine1")}{" "}
@@ -52,13 +45,16 @@ export async function HeroSection({
             {t("globalHealthMonitorHeroSubtitle")}
           </span>
         </p>
-        <div className="flex shrink-0 flex-col gap-1 text-sm text-blue-700 dark:text-blue-700-dark sm:items-end">
-          <LiveBadge label={t("globalHealthMonitorLiveBadge")} />
-          <span>
-            {t("globalHealthMonitorLatestEdition", {
-              date: formatEditionLabel(latestSlug, locale),
-            })}
-          </span>
+        <div className="flex shrink-0 flex-col gap-2 sm:items-end">
+          <EditionSelector
+            editions={snapshot.editions}
+            currentSlug={snapshot.edition.slug}
+            latestSlug={latestSlug}
+          />
+          <EditionStatus
+            edition={snapshot.edition}
+            isLatest={snapshot.isLatest}
+          />
         </div>
       </div>
     </section>

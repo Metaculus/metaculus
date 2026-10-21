@@ -16,7 +16,7 @@ import {
 import { faBell } from "@fortawesome/free-regular-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useTranslations } from "next-intl";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { ReactNode, useCallback, useEffect, useRef, useState } from "react";
 
 import Button from "@/components/ui/button";
 import { useTopChromeHeightPx } from "@/hooks/use_top_chrome_height";
@@ -40,12 +40,15 @@ export default function LaborHubNavigation({
   newsletterListKey,
   pdf = LABOR_HUB_PDF,
   showNewsletter = true,
+  actions,
 }: {
   sections: { id: string; label: string }[];
   newsletterListKey?: string;
   /** PDF export endpoint and download name; null hides the button. */
   pdf?: HubPdf | null;
   showNewsletter?: boolean;
+  /** Extra content at the start of the right-hand rail, e.g. a status badge. */
+  actions?: ReactNode;
 }) {
   const t = useTranslations();
   const [isSticky, setIsSticky] = useState(false);
@@ -121,8 +124,9 @@ export default function LaborHubNavigation({
 
   const surfaceClassName = "bg-gray-0 dark:bg-gray-0-dark";
   const fadeToSurfaceClassName = "to-gray-0 dark:to-gray-0-dark";
-  const tabEndSpacingClassName =
-    "after:w-28 sm:after:w-32 md:after:w-36 lg:after:w-40";
+  const tabEndSpacingClassName = actions
+    ? "after:w-36 sm:after:w-56 lg:after:w-60"
+    : "after:w-28 sm:after:w-32 md:after:w-36 lg:after:w-40";
   const actionRailClassName =
     "pointer-events-auto absolute inset-y-0 right-0 flex items-center pr-4 gap-2 sm:pr-6 md:pr-8";
   const actionFadeClassName =
@@ -152,12 +156,13 @@ export default function LaborHubNavigation({
               </div>
             </div>
 
-            {(pdf || showNewsletter) && (
+            {(pdf || showNewsletter || actions) && (
               <div className={cn(actionRailClassName, surfaceClassName)}>
                 <div
                   aria-hidden
                   className={cn(actionFadeClassName, fadeToSurfaceClassName)}
                 />
+                {actions}
                 {pdf && <PdfDownloadButton pdf={pdf} />}
                 {showNewsletter && (
                   <Button

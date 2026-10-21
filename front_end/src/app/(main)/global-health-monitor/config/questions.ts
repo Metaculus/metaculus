@@ -222,6 +222,12 @@ export const GHM_VALUES = {
     format: PROBABILITY,
     tone: "higherIsWorse",
   },
+  plagueRussiaFatalities: {
+    postId: 45987,
+    label: "Russia pneumonic plague: 10+ deaths before 2027",
+    format: PROBABILITY,
+    tone: "higherIsWorse",
+  },
 } as const satisfies Record<string, ValueRef>;
 
 export type GhmValueKey = keyof typeof GHM_VALUES;

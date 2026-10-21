@@ -46,11 +46,14 @@ export function GhmQuestionCard({
   postId,
   post,
   value,
+  asOfTime,
   className,
 }: {
   postId: number;
   post: PostWithForecasts | undefined;
   value?: GhmValueKey;
+  // Past editions end their timelines at publication (ms).
+  asOfTime?: number;
   className?: string;
 }) {
   if (!post) {
@@ -63,7 +66,7 @@ export function GhmQuestionCard({
 
   return (
     <FlippableQuestionCard
-      title={post.title}
+      title={post.short_title || post.title}
       variant="secondary"
       postIds={[post.id]}
       className={className}
@@ -76,6 +79,7 @@ export function GhmQuestionCard({
           postData={post}
           preferTimeline
           chartHeight={CHART_HEIGHT}
+          asOfTime={asOfTime}
         />
       }
     />

@@ -17,7 +17,6 @@ function aggregate(
     question_id: 45164,
     start_time: startTime,
     end_time: endTime,
-    forecast_values: [1 - probability, probability],
     interval_lower_bounds: [probability],
     centers: [probability],
     interval_upper_bounds: [probability],

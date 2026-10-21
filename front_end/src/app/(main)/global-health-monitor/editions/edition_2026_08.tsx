@@ -1,3 +1,4 @@
+import { ARCHIVE_2026_08 } from "./archives/edition_2026_08";
 import { defineProComments, defineSources, Edition } from "./types";
 import { DataPoint, Forecast, Term } from "../components/tokens";
 
@@ -43,6 +44,7 @@ const PRO = defineProComments({
 export const EDITION_2026_08: Edition = {
   slug: "2026-08",
   asOf: "2026-08-28T12:00:00Z",
+  archive: ARCHIVE_2026_08,
   takeaways: [
     {
       id: "ebola",

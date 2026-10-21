@@ -21,6 +21,7 @@ import {
   formatEditionLabel,
   formatEditionMonth,
   formatInterval,
+  formatPublishedDate,
   formatValue,
 } from "./format";
 import {
@@ -63,6 +64,8 @@ export type EditionLabel = {
   label: string;
   // "September", for English prose.
   shortLabel: string;
+  // "September 17, 2026", in the page locale.
+  published: string;
 };
 
 export type GhmSnapshot = {
@@ -94,6 +97,7 @@ function getEditionLabel(edition: Edition, locale: string): EditionLabel {
     slug: edition.slug,
     label: formatEditionLabel(edition.slug, locale),
     shortLabel: formatEditionMonth(edition.slug),
+    published: formatPublishedDate(edition.asOf, locale),
   };
 }
 

@@ -18,23 +18,23 @@ import {
   ProSummary,
   SectionProse,
 } from "./section_blocks";
-import { SectionCarousel } from "./section_carousel";
-import { DISEASE_NAME_KEYS } from "../config/diseases";
-import { getSectionLayout, SectionConfig } from "../config/sections";
+import { DISEASE_NAME_KEYS, DiseaseId } from "../config/diseases";
+import { OTHER_DISEASES_ID, SectionConfig } from "../config/sections";
 import { SectionEdition } from "../editions/types";
 
 export async function DiseaseSection({
   section,
   content,
   posts,
+  asOfTime,
 }: {
   section: SectionConfig;
   content: SectionEdition | undefined;
   posts: Map<number, PostWithForecasts>;
+  asOfTime?: number;
 }) {
   const t = await getTranslations();
   const title = t(DISEASE_NAME_KEYS[section.id]);
-  const layout = getSectionLayout(section);
 
   const cards = section.cards.map((card) => (
     <GhmQuestionCard
@@ -42,47 +42,19 @@ export async function DiseaseSection({
       postId={card.postId}
       post={posts.get(card.postId)}
       value={card.value}
+      asOfTime={asOfTime}
     />
   ));
 
-  // Side-by-side columns are a title and a chart, with no edition text.
-  if (layout === "column") {
+  // Columns of the "Other emerging diseases" row are a title and a chart, with no edition text.
+  if (section.layout === "column") {
     return (
-      <div id={section.id} className="flex min-w-0 flex-col gap-4 md:gap-6">
-        <SectionHeader className="md:text-2xl">{title}</SectionHeader>
+      <div className="flex min-w-0 flex-col gap-4 md:gap-6">
+        <h3 className="my-0 text-lg font-medium tracking-tight text-blue-800 dark:text-blue-800-dark md:text-2xl md:font-bold print:text-xl">
+          {title}
+        </h3>
         {cards}
       </div>
-    );
-  }
-
-  const prose = content ? <SectionProse>{content.body}</SectionProse> : null;
-  const latestData = content?.sources?.length ? (
-    <LatestData sources={content.sources} />
-  ) : null;
-  const proSummary = content?.proSummary ? (
-    <ProSummary>{content.proSummary}</ProSummary>
-  ) : null;
-  const quote = content?.quote ? (
-    <ProQuoteCallout quote={content.quote} />
-  ) : null;
-
-  if (layout === "carousel") {
-    const hasAside = latestData || proSummary || quote;
-    return (
-      <SectionCard id={section.id}>
-        <SectionHeader>{title}</SectionHeader>
-        <div className="mt-4 grid grid-cols-1 gap-6 md:mt-8 lg:grid-cols-2 lg:gap-8 print:grid-cols-2">
-          {prose}
-          {hasAside && (
-            <div className="flex min-w-0 flex-col gap-4">
-              {latestData}
-              {proSummary}
-              {quote}
-            </div>
-          )}
-        </div>
-        <SectionCarousel className="mt-6 md:mt-8">{cards}</SectionCarousel>
-      </SectionCard>
     );
   }
 
@@ -90,38 +62,55 @@ export async function DiseaseSection({
     <DualPaneSectionCard id={section.id}>
       <DualPaneSectionLeft>
         <SectionHeader>{title}</SectionHeader>
-        {prose}
-        {proSummary}
+        {content && <SectionProse>{content.body}</SectionProse>}
+        {content?.proSummary && <ProSummary>{content.proSummary}</ProSummary>}
+        {!!content?.sources?.length && <LatestData sources={content.sources} />}
       </DualPaneSectionLeft>
-      <div className="flex min-w-0 flex-col gap-6">
-        {latestData}
-        <DualPaneSectionRight>
-          {cards}
-          {quote}
-        </DualPaneSectionRight>
-      </div>
+      <DualPaneSectionRight>
+        {cards}
+        {content?.quote && <ProQuoteCallout quote={content.quote} />}
+      </DualPaneSectionRight>
     </DualPaneSectionCard>
   );
 }
 
-// Side-by-side "column" sections share one card.
-export function DiseaseSectionRow({
-  columns,
+const XL_COLUMNS_CLASS_NAMES: Record<number, string> = {
+  3: "xl:grid-cols-3",
+  4: "xl:grid-cols-4",
+};
+
+export async function DiseaseSectionRow({
+  diseases,
   children,
 }: {
-  columns: number;
+  diseases: DiseaseId[];
   children: ReactNode;
 }) {
+  const t = await getTranslations();
+
   return (
-    <SectionCard
-      className={cn(
-        "grid grid-cols-1 gap-10 lg:gap-8 print:gap-6",
-        columns >= 3
-          ? "lg:grid-cols-3 print:grid-cols-3"
-          : "lg:grid-cols-2 print:grid-cols-2"
-      )}
-    >
-      {children}
+    <SectionCard id={OTHER_DISEASES_ID}>
+      {/* Each disease's own anchor (prose links) lands on the whole row, below the sticky nav. */}
+      {diseases.map((disease) => (
+        <span
+          key={disease}
+          id={disease}
+          className="block !scroll-mt-44"
+          aria-hidden
+        />
+      ))}
+      <SectionHeader>
+        {t("globalHealthMonitorOtherEmergingDiseases")}
+      </SectionHeader>
+      <div
+        className={cn(
+          "mt-6 grid grid-cols-1 gap-10 md:mt-8 lg:gap-8 print:grid-cols-2 print:gap-6",
+          diseases.length > 1 && "md:grid-cols-2",
+          XL_COLUMNS_CLASS_NAMES[Math.min(diseases.length, 4)]
+        )}
+      >
+        {children}
+      </div>
     </SectionCard>
   );
 }

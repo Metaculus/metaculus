@@ -1,9 +1,6 @@
 import { DiseaseId } from "./diseases";
 import { GHM_VALUES, GhmValueKey } from "./questions";
 
-// "column" sections sit side by side in one row, like Midterms' Key Drivers.
-export type SectionLayout = "carousel" | "dualPane" | "column";
-
 export type SectionCardConfig = {
   postId: number;
   // Value whose move since the previous edition is shown on the card. Group cards have none.
@@ -12,11 +9,16 @@ export type SectionCardConfig = {
 
 export type SectionConfig = {
   id: DiseaseId;
-  layout?: SectionLayout;
+  // "column" sections show only their title and cards, together in the "Other emerging diseases" row.
+  layout?: "column";
   cards: SectionCardConfig[];
 };
 
-// Page order. Removing a card hides a question; value keys stay because past editions reference them.
+// Anchor of the "Other emerging diseases" row; its diseases' own anchors land on it too.
+export const OTHER_DISEASES_ID = "other-diseases";
+
+// Live page order, used by the latest edition. Past editions render the layout baked into their
+// archive. Removing a card hides a question; value keys stay because past editions reference them.
 export const SECTIONS: SectionConfig[] = [
   {
     id: "respiratory",
@@ -69,51 +71,46 @@ export const SECTIONS: SectionConfig[] = [
     layout: "column",
     cards: [{ postId: 43468, value: "hantaPheic" }],
   },
+  {
+    id: "plague",
+    layout: "column",
+    cards: [{ postId: 45987, value: "plagueRussiaFatalities" }],
+  },
 ];
-
-const CAROUSEL_MIN_POSTS = 4;
-
-export function getSectionLayout(section: SectionConfig): SectionLayout {
-  return (
-    section.layout ??
-    (section.cards.length >= CAROUSEL_MIN_POSTS ? "carousel" : "dualPane")
-  );
-}
-
-const MAX_COLUMNS_PER_ROW = 3;
 
 export type SectionRow =
   | { kind: "section"; section: SectionConfig }
   | { kind: "columns"; sections: SectionConfig[] };
 
-// Consecutive "column" sections share a row of up to three.
+// "column" sections share a single row, placed where the first of them appears.
 export function getSectionRows(sections: SectionConfig[]): SectionRow[] {
   const rows: SectionRow[] = [];
+  let columns: SectionConfig[] | null = null;
   for (const section of sections) {
-    const lastRow = rows.at(-1);
-    if (getSectionLayout(section) !== "column") {
+    if (section.layout !== "column") {
       rows.push({ kind: "section", section });
-    } else if (
-      lastRow?.kind === "columns" &&
-      lastRow.sections.length < MAX_COLUMNS_PER_ROW
-    ) {
-      lastRow.sections.push(section);
+    } else if (columns) {
+      columns.push(section);
     } else {
-      rows.push({ kind: "columns", sections: [section] });
+      columns = [section];
+      rows.push({ kind: "columns", sections: columns });
     }
   }
   return rows;
 }
 
+export function getSectionPostIds(sections: SectionConfig[]): number[] {
+  return sections.flatMap((section) =>
+    section.cards.map((card) => card.postId)
+  );
+}
+
+// Posts the live page and the edition tooling read.
 export function getAllGhmPostIds(): number[] {
-  const ids = new Set<number>();
-  for (const ref of Object.values(GHM_VALUES)) {
-    ids.add(ref.postId);
-  }
-  for (const section of SECTIONS) {
-    for (const card of section.cards) {
-      ids.add(card.postId);
-    }
-  }
-  return [...ids];
+  return [
+    ...new Set([
+      ...Object.values(GHM_VALUES).map((ref) => ref.postId),
+      ...getSectionPostIds(SECTIONS),
+    ]),
+  ];
 }

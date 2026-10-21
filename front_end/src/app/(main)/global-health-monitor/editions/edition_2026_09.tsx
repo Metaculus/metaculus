@@ -1,3 +1,4 @@
+import { ARCHIVE_2026_09 } from "./archives/edition_2026_09";
 import { defineProComments, defineSources, Edition } from "./types";
 import {
   DataPoint,
@@ -68,6 +69,7 @@ const SUBCLADE_K_TIP =
 export const EDITION_2026_09: Edition = {
   slug: "2026-09",
   asOf: "2026-09-17T12:00:00Z",
+  archive: ARCHIVE_2026_09,
   takeaways: [
     {
       id: "measles",
