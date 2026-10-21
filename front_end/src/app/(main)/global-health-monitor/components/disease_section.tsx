@@ -35,6 +35,10 @@ export async function DiseaseSection({
 }) {
   const t = await getTranslations();
   const title = t(DISEASE_NAME_KEYS[section.id]);
+  const cpLabel =
+    asOfTime === undefined
+      ? undefined
+      : t("globalHealthMonitorForecastAtPublication");
 
   const cards = section.cards.map((card) => (
     <GhmQuestionCard
@@ -43,6 +47,7 @@ export async function DiseaseSection({
       post={posts.get(card.postId)}
       value={card.value}
       asOfTime={asOfTime}
+      cpLabel={cpLabel}
     />
   ));
 

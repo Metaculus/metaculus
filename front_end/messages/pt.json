@@ -2547,6 +2547,7 @@
   "globalHealthMonitorOtherDiseases": "Outras doenças",
   "globalHealthMonitorOtherEmergingDiseases": "Outras doenças emergentes",
   "globalHealthMonitorPastEditionBanner": "Você está vendo a edição de {date}. As previsões aparecem como estavam quando ela foi publicada.",
+  "globalHealthMonitorForecastAtPublication": "Previsão na publicação",
   "globalHealthMonitorBackToLatest": "Ver a edição mais recente",
   "globalHealthMonitorTakeawaysChartHint": "Passe o cursor sobre uma conclusão ou clique nela para ver sua previsão.",
   "globalHealthMonitorChangeSince": "{change} desde {date}",

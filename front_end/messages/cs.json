@@ -2549,6 +2549,7 @@
   "globalHealthMonitorOtherDiseases": "Další nemoci",
   "globalHealthMonitorOtherEmergingDiseases": "Další nově se objevující nemoci",
   "globalHealthMonitorPastEditionBanner": "Prohlížíte si vydání {date}. Prognózy jsou zobrazeny tak, jak byly v době jeho zveřejnění.",
+  "globalHealthMonitorForecastAtPublication": "Prognóza při zveřejnění",
   "globalHealthMonitorBackToLatest": "Zobrazit nejnovější vydání",
   "globalHealthMonitorTakeawaysChartHint": "Najeďte na závěr nebo na něj klikněte a uvidíte jeho prognózu.",
   "globalHealthMonitorChangeSince": "{change} od vydání {date}",

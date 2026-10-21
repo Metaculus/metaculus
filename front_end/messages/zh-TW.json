@@ -2546,6 +2546,7 @@
   "globalHealthMonitorOtherDiseases": "其他疾病",
   "globalHealthMonitorOtherEmergingDiseases": "其他新興疾病",
   "globalHealthMonitorPastEditionBanner": "您正在查看 {date} 這一期。預測依該期發布時的數值顯示。",
+  "globalHealthMonitorForecastAtPublication": "發布時的預測",
   "globalHealthMonitorBackToLatest": "查看最新一期",
   "globalHealthMonitorTakeawaysChartHint": "將滑鼠移到某則重點上或點選它，即可查看其預測。",
   "globalHealthMonitorChangeSince": "自 {date} 以來 {change}",

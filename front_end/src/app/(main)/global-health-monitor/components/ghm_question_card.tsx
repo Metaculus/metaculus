@@ -16,7 +16,13 @@ import { GhmValueKey } from "../config/questions";
 const CHART_HEIGHT = 180;
 const TILE_SCALE = 1.2;
 
-function SnapshotView({ post }: { post: PostWithForecasts }) {
+function SnapshotView({
+  post,
+  cpLabel,
+}: {
+  post: PostWithForecasts;
+  cpLabel?: string;
+}) {
   const question = post.question as QuestionWithForecasts | undefined;
 
   // The question-page prediction views scale up on desktop and overflow a card, so
@@ -33,7 +39,7 @@ function SnapshotView({ post }: { post: PostWithForecasts }) {
             transformOrigin: "center",
           }}
         >
-          <ConsumerTileClient question={question} />
+          <ConsumerTileClient question={question} cpLabel={cpLabel} />
         </div>
       </div>
     );
@@ -47,6 +53,7 @@ export function GhmQuestionCard({
   post,
   value,
   asOfTime,
+  cpLabel,
   className,
 }: {
   postId: number;
@@ -54,6 +61,8 @@ export function GhmQuestionCard({
   value?: GhmValueKey;
   // Past editions end their timelines at publication (ms).
   asOfTime?: number;
+  // Past editions label numeric forecasts as taken at publication.
+  cpLabel?: string;
   className?: string;
 }) {
   if (!post) {
@@ -73,7 +82,7 @@ export function GhmQuestionCard({
       subheader={value ? <CardChange value={value} /> : undefined}
       leftIcon={getLeftIcon(post)}
       rightIcon={getRightIcon(post)}
-      leftContent={<SnapshotView post={post} />}
+      leftContent={<SnapshotView post={post} cpLabel={cpLabel} />}
       rightContent={
         <BasicQuestionContent
           postData={post}
