@@ -1,0 +1,60 @@
+<mjml>
+    <mj-include path="../../../templates/emails/email_styles.mjml"/>
+
+    <mj-body>
+        <mj-include path="../../../templates/emails/email_top.mjml"/>
+
+        <mj-section>
+            <mj-column>
+                <mj-text>
+                    Hello {{ username }},
+                </mj-text>
+
+                <mj-text>
+                    {% blocktrans %}
+                    The email address of your Metaculus account was changed to <code>{{ new_email }}</code>.
+                    {% endblocktrans %}
+                </mj-text>
+
+                <mj-text>
+                    {% blocktrans %}
+                    If you didn't make this change, undo it below.
+                    {% endblocktrans %}
+                </mj-text>
+            </mj-column>
+        </mj-section>
+
+        <mj-wrapper mj-class="content-block-wrapper" css-class="content-block-wrapper-loose">
+            <mj-section mj-class="content-block" padding="8px 24px">
+                <mj-column padding="0px">
+                    <mj-button mj-class="cta-button" href="{{ rollback_link }}" padding-top="16px">
+                        Undo this change
+                    </mj-button>
+
+                    <mj-text
+                        align="center"
+                        color="#7C8894"
+                        font-size="11px"
+                        line-height="16px"
+                        padding="10px 0px 6px">
+                        {% blocktrans %}Expires in 7 days{% endblocktrans %}
+                    </mj-text>
+                </mj-column>
+            </mj-section>
+        </mj-wrapper>
+
+        <mj-section>
+            <mj-column>
+                <mj-text align="center" color="#6B7280" font-size="13px" padding-top="8px">
+                    {% blocktrans %}
+                    Or, copy and paste this link into your browser:
+                    {% endblocktrans %}
+                    <br/>
+                    <a href="{{ rollback_link }}" style="color: #0A66C2; word-break: break-all;">{{ rollback_link }}</a>
+                </mj-text>
+            </mj-column>
+        </mj-section>
+
+        <mj-include path="../../../templates/emails/email_greeting.mjml"/>
+    </mj-body>
+</mjml>

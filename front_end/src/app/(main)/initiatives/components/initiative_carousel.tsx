@@ -37,8 +37,8 @@ import {
 import { usePrefersReducedMotion } from "../helpers/use_prefers_reduced_motion";
 import { Initiative } from "../types";
 
-const AUTOPLAY_INTERVAL = 5000;
-const AUTOPLAY_RESUME_DELAY = 4000;
+const AUTOPLAY_INTERVAL = 3000;
+const AUTOPLAY_RESUME_DELAY = 1000;
 const WHEEL_STEP_THRESHOLD = 40;
 const WHEEL_IDLE_RESET = 200;
 

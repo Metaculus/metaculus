@@ -40,7 +40,7 @@
                         
                         <!-- Question Title -->
                         <div style="font-size: 14px; font-weight: 500; color: #2F4155;">
-                            <a href="{{ comment.post_url }}" style="color: #2F4155; text-decoration: underline;">
+                            <a href="{{ comment.comment_url }}" style="color: #2F4155; text-decoration: underline;">
                                 {{ comment.post_title }}
                             </a>
                         </div>

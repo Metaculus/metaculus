@@ -57,6 +57,7 @@ const AdTile: FC<Props> = ({ tile, onDismiss }) => {
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
+            sendAnalyticsEvent("internalAdDismissed", { ad_title: ad.title });
             onDismiss();
           }}
           className="absolute right-2 top-2 z-10 flex h-6 w-6 items-center justify-center rounded text-gray-0/60 transition-colors hover:text-gray-0"

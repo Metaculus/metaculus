@@ -10,11 +10,11 @@ from coherence.models import CoherenceLink
 from posts.models import Notebook
 from projects.models import Project
 from questions.models import (
-    Question,
-    GroupOfQuestions,
-    Conditional,
-    AggregateForecast,
     QUESTION_CONTINUOUS_TYPES,
+    AggregateForecast,
+    Conditional,
+    GroupOfQuestions,
+    Question,
 )
 from scoring.constants import LeaderboardScoreTypes
 from scoring.models import Leaderboard
@@ -243,7 +243,7 @@ def update_notebook(notebook: Notebook, **kwargs):
 
     notebook, _ = model_update(
         instance=notebook,
-        fields=["markdown", "type", "image_url", "edited_at"],
+        fields=["markdown", "feed_tile_summary", "type", "image_url", "edited_at"],
         data=kwargs,
     )
 

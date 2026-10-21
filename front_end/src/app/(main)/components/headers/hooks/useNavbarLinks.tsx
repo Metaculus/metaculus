@@ -62,6 +62,14 @@ const useNavbarLinks = ({
           label: t("services"),
           href: "/services/",
         },
+        leaderboards: {
+          label: t("leaderboards"),
+          href: "/leaderboard/",
+        },
+        commentsFeed: {
+          label: t("commentsFeedTitle"),
+          href: "/questions/?comments_feed=true",
+        },
         news: {
           label: t("news"),
           href: "/news/",
@@ -175,8 +183,16 @@ const useNavbarLinks = ({
   );
   const menuLinks = useMemo(() => {
     const links: NavbarLinkDefinition[] = PUBLIC_MINIMAL_UI
-      ? [LINKS.trackRecord]
-      : [LINKS.about, LINKS.press, LINKS.news, LINKS.trackRecord, LINKS.faq];
+      ? [LINKS.leaderboards, LINKS.trackRecord]
+      : [
+          LINKS.leaderboards,
+          LINKS.commentsFeed,
+          LINKS.about,
+          LINKS.press,
+          LINKS.news,
+          LINKS.trackRecord,
+          LINKS.faq,
+        ];
 
     if (!PUBLIC_MINIMAL_UI) {
       // As the bar narrows, Services and then Discover move into the menu
@@ -192,9 +208,11 @@ const useNavbarLinks = ({
     return links;
   }, [
     LINKS.about,
+    LINKS.commentsFeed,
     LINKS.createQuestion,
     LINKS.discover,
     LINKS.faq,
+    LINKS.leaderboards,
     LINKS.news,
     LINKS.press,
     LINKS.services,
@@ -221,7 +239,14 @@ const useNavbarLinks = ({
                 "max-[511px]:flex": isNil(user),
               }),
             },
-            ...(PUBLIC_MINIMAL_UI ? [] : [LINKS.discover, LINKS.services]),
+            ...(PUBLIC_MINIMAL_UI
+              ? [LINKS.leaderboards]
+              : [
+                  LINKS.discover,
+                  LINKS.services,
+                  LINKS.leaderboards,
+                  LINKS.commentsFeed,
+                ]),
             { href: null, label: t("about"), isTitle: true },
             ...(PUBLIC_MINIMAL_UI
               ? [LINKS.trackRecord]
@@ -290,8 +315,10 @@ const useNavbarLinks = ({
     return { mainLinks, accountLinks };
   }, [
     LINKS.about,
+    LINKS.commentsFeed,
     LINKS.discover,
     LINKS.faq,
+    LINKS.leaderboards,
     LINKS.news,
     LINKS.press,
     LINKS.services,

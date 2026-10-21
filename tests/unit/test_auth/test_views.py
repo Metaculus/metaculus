@@ -57,6 +57,21 @@ class TestVerifyEmail:
         assert response.data["tokens"]
         mock_send_activation_email.assert_not_called()
 
+    def test_signup__reserved_username_prefix(self, anon_client):
+        response = anon_client.post(
+            self.url,
+            {
+                "email": "user@metaculus.com",
+                "username": "metac-new-bot",
+                "password": "StrongPassword@1",
+                "is_bot": False,
+            },
+        )
+
+        assert response.status_code == 400
+        assert "username" in response.data
+        assert not User.objects.filter(username="metac-new-bot").exists()
+
     @override_settings(PUBLIC_ALLOW_SIGNUP=False)
     def test_signup_invitation(self, anon_client):
         token = SignupInviteService()._generate_token("invitedUser@metaculus.com")

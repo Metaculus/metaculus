@@ -204,7 +204,7 @@ const FutureEvalTournamentOverview: React.FC = () => {
       title: "Seasonal Bot Tournament",
       tag: "~$50k · 3x/year",
       description:
-        "Our primary tournament with ~4-month seasons starting every January, May, and September, each with 300–500 questions across all formats.",
+        "Our primary tournament with ~4-month seasons starting every January, May, and September, each with 300–400 questions across all formats.",
       primary: true,
       href: "/tournaments/?search=futureeval",
     },
