@@ -40,10 +40,14 @@ export async function HeroSection({
           <Tooltip
             tooltipContent={t("hubDownloadPdf")}
             placement="bottom"
-            className="print:hidden"
+            className="flex print:hidden"
             tooltipClassName="px-2 py-1 text-xs"
           >
-            <PdfDownloadButton pdf={pdf} />
+            {/* Same height and corners as the edition selector beside it. */}
+            <PdfDownloadButton
+              pdf={pdf}
+              className="h-[42px] w-[42px] rounded"
+            />
           </Tooltip>
         </div>
       </div>
