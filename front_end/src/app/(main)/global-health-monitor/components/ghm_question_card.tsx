@@ -54,6 +54,7 @@ export function GhmQuestionCard({
   value,
   asOfTime,
   cpLabel,
+  startOnTimeline = false,
   className,
 }: {
   postId: number;
@@ -63,6 +64,8 @@ export function GhmQuestionCard({
   asOfTime?: number;
   // Past editions label numeric forecasts as taken at publication.
   cpLabel?: string;
+  // Opens on the timeline instead of the current forecast.
+  startOnTimeline?: boolean;
   className?: string;
 }) {
   if (!post) {
@@ -82,6 +85,7 @@ export function GhmQuestionCard({
       subheader={value ? <CardChange value={value} /> : undefined}
       leftIcon={getLeftIcon(post)}
       rightIcon={getRightIcon(post)}
+      defaultSide={startOnTimeline ? "right" : "left"}
       leftContent={<SnapshotView post={post} cpLabel={cpLabel} />}
       rightContent={
         <BasicQuestionContent

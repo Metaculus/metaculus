@@ -40,6 +40,8 @@ export async function DiseaseSection({
       ? undefined
       : t("globalHealthMonitorForecastAtPublication");
 
+  // Columns of the "Other emerging diseases" row are their cards alone, opened on the timeline.
+  const isColumn = section.layout === "column";
   const cards = section.cards.map((card) => (
     <GhmQuestionCard
       key={card.postId}
@@ -48,19 +50,12 @@ export async function DiseaseSection({
       value={card.value}
       asOfTime={asOfTime}
       cpLabel={cpLabel}
+      startOnTimeline={isColumn}
     />
   ));
 
-  // Columns of the "Other emerging diseases" row are a title and a chart, with no edition text.
-  if (section.layout === "column") {
-    return (
-      <div className="flex min-w-0 flex-col gap-4 md:gap-6">
-        <h3 className="my-0 text-lg font-medium tracking-tight text-blue-800 dark:text-blue-800-dark md:text-2xl md:font-bold print:text-xl">
-          {title}
-        </h3>
-        {cards}
-      </div>
-    );
+  if (isColumn) {
+    return <div className="flex min-w-0 flex-col gap-4 md:gap-6">{cards}</div>;
   }
 
   return (
