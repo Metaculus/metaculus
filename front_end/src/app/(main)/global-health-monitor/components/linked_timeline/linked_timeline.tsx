@@ -101,7 +101,13 @@ export function LinkedTimeline({
   }
 
   return (
-    <LinkedTimelineProvider defaultKey={firstLead} chartKeys={chartKeys}>
+    // Switching editions keeps this mounted, so remount it when its charts change: the
+    // previous edition's selection may have no chart here.
+    <LinkedTimelineProvider
+      key={chartKeys.join("|")}
+      defaultKey={firstLead}
+      chartKeys={chartKeys}
+    >
       <div className="grid gap-5 md:grid-cols-2 md:gap-8 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] print:grid-cols-2">
         <div className="flex flex-col gap-2">
           {takeaways.map((takeaway) => (

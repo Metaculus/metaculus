@@ -74,6 +74,8 @@ jobs:
         uses: anthropics/claude-code-action@v1
         env:
           # Read-only token for `bun run ghm:inputs` / `ghm:bake` (Global Health Monitor editions).
+          # Untrusted comment and web text reaches the agent, so the token must belong to a
+          # dedicated bot account that can only read public questions and comments.
           METACULUS_API_TOKEN: ${{ secrets.METACULUS_API_TOKEN }}
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}

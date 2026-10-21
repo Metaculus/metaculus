@@ -61,6 +61,7 @@ function bakeFrozen(posts: Map<number, PostWithForecasts>) {
     const question = findQuestion(posts.get(ref.postId), ref);
     const latest = question ? readLatestForecast(question, ref) : null;
     if (!latest) {
+      console.warn(`No forecast to freeze for ${key} (post ${ref.postId})`);
       continue;
     }
     frozen[key] = {
