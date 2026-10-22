@@ -56,15 +56,27 @@ def run_build_question_forecasts(question_id: int):
 
 
 @dramatiq.actor(time_limit=1_800_000)
-def resolve_question_and_send_notifications(question_id: int):
+def resolve_question_and_send_notifications(
+    question_id: int, previous_resolve_time: str | None = None
+):
     """
     Scoring + notifications for a question resolved with `score_as_task`, which
     opts out of the default of scoring inside the resolution request.
+    `previous_resolve_time` is the question's actual_resolve_time before this
+    resolution, in ISO format.
     """
 
     question: Question = Question.objects.get(id=question_id)
 
-    score_resolved_question(question, question.resolution)
+    score_resolved_question(
+        question,
+        question.resolution,
+        (
+            datetime.fromisoformat(previous_resolve_time)
+            if previous_resolve_time
+            else None
+        ),
+    )
     send_resolution_notifications(question)
 
 

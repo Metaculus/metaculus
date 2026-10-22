@@ -23,6 +23,7 @@ from questions.models import (
     Forecast,
 )
 from questions.services.forecasts import build_question_forecasts
+from questions.services.lifecycle import queue_reputation_refresh
 from questions.types import AggregationMethod
 from questions.services.multiple_choice_handlers import (
     MultipleChoiceOptionsUpdateSerializer,
@@ -768,6 +769,7 @@ class QuestionAdmin(CustomTranslationAdmin, DynamicArrayMixin):
                 question=question,
                 resolution=question.resolution,
             )
+            queue_reputation_refresh(question, question.actual_resolve_time)
 
     trigger_scoring.short_description = "Trigger Scoring (does nothing if not resolved)"
 
@@ -782,6 +784,7 @@ class QuestionAdmin(CustomTranslationAdmin, DynamicArrayMixin):
                 resolution=question.resolution,
                 aggregation_methods=list(AggregationMethod._member_map_.values()),
             )
+            queue_reputation_refresh(question, question.actual_resolve_time)
 
     trigger_scoring_with_all_aggregations.short_description = (
         "Trigger Scoring (Includes ALL Aggregations) (does nothing if not resolved)"

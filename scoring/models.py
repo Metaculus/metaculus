@@ -445,6 +445,42 @@ class LeaderboardsRanksEntry(TimeStampedModel):
         unique_together = ["user", "rank_type"]
 
 
+class Reputation(TimeStampedModel):
+    """A user's reputation as of `time`. Rows form a step function per
+    (user, type): the reputation at any moment is the latest row at or before
+    it. Populated and kept current by scoring/reputations.py."""
+
+    # typing
+    objects: models.Manager["Reputation"]
+    user_id: int
+
+    class ReputationTypes(models.TextChoices):
+        AVERAGE_PEER_SCORE = "average_peer_score"
+
+    # indexed by Meta.indexes' (user, type, time) instead
+    user = models.ForeignKey(User, on_delete=models.CASCADE, db_index=False)
+    time = models.DateTimeField()
+    type = models.CharField(max_length=200, choices=ReputationTypes.choices)
+    value = models.FloatField()
+    # How much evidence stands behind `value`: for AVERAGE_PEER_SCORE, the
+    # running sum of the user's per-question coverage. Reputation formulas
+    # (see utils/the_math/aggregations.py) shrink or gate `value` on it.
+    contribution = models.FloatField(default=0.0)
+
+    class Meta:
+        indexes = [
+            models.Index(
+                fields=["user", "type", "time"], name="reputation_user_type_time"
+            ),
+        ]
+
+    def __str__(self):
+        return (
+            f"{self.type} Reputation for {self.user_id} at "
+            f"{self.time}: {self.value} (contribution {self.contribution})"
+        )
+
+
 class MedalExclusionRecord(models.Model):
     id: int
     objects: models.Manager["MedalExclusionRecord"]
