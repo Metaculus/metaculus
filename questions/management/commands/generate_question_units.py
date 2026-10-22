@@ -2,12 +2,14 @@ import json
 import logging
 
 from dateutil.parser import parse as date_parse
+from django.conf import settings
 from django.core.management.base import BaseCommand, CommandParser
 from django.utils.timezone import make_aware
+from openai.types.chat import ChatCompletionMessageParam
 
 from posts.models import Post
 from questions.models import Question, Conditional
-from utils.openai import get_openai_client
+from utils.llm import LLMFeature, get_llm_client, llm_options
 
 logger = logging.getLogger(__name__)
 
@@ -91,15 +93,15 @@ def generate_units(questions: list[Question]):
     question_map = {q.id: q for q in questions}
     question_contents = [generate_question_data(q) for q in questions]
 
-    client = get_openai_client()
-
-    response = client.chat.completions.create(
-        model="gpt-6-luna",
-        messages=[
-            {"role": "system", "content": generate_prompt()},
-            {"role": "user", "content": json.dumps(question_contents, indent=2)},
-        ],
+    messages: list[ChatCompletionMessageParam] = [
+        {"role": "system", "content": generate_prompt()},
+        {"role": "user", "content": json.dumps(question_contents, indent=2)},
+    ]
+    response = get_llm_client().chat.completions.create(
+        model=settings.GENERAL_LLM_MODEL,
+        messages=messages,
         response_format={"type": "json_object"},
+        **llm_options(LLMFeature.QUESTION_UNITS),
     )
 
     units_map = json.loads(response.choices[0].message.content)
