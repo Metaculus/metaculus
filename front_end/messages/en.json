@@ -2538,6 +2538,7 @@
   "globalHealthMonitorOtherDiseases": "Other diseases",
   "globalHealthMonitorOtherEmergingDiseases": "Other emerging diseases",
   "globalHealthMonitorPastEditionBanner": "You’re viewing the {date} edition. Forecasts are shown as they were when it was published.",
+  "globalHealthMonitorLoadingEdition": "Collecting forecasts from the {date} edition…",
   "globalHealthMonitorForecastAtPublication": "Forecast at publication",
   "globalHealthMonitorBackToLatest": "View the latest edition",
   "globalHealthMonitorTakeawaysChartHint": "Hover over a takeaway on the left side to see its forecast.",

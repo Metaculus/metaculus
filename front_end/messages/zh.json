@@ -2551,6 +2551,7 @@
   "globalHealthMonitorOtherDiseases": "其他疾病",
   "globalHealthMonitorOtherEmergingDiseases": "其他新发疾病",
   "globalHealthMonitorPastEditionBanner": "您正在查看 {date} 这一期。预测按该期发布时的数值显示。",
+  "globalHealthMonitorLoadingEdition": "正在收集 {date} 这一期的预测…",
   "globalHealthMonitorForecastAtPublication": "发布时的预测",
   "globalHealthMonitorBackToLatest": "查看最新一期",
   "globalHealthMonitorTakeawaysChartHint": "将鼠标悬停在左侧的某条结论上，即可查看其预测。",
