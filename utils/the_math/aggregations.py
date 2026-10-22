@@ -30,8 +30,7 @@ from questions.models import (
     AggregateForecast,
 )
 from questions.types import AggregationMethod
-from scoring.constants import ScoreTypes
-from scoring.models import LeaderboardEntry, Reputation, Score
+from scoring.models import LeaderboardEntry, Reputation
 from scoring.reputations import REPUTATION_FORMULAS
 from users.models import User
 from utils.the_math.measures import (
@@ -716,95 +715,6 @@ class DecayReputationWeighted(ReputationWeighted):
         return self.combiner.combine(decays, reputation)
 
 
-class PeerScoreReputationWeighted(ReputationWeighted):
-    """Deprecated: computes reputations live from Scores. Only used by
-    SingleAggregation."""
-
-    @staticmethod
-    def reputation_value(scores: Sequence[Score]) -> float:
-        return max(
-            sum([score.score for score in scores])
-            / (30 + sum([score.coverage for score in scores])),
-            1e-6,
-        )
-
-    def get_reputation_history(
-        self, all_forecaster_ids: list[int] | set[int]
-    ) -> dict[int, list[Reputation]]:
-
-        start = self.question.open_time
-        end = self.question.scheduled_close_time
-        if end is None:
-            end = timezone.now()
-        peer_scores = Score.objects.filter(
-            user_id__in=all_forecaster_ids,
-            score_type=ScoreTypes.PEER,
-            question__in=Question.objects.filter_public(),
-            edited_at__lte=end,
-        )
-
-        # setup
-        scores_by_user: dict[int, dict[int, Score]] = defaultdict(dict)
-        reputations: dict[int, list[Reputation]] = defaultdict(list)
-
-        # Establish reputations at the start of the interval.
-        old_peer_scores = list(
-            peer_scores.filter(edited_at__lte=start).order_by("edited_at")
-        )
-
-        with sentry_sdk.start_span(
-            op="compute", name="compute_initial_reputations"
-        ) as span:
-            span.set_data("forecaster_count", len(all_forecaster_ids))
-            span.set_data("old_peer_scores_count", len(old_peer_scores))
-            for score in old_peer_scores:
-                scores_by_user[score.user_id][score.question_id] = score
-            for user_id in all_forecaster_ids:
-                value = self.reputation_value(list(scores_by_user[user_id].values()))
-                reputations[user_id].append(
-                    Reputation(user_id=user_id, value=value, time=start)
-                )
-
-        # Then, for each new score, add a new reputation record
-        new_peer_scores = list(
-            peer_scores.filter(edited_at__gt=start).order_by("edited_at")
-        )
-
-        with sentry_sdk.start_span(
-            op="compute", name="compute_reputation_updates"
-        ) as span:
-            span.set_data("new_peer_scores_count", len(new_peer_scores))
-            for score in new_peer_scores:
-                # update the scores by user, then calculate the updated reputation
-                scores_by_user[score.user_id][score.question_id] = score
-                value = self.reputation_value(
-                    list(scores_by_user[score.user_id].values())
-                )
-                reputations[score.user_id].append(
-                    Reputation(user_id=score.user_id, value=value, time=score.edited_at)
-                )
-        return reputations
-
-    def calculate_weights(self, forecast_set: ForecastSet) -> Weights:
-        # Custom overwrite to uniquely combine time weighting with reputation
-        values, _ = self.get_reputations(forecast_set)
-        a = 0.5
-        b = 6.0
-        decays = [
-            np.exp(
-                -(forecast_set.timestep - start_time)
-                / (self.question.scheduled_close_time - self.question.open_time)
-            )
-            for start_time in forecast_set.timesteps
-        ]
-        weights = np.array(
-            [(decay**a * value ** (1 - a)) ** b for decay, value in zip(decays, values)]
-        )
-        if all(weights == 0):
-            return None
-        return weights if weights.size else None
-
-
 class MedalistsReputationWeighted(ReputationWeighted):
     """Filters out forecasts by users with no medals"""
 
@@ -1342,9 +1252,30 @@ class RecencyWeightedAggregation(MedianAggregatorMixin, Aggregation):
     weighting_classes = [RecencyWeighted]
 
 
-class SingleAggregation(MeanAggregatorMixin, Aggregation):
-    method = AggregationMethod.SINGLE_AGGREGATION
-    weighting_classes = [PeerScoreReputationWeighted]
+class ReputationWeightedAggregation(MeanAggregatorMixin, Aggregation):
+    """Parameters tuned for a geometric median central estimate instead
+    (GeometricMedianAggregatorMixin), kept in case we switch:
+        a=0.7, b=4.0, e=0.15, rho=-10.0, gamma=10.0 (everything else the same)
+    """
+
+    method = AggregationMethod.REPUTATION_WEIGHTED
+    weighting_classes = [
+        (
+            DecayReputationWeighted,
+            {
+                "reputation_type": Reputation.ReputationTypes.AVERAGE_PEER_SCORE,
+                "reputation_formula": "continuous",
+                "rho": -10.0,
+                "gamma": 10.0,
+                "e": 1e-4,
+                "time_decay": "exponential_lifetime",
+                "pre_spot_decay": True,
+                "combiner": "geometric",
+                "a": 0.7,
+                "b": 5.5,
+            },
+        )
+    ]
 
 
 # Aggregations that can be calculated, but not stored in database
@@ -1378,7 +1309,7 @@ class JoinedBeforeDateAggregation(MedianAggregatorMixin, Aggregation):
 AGGREGATIONS: list[type[Aggregation]] = [
     UnweightedAggregation,
     RecencyWeightedAggregation,
-    SingleAggregation,
+    ReputationWeightedAggregation,
     MedalistsAggregation,
     SilverMedalistsAggregation,
     GoldMedalistsAggregation,

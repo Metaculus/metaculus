@@ -570,7 +570,7 @@ export const getMockData = (isResolved: boolean) => {
           score_data: {},
           movement: null,
         },
-        single_aggregation: {
+        reputation_weighted: {
           history: [],
           latest: null,
           score_data: {},
