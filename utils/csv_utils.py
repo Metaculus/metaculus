@@ -167,11 +167,16 @@ def export_data_for_questions(
             )
         )
     ):
+        stored_aggregates = AggregateForecast.objects.filter(
+            Q() if include_future else Q(start_time__lte=timezone.now()),
+            question__in=questions_with_revealed_cp,
+        )
+        if aggregation_methods:
+            stored_aggregates = stored_aggregates.filter(method__in=aggregation_methods)
+        if not is_staff:
+            stored_aggregates = stored_aggregates.exclude_shadow_aggregations()
         aggregate_forecasts: list[AggregateForecast] = list(
-            AggregateForecast.objects.filter(
-                Q() if include_future else Q(start_time__lte=timezone.now()),
-                question__in=questions_with_revealed_cp,
-            ).order_by("question_id", "start_time")
+            stored_aggregates.order_by("question_id", "start_time")
         )
         if not include_future:
             # remove end_time from any live aggregate forecasts

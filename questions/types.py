@@ -25,6 +25,11 @@ class AggregationMethod(models.TextChoices):
     METACULUS_PREDICTION = "metaculus_prediction"
 
 
+# Aggregations built and stored alongside the default one, but not shown to users,
+# so their correctness and cost can be monitored before they're used anywhere
+SHADOW_AGGREGATION_METHODS = [AggregationMethod.REPUTATION_WEIGHTED]
+
+
 QuestionMovement = TypedDict(
     "QuestionMovement", {"direction": Direction, "movement": float}
 )

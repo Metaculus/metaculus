@@ -449,7 +449,7 @@ def get_aggregated_forecasts_for_questions(
     questions = list(questions)
     question_map = {q.pk: q for q in questions}
     if aggregated_forecast_qs is None:
-        aggregated_forecast_qs = AggregateForecast.objects.all()
+        aggregated_forecast_qs = AggregateForecast.objects.exclude_shadow_aggregations()
 
     questions_to_fetch = get_questions_cutoff(questions, group_cutoff=group_cutoff)
 

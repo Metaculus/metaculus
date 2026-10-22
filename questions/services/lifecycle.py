@@ -53,6 +53,13 @@ def score_resolved_question(
     update_leaderboards_for_question(question)
     build_question_forecasts(question)
 
+    from questions.tasks import queue_shadow_aggregations
+
+    # This can run in a web process, so the worker checks the kill switch
+    transaction.on_commit(
+        lambda: queue_shadow_aggregations(question.id, check_enabled=False)
+    )
+
     queue_reputation_refresh(question, previous_resolve_time)
 
 
