@@ -236,6 +236,33 @@ export function readForecastAt(
   return point ? { point, lapsed: isLapsedAt(aggregate, timestamp) } : null;
 }
 
+// CDF of the aggregate live at `timestamp` (seconds). Only the aggregation explorer returns
+// history with distributions; the posts endpoints send them for `latest` alone.
+export function readCdfAt(
+  question: QuestionWithForecasts,
+  timestamp: number
+): number[] | null {
+  const history = getDefaultAggregation(question)?.history ?? [];
+  return findAggregateAt(history, timestamp)?.forecast_values ?? null;
+}
+
+const CONTINUOUS_TYPES: QuestionType[] = [
+  QuestionType.Numeric,
+  QuestionType.Discrete,
+  QuestionType.Date,
+];
+
+// Numeric, discrete and date questions of the posts, group sub-questions included.
+export function getContinuousQuestions(
+  posts: PostWithForecasts[]
+): QuestionWithForecasts[] {
+  return posts
+    .flatMap((post): QuestionWithForecasts[] =>
+      post.question ? [post.question] : post.group_of_questions?.questions ?? []
+    )
+    .filter((question) => CONTINUOUS_TYPES.includes(question.type));
+}
+
 export function readLatestForecast(
   question: QuestionWithForecasts,
   ref: ValueRef,

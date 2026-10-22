@@ -7,7 +7,11 @@ import {
   QuestionWithForecasts,
 } from "@/types/question";
 
-import { snapshotPostAt, snapshotPostsAt } from "../snapshot_posts";
+import {
+  hadOpenedBy,
+  snapshotPostAt,
+  snapshotPostsAt,
+} from "../snapshot_posts";
 
 const DAY = 86_400;
 const AS_OF = Date.parse("2026-08-28T12:00:00Z") / 1000;
@@ -119,7 +123,7 @@ describe("snapshotPostAt", () => {
   it("draws continuous questions from the baked distribution", () => {
     const snapshot = snapshotQuestion(
       question({ type: QuestionType.Numeric }),
-      { 7: { postId: 1, cdf: [0, 0.5, 1] } }
+      { 7: [0, 0.5, 1] }
     );
 
     expect(aggregation(snapshot).latest).toMatchObject({
@@ -241,9 +245,21 @@ describe("snapshotPostAt", () => {
     const before = cloneDeep(post);
 
     snapshotPostsAt(new Map([[1, post]]), AS_OF, {
-      7: { postId: 1, cdf: [0, 1] },
+      7: [0, 1],
     });
 
     expect(post).toEqual(before);
+  });
+});
+
+describe("hadOpenedBy", () => {
+  it("tells whether a question had opened by asOf", () => {
+    expect(hadOpenedBy(questionPost(question()), AS_OF)).toBe(true);
+    expect(
+      hadOpenedBy(
+        questionPost(question({ open_time: iso(AS_OF + DAY) })),
+        AS_OF
+      )
+    ).toBe(false);
   });
 });

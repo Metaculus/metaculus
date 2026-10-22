@@ -5,6 +5,7 @@ import LaborHubNavigation from "@/app/(main)/labor-hub/components/labor_hub_navi
 import { HubPdf } from "@/app/(main)/labor-hub/components/pdf_download_button";
 import { PrintAttribution } from "@/app/(main)/labor-hub/components/print_attribution";
 import { SearchParams } from "@/types/navigation";
+import { PostWithForecasts } from "@/types/post";
 import { getPublicSettings } from "@/utils/public_settings.server";
 
 import {
@@ -17,10 +18,10 @@ import { PastEditionBanner } from "./components/past_edition_banner";
 import { DISEASE_NAME_KEYS } from "./config/diseases";
 import { GHM_ROUTE } from "./config/season";
 import {
+  getSectionPostIds,
   getSectionRows,
   OTHER_DISEASES_ID,
   SectionConfig,
-  SECTIONS,
 } from "./config/sections";
 import {
   EDITIONS,
@@ -28,11 +29,13 @@ import {
   getPreviousEdition,
   resolveEdition,
 } from "./editions";
+import { Edition } from "./editions/types";
 import { formatEditionLabel } from "./helpers/format";
+import { fetchGhmDistributionsAt } from "./helpers/ghm_distributions";
 import { fetchGhmPosts } from "./helpers/ghm_posts";
 import { getEditionQuery } from "./helpers/links";
 import { buildGhmSnapshot } from "./helpers/snapshot";
-import { snapshotPostsAt } from "./helpers/snapshot_posts";
+import { hadOpenedBy, snapshotPostsAt } from "./helpers/snapshot_posts";
 import { EngagementSection } from "./sections/engagement";
 import { HeroSection } from "./sections/hero";
 import { KeyTakeawaysSection } from "./sections/key_takeaways";
@@ -79,6 +82,30 @@ export async function generateMetadata({
   };
 }
 
+// A past edition as published: every card, chart and value as of asOf (seconds), without the
+// cards whose question only opened later.
+async function getPastEdition(
+  edition: Edition,
+  livePosts: Map<number, PostWithForecasts>,
+  asOf: number
+) {
+  const layout = edition.layout
+    .map((section) => ({
+      ...section,
+      cards: section.cards.filter(({ postId }) => {
+        const post = livePosts.get(postId);
+        return !post || hadOpenedBy(post, asOf);
+      }),
+    }))
+    .filter((section) => section.cards.length > 0);
+  const layoutPosts = getSectionPostIds(layout).flatMap((postId) => {
+    const post = livePosts.get(postId);
+    return post ? [post] : [];
+  });
+  const distributions = await fetchGhmDistributionsAt(layoutPosts, asOf);
+  return { layout, posts: snapshotPostsAt(livePosts, asOf, distributions) };
+}
+
 export default async function GlobalHealthMonitorPage({ searchParams }: Props) {
   const t = await getTranslations();
   const locale = await getLocale();
@@ -87,18 +114,12 @@ export default async function GlobalHealthMonitorPage({ searchParams }: Props) {
   const isLatest = edition.slug === latest.slug;
   const livePosts = await fetchGhmPosts();
 
-  // Only the latest edition is live. Past ones render their published layout, with every
-  // card, chart and value as of their publication.
+  // Only the latest edition is live.
   const asOfTime = isLatest ? undefined : Date.parse(edition.asOf);
-  const layout = isLatest ? SECTIONS : edition.archive?.layout ?? SECTIONS;
-  const posts =
+  const { layout, posts } =
     asOfTime === undefined
-      ? livePosts
-      : snapshotPostsAt(
-          livePosts,
-          Math.floor(asOfTime / 1000),
-          edition.archive?.distributions ?? {}
-        );
+      ? { layout: edition.layout, posts: livePosts }
+      : await getPastEdition(edition, livePosts, Math.floor(asOfTime / 1000));
 
   const snapshot = buildGhmSnapshot({
     posts,

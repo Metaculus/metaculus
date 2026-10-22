@@ -1,3 +1,4 @@
+import { PostWithForecasts } from "@/types/post";
 import {
   AggregateForecast,
   QuestionType,
@@ -10,6 +11,8 @@ import {
   computeChange,
   findAggregateAt,
   getChangeSentiment,
+  getContinuousQuestions,
+  readCdfAt,
   readForecastAt,
   readForecastPoint,
 } from "../forecast_values";
@@ -84,6 +87,38 @@ describe("findAggregateAt", () => {
 
   it("returns null before the first forecast", () => {
     expect(findAggregateAt(history, 50)).toBeNull();
+  });
+});
+
+describe("readCdfAt", () => {
+  it("reads the distribution of the aggregate live at the timestamp", () => {
+    const history = [
+      { ...aggregate(100, 200, [0.4]), forecast_values: [0, 0.4, 1] },
+      { ...aggregate(200, null, [0.6]), forecast_values: [0, 0.6, 1] },
+    ];
+    expect(readCdfAt(question({}, history), 150)).toEqual([0, 0.4, 1]);
+    expect(readCdfAt(question({}, history), 50)).toBeNull();
+  });
+});
+
+describe("getContinuousQuestions", () => {
+  it("picks numeric, discrete and date questions, group sub-questions included", () => {
+    const posts = [
+      { question: question({ id: 1, type: QuestionType.Binary }) },
+      { question: question({ id: 2, type: QuestionType.Date }) },
+      {
+        group_of_questions: {
+          questions: [
+            question({ id: 3, type: QuestionType.Numeric }),
+            question({ id: 4, type: QuestionType.Discrete }),
+          ],
+        },
+      },
+    ] as unknown as PostWithForecasts[];
+
+    expect(getContinuousQuestions(posts).map(({ id }) => id)).toEqual([
+      2, 3, 4,
+    ]);
   });
 });
 

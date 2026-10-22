@@ -7,8 +7,9 @@ import ServerPostsApi from "@/services/api/posts/posts.server";
 import { GroupOfQuestionsGraphType, PostWithForecasts } from "@/types/post";
 import { logError } from "@/utils/core/errors";
 
+import { GHM_VALUES } from "../config/questions";
 import { GHM_REVALIDATE_SECONDS } from "../config/season";
-import { getAllGhmPostIds, getSectionPostIds } from "../config/sections";
+import { getSectionPostIds } from "../config/sections";
 import { EDITIONS } from "../editions";
 
 // Keeps each cached list response well under Next's 2 MB fetch-cache limit.
@@ -54,14 +55,12 @@ async function fetchDetail(id: number): Promise<PostWithForecasts | null> {
   }
 }
 
-// Past editions can show cards that have since left the live layout.
+// Every edition's cards, since past editions can show cards that later left the layout.
 function getPagePostIds(): number[] {
   return [
     ...new Set([
-      ...getAllGhmPostIds(),
-      ...EDITIONS.flatMap((edition) =>
-        getSectionPostIds(edition.archive?.layout ?? [])
-      ),
+      ...Object.values(GHM_VALUES).map((ref) => ref.postId),
+      ...EDITIONS.flatMap((edition) => getSectionPostIds(edition.layout)),
     ]),
   ];
 }

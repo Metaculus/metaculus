@@ -42,21 +42,8 @@ export type FrozenValue = {
   lower?: number | null;
   upper?: number | null;
   bound?: "above" | "below";
-  // Option a "top" multiple choice ref pointed at when the edition was baked.
+  // Option a "top" multiple choice ref pointed at when the edition was published.
   option?: string;
-};
-
-export type EditionDistribution = {
-  postId: number;
-  // Community Prediction CDF of a numeric, discrete or date question.
-  cdf: number[];
-};
-
-// What a past edition renders with, baked by `ghm:bake` at publication.
-export type EditionArchive = {
-  layout: SectionConfig[];
-  // Keyed by question ID. Forecast history has no distributions, so archived cards draw these.
-  distributions: Record<string, EditionDistribution>;
 };
 
 export type Edition = {
@@ -65,12 +52,14 @@ export type Edition = {
   // Publication instant. Its date is shown as the publication day, and past editions render
   // forecasts as of this time.
   asOf: string;
+  // Section order and cards. The latest edition's layout is the live page; start a new edition
+  // from a copy of the previous one.
+  layout: SectionConfig[];
   takeaways: Takeaway[];
   sections: Partial<Record<DiseaseId, SectionEdition>>;
-  // Values baked when the edition was finalized. Missing keys fall back to forecast history at asOf.
+  // Publication-day values of the first editions. Without one, past editions read forecast
+  // history at asOf.
   frozen?: Partial<Record<GhmValueKey, FrozenValue>>;
-  // Written by `ghm:bake` when the edition is finalized; required once it's no longer the latest.
-  archive?: EditionArchive;
 };
 
 export function defineSources<T extends Record<string, SourceSnapshot>>(

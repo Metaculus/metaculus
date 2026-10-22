@@ -14,7 +14,7 @@ export type ValueRef = {
   option?: string;
   mode?: "value" | "pAbove" | "pBelow";
   param?: number;
-  // English label used by the edition tooling (PR tables, checker reports).
+  // English description, for reviewers and test messages.
   label: string;
   format: ValueFormat;
   tone?: ValueTone;

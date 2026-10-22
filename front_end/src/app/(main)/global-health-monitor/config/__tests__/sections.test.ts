@@ -1,4 +1,5 @@
-import { getSectionRows, SectionConfig, SECTIONS } from "../sections";
+import { getLatestEdition } from "../../editions";
+import { getSectionRows, SectionConfig } from "../sections";
 
 function section(id: string, layout?: "column"): SectionConfig {
   return { id, layout, cards: [] } as unknown as SectionConfig;
@@ -23,7 +24,7 @@ describe("getSectionRows", () => {
   });
 
   it("groups the four live emerging diseases together", () => {
-    const columns = getSectionRows(SECTIONS).filter(
+    const columns = getSectionRows(getLatestEdition().layout).filter(
       (row) => row.kind === "columns"
     );
 

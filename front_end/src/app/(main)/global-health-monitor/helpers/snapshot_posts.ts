@@ -8,9 +8,8 @@ import {
   QuestionWithForecasts,
 } from "@/types/question";
 
-import { EditionArchive } from "../editions/types";
-
-type Distributions = EditionArchive["distributions"];
+// Community Prediction CDFs keyed by question ID. Forecast history has none.
+type Distributions = Record<number, number[]>;
 
 const POST_STATUS: Record<QuestionStatus, PostStatus> = {
   [QuestionStatus.UPCOMING]: PostStatus.APPROVED,
@@ -44,7 +43,7 @@ function getForecastValues(
       // option that didn't exist yet.
       return aggregate.centers?.map((center) => center ?? 0) ?? null;
     default:
-      return distributions[question.id]?.cdf ?? null;
+      return distributions[question.id] ?? null;
   }
 }
 
@@ -185,6 +184,20 @@ export function snapshotPostAt(
   }
 
   return post;
+}
+
+function getQuestions(post: PostWithForecasts): QuestionWithForecasts[] {
+  return post.question
+    ? [post.question]
+    : post.group_of_questions?.questions ?? [];
+}
+
+// Whether any of the post's questions had opened by `asOf` (seconds).
+export function hadOpenedBy(post: PostWithForecasts, asOf: number): boolean {
+  return getQuestions(post).some((question) => {
+    const openTime = toSeconds(question.open_time);
+    return !isNil(openTime) && openTime <= asOf;
+  });
 }
 
 export function snapshotPostsAt(

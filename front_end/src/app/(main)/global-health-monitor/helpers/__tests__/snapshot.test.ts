@@ -49,6 +49,7 @@ function h5Post(history: AggregateForecast[]): PostWithForecasts {
 const AUGUST: Edition = {
   slug: "2026-08",
   asOf: "2026-08-28T12:00:00Z",
+  layout: [],
   takeaways: [],
   sections: {},
   frozen: { h5Pheic: { value: 0.06 } },
@@ -56,6 +57,7 @@ const AUGUST: Edition = {
 const SEPTEMBER: Edition = {
   slug: "2026-09",
   asOf: "2026-09-17T12:00:00Z",
+  layout: [],
   takeaways: [],
   sections: {},
 };

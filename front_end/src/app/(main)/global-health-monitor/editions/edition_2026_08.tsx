@@ -1,4 +1,3 @@
-import { ARCHIVE_2026_08 } from "./archives/edition_2026_08";
 import { defineProComments, defineSources, Edition } from "./types";
 import { DataPoint, Forecast, Term } from "../components/tokens";
 
@@ -44,7 +43,60 @@ const PRO = defineProComments({
 export const EDITION_2026_08: Edition = {
   slug: "2026-08",
   asOf: "2026-08-28T12:00:00Z",
-  archive: ARCHIVE_2026_08,
+  // Section order and cards, as published.
+  layout: [
+    {
+      id: "respiratory",
+      cards: [
+        { postId: 44971 },
+        { postId: 45086, value: "respPeakWeek" },
+        { postId: 44967, value: "fluSeverityTop" },
+        { postId: 44977, value: "fluH1n1Share" },
+        { postId: 44985 },
+      ],
+    },
+    {
+      id: "measles",
+      cards: [
+        { postId: 44970 },
+        { postId: 42089, value: "measlesUs2026" },
+        { postId: 42477, value: "measlesUsHospitalization2026" },
+        { postId: 42517, value: "measlesUsElimination" },
+      ],
+    },
+    {
+      id: "ebola",
+      cards: [
+        { postId: 45008, value: "ebolaUsCaseBeforeJul2027" },
+        { postId: 43606, value: "ebolaUsCaseBefore2027" },
+        { postId: 43726 },
+        { postId: 44250, value: "ebolaPheicEnd" },
+      ],
+    },
+    {
+      id: "screwworm",
+      cards: [
+        { postId: 44965, value: "screwwormUs2027" },
+        { postId: 43869, value: "screwwormUs2026" },
+      ],
+    },
+    { id: "chikungunya", cards: [{ postId: 45018, value: "chikEea2026" }] },
+    {
+      id: "h5",
+      layout: "column",
+      cards: [{ postId: 45011, value: "h5Pheic" }],
+    },
+    {
+      id: "mpox",
+      layout: "column",
+      cards: [{ postId: 42530, value: "mpoxUsCases" }],
+    },
+    {
+      id: "hantavirus",
+      layout: "column",
+      cards: [{ postId: 43468, value: "hantaPheic" }],
+    },
+  ],
   takeaways: [
     {
       id: "ebola",
