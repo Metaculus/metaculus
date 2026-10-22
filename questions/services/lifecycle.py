@@ -55,6 +55,10 @@ def score_resolved_question(
     update_leaderboards_for_question(question)
     build_question_forecasts(question)
 
+    from questions.tasks import queue_shadow_aggregations
+
+    transaction.on_commit(lambda: queue_shadow_aggregations(question.id))
+
     if counts_toward_reputation:
         from scoring.tasks import run_refresh_reputations_for_question
 
