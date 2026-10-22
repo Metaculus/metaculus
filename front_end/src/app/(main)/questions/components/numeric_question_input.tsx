@@ -167,7 +167,7 @@ const NumericQuestionInput: React.FC<{
     aggregations: {
       recency_weighted: { history: [], latest: undefined },
       unweighted: { history: [], latest: undefined },
-      single_aggregation: { history: [], latest: undefined },
+      reputation_weighted: { history: [], latest: undefined },
       metaculus_prediction: { history: [], latest: undefined },
     },
   });

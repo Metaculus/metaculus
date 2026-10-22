@@ -35,6 +35,7 @@ from questions.services.multiple_choice_handlers import (
     multiple_choice_reorder_options,
 )
 from utils.csv_utils import export_all_data_for_questions
+from utils.the_math.aggregations import AGGREGATIONS
 from utils.models import CustomTranslationAdmin
 
 
@@ -782,7 +783,12 @@ class QuestionAdmin(CustomTranslationAdmin, DynamicArrayMixin):
             score_question(
                 question=question,
                 resolution=question.resolution,
-                aggregation_methods=list(AggregationMethod._member_map_.values()),
+                aggregation_methods=[
+                    aggregation.method
+                    for aggregation in AGGREGATIONS
+                    if aggregation.method in AggregationMethod.values
+                ]
+                + [AggregationMethod.METACULUS_PREDICTION],
             )
             queue_reputation_refresh(question, question.actual_resolve_time)
 
