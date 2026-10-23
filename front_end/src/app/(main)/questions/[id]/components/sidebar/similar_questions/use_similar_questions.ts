@@ -25,7 +25,6 @@ export function useSimilarQuestions(
     queryFn: () =>
       ClientPostsApi.getPostsWithCP({
         topic: "top-50",
-        for_main_feed: "false",
         for_consumer_view: variant === "consumer" ? "true" : "false",
         order_by: "-hotness",
         statuses: [
