@@ -3,12 +3,14 @@
 import { useTranslations } from "next-intl";
 import { FC } from "react";
 
+import CompactConditionalTile from "@/components/conditional_tile/compact_conditional_tile";
 import BasicConsumerPostCard from "@/components/consumer_post_card/basic_consumer_post_card";
 import GroupForecastCard from "@/components/consumer_post_card/group_forecast_card";
 import PostCardErrorBoundary from "@/components/post_card/error_boundary";
 import HideCPProvider from "@/contexts/cp_context";
 import { PostStatus, PostWithForecasts } from "@/types/post";
 import {
+  isConditionalPost,
   isGroupOfQuestionsPost,
   isMultipleChoicePost,
   isNotebookPost,
@@ -66,6 +68,8 @@ const ConsumerPostCard: FC<Props> = ({
               />
             </div>
           )}
+
+          {isConditionalPost(post) && <CompactConditionalTile post={post} />}
 
           {[PostStatus.PENDING_RESOLUTION, PostStatus.CLOSED].includes(
             post.status
