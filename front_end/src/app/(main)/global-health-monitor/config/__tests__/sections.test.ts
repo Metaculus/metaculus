@@ -23,7 +23,7 @@ describe("getSectionRows", () => {
     ).toEqual(["respiratory", ["h5", "mpox"], "measles"]);
   });
 
-  it("groups the four live emerging diseases together", () => {
+  it("groups the live emerging diseases together", () => {
     const columns = getSectionRows(getLatestEdition().layout).filter(
       (row) => row.kind === "columns"
     );
@@ -31,6 +31,6 @@ describe("getSectionRows", () => {
     expect(columns).toHaveLength(1);
     expect(
       columns[0]?.kind === "columns" && columns[0].sections.map(({ id }) => id)
-    ).toEqual(["h5", "mpox", "hantavirus", "plague"]);
+    ).toEqual(["h5", "plague"]);
   });
 });

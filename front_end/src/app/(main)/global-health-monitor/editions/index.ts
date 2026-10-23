@@ -1,9 +1,14 @@
 import { EDITION_2026_08 } from "./edition_2026_08";
 import { EDITION_2026_09 } from "./edition_2026_09";
+import { EDITION_2026_10 } from "./edition_2026_10";
 import { Edition } from "./types";
 
 // Newest first.
-export const EDITIONS: Edition[] = [EDITION_2026_09, EDITION_2026_08];
+export const EDITIONS: Edition[] = [
+  EDITION_2026_10,
+  EDITION_2026_09,
+  EDITION_2026_08,
+];
 
 export function getLatestEdition(): Edition {
   const latest = EDITIONS[0];
