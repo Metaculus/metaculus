@@ -30,6 +30,7 @@ export function Scrollspy({
   const anchorElementsRef = useRef<Element[] | null>(null);
   const anchorClickHandlersRef = useRef<Map<Element, EventListener>>(new Map());
   const prevIdTracker = useRef<string | null>(null);
+  const lastClickedIdRef = useRef<string | null>(null);
   const scrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const settleTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const rafIdRef = useRef<number | null>(null);
@@ -112,8 +113,13 @@ export function Scrollspy({
       const visiblePercentage =
         elementHeight > 0 ? (visibleHeight / elementHeight) * 100 : 0;
 
-      // Select the section with the highest visible percentage
-      if (visiblePercentage > maxVisiblePercentage) {
+      // Select the section with the highest visible percentage. Ties (e.g. sections side
+      // by side, or several fully visible) go to the section the user last clicked.
+      const winsTie =
+        visiblePercentage > 0 &&
+        visiblePercentage === maxVisiblePercentage &&
+        sectionId === lastClickedIdRef.current;
+      if (visiblePercentage > maxVisiblePercentage || winsTie) {
         maxVisiblePercentage = visiblePercentage;
         activeIdx = idx;
       }
@@ -150,6 +156,7 @@ export function Scrollspy({
       if (!sectionId) return;
       const sectionElement = document.getElementById(sectionId);
       if (!sectionElement) return;
+      lastClickedIdRef.current = sectionId;
 
       let customOffset = offset;
       const dataOffset = anchorElement.getAttribute(
@@ -160,14 +167,25 @@ export function Scrollspy({
       }
 
       const scrollTop = sectionElement.offsetTop - customOffset;
+      const maxScrollTop =
+        document.documentElement.scrollHeight - window.innerHeight;
+      const isInPlace =
+        Math.abs(
+          window.scrollY - Math.min(Math.max(scrollTop, 0), maxScrollTop)
+        ) < 1;
 
       window.scrollTo({
         top: scrollTop,
         left: 0,
         behavior: smooth ? "smooth" : "auto",
       });
+      // Already in place (e.g. a section beside the current one): no scroll event fires,
+      // so re-evaluate once for the tie-break to follow the click.
+      if (isInPlace) {
+        handleScroll();
+      }
     },
-    [dataAttribute, offset, smooth]
+    [dataAttribute, handleScroll, offset, smooth]
   );
 
   // Scroll to the section if the ID is present in the URL hash
