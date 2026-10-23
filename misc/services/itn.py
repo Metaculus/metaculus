@@ -18,7 +18,7 @@ from pgvector.django import CosineDistance
 from misc.models import ITNArticle, PostArticle
 from posts.models import Post
 from utils.db import paginate_cursor
-from utils.openai import chunked_tokens, generate_text_embed_vector
+from utils.llm import LLMFeature, chunked_tokens, generate_text_embed_vector
 
 MAX_RELEVANT_DISTANCE = 0.5
 # Articles within this cosine distance of each other are treated as covering the
@@ -219,7 +219,9 @@ def update_article_embedding_vector(obj: ITNArticle):
 
     # Step 1: generate embedding chunks
     for chunk in chunked_tokens(content):
-        chunk_embeddings.append(generate_text_embed_vector(chunk))
+        chunk_embeddings.append(
+            generate_text_embed_vector(chunk, LLMFeature.EMBEDDINGS_ITN)
+        )
 
     # Step 2: weight them
     vector = np.average(

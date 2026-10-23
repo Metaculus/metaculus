@@ -23,7 +23,7 @@
 # - AWS_SECRET_ACCESS_KEY: AWS secret access key for S3 storage
 # - SCREENSHOT_SERVICE_API_KEY: Screenshot service API key
 # - SENTRY_AUTH_TOKEN: Sentry authentication token
-# - OPENAI_API_KEY: OpenAI API key
+# - OPENROUTER_API_KEY: OpenRouter API key (all LLM calls)
 # - SERPER_API_KEY: Serper API key for search functionality
 #
 # Required Variables:
@@ -331,7 +331,7 @@ jobs:
             SCREENSHOT_SERVICE_API_KEY="${{ secrets.SCREENSHOT_SERVICE_API_KEY }}" \
             SCREENSHOT_SERVICE_API_URL="${{ vars.SCREENSHOT_SERVICE_API_URL }}" \
             PUBLIC_SCREENSHOT_SERVICE_ENABLED="${{ vars.PUBLIC_SCREENSHOT_SERVICE_ENABLED }}" \
-            OPENAI_API_KEY="${{ secrets.OPENAI_API_KEY }}" \
+            OPENROUTER_API_KEY="${{ secrets.OPENROUTER_API_KEY }}" \
             SERPER_API_KEY="${{ secrets.SERPER_API_KEY }}" \
             SENTRY_DNS="${{ vars.SENTRY_DNS }}" \
             PUBLIC_FRONTEND_SENTRY_DSN="${{ vars.PUBLIC_FRONTEND_SENTRY_DSN }}" \
