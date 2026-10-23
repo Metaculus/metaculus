@@ -518,6 +518,8 @@ export function BenchmarkChart({
             data={dataWithLabels}
             xDomain={[minX, maxX]}
             yDomain={[minY, maxY]}
+            trendLine={trendLineData}
+            referenceLines={referenceLines}
             colorForFamily={colorForFamily}
             getThemeColor={getThemeColor}
             padding={PADDING}
