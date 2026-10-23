@@ -39,7 +39,7 @@ export type AggregationExtraQuestion =
 export enum AggregationMethod {
   recency_weighted = "recency_weighted",
   unweighted = "unweighted",
-  single_aggregation = "single_aggregation",
+  reputation_weighted = "reputation_weighted",
   metaculus_prediction = "metaculus_prediction",
   metaculus_pros = "metaculus_pros",
   medalists = "medalists",
