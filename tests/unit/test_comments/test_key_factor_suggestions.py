@@ -230,6 +230,7 @@ class TestGenerateKeyfactors:
     def _mock_response(self, content):
         """Helper to create mock OpenAI response"""
         mock_client = Mock()
+        mock_client.with_options.return_value = mock_client
         mock_response = Mock()
         mock_response.choices = [Mock()]
         mock_response.choices[0].message.content = json.dumps(content)
@@ -270,6 +271,29 @@ class TestGenerateKeyfactors:
         assert isinstance(result[2], BaseRateResponse)
 
     @patch("comments.services.key_factors.suggestions.get_llm_client")
+    def test_skips_non_dict_items(self, mock_get_client):
+        # Shape OpenRouter's response healing returned in prod
+        junk = '{"completionState":"incomplete","entries":[],"type":"Object"}'
+        mock_get_client.return_value = self._mock_response(
+            {
+                "key_factors": [
+                    junk,
+                    {"type": "driver", "text": "Factor 1", "impact_direction": 1},
+                ]
+            }
+        )
+
+        result = generate_keyfactors(
+            question_summary="Q",
+            comment="C",
+            existing_key_factors=[],
+            type_instructions="I",
+        )
+
+        assert len(result) == 1
+        assert isinstance(result[0], DriverResponse)
+
+    @patch("comments.services.key_factors.suggestions.get_llm_client")
     def test_handles_none_response(self, mock_get_client):
         mock_client = self._mock_response({"key_factors": []})
         mock_get_client.return_value = mock_client
@@ -285,6 +309,7 @@ class TestGenerateKeyfactors:
     @patch("comments.services.key_factors.suggestions.get_llm_client")
     def test_handles_api_errors(self, mock_get_client):
         mock_client = Mock()
+        mock_client.with_options.return_value = mock_client
         mock_client.chat.completions.create.side_effect = Exception("API Error")
         mock_get_client.return_value = mock_client
 
