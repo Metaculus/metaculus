@@ -32,7 +32,8 @@ def get_active_ad_tiles_qs() -> QuerySet[AdTile]:
         .filter(Q(publish_at__isnull=True) | Q(publish_at__lte=now))
         .filter(Q(expires_at__isnull=True) | Q(expires_at__gt=now))
         .select_related("project")
-        .order_by("order", "-created_at")
+        # Ads sharing the same `order` are shuffled on every request.
+        .order_by("order", "?")
     )
 
 
