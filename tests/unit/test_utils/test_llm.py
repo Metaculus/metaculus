@@ -28,14 +28,11 @@ EMBEDDING_MODEL = "test/embedding-model"
 class FakeOpenRouter:
     def __init__(self):
         self.content = "{}"
-        self.error: Exception | None = None
         self.requests: list[tuple[httpx.Request, dict]] = []
 
     def handle(self, request: httpx.Request) -> httpx.Response:
         body = json.loads(request.content)
         self.requests.append((request, body))
-        if self.error:
-            raise self.error
 
         if request.url.path.endswith("/embeddings"):
             return httpx.Response(
@@ -158,18 +155,7 @@ def test_spam_bio_check_is_tagged(openrouter):
     assert_routed(body, LLMFeature.SPAM_BIO)
 
 
-def generate_rates_keyfactors():
-    return generate_keyfactors(
-        question_summary="Title: Will rates fall?",
-        comment="Inflation is cooling",
-        existing_key_factors=[],
-        type_instructions=get_impact_type_instructions(
-            Question.QuestionType.BINARY, False
-        ),
-    )
-
-
-def test_key_factors_request_is_tagged_and_bounded(openrouter):
+def test_key_factors_are_tagged_with_low_reasoning(openrouter):
     openrouter.content = json.dumps(
         {
             "key_factors": [
@@ -178,23 +164,21 @@ def test_key_factors_request_is_tagged_and_bounded(openrouter):
         }
     )
 
-    result = generate_rates_keyfactors()
+    result = generate_keyfactors(
+        question_summary="Title: Will rates fall?",
+        comment="Inflation is cooling",
+        existing_key_factors=[],
+        type_instructions=get_impact_type_instructions(
+            Question.QuestionType.BINARY, False
+        ),
+    )
 
-    request, body = openrouter.last
+    _, body = openrouter.last
     assert len(result) == 1
     assert body["model"] == CHAT_MODEL
     assert body["reasoning_effort"] == "low"
-    assert body["max_completion_tokens"] == 1000
-    assert request.extensions["timeout"]["read"] == 20
     assert body["response_format"]["json_schema"]["strict"] is False
     assert_routed(body, LLMFeature.KEY_FACTORS)
-
-
-def test_key_factors_do_not_retry_a_stalled_request(openrouter):
-    openrouter.error = httpx.ReadTimeout("stalled")
-
-    assert generate_rates_keyfactors() == []
-    assert len(openrouter.requests) == 1
 
 
 def test_question_units_are_tagged(openrouter):

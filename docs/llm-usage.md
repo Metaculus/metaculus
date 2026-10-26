@@ -26,6 +26,5 @@ get_llm_client().chat.completions.create(
 ## Defaults
 
 - Request blocks a user → `reasoning_effort="none"` unless measured otherwise. Key factors measured ~4% malformed JSON at `"none"`, so they use `"low"`.
-- Request blocks a user → `with_options(timeout=..., max_retries=0)` and `max_completion_tokens`; Heroku drops requests at 30s, the SDK default waits 600s × 3 attempts.
 - Structured output → `chat.completions.parse(response_format=PydanticModel)`.
 - Hand-written `json_schema` → set `"strict": False` unless the schema is strict-compatible; OpenRouter enforces strict for OpenAI models.

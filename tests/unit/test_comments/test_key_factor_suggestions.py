@@ -230,7 +230,6 @@ class TestGenerateKeyfactors:
     def _mock_response(self, content):
         """Helper to create mock OpenAI response"""
         mock_client = Mock()
-        mock_client.with_options.return_value = mock_client
         mock_response = Mock()
         mock_response.choices = [Mock()]
         mock_response.choices[0].message.content = json.dumps(content)
@@ -309,7 +308,6 @@ class TestGenerateKeyfactors:
     @patch("comments.services.key_factors.suggestions.get_llm_client")
     def test_handles_api_errors(self, mock_get_client):
         mock_client = Mock()
-        mock_client.with_options.return_value = mock_client
         mock_client.chat.completions.create.side_effect = Exception("API Error")
         mock_get_client.return_value = mock_client
 

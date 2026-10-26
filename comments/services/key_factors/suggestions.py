@@ -399,13 +399,10 @@ def generate_keyfactors(
     )
 
     try:
-        # Under Heroku's 30s router timeout; output is ~300 tokens
-        client = get_llm_client().with_options(timeout=20, max_retries=0)
-        response = client.chat.completions.create(
+        response = get_llm_client().chat.completions.create(
             model=settings.GENERAL_LLM_MODEL,
             # "none" returns malformed JSON or runs to the token limit in ~4% of calls
             reasoning_effort="low",
-            max_completion_tokens=1000,
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt},
