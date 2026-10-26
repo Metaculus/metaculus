@@ -77,7 +77,7 @@ const nextConfig = {
       },
       {
         source: "/aib/contest-rules/",
-        destination: "/notebooks/28751/q1-ai-forecasting-benchmark-rules/",
+        destination: "/notebooks/28751/futureeval-competition-rules/",
         permanent: true,
       },
       {
