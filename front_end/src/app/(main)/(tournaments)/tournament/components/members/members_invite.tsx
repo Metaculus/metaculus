@@ -18,12 +18,17 @@ type Props = {
 const projectUserInviteSchema = z.object({
   usernames: z.string().transform((val) => val.split("\n")),
 });
-type FormData = z.infer<typeof projectUserInviteSchema>;
+type FormInput = z.input<typeof projectUserInviteSchema>;
+type FormData = z.output<typeof projectUserInviteSchema>;
 
 const MembersInvite: FC<Props> = ({ projectId, members }) => {
   const [submitErrors, setSubmitErrors] = useState<ErrorResponse>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { handleSubmit, register, reset } = useForm<FormData>({
+  const { handleSubmit, register, reset } = useForm<
+    FormInput,
+    unknown,
+    FormData
+  >({
     resolver: zodResolver(projectUserInviteSchema),
   });
 

@@ -49,6 +49,20 @@ def test_combined_tiles_serializes_ads_in_order(user1):
     get_feed_project_tiles.clear_cache()
 
 
+def test_get_active_ad_tiles_qs_shuffles_ties():
+    first = factory_ad_tile(order=0)
+    tied = {factory_ad_tile(order=1).id for _ in range(5)}
+
+    orderings = set()
+    for _ in range(30):
+        ids = list(get_active_ad_tiles_qs().values_list("id", flat=True))
+        assert ids[0] == first.id
+        assert set(ids[1:]) == tied
+        orderings.add(tuple(ids))
+
+    assert len(orderings) > 1
+
+
 @pytest.mark.parametrize("link", ["fk", "url"])
 def test_combined_tiles_dedup_promoted_project(user1, link):
     cache.clear()

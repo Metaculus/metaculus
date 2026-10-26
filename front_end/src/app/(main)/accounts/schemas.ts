@@ -15,13 +15,16 @@ export const generateSignUpSchema = (turnstileToken: string) =>
       email: z.string().min(1, { message: "Email is required" }),
       turnstileToken: turnstileToken
         ? z.string({
-            required_error: "Turnstile token is required",
+            error: (issue) =>
+              issue.input === undefined
+                ? "Turnstile token is required"
+                : undefined,
           })
         : z.string().optional(),
       inviteToken: z.string().optional(),
       addToProject: z.number().optional(),
       campaignKey: z.string().optional(),
-      campaignData: z.record(z.any()).optional(),
+      campaignData: z.record(z.string(), z.any()).optional(),
       newsletterOptin: z.boolean().optional(),
     }),
     z
