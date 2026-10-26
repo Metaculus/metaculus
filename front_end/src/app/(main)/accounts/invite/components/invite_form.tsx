@@ -21,7 +21,8 @@ const createSchema = () => {
       .transform((str) => str.split("\n").map((email) => email.trim())),
   });
 };
-type ReportSchema = z.infer<ReturnType<typeof createSchema>>;
+type ReportSchemaInput = z.input<ReturnType<typeof createSchema>>;
+type ReportSchema = z.output<ReturnType<typeof createSchema>>;
 
 const InviteForm: FC = () => {
   const [submitError, setSubmitError] = useState<
@@ -31,11 +32,14 @@ const InviteForm: FC = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   const reportSchema = createSchema();
-  const { register, handleSubmit, reset, formState, clearErrors } =
-    useForm<ReportSchema>({
-      mode: "all",
-      resolver: zodResolver(reportSchema),
-    });
+  const { register, handleSubmit, reset, formState, clearErrors } = useForm<
+    ReportSchemaInput,
+    unknown,
+    ReportSchema
+  >({
+    mode: "all",
+    resolver: zodResolver(reportSchema),
+  });
 
   const onSubmit = useCallback(
     async (values: ReportSchema) => {
