@@ -401,7 +401,8 @@ def generate_keyfactors(
     try:
         response = get_llm_client().chat.completions.create(
             model=settings.GENERAL_LLM_MODEL,
-            reasoning_effort="none",
+            # "none" returns malformed JSON or runs to the token limit in ~4% of calls
+            reasoning_effort="low",
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt},
@@ -434,6 +435,7 @@ def generate_keyfactors(
         # Failsafe for LLM hallucination
         if not isinstance(item, dict):
             logger.debug(f"Suggested Key Factors item is not a dict: {item}")
+            continue
 
         try:
             kf_type = item.get("type")
