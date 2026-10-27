@@ -25,6 +25,6 @@ get_llm_client().chat.completions.create(
 
 ## Defaults
 
-- Request blocks a user → `reasoning_effort="none"` unless measured otherwise.
+- Request blocks a user → `reasoning_effort="none"` unless measured otherwise. Key factors measured ~4% malformed JSON at `"none"`, so they use `"low"`.
 - Structured output → `chat.completions.parse(response_format=PydanticModel)`.
 - Hand-written `json_schema` → set `"strict": False` unless the schema is strict-compatible; OpenRouter enforces strict for OpenAI models.

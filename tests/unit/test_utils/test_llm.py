@@ -155,7 +155,7 @@ def test_spam_bio_check_is_tagged(openrouter):
     assert_routed(body, LLMFeature.SPAM_BIO)
 
 
-def test_key_factors_are_tagged_without_reasoning(openrouter):
+def test_key_factors_are_tagged_with_low_reasoning(openrouter):
     openrouter.content = json.dumps(
         {
             "key_factors": [
@@ -176,7 +176,7 @@ def test_key_factors_are_tagged_without_reasoning(openrouter):
     _, body = openrouter.last
     assert len(result) == 1
     assert body["model"] == CHAT_MODEL
-    assert body["reasoning_effort"] == "none"
+    assert body["reasoning_effort"] == "low"
     assert body["response_format"]["json_schema"]["strict"] is False
     assert_routed(body, LLMFeature.KEY_FACTORS)
 
