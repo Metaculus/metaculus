@@ -125,14 +125,13 @@ export default function AIProductsPrivacy() {
         forecast or question operationalization, Metaculus&apos;s own AI
         forecasting service, which runs on Metaculus systems, uses the providers
         in (a), and sends model-generated research queries and page requests
-        (not your Input verbatim) to web search, news, and page-retrieval
-        providers, currently Perplexity (through OpenRouter), AskNews, Parallel
-        Web Systems, and Hyperbrowser. For Autocast, the step that turns your
-        question into a forecastable question uses the providers in (a), and
-        each forecast is produced by the forecasting service in (b), which may
-        query several models and aggregate their outputs. AI Providers act as
-        our service providers (processors) and are contractually restricted to
-        processing this data to provide their services to us.
+        (not your Input verbatim) to third-party web search, news, and
+        page-retrieval providers acting on our behalf. For Autocast, the step
+        that turns your question into a forecastable question uses the providers
+        in (a), and each forecast is produced by the forecasting service in (b),
+        which may query several models and aggregate their outputs. AI Providers
+        act as our service providers (processors) and are contractually
+        restricted to processing this data to provide their services to us.
       </p>
       <p className={styles.paragraph}>
         C.2 Under our agreements with the model providers in C.1(a), they do not
