@@ -3,7 +3,7 @@ import PageWrapper from "../components/pagewrapper";
 export const metadata = {
   title: "Metaculus AI Products Privacy Notice",
   description:
-    "How Metaculus collects, uses, discloses, and retains personal data in connection with its AI products, including Radiant. Supplements the Metaculus Privacy Policy.",
+    "How Metaculus collects, uses, discloses, and retains personal data in connection with its AI products, including Radiant and Autocast. Supplements the Metaculus Privacy Policy.",
 };
 
 export default function AIProductsPrivacy() {
@@ -18,7 +18,7 @@ export default function AIProductsPrivacy() {
       </h1>
 
       <p className={styles.paragraph}>
-        <b>Effective Date:</b> September 21, 2026
+        <b>Effective Date:</b> October 28, 2026
       </p>
 
       <p className={styles.paragraph}>
@@ -37,11 +37,11 @@ export default function AIProductsPrivacy() {
           https://www.metaculus.com/privacy-policy/
         </a>{" "}
         and describes how Metaculus, Inc. collects, uses, discloses, and retains
-        personal data in connection with the Covered Products (currently
-        Radiant), wherever you access them. The Privacy Policy applies to the
-        Covered Products, and its references to the &quot;Service&quot; include
-        each Covered Product (including access through a Host Platform and
-        through its API and MCP server). If this Notice conflicts with the
+        personal data in connection with the Covered Products (currently Radiant
+        and Autocast), wherever you access them. The Privacy Policy applies to
+        the Covered Products, and its references to the &quot;Service&quot;
+        include each Covered Product (including access through a Host Platform
+        and through its API and MCP server). If this Notice conflicts with the
         Privacy Policy with respect to a Covered Product, this Notice controls.
         Capitalized terms have the meanings given in the Metaculus AI Products
         Terms Supplement and the Privacy Policy.
@@ -56,17 +56,20 @@ export default function AIProductsPrivacy() {
         A.1 <strong>Account and connection data.</strong> Your Metaculus account
         information; Credentials such as API keys and OAuth tokens; and, when
         you connect through a Host Platform, identifiers that the Host Platform
-        provides to authenticate you. We do not receive your Host Platform
-        password or your Host Platform conversation history other than the Input
-        the Host Platform sends to the Covered Product.
+        provides to authenticate you (for example, an account identifier that
+        Claude or ChatGPT passes to a Covered Product when you connect through
+        their OAuth flows). We do not receive your Host Platform password or
+        your Host Platform conversation history other than the Input the Host
+        Platform sends to the Covered Product.
       </p>
       <p className={styles.paragraph}>
         A.2 <strong>Input and Output.</strong> The Input you (or your agent)
-        submit, including the maps you build and any documents you import into
-        them, and the Output the Covered Product returns. Input may contain
-        personal data about you or others if you choose to include it. Unshared
-        Input and Output are not public and are not &quot;public comments and
-        postings&quot; for purposes of the Privacy Policy.
+        submit, including the questions you ask Autocast, the maps you build in
+        Radiant, and any documents you import into them, and the Output the
+        Covered Product returns. Input may contain personal data about you or
+        others if you choose to include it. Unshared Input and Output are not
+        public and are not &quot;public comments and postings&quot; for purposes
+        of the Privacy Policy.
       </p>
       <p className={styles.paragraph}>
         A.3 <strong>Usage and technical data.</strong> Request timestamps, tool
@@ -124,9 +127,12 @@ export default function AIProductsPrivacy() {
         in (a), and sends model-generated research queries and page requests
         (not your Input verbatim) to web search, news, and page-retrieval
         providers, currently Perplexity (through OpenRouter), AskNews, Parallel
-        Web Systems, and Hyperbrowser. AI Providers act as our service providers
-        (processors) and are contractually restricted to processing this data to
-        provide their services to us.
+        Web Systems, and Hyperbrowser. For Autocast, the step that turns your
+        question into a forecastable question uses the providers in (a), and
+        each forecast is produced by the forecasting service in (b), which may
+        query several models and aggregate their outputs. AI Providers act as
+        our service providers (processors) and are contractually restricted to
+        processing this data to provide their services to us.
       </p>
       <p className={styles.paragraph}>
         C.2 Under our agreements with the model providers in C.1(a), they do not
