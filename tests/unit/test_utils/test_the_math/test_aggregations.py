@@ -2,13 +2,11 @@ import pytest
 import numpy as np
 from datetime import datetime, timezone as dt_timezone
 
-from posts.models import Post
 from projects.models import Project
 from projects.permissions import ObjectPermission
 from questions.types import AggregationMethod
 from questions.models import Question, AggregateForecast
-from scoring.models import Leaderboard, LeaderboardEntry, Score
-from scoring.constants import ScoreTypes
+from scoring.models import Leaderboard, LeaderboardEntry, Reputation
 from users.models import User
 from utils.the_math.aggregations import (
     AGGREGATIONS,
@@ -22,7 +20,7 @@ from utils.the_math.aggregations import (
     SilverMedalistsAggregation,
     GoldMedalistsAggregation,
     JoinedBeforeDateAggregation,
-    SingleAggregation,
+    ReputationWeightedAggregation,
     compute_weighted_semi_standard_deviations,
 )
 from utils.typing import (
@@ -676,68 +674,95 @@ class TestAggregations:
             for n, e in zip(new_value, expected_value):
                 assert n == e or np.isclose(n, e)
 
-    def test_SingleAggregation(self, question_binary: Question):
+    def _setup_reputation_question(self, question: Question) -> None:
+        question.open_time = datetime(2022, 1, 1, tzinfo=dt_timezone.utc)
+        question.scheduled_close_time = datetime(2025, 1, 1, tzinfo=dt_timezone.utc)
+        question.save()
+
+    def _reputation_entry(
+        self, question: Question, forecasts: dict[User, list[float]]
+    ) -> AggregateForecast | None:
+        timestep = datetime(2024, 1, 1, tzinfo=dt_timezone.utc)
+        forecast_set = ForecastSet(
+            forecasts_values=list(forecasts.values()),
+            timestep=timestep,
+            forecaster_ids=[user.id for user in forecasts],
+            timesteps=[timestep] * len(forecasts),
+        )
+        aggregation = ReputationWeightedAggregation(
+            question=question,
+            all_forecaster_ids=[user.id for user in forecasts],
+        )
+        return aggregation.calculate_aggregation_entry(
+            forecast_set, include_stats=True, histogram=True
+        )
+
+    def test_ReputationWeightedAggregation(self, question_binary: Question):
+        self._setup_reputation_question(question_binary)
         high_rep_user = User.objects.create(username="high_rep_user")
         low_rep_user = User.objects.create(username="low_rep_user")
-
-        question_binary.open_time = datetime(2022, 1, 1, tzinfo=dt_timezone.utc)
-        question_binary.scheduled_close_time = datetime(
-            2025, 1, 1, tzinfo=dt_timezone.utc
-        )
-        question_binary.save()
-        project, _ = Project.objects.get_or_create(
-            name="test_project",
-            visibility="normal",
-            type=Project.ProjectTypes.TOURNAMENT,
-            default_permission=ObjectPermission.FORECASTER,
-        )
-        Post.objects.create(
-            default_project=project,
-            question=question_binary,
-            author=high_rep_user,
-        )
-
-        Score.objects.create(
-            user=high_rep_user,
-            question=question_binary,
-            score=3000,
-            coverage=1,
-            score_type=ScoreTypes.PEER,
-        )
-        Score.objects.create(
-            user=low_rep_user,
-            question=question_binary,
-            score=900,
-            coverage=1,
-            score_type=ScoreTypes.PEER,
-        )
-        Score.objects.update(edited_at=datetime(2020, 1, 1, tzinfo=dt_timezone.utc))
-
-        timestep = datetime(2024, 1, 1, tzinfo=dt_timezone.utc)
+        for user, value in [(high_rep_user, 20.0), (low_rep_user, -5.0)]:
+            Reputation.objects.create(
+                user=user,
+                type=Reputation.ReputationTypes.AVERAGE_PEER_SCORE,
+                time=datetime(2020, 1, 1, tzinfo=dt_timezone.utc),
+                value=value,
+                contribution=50.0,
+            )
         high_forecast = [0.2, 0.8]
         low_forecast = [0.8, 0.2]
-        forecast_set = ForecastSet(
-            forecasts_values=[low_forecast, high_forecast],
-            timestep=timestep,
-            forecaster_ids=[low_rep_user.id, high_rep_user.id],
-            timesteps=[timestep, timestep],
-        )
 
-        aggregation = SingleAggregation(
-            question=question_binary,
-            all_forecaster_ids=[low_rep_user.id, high_rep_user.id],
+        new_aggregation = self._reputation_entry(
+            question_binary, {low_rep_user: low_forecast, high_rep_user: high_forecast}
         )
-        new_aggregation = aggregation.calculate_aggregation_entry(forecast_set)
 
         assert new_aggregation
-        assert new_aggregation.method == AggregationMethod.SINGLE_AGGREGATION
+        assert new_aggregation.method == AggregationMethod.REPUTATION_WEIGHTED
         assert new_aggregation.forecaster_count == 2
-        assert new_aggregation.start_time == timestep
         # aggregate should be closer to the user with a higher reputation
-        high_value = high_forecast[1]
-        low_value = low_forecast[1]
         aggregate_value = new_aggregation.forecast_values[1]
-        assert abs(high_value - aggregate_value) < abs(low_value - aggregate_value)
+        assert abs(high_forecast[1] - aggregate_value) < abs(
+            low_forecast[1] - aggregate_value
+        )
+
+    @pytest.mark.parametrize("stored_value", [None, -1000.0])
+    def test_ReputationWeightedAggregation_without_reputation(
+        self, question_binary: Question, stored_value: float | None
+    ):
+        # No Reputation rows at all, or reputations that floor to zero: every
+        # forecaster lands on the same floor, so with equal decays the result
+        # is the plain mean rather than nothing
+        self._setup_reputation_question(question_binary)
+        users = [User.objects.create(username=f"user_{i}") for i in range(3)]
+        if stored_value is not None:
+            for user in users:
+                Reputation.objects.create(
+                    user=user,
+                    type=Reputation.ReputationTypes.AVERAGE_PEER_SCORE,
+                    time=datetime(2020, 1, 1, tzinfo=dt_timezone.utc),
+                    value=stored_value,
+                    contribution=50.0,
+                )
+        forecasts = [[0.9, 0.1], [0.5, 0.5], [0.1, 0.9]]
+
+        new_aggregation = self._reputation_entry(
+            question_binary, dict(zip(users, forecasts))
+        )
+
+        assert new_aggregation
+        assert new_aggregation.forecaster_count == 3
+        assert np.allclose(new_aggregation.forecast_values, np.mean(forecasts, axis=0))
+
+    def test_ReputationWeightedAggregation_invalid_forecast_raises(
+        self, question_binary: Question
+    ):
+        self._setup_reputation_question(question_binary)
+        users = [User.objects.create(username=f"user_{i}") for i in range(2)]
+
+        with pytest.raises(Exception):
+            self._reputation_entry(
+                question_binary, {users[0]: [0.5, 0.5], users[1]: [None, None]}
+            )
 
     def test_ProAggregation(self, question_binary: Question):
         timestep = datetime(2024, 1, 1, tzinfo=dt_timezone.utc)

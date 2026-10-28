@@ -9,7 +9,11 @@ from django_better_admin_arrayfield.models.fields import ArrayField
 from sql_util.aggregates import SubqueryAggregate
 
 from questions.constants import QuestionStatus
-from questions.types import AggregationMethod, OptionsHistoryType
+from questions.types import (
+    SHADOW_AGGREGATION_METHODS,
+    AggregationMethod,
+    OptionsHistoryType,
+)
 from scoring.constants import ScoreTypes
 from users.models import User
 from utils.models import TimeStampedModel, TranslatedModel
@@ -773,6 +777,9 @@ class Forecast(models.Model):
 class AggregateForecastQuerySet(QuerySet):
     def filter_default_aggregation(self):
         return self.filter(method=F("question__default_aggregation_method"))
+
+    def exclude_shadow_aggregations(self):
+        return self.exclude(method__in=SHADOW_AGGREGATION_METHODS)
 
 
 class AggregateForecast(models.Model):

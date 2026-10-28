@@ -11,9 +11,11 @@ Normalise to 1 over all outcomes.
 
 from bisect import bisect_left, bisect_right
 from collections import defaultdict
-from dataclasses import dataclass
+from itertools import chain
+from dataclasses import dataclass, field, replace
+from functools import cached_property
 from datetime import datetime, timedelta, timezone as dt_timezone
-from typing import Sequence
+from typing import Any, Iterable, Sequence
 
 import numpy as np
 import sentry_sdk
@@ -28,8 +30,8 @@ from questions.models import (
     AggregateForecast,
 )
 from questions.types import AggregationMethod
-from scoring.constants import ScoreTypes
-from scoring.models import Score, LeaderboardEntry
+from scoring.models import LeaderboardEntry, Reputation
+from scoring.reputations import REPUTATION_FORMULAS
 from users.models import User
 from utils.the_math.measures import (
     weighted_percentile_2d,
@@ -54,13 +56,17 @@ class ForecastSet:
     timestep: datetime
     forecaster_ids: list[int] = list
     timesteps: list[datetime] = list
+    _timesteps_epoch_cache: np.ndarray | None = field(
+        default=None, repr=False, compare=False
+    )
 
-
-@dataclass
-class Reputation:
-    user_id: int
-    value: float
-    time: datetime
+    def timesteps_epoch(self) -> np.ndarray:
+        """`timesteps` as epoch seconds, computed once and cached"""
+        if self._timesteps_epoch_cache is None:
+            self._timesteps_epoch_cache = np.array(
+                [t.timestamp() for t in self.timesteps]
+            )
+        return self._timesteps_epoch_cache
 
 
 # Helpers ##########################################
@@ -71,7 +77,7 @@ def get_histogram(
     weights: Weights,
     question_type: Question.QuestionType,
 ) -> np.ndarray:
-    values = np.array(values)
+    values = np.asarray(values)
     if len(values) == 0:
         return np.zeros(100)
     if weights is None:
@@ -97,7 +103,7 @@ def compute_discrete_forecast_values(
     weights: Weights = None,
     percentile: float | list[float] | Percentiles = 50.0,
 ) -> ForecastsValues:
-    forecasts_values = np.array(forecasts_values)
+    forecasts_values = np.asarray(forecasts_values)
     if isinstance(percentile, float):
         percentile = np.array([percentile])
     if forecasts_values.shape[1] == 2:
@@ -147,6 +153,12 @@ def compute_weighted_semi_standard_deviations(
 class Weighted:
     def __init__(self, **kwargs):
         pass
+
+    @classmethod
+    def transition_times(cls, question: Question, **kwargs) -> list[datetime]:
+        """Times, other than forecasts starting and ending, at which these
+        weights can change. kwargs are the weighting's own parameters."""
+        return []
 
     def calculate_weights(self, forecast_set: ForecastSet) -> Weights:
         raise NotImplementedError("Implement in Child Class")
@@ -223,136 +235,498 @@ class ProsFiltered(Filtered):
         )
 
 
+# TimeDecays ##########################################
+#
+# The decay term of DecayReputationWeighted: how much a forecast is discounted
+# for its age. t_now is forecast_set.timestep, t_i a forecast's start_time.
+
+
+class TimeDecay:
+    """Computes the decay for every forecast in a ForecastSet, aligned with
+    forecast_set.forecaster_ids"""
+
+    def __init__(self, question: Question, **kwargs):
+        self.question = question
+
+    @cached_property
+    def question_duration_seconds(self) -> float:
+        # Lazy: questions without an open or close time can't have forecasts to
+        # decay, but are still built (to an empty history)
+        return (
+            self.question.scheduled_close_time - self.question.open_time
+        ).total_seconds()
+
+    def compute(self, forecast_set: ForecastSet) -> np.ndarray:
+        raise NotImplementedError("Implement in Child Class")
+
+
+class ExponentialLifetimeDecay(TimeDecay):
+    """exp(-(t_now - t_i) / (t_close - t_open)): age measured relative to the
+    question's lifetime"""
+
+    def compute(self, forecast_set: ForecastSet) -> np.ndarray:
+        age = forecast_set.timestep.timestamp() - forecast_set.timesteps_epoch()
+        return np.exp(-age / self.question_duration_seconds)
+
+
+class ExponentialDaysDecay(TimeDecay):
+    """exp(-(t_now - t_i)) with age in days, independent of the question's
+    lifetime"""
+
+    SECONDS_PER_DAY = 86400.0
+
+    def compute(self, forecast_set: ForecastSet) -> np.ndarray:
+        age = forecast_set.timestep.timestamp() - forecast_set.timesteps_epoch()
+        return np.exp(-age / self.SECONDS_PER_DAY)
+
+
+class OldMetaculusStyleDecay(TimeDecay):
+    """(t_i - t_open) / (t_close - t_open): the old Metaculus Prediction's time
+    weight, which depends only on when in the question's life the forecast was
+    made"""
+
+    def compute(self, forecast_set: ForecastSet) -> np.ndarray:
+        open_epoch = self.question.open_time.timestamp()
+        return (
+            forecast_set.timesteps_epoch() - open_epoch
+        ) / self.question_duration_seconds
+
+
+class LinearDecay(TimeDecay):
+    """(t_close - t_open) / (t_close - t_i): grows as forecasts are made closer
+    to the close time"""
+
+    def compute(self, forecast_set: ForecastSet) -> np.ndarray:
+        close_epoch = self.question.scheduled_close_time.timestamp()
+        return self.question_duration_seconds / (
+            close_epoch - forecast_set.timesteps_epoch()
+        )
+
+
+class OrdinalDecay(TimeDecay):
+    """RecencyWeighted's rank-based weight, e^(sqrt(n) - sqrt(N))"""
+
+    def compute(self, forecast_set: ForecastSet) -> np.ndarray:
+        n = len(forecast_set.forecaster_ids)
+        if n == 0:
+            return np.array([])
+        return np.exp(np.sqrt(np.arange(n) + 1) - np.sqrt(n))
+
+
+class NoDecay(TimeDecay):
+    """1 for every forecast"""
+
+    def compute(self, forecast_set: ForecastSet) -> np.ndarray:
+        return np.ones(len(forecast_set.forecaster_ids))
+
+
+class SpotSensitiveDecay(TimeDecay):
+    """Wraps another TimeDecay: no decay at all before the question's spot
+    scoring time (when the CP is typically still hidden, so nobody has been
+    prompted to update), the wrapped decay from then on"""
+
+    def __init__(
+        self,
+        question: Question,
+        wrapped_decay_class: type[TimeDecay] = ExponentialLifetimeDecay,
+        **kwargs,
+    ):
+        super().__init__(question=question, **kwargs)
+        self.wrapped_decay = wrapped_decay_class(question=question, **kwargs)
+        spot_time = question.get_spot_scoring_time()
+        self.spot_scoring_epoch = spot_time.timestamp() if spot_time else None
+
+    def compute(self, forecast_set: ForecastSet) -> np.ndarray:
+        if (
+            self.spot_scoring_epoch is not None
+            and forecast_set.timestep.timestamp() < self.spot_scoring_epoch
+        ):
+            return np.ones(len(forecast_set.forecaster_ids))
+        return self.wrapped_decay.compute(forecast_set)
+
+
+TIME_DECAYS: dict[str, type[TimeDecay]] = {
+    "exponential_lifetime": ExponentialLifetimeDecay,
+    "exponential_days": ExponentialDaysDecay,
+    "old_metaculus": OldMetaculusStyleDecay,
+    "linear": LinearDecay,
+    "ordinal": OrdinalDecay,
+    "none": NoDecay,
+}
+
+
+# WeightCombiners ##########################################
+#
+# How DecayReputationWeighted turns a decay and a reputation into one weight.
+# Two families, which read `a` and `b` differently:
+#   GeometricWeightCombiner splits one overall sharpness `b` across the two
+#   terms with an a / (1-a) mix.
+#   The rest treat `a` and `b` as independent exponents on decay and
+#   reputation, and `c` as the mix between the two terms.
+# GeometricWeightCombiner(a, b) == GeometricPowerWeightCombiner(a*b, (1-a)*b).
+
+# Floor applied before any division or negative power, so a zero decay can't
+# turn a harmonic or negative-p generalized mean into inf/nan
+COMBINER_EPSILON = 1e-12
+
+
+def scale_to_unit_max(values: np.ndarray) -> np.ndarray:
+    """Rescales so the largest entry is 1. Only ratios between weights at one
+    timestep matter, so this is free for multiplicative combiners and makes
+    additive ones mix decay and reputation on a common scale."""
+    largest = np.max(values) if values.size else 0.0
+    if not np.isfinite(largest) or largest <= 0:
+        return values
+    return values / largest
+
+
+class WeightCombiner:
+    def __init__(
+        self,
+        a: float = 0.5,
+        b: float = 6.0,
+        c: float = 0.5,
+        p: float = 1.0,
+        **kwargs,
+    ):
+        self.a = a
+        self.b = b
+        self.c = c
+        self.p = p
+
+    def combine(self, decays: np.ndarray, reputation: np.ndarray) -> Weights:
+        raise NotImplementedError("Implement in Child Class")
+
+    def _finalize(self, weights: np.ndarray) -> Weights:
+        if np.all(weights == 0):
+            return None
+        return weights if weights.size else None
+
+    def _terms(
+        self, decays: np.ndarray, reputation: np.ndarray
+    ) -> tuple[np.ndarray, np.ndarray]:
+        """(decay**a, reputation**b), each rescaled to a unit maximum first"""
+        tau = np.maximum(scale_to_unit_max(decays), COMBINER_EPSILON) ** self.a
+        rep = np.maximum(scale_to_unit_max(reputation), COMBINER_EPSILON) ** self.b
+        return tau, rep
+
+
+class GeometricWeightCombiner(WeightCombiner):
+    """(decay**a * reputation**(1-a))**b"""
+
+    def __init__(self, a: float = 0.5, b: float = 6.0, **kwargs):
+        super().__init__(a=a, b=b, **kwargs)
+
+    def combine(self, decays: np.ndarray, reputation: np.ndarray) -> Weights:
+        return self._finalize((decays**self.a * reputation ** (1 - self.a)) ** self.b)
+
+
+class GeometricPowerWeightCombiner(WeightCombiner):
+    """decay**a * reputation**b"""
+
+    def __init__(self, a: float = 3.0, b: float = 3.0, **kwargs):
+        super().__init__(a=a, b=b, **kwargs)
+
+    def combine(self, decays: np.ndarray, reputation: np.ndarray) -> Weights:
+        tau, rep = self._terms(decays, reputation)
+        return self._finalize(tau * rep)
+
+
+class ArithmeticWeightCombiner(WeightCombiner):
+    """c * decay**a + (1-c) * reputation**b. Either term alone can carry a
+    forecast's weight."""
+
+    def __init__(self, a: float = 3.0, b: float = 3.0, c: float = 0.5, **kwargs):
+        super().__init__(a=a, b=b, c=c, **kwargs)
+
+    def combine(self, decays: np.ndarray, reputation: np.ndarray) -> Weights:
+        tau, rep = self._terms(decays, reputation)
+        return self._finalize(self.c * tau + (1 - self.c) * rep)
+
+
+class HarmonicWeightCombiner(WeightCombiner):
+    """(c / decay**a + (1-c) / reputation**b)**-1. Either term near zero drags
+    the weight to near zero."""
+
+    def __init__(self, a: float = 3.0, b: float = 3.0, c: float = 0.5, **kwargs):
+        super().__init__(a=a, b=b, c=c, **kwargs)
+
+    def combine(self, decays: np.ndarray, reputation: np.ndarray) -> Weights:
+        tau, rep = self._terms(decays, reputation)
+        denominator = self.c / tau + (1 - self.c) / rep
+        return self._finalize(np.where(denominator > 0, 1.0 / denominator, 0.0))
+
+
+class GeneralizedMeanWeightCombiner(WeightCombiner):
+    """(c * decay**(a*p) + (1-c) * reputation**(b*p))**(1/p): arithmetic at
+    p=1, harmonic at p=-1, geometric as p->0"""
+
+    def __init__(
+        self,
+        a: float = 3.0,
+        b: float = 3.0,
+        c: float = 0.5,
+        p: float = 1.0,
+        **kwargs,
+    ):
+        super().__init__(a=a, b=b, c=c, p=p, **kwargs)
+
+    def combine(self, decays: np.ndarray, reputation: np.ndarray) -> Weights:
+        tau, rep = self._terms(decays, reputation)
+        if abs(self.p) < 1e-9:
+            return self._finalize(tau**self.c * rep ** (1 - self.c))
+        blended = self.c * tau**self.p + (1 - self.c) * rep**self.p
+        blended = np.maximum(blended, COMBINER_EPSILON)
+        return self._finalize(blended ** (1.0 / self.p))
+
+
+WEIGHT_COMBINERS: dict[str, type[WeightCombiner]] = {
+    "geometric": GeometricWeightCombiner,
+    "geometric_power": GeometricPowerWeightCombiner,
+    "arithmetic": ArithmeticWeightCombiner,
+    "harmonic": HarmonicWeightCombiner,
+    "generalized": GeneralizedMeanWeightCombiner,
+}
+
+
 # ReputationWeightings ##########################################
+
+# user_id -> (times as epoch seconds, values, contributions), sorted by time
+ReputationArrays = dict[int, tuple[np.ndarray, np.ndarray, np.ndarray]]
+
+
+def _reputation_arrays(
+    rows: Iterable[tuple[int, datetime, float, float]],
+) -> ReputationArrays:
+    """Groups (user_id, time, value, contribution) rows into ReputationArrays"""
+    by_user: dict[int, list[tuple[float, float, float]]] = defaultdict(list)
+    for user_id, time, value, contribution in rows:
+        by_user[user_id].append((time.timestamp(), value, contribution))
+    arrays: ReputationArrays = {}
+    for user_id, history in by_user.items():
+        history.sort(key=lambda entry: entry[0])
+        times, values, contributions = np.array(history).T
+        arrays[user_id] = (times, values, contributions)
+    return arrays
 
 
 class ReputationWeighted(Weighted):
     """Uses a Reputation to calculate a forecast's weight.
-    Requires `get_reputation_history`"""
+    Requires `get_reputation_history`, which returns each forecaster's
+    Reputations sorted by time, or an override of `get_reputation_arrays`. The
+    reputation at a timestep is the latest one at or before it, 0 if none."""
 
     def __init__(
         self,
         question: Question,
         all_forecaster_ids: list[int] | set[int] | None,
+        forecast_history: Sequence[ForecastSet] | None = None,
         **kwargs,
     ):
         if question is None or all_forecaster_ids is None:
             raise ValueError("question and all_forecaster_ids must be provided")
         self.question = question
-        self.reputations: dict[int, list[Reputation]] = self.get_reputation_history(
-            all_forecaster_ids
+        time_range = None
+        if forecast_history:
+            timesteps = [forecast_set.timestep for forecast_set in forecast_history]
+            time_range = (min(timesteps), max(timesteps))
+        self.reputations: ReputationArrays = self.get_reputation_arrays(
+            all_forecaster_ids, time_range
         )
+        # With the full history known up front, look every reputation up in one
+        # batched pass per user rather than one search per forecast per timestep
+        self._precomputed: dict[int, tuple[np.ndarray, np.ndarray]] = {}
+        if forecast_history:
+            self._precomputed = self._precompute_reputations(forecast_history)
 
     def get_reputation_history(
         self, all_forecaster_ids: list[int] | set[int]
     ) -> dict[int, list[Reputation]]:
         raise NotImplementedError("Implement in Child Class")
 
-    def get_reputations(self, forecast_set: ForecastSet) -> list[Reputation]:
-        reps = []
-        for user_id in forecast_set.forecaster_ids:
-            found = False
-            for reputation in self.reputations[user_id][::-1]:
-                if reputation.time <= forecast_set.timestep:
-                    reps.append(reputation)
-                    found = True
-                    break
-            if not found:
-                # no reputation -> no weight
-                reps.append(Reputation(user_id, 0, forecast_set.timestep))
-        return reps
-
-    def calculate_weights(self, forecast_set: ForecastSet) -> Weights:
-        reps = self.get_reputations(forecast_set)
-        return np.array([reputation.value for reputation in reps])
-
-
-class PeerScoreReputationWeighted(ReputationWeighted):
-    @staticmethod
-    def reputation_value(scores: Sequence[Score]) -> float:
-        return max(
-            sum([score.score for score in scores])
-            / (30 + sum([score.coverage for score in scores])),
-            1e-6,
+    def get_reputation_arrays(
+        self,
+        all_forecaster_ids: list[int] | set[int],
+        time_range: tuple[datetime, datetime] | None,
+    ) -> ReputationArrays:
+        """time_range is the (earliest, latest) timestep that will be looked up,
+        when known. Lookups outside it are unsupported, so an override may skip
+        reputations that can't affect them."""
+        return _reputation_arrays(
+            (user_id, r.time, r.value, r.contribution)
+            for user_id, history in self.get_reputation_history(
+                all_forecaster_ids
+            ).items()
+            for r in history
         )
 
-    def get_reputation_history(
-        self, all_forecaster_ids: list[int] | set[int]
-    ) -> dict[int, list[Reputation]]:
-
-        start = self.question.open_time
-        end = self.question.scheduled_close_time
-        if end is None:
-            end = timezone.now()
-        peer_scores = Score.objects.filter(
-            user_id__in=all_forecaster_ids,
-            score_type=ScoreTypes.PEER,
-            question__in=Question.objects.filter_public(),
-            edited_at__lte=end,
+    def _lookup(
+        self, user_id: int, epochs: np.ndarray
+    ) -> tuple[np.ndarray, np.ndarray]:
+        """(values, contributions) of user_id's reputation at each of epochs"""
+        arrays = self.reputations.get(user_id)
+        if arrays is None:
+            return np.zeros(len(epochs)), np.zeros(len(epochs))
+        times, values, contributions = arrays
+        indexes = np.searchsorted(times, epochs, side="right") - 1
+        found = indexes >= 0
+        indexes = np.maximum(indexes, 0)
+        return (
+            np.where(found, values[indexes], 0.0),
+            np.where(found, contributions[indexes], 0.0),
         )
 
-        # setup
-        scores_by_user: dict[int, dict[int, Score]] = defaultdict(dict)
-        reputations: dict[int, list[Reputation]] = defaultdict(list)
-
-        # Establish reputations at the start of the interval.
-        old_peer_scores = list(
-            peer_scores.filter(edited_at__lte=start).order_by("edited_at")
+    def _precompute_reputations(
+        self, forecast_history: Sequence[ForecastSet]
+    ) -> dict[int, tuple[np.ndarray, np.ndarray]]:
+        """id(forecast_set) -> (values, contributions) for every forecast_set"""
+        forecast_history = list(forecast_history)
+        lengths = np.array([len(fs.forecaster_ids) for fs in forecast_history])
+        # every (forecast_set, forecaster) pair, flattened
+        users = np.fromiter(
+            chain.from_iterable(fs.forecaster_ids for fs in forecast_history),
+            dtype=np.int64,
+            count=lengths.sum(),
         )
-
-        with sentry_sdk.start_span(
-            op="compute", name="compute_initial_reputations"
-        ) as span:
-            span.set_data("forecaster_count", len(all_forecaster_ids))
-            span.set_data("old_peer_scores_count", len(old_peer_scores))
-            for score in old_peer_scores:
-                scores_by_user[score.user_id][score.question_id] = score
-            for user_id in all_forecaster_ids:
-                value = self.reputation_value(list(scores_by_user[user_id].values()))
-                reputations[user_id].append(Reputation(user_id, value, start))
-
-        # Then, for each new score, add a new reputation record
-        new_peer_scores = list(
-            peer_scores.filter(edited_at__gt=start).order_by("edited_at")
+        epochs = np.repeat(
+            [fs.timestep.timestamp() for fs in forecast_history], lengths
         )
-
-        with sentry_sdk.start_span(
-            op="compute", name="compute_reputation_updates"
-        ) as span:
-            span.set_data("new_peer_scores_count", len(new_peer_scores))
-            for score in new_peer_scores:
-                # update the scores by user, then calculate the updated reputation
-                scores_by_user[score.user_id][score.question_id] = score
-                value = self.reputation_value(
-                    list(scores_by_user[score.user_id].values())
-                )
-                reputations[score.user_id].append(
-                    Reputation(score.user_id, value, score.edited_at)
-                )
-        return reputations
-
-    def calculate_weights(self, forecast_set: ForecastSet) -> Weights:
-        # Custom overwrite to uniquely combine time weighting with reputation
-        reps = self.get_reputations(forecast_set)
-        # TODO: make these learned parameters
-        a = 0.5
-        b = 6.0
-        decays = [
-            np.exp(
-                -(forecast_set.timestep - start_time)
-                / (self.question.scheduled_close_time - self.question.open_time)
+        values = np.zeros(len(users))
+        contributions = np.zeros(len(users))
+        order = np.argsort(users, kind="stable")
+        unique_users, group_starts = np.unique(users[order], return_index=True)
+        for user_id, group in zip(unique_users, np.split(order, group_starts[1:])):
+            values[group], contributions[group] = self._lookup(
+                int(user_id), epochs[group]
             )
-            for start_time in forecast_set.timesteps
-        ]
-        weights = np.array(
-            [
-                (decay**a * reputation.value ** (1 - a)) ** b
-                for decay, reputation in zip(decays, reps)
-            ]
+        split_points = np.cumsum(lengths)[:-1]
+        return {
+            id(forecast_set): (set_values, set_contributions)
+            for forecast_set, set_values, set_contributions in zip(
+                forecast_history,
+                np.split(values, split_points),
+                np.split(contributions, split_points),
+            )
+        }
+
+    def _live_reputations(
+        self, forecast_set: ForecastSet
+    ) -> tuple[np.ndarray, np.ndarray]:
+        values = np.zeros(len(forecast_set.forecaster_ids))
+        contributions = np.zeros(len(forecast_set.forecaster_ids))
+        epoch = np.array([forecast_set.timestep.timestamp()])
+        for i, user_id in enumerate(forecast_set.forecaster_ids):
+            user_values, user_contributions = self._lookup(user_id, epoch)
+            values[i] = user_values[0]
+            contributions[i] = user_contributions[0]
+        return values, contributions
+
+    def get_reputations(
+        self, forecast_set: ForecastSet
+    ) -> tuple[np.ndarray, np.ndarray]:
+        """(values, contributions) of the reputation active at
+        forecast_set.timestep for each of forecast_set.forecaster_ids, 0 where
+        there is none"""
+        precomputed = self._precomputed.get(id(forecast_set))
+        if precomputed is not None and len(precomputed[0]) == len(
+            forecast_set.forecaster_ids
+        ):
+            return precomputed
+        return self._live_reputations(forecast_set)
+
+    def calculate_weights(self, forecast_set: ForecastSet) -> Weights:
+        return self.get_reputations(forecast_set)[0]
+
+
+class DecayReputationWeighted(ReputationWeighted):
+    """Combines a time decay with a stored Reputation:
+        reputation = max(formula(value, contribution; rho, gamma), e)
+        weight = combiner(decay, reputation; a, b, c, p)
+    See REPUTATION_FORMULAS, TIME_DECAYS and WEIGHT_COMBINERS for the options.
+    `pre_spot_decay` turns off the decay before the spot scoring time (see
+    SpotSensitiveDecay). a/b default per combiner, since the two combiner
+    families read them differently."""
+
+    def __init__(
+        self,
+        question: Question,
+        all_forecaster_ids: list[int] | set[int] | None,
+        reputation_type: str = Reputation.ReputationTypes.AVERAGE_PEER_SCORE,
+        reputation_formula: str = "none",
+        rho: float = 0.0,
+        gamma: float = 0.0,
+        e: float = 1e-6,
+        time_decay: str = "exponential_lifetime",
+        pre_spot_decay: bool = False,
+        combiner: str = "geometric",
+        a: float | None = None,
+        b: float | None = None,
+        c: float = 0.5,
+        p: float = 1.0,
+        **kwargs,
+    ):
+        # read by get_reputation_arrays, which super().__init__ calls
+        self.reputation_type = reputation_type
+        super().__init__(question, all_forecaster_ids, **kwargs)
+        self.reputation_formula = REPUTATION_FORMULAS[reputation_formula]
+        self.rho = rho
+        self.gamma = gamma
+        self.e = e
+        decay_class = TIME_DECAYS[time_decay]
+        if pre_spot_decay:
+            self.time_decay = SpotSensitiveDecay(
+                question=question, wrapped_decay_class=decay_class
+            )
+        else:
+            self.time_decay = decay_class(question=question)
+        combiner_kwargs = {"c": c, "p": p}
+        if a is not None:
+            combiner_kwargs["a"] = a
+        if b is not None:
+            combiner_kwargs["b"] = b
+        self.combiner = WEIGHT_COMBINERS[combiner](**combiner_kwargs)
+
+    @classmethod
+    def transition_times(
+        cls, question: Question, pre_spot_decay: bool = False, **kwargs
+    ) -> list[datetime]:
+        # the decay switches on at the spot scoring time
+        spot_time = question.get_spot_scoring_time() if pre_spot_decay else None
+        return [spot_time] if spot_time else []
+
+    def get_reputation_arrays(
+        self,
+        all_forecaster_ids: list[int] | set[int],
+        time_range: tuple[datetime, datetime] | None,
+    ) -> ReputationArrays:
+        reputations = Reputation.objects.filter(
+            user_id__in=all_forecaster_ids, type=self.reputation_type
         )
-        if all(weights == 0):
-            return None
-        return weights if weights.size else None
+        fields = ("user_id", "time", "value", "contribution")
+        if time_range is None:
+            return _reputation_arrays(reputations.values_list(*fields))
+        earliest, latest = time_range
+        # each user's reputation as of the earliest lookup, then every change
+        # until the latest one
+        starting = (
+            reputations.filter(time__lte=earliest)
+            .order_by("user_id", "-time")
+            .distinct("user_id")
+            .values_list(*fields)
+        )
+        changes = reputations.filter(time__gt=earliest, time__lte=latest).values_list(
+            *fields
+        )
+        return _reputation_arrays(chain(starting, changes))
+
+    def calculate_weights(self, forecast_set: ForecastSet) -> Weights:
+        values, contributions = self.get_reputations(forecast_set)
+        reputation = np.maximum(
+            self.reputation_formula(values, contributions, self.rho, self.gamma),
+            self.e,
+        )
+        decays = self.time_decay.compute(forecast_set)
+        return self.combiner.combine(decays, reputation)
 
 
 class MedalistsReputationWeighted(ReputationWeighted):
@@ -385,17 +759,23 @@ class MedalistsReputationWeighted(ReputationWeighted):
         old_medals = list(medals.filter(set_time__lte=start).order_by("set_time"))
         for medal in old_medals:
             user_id = medal.user_id
-            reputations[user_id] = [Reputation(user_id, 1, start)]
+            reputations[user_id] = [Reputation(user_id=user_id, value=1, time=start)]
         for user_id in all_forecaster_ids:
             if user_id not in reputations:
-                reputations[user_id] = [Reputation(user_id, 0, start)]
+                reputations[user_id] = [
+                    Reputation(user_id=user_id, value=0, time=start)
+                ]
         # Then, for each new medal, add a new reputation record
         new_medals = list(medals.filter(set_time__gt=start).order_by("set_time"))
         for medal in new_medals:
             user_id = medal.user_id
             if reputations[user_id][-1].value == 0:
                 reputations[user_id].append(
-                    Reputation(user_id, 1, medal.edited_at or medal.created_at)
+                    Reputation(
+                        user_id=user_id,
+                        value=1,
+                        time=medal.edited_at or medal.created_at,
+                    )
                 )
         return reputations
 
@@ -418,6 +798,18 @@ class GoldMedalistsReputationWeighted(MedalistsReputationWeighted):
 
 
 # Aggregators ##########################################
+#
+# Every method takes `forecasts_values_array`, forecast_set.forecasts_values
+# already converted to an array, so one entry converts it only once. None of
+# them mutate it.
+
+
+def _as_array(
+    forecast_set: ForecastSet, forecasts_values_array: np.ndarray | None
+) -> np.ndarray:
+    if forecasts_values_array is not None:
+        return forecasts_values_array
+    return np.asarray(forecast_set.forecasts_values)
 
 
 class AggregatorMixin:
@@ -429,7 +821,10 @@ class AggregatorMixin:
     question: Question
 
     def calculate_forecast_values(
-        self, forecast_set: ForecastSet, weights: np.ndarray | None = None
+        self,
+        forecast_set: ForecastSet,
+        weights: np.ndarray | None = None,
+        forecasts_values_array: np.ndarray | None = None,
     ) -> np.ndarray:
         raise NotImplementedError("Implementation required in Mixin")
 
@@ -438,8 +833,56 @@ class AggregatorMixin:
         forecast_set: ForecastSet,
         aggregation_forecast_values: ForecastValues,
         weights: np.ndarray | None = None,
+        forecasts_values_array: np.ndarray | None = None,
     ) -> RangeValuesType:
         raise NotImplementedError("Implementation required in Mixin")
+
+
+def _discrete_percentile_ranges(
+    question: Question,
+    forecasts_values: np.ndarray,
+    aggregation_forecast_values: ForecastValues,
+    weights: np.ndarray | None,
+) -> RangeValuesType:
+    """Per-column weighted quartiles. For MC, rescaled so the center matches
+    the (normalized) aggregate."""
+    if question.type == Question.QuestionType.BINARY:
+        return compute_discrete_forecast_values(
+            forecasts_values, weights, [25.0, 50.0, 75.0]
+        )
+    non_nans = ~np.isnan(forecasts_values[0]) if forecasts_values.size else []
+    lowers, centers, uppers = compute_discrete_forecast_values(
+        forecasts_values, weights, [25.0, 50.0, 75.0]
+    )
+    centers_array = np.array(centers)
+    centers_array[np.equal(centers_array, 0.0)] = 1.0  # avoid divide by zero
+    normalized_centers = np.array(aggregation_forecast_values)
+    normalized_lowers = np.array(lowers)
+    normalized_lowers[non_nans] = (
+        normalized_lowers[non_nans]
+        * normalized_centers[non_nans]
+        / centers_array[non_nans]
+    )
+    normalized_uppers = np.array(uppers)
+    normalized_uppers[non_nans] = (
+        normalized_uppers[non_nans]
+        * normalized_centers[non_nans]
+        / centers_array[non_nans]
+    )
+    return (
+        normalized_lowers.tolist(),
+        normalized_centers.tolist(),
+        normalized_uppers.tolist(),
+    )
+
+
+def _continuous_ranges(aggregation_forecast_values: ForecastValues) -> RangeValuesType:
+    if np.any(np.equal(aggregation_forecast_values, None)):
+        raise ValueError("Forecast values contain None values")
+    lowers, centers, uppers = percent_point_function(
+        aggregation_forecast_values, [25.0, 50.0, 75.0]
+    )
+    return [lowers], [centers], [uppers]
 
 
 class MedianAggregatorMixin:
@@ -450,11 +893,14 @@ class MedianAggregatorMixin:
     question: Question
 
     def calculate_forecast_values(
-        self, forecast_set: ForecastSet, weights: np.ndarray | None = None
+        self,
+        forecast_set: ForecastSet,
+        weights: np.ndarray | None = None,
+        forecasts_values_array: np.ndarray | None = None,
     ) -> np.ndarray:
         # Default Aggregation method uses weighted medians for binary and MC questions
         # and weighted average for continuous
-        forecasts_values = np.array(forecast_set.forecasts_values)
+        forecasts_values = _as_array(forecast_set, forecasts_values_array)
         if self.question.type == Question.QuestionType.BINARY:
             return np.array(
                 compute_discrete_forecast_values(forecasts_values, weights, 50.0)[0]
@@ -477,44 +923,16 @@ class MedianAggregatorMixin:
         forecast_set: ForecastSet,
         aggregation_forecast_values: ForecastValues,
         weights: np.ndarray | None = None,
-    ) -> tuple[list[float | None], list[float | None], list[float | None]]:
-        if self.question.type == Question.QuestionType.BINARY:
-            forecasts_values = np.array(forecast_set.forecasts_values)
-            lowers, centers, uppers = compute_discrete_forecast_values(
-                forecasts_values, weights, [25.0, 50.0, 75.0]
-            )
-        elif self.question.type == Question.QuestionType.MULTIPLE_CHOICE:
-            forecasts_values = np.array(forecast_set.forecasts_values)
-            non_nans = ~np.isnan(forecasts_values[0]) if forecasts_values.size else []
-            lowers, centers, uppers = compute_discrete_forecast_values(
-                forecasts_values, weights, [25.0, 50.0, 75.0]
-            )
-            centers_array = np.array(centers)
-            centers_array[np.equal(centers_array, 0.0)] = 1.0  # avoid divide by zero
-            normalized_centers = np.array(aggregation_forecast_values)
-            normalized_lowers = np.array(lowers)
-            normalized_lowers[non_nans] = (
-                normalized_lowers[non_nans]
-                * normalized_centers[non_nans]
-                / centers_array[non_nans]
-            )
-            normalized_uppers = np.array(uppers)
-            normalized_uppers[non_nans] = (
-                normalized_uppers[non_nans]
-                * normalized_centers[non_nans]
-                / centers_array[non_nans]
-            )
-            centers = normalized_centers.tolist()
-            lowers = normalized_lowers.tolist()
-            uppers = normalized_uppers.tolist()
-        else:  # continuous
-            lowers, centers, uppers = percent_point_function(
-                aggregation_forecast_values, [25.0, 50.0, 75.0]
-            )
-            lowers = [lowers]
-            centers = [centers]
-            uppers = [uppers]
-        return lowers, centers, uppers
+        forecasts_values_array: np.ndarray | None = None,
+    ) -> RangeValuesType:
+        if self.question.type in QUESTION_CONTINUOUS_TYPES:
+            return _continuous_ranges(aggregation_forecast_values)
+        return _discrete_percentile_ranges(
+            self.question,
+            _as_array(forecast_set, forecasts_values_array),
+            aggregation_forecast_values,
+            weights,
+        )
 
 
 class MeanAggregatorMixin:
@@ -523,10 +941,15 @@ class MeanAggregatorMixin:
     question: Question
 
     def calculate_forecast_values(
-        self, forecast_set: ForecastSet, weights: np.ndarray | None = None
+        self,
+        forecast_set: ForecastSet,
+        weights: np.ndarray | None = None,
+        forecasts_values_array: np.ndarray | None = None,
     ) -> np.ndarray:
-        forecasts_values = np.array(forecast_set.forecasts_values)
-        forecast_values = forecasts_values[0] if forecasts_values.size else np.array([])
+        forecasts_values = _as_array(forecast_set, forecasts_values_array)
+        forecast_values = (
+            forecasts_values[0].copy() if forecasts_values.size else np.array([])
+        )
         non_nones = np.logical_not(np.equal(forecast_values, None))
         forecast_values[non_nones] = np.average(
             forecasts_values[:, non_nones], axis=0, weights=weights
@@ -538,33 +961,189 @@ class MeanAggregatorMixin:
         forecast_set: ForecastSet,
         aggregation_forecast_values: ForecastValues,
         weights: np.ndarray | None = None,
-    ):
+        forecasts_values_array: np.ndarray | None = None,
+    ) -> RangeValuesType:
         if self.question.type in QUESTION_CONTINUOUS_TYPES:
-            if np.any(np.equal(aggregation_forecast_values, None)):
-                raise ValueError("Forecast values contain None values")
-            lowers, centers, uppers = percent_point_function(
-                aggregation_forecast_values, [25.0, 50.0, 75.0]
-            )
-            lowers = [lowers]
-            centers = [centers]
-            uppers = [uppers]
-        else:
-            centers = np.array(aggregation_forecast_values)
-            lowers_sd, uppers_sd = compute_weighted_semi_standard_deviations(
-                forecast_set.forecasts_values, weights
-            )
-            non_nones = np.logical_not(np.equal(centers, None))
-            lowers = centers.copy()
-            uppers = centers.copy()
-            lowers[non_nones] = centers[non_nones] - lowers_sd[non_nones]
-            uppers[non_nones] = centers[non_nones] + uppers_sd[non_nones]
-            lowers = lowers.tolist()
-            centers = centers.tolist()
-            uppers = uppers.tolist()
-        return lowers, centers, uppers
+            return _continuous_ranges(aggregation_forecast_values)
+        centers = np.array(aggregation_forecast_values)
+        lowers_sd, uppers_sd = compute_weighted_semi_standard_deviations(
+            _as_array(forecast_set, forecasts_values_array), weights
+        )
+        non_nones = np.logical_not(np.equal(centers, None))
+        lowers = centers.copy()
+        uppers = centers.copy()
+        lowers[non_nones] = centers[non_nones] - lowers_sd[non_nones]
+        uppers[non_nones] = centers[non_nones] + uppers_sd[non_nones]
+        return lowers.tolist(), centers.tolist(), uppers.tolist()
+
+
+LOGIT_EPSILON = 1e-6
+
+
+def _logit(values: np.ndarray) -> np.ndarray:
+    """log(p / (1-p)), clamped away from 0 and 1. None becomes NaN."""
+    arr = np.array(values, dtype=object)
+    arr[np.equal(arr, None)] = np.nan
+    p = np.clip(arr.astype(float), LOGIT_EPSILON, 1 - LOGIT_EPSILON)
+    return np.log(p / (1 - p))
+
+
+def _sigmoid(values: np.ndarray) -> np.ndarray:
+    return 1.0 / (1.0 + np.exp(-values))
+
+
+class LogOddsMeanAggregatorMixin:
+    """Takes the mean of the forecast values in log-odds space, per column"""
+
+    question: Question
+
+    def calculate_forecast_values(
+        self,
+        forecast_set: ForecastSet,
+        weights: np.ndarray | None = None,
+        forecasts_values_array: np.ndarray | None = None,
+    ) -> np.ndarray:
+        forecasts_values = _as_array(forecast_set, forecasts_values_array)
+        forecast_values = (
+            forecasts_values[0].copy() if forecasts_values.size else np.array([])
+        )
+        non_nones = np.logical_not(np.equal(forecast_values, None))
+        mean_logit = np.average(
+            _logit(forecasts_values[:, non_nones]), axis=0, weights=weights
+        )
+        forecast_values[non_nones] = _sigmoid(mean_logit)
+        return forecast_values
+
+    def get_range_values(
+        self,
+        forecast_set: ForecastSet,
+        aggregation_forecast_values: ForecastValues,
+        weights: np.ndarray | None = None,
+        forecasts_values_array: np.ndarray | None = None,
+    ) -> RangeValuesType:
+        if self.question.type in QUESTION_CONTINUOUS_TYPES:
+            return _continuous_ranges(aggregation_forecast_values)
+        # semi-standard deviations in log-odds space keep the bounds in (0, 1)
+        centers = np.array(aggregation_forecast_values, dtype=object)
+        non_nones = np.logical_not(np.equal(centers, None))
+        lowers_sd, uppers_sd = compute_weighted_semi_standard_deviations(
+            _logit(_as_array(forecast_set, forecasts_values_array)), weights
+        )
+        center_logit = _logit(centers)
+        lowers = centers.copy()
+        uppers = centers.copy()
+        lowers[non_nones] = _sigmoid(center_logit[non_nones] - lowers_sd[non_nones])
+        uppers[non_nones] = _sigmoid(center_logit[non_nones] + uppers_sd[non_nones])
+        return lowers.tolist(), centers.tolist(), uppers.tolist()
+
+
+GEOMETRIC_MEDIAN_MAX_ITER = 300
+GEOMETRIC_MEDIAN_TOL = 1e-6
+GEOMETRIC_MEDIAN_DISTANCE_FLOOR = 1e-8
+
+
+def _weighted_median_along_line(coords: np.ndarray, weights: np.ndarray) -> np.ndarray:
+    """Exact weighted median of each row of `coords` (T, U) under `weights`
+    (T, U): the smallest coordinate whose cumulative weight reaches half the
+    row's total, or the midpoint to the next one when it lands exactly on half"""
+    order = np.argsort(coords, axis=1)
+    sorted_coords = np.take_along_axis(coords, order, axis=1)
+    cumulative = np.cumsum(np.take_along_axis(weights, order, axis=1), axis=1)
+    half = 0.5 * cumulative[:, -1]
+    rows = np.arange(coords.shape[0])
+    last = coords.shape[1] - 1
+    k = np.minimum((cumulative < half[:, None]).sum(axis=1), last)
+    median = sorted_coords[rows, k]
+    on_half = np.isclose(cumulative[rows, k], half, rtol=1e-12, atol=0.0) & (k < last)
+    following = sorted_coords[rows, np.minimum(k + 1, last)]
+    return np.where(on_half, 0.5 * (median + following), median)
+
+
+def _on_line(points: np.ndarray) -> bool:
+    """Whether (U, 2) points all share one coordinate sum, as every binary PMF
+    does"""
+    return points.shape[1] == 2 and np.allclose(points.sum(axis=1), points[0].sum())
+
+
+def _weighted_geometric_median(
+    points: np.ndarray,
+    weights: np.ndarray | None,
+    max_iter: int = GEOMETRIC_MEDIAN_MAX_ITER,
+    tol: float = GEOMETRIC_MEDIAN_TOL,
+) -> np.ndarray:
+    """Weiszfeld's algorithm for the point minimizing sum(w_i * ||P - p_i||).
+    Points on a line (binary) use the exact 1-D weighted median instead, which
+    Weiszfeld only approaches slowly there."""
+    weights = (
+        np.ones(points.shape[0])
+        if weights is None
+        else np.asarray(weights, dtype=float)
+    )
+    if _on_line(points):
+        median = _weighted_median_along_line(points[None, :, 1], weights[None, :])[0]
+        return np.array([points[0].sum() - median, median])
+    estimate = np.average(points, axis=0, weights=weights)
+    for _ in range(max_iter):
+        distances = np.maximum(
+            np.linalg.norm(points - estimate, axis=1), GEOMETRIC_MEDIAN_DISTANCE_FLOOR
+        )
+        new_estimate = np.average(points, axis=0, weights=weights / distances)
+        if np.linalg.norm(new_estimate - estimate) < tol:
+            estimate = new_estimate
+            break
+        estimate = new_estimate
+    return estimate
+
+
+class GeometricMedianAggregatorMixin:
+    """The multi-dimensional weighted median of the whole forecast vector, as
+    opposed to MedianAggregatorMixin's per-column median. Identical to it on
+    binary questions; on MC and continuous the result is already normalized.
+    Ranges use the same per-column percentiles as MedianAggregatorMixin."""
+
+    question: Question
+
+    def calculate_forecast_values(
+        self,
+        forecast_set: ForecastSet,
+        weights: np.ndarray | None = None,
+        forecasts_values_array: np.ndarray | None = None,
+    ) -> np.ndarray:
+        forecasts_values = _as_array(forecast_set, forecasts_values_array)
+        forecast_values = (
+            forecasts_values[0].copy() if forecasts_values.size else np.array([])
+        )
+        non_nones = np.logical_not(np.equal(forecast_values, None))
+        if non_nones.any():
+            points = forecasts_values[:, non_nones].astype(float)
+            forecast_values[non_nones] = _weighted_geometric_median(points, weights)
+        return forecast_values
+
+    def get_range_values(
+        self,
+        forecast_set: ForecastSet,
+        aggregation_forecast_values: ForecastValues,
+        weights: np.ndarray | None = None,
+        forecasts_values_array: np.ndarray | None = None,
+    ) -> RangeValuesType:
+        if self.question.type in QUESTION_CONTINUOUS_TYPES:
+            return _continuous_ranges(aggregation_forecast_values)
+        return _discrete_percentile_ranges(
+            self.question,
+            _as_array(forecast_set, forecasts_values_array),
+            aggregation_forecast_values,
+            weights,
+        )
 
 
 # Aggregations ##########################################
+
+# A weighting class, optionally with the keyword arguments to build it with
+WeightingSpec = type[Weighted] | tuple[type[Weighted], dict[str, Any]]
+
+
+def _weighting_class(spec: WeightingSpec) -> type[Weighted]:
+    return spec[0] if isinstance(spec, tuple) else spec
 
 
 class Aggregation(AggregatorMixin):
@@ -572,26 +1151,42 @@ class Aggregation(AggregatorMixin):
     Any class Inheriting this one must also inherit from a single Aggregator class.
     Multiple weightings/filters are allowed. Their classes must be listed in the
         `weighting_classes` property. They will be applied multiplicatively in order.
+        An entry can be a (class, kwargs) tuple to parametrize that weighting.
     """
 
     method: str = "N/A"
-    weighting_classes: list[type[Weighted]] = []  # defined in subclasses
+    weighting_classes: list[WeightingSpec] = []  # defined in subclasses
 
     def __init__(
         self,
         question: Question,
         all_forecaster_ids: list[int] | set[int] | None = None,
         joined_before: datetime | None = None,
+        forecast_history: Sequence[ForecastSet] | None = None,
     ):
         self.question = question
-        self.weightings: list[Weighted] = [
-            Klass(
-                question=question,
-                all_forecaster_ids=all_forecaster_ids,
-                joined_before=joined_before,
+        self.weightings: list[Weighted] = []
+        for spec in self.weighting_classes:
+            Klass, kwargs = spec if isinstance(spec, tuple) else (spec, {})
+            self.weightings.append(
+                Klass(
+                    question=question,
+                    all_forecaster_ids=all_forecaster_ids,
+                    joined_before=joined_before,
+                    forecast_history=forecast_history,
+                    **kwargs,
+                )
             )
-            for Klass in self.weighting_classes
-        ]
+
+    @classmethod
+    def transition_times(cls, question: Question) -> list[datetime]:
+        """Times, other than forecasts starting and ending, at which this
+        aggregation can change, so its history needs an entry at each"""
+        times: set[datetime] = set()
+        for spec in cls.weighting_classes:
+            Klass, kwargs = spec if isinstance(spec, tuple) else (spec, {})
+            times.update(Klass.transition_times(question, **kwargs))
+        return sorted(times)
 
     def get_weights(self, forecast_set: ForecastSet) -> Weights | int:
         """returns 0 as a sentinel for uniform 0 weights"""
@@ -624,7 +1219,10 @@ class Aggregation(AggregatorMixin):
             assert weights == 0, "0 is only supported int return of get_weights"
             return None
         aggregation = AggregateForecast(question=self.question, method=self.method)
-        forecast_values = self.calculate_forecast_values(forecast_set, weights)
+        forecasts_values_array = np.asarray(forecast_set.forecasts_values)
+        forecast_values = self.calculate_forecast_values(
+            forecast_set, weights, forecasts_values_array
+        )
         aggregation.forecast_values = [
             None if np.isnan(v) else v for v in forecast_values
         ]
@@ -636,7 +1234,7 @@ class Aggregation(AggregatorMixin):
             aggregation.forecaster_count = len(forecast_set.forecasts_values)
         if include_stats:
             lowers, centers, uppers = self.get_range_values(
-                forecast_set, forecast_values, weights
+                forecast_set, forecast_values, weights, forecasts_values_array
             )
             aggregation.interval_lower_bounds = [
                 None if np.isnan(v) else v for v in lowers
@@ -649,8 +1247,7 @@ class Aggregation(AggregatorMixin):
                 Question.QuestionType.BINARY,
                 Question.QuestionType.MULTIPLE_CHOICE,
             ]:
-                forecasts_values = np.array(forecast_set.forecasts_values)
-                means = np.average(forecasts_values, weights=weights, axis=0)
+                means = np.average(forecasts_values_array, weights=weights, axis=0)
                 aggregation.means = [None if np.isnan(v) else v for v in means]
 
         if histogram and self.question.type in [
@@ -658,7 +1255,7 @@ class Aggregation(AggregatorMixin):
             Question.QuestionType.MULTIPLE_CHOICE,
         ]:
             aggregation.histogram = get_histogram(
-                forecast_set.forecasts_values,
+                forecasts_values_array,
                 weights,
                 question_type=self.question.type,
             ).tolist()
@@ -679,9 +1276,30 @@ class RecencyWeightedAggregation(MedianAggregatorMixin, Aggregation):
     weighting_classes = [RecencyWeighted]
 
 
-class SingleAggregation(MeanAggregatorMixin, Aggregation):
-    method = AggregationMethod.SINGLE_AGGREGATION
-    weighting_classes = [PeerScoreReputationWeighted]
+class ReputationWeightedAggregation(MeanAggregatorMixin, Aggregation):
+    """Parameters tuned for a geometric median central estimate instead
+    (GeometricMedianAggregatorMixin), kept in case we switch:
+        a=0.7, b=4.0, e=0.15, rho=-10.0, gamma=10.0 (everything else the same)
+    """
+
+    method = AggregationMethod.REPUTATION_WEIGHTED
+    weighting_classes = [
+        (
+            DecayReputationWeighted,
+            {
+                "reputation_type": Reputation.ReputationTypes.AVERAGE_PEER_SCORE,
+                "reputation_formula": "continuous",
+                "rho": -10.0,
+                "gamma": 10.0,
+                "e": 1e-4,
+                "time_decay": "exponential_lifetime",
+                "pre_spot_decay": True,
+                "combiner": "geometric",
+                "a": 0.7,
+                "b": 5.5,
+            },
+        )
+    ]
 
 
 # Aggregations that can be calculated, but not stored in database
@@ -715,7 +1333,7 @@ class JoinedBeforeDateAggregation(MedianAggregatorMixin, Aggregation):
 AGGREGATIONS: list[type[Aggregation]] = [
     UnweightedAggregation,
     RecencyWeightedAggregation,
-    SingleAggregation,
+    ReputationWeightedAggregation,
     MedalistsAggregation,
     SilverMedalistsAggregation,
     GoldMedalistsAggregation,
@@ -727,7 +1345,10 @@ AGGREGATIONS: list[type[Aggregation]] = [
 METHODS_REQUIRING_JOINED_BEFORE: list[str] = [
     aggregation.method
     for aggregation in AGGREGATIONS
-    if JoinedBeforeFiltered in aggregation.weighting_classes
+    if any(
+        issubclass(_weighting_class(spec), JoinedBeforeFiltered)
+        for spec in aggregation.weighting_classes
+    )
 ]
 
 
@@ -779,6 +1400,7 @@ def get_aggregations_at_time(
             question=question,
             all_forecaster_ids=set(forecast_set.forecaster_ids),
             joined_before=joined_before,
+            forecast_history=[forecast_set],
         )
         new_entry = aggregation_generator.calculate_aggregation_entry(
             forecast_set,
@@ -939,12 +1561,16 @@ def get_user_forecast_history(
 ) -> list[ForecastSet]:
     if latest_time and earliest_time and latest_time <= earliest_time:
         return []
+    relevant_forecasts = [
+        forecast
+        for forecast in forecasts
+        if not (
+            (earliest_time and forecast.end_time and forecast.end_time <= earliest_time)
+            or (latest_time and forecast.start_time > latest_time)
+        )
+    ]
     timestep_set: set[datetime] = set()
-    for forecast in forecasts:
-        if (
-            earliest_time and forecast.end_time and forecast.end_time <= earliest_time
-        ) or (latest_time and forecast.start_time > latest_time):
-            continue
+    for forecast in relevant_forecasts:
         timestep_set.add(
             max(forecast.start_time, earliest_time)
             if earliest_time
@@ -957,30 +1583,70 @@ def get_user_forecast_history(
         timesteps = minimize_history(timesteps, minimize)
     elif minimize:
         timesteps = minimize_history(timesteps)
-    forecast_sets: dict[datetime, ForecastSet] = {
-        timestep: ForecastSet(
-            forecasts_values=[],
-            timestep=timestep,
-            forecaster_ids=[],
-            timesteps=[],
-        )
-        for timestep in timesteps
-    }
-    for forecast in forecasts:
-        # Find active timesteps using bisect to find the start & end indexes
-        start_index = bisect_left(timesteps, forecast.start_time)
-        end_index = (
-            bisect_left(timesteps, forecast.end_time)
-            if forecast.end_time
-            else len(timesteps)
-        )
-        forecast_values = forecast.get_prediction_values()
-        for timestep in timesteps[start_index:end_index]:
-            forecast_sets[timestep].forecasts_values.append(forecast_values)
-            forecast_sets[timestep].forecaster_ids.append(forecast.author_id)
-            forecast_sets[timestep].timesteps.append(forecast.start_time)
+    if not timesteps:
+        return []
 
-    return sorted(list(forecast_sets.values()), key=lambda x: x.timestep)
+    # Sweep the timesteps once, adding and removing forecasts as they start and
+    # end, rather than slicing out each forecast's active timesteps. Active
+    # forecasts keep start_time order, which RecencyWeighted relies on.
+    events: list[tuple[datetime, int, Forecast]] = []
+    for forecast in relevant_forecasts:
+        events.append((forecast.start_time, 0, forecast))
+        if forecast.end_time and (not latest_time or forecast.end_time <= latest_time):
+            events.append((forecast.end_time, 1, forecast))
+    events.sort(key=lambda event: event[0])
+
+    # forecast id -> (author_id, prediction values, start_time, start epoch),
+    # each computed once per forecast. Values are stored as arrays, which are
+    # much cheaper to stack into each timestep's 2D array than lists of floats.
+    active: dict[int, tuple[int, np.ndarray, datetime, float]] = {}
+    forecast_sets: list[ForecastSet] = []
+    event_index = 0
+    for timestep in timesteps:
+        while event_index < len(events) and events[event_index][0] <= timestep:
+            _, is_end, forecast = events[event_index]
+            if is_end:
+                active.pop(forecast.id, None)
+            else:
+                active[forecast.id] = (
+                    forecast.author_id,
+                    np.asarray(forecast.get_prediction_values()),
+                    forecast.start_time,
+                    forecast.start_time.timestamp(),
+                )
+            event_index += 1
+        entries = list(active.values())
+        forecast_sets.append(
+            ForecastSet(
+                forecasts_values=[entry[1] for entry in entries],
+                timestep=timestep,
+                forecaster_ids=[entry[0] for entry in entries],
+                timesteps=[entry[2] for entry in entries],
+                _timesteps_epoch_cache=np.array([entry[3] for entry in entries]),
+            )
+        )
+    return forecast_sets
+
+
+def add_transition_timesteps(
+    forecast_history: list[ForecastSet],
+    transition_times: list[datetime],
+    latest_time: datetime | None = None,
+) -> list[ForecastSet]:
+    """Adds an entry at each of transition_times (sorted) that isn't already a
+    timestep, holding the forecasts of the entry before it. Times before the
+    first entry or after latest_time are skipped."""
+    if not transition_times or not forecast_history:
+        return forecast_history
+    history = list(forecast_history)
+    for time in transition_times:
+        if latest_time and time > latest_time:
+            continue
+        index = bisect_right([fs.timestep for fs in history], time)
+        if index == 0 or history[index - 1].timestep == time:
+            continue
+        history.insert(index, replace(history[index - 1], timestep=time))
+    return history
 
 
 @sentry_sdk.trace
@@ -1076,20 +1742,28 @@ def get_aggregation_history(
             continue
 
         aggregation_history: list[AggregateForecast] = []
+        aggregation_class = get_aggregation_by_name(method)
+        # Added per method so other methods' histories keep their grid
+        method_history = add_transition_timesteps(
+            forecast_history,
+            aggregation_class.transition_times(question),
+            latest_time=latest_time,
+        )
         with sentry_sdk.start_span(
             op="aggregation.init",
             name=f"init_aggregation_generator:{method}",
         ) as span:
             span.set_data("forecaster_count", len(forecaster_ids))
-            AggregationGenerator: Aggregation = get_aggregation_by_name(method)(
+            AggregationGenerator: Aggregation = aggregation_class(
                 question=question,
                 all_forecaster_ids=forecaster_ids,
                 joined_before=joined_before,
+                forecast_history=method_history,
             )
 
         last_historical_entry_index = -1
         now = timezone.now()
-        for entry in forecast_history:
+        for entry in method_history:
             if entry.timestep < now:
                 last_historical_entry_index += 1
             else:
@@ -1099,8 +1773,8 @@ def get_aggregation_history(
             op="aggregation.compute",
             name=f"compute_aggregation_entries:{method}",
         ) as span:
-            span.set_data("forecast_history_count", len(forecast_history))
-            for i, forecast_set in enumerate(forecast_history):
+            span.set_data("forecast_history_count", len(method_history))
+            for i, forecast_set in enumerate(method_history):
                 if histogram is not None:
                     include_histogram = histogram and (
                         question.type

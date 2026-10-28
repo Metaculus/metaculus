@@ -13,6 +13,7 @@ from projects.services.cache import invalidate_projects_questions_count_cache
 from questions.constants import UnsuccessfulResolutionType
 from questions.models import Question, Conditional, UserForecastNotification
 from scoring.constants import ScoreTypes
+from scoring.reputations import question_counts_toward_reputation
 from scoring.utils import score_question
 from .common import update_leaderboards_for_question
 from .forecasts import build_question_forecasts
@@ -20,11 +21,17 @@ from .forecasts import build_question_forecasts
 logger = logging.getLogger(__name__)
 
 
-def score_resolved_question(question: Question, resolution: str | None):
+def score_resolved_question(
+    question: Question,
+    resolution: str | None,
+    previous_resolve_time: datetime | None = None,
+):
     """
     The scoring work that follows a change to a question's resolution. Shared by
     the live (in request) and the background paths, and by unresolution, which
-    passes `resolution=None` to unset the scores.
+    passes `resolution=None` to unset the scores. `previous_resolve_time` is the
+    question's actual_resolve_time before the change, where its old scores sit in
+    reputation.
     """
 
     score_types = [
@@ -45,6 +52,34 @@ def score_resolved_question(question: Question, resolution: str | None):
     )
     update_leaderboards_for_question(question)
     build_question_forecasts(question)
+
+    from questions.tasks import queue_shadow_aggregations
+
+    # This can run in a web process, so the worker checks the kill switch
+    transaction.on_commit(
+        lambda: queue_shadow_aggregations(question.id, check_enabled=False)
+    )
+
+    queue_reputation_refresh(question, previous_resolve_time)
+
+
+def queue_reputation_refresh(
+    question: Question, previous_resolve_time: datetime | None
+):
+    """Queues bringing reputations up to date once `question`'s new scores are
+    committed. Every path that rescores a question needs this. For a rescore
+    that doesn't change the resolve time, `previous_resolve_time` is the current
+    one."""
+    if not question_counts_toward_reputation(question):
+        return
+    from scoring.tasks import run_refresh_reputations_for_question
+
+    transaction.on_commit(
+        lambda: run_refresh_reputations_for_question.send(
+            question.id,
+            previous_resolve_time.isoformat() if previous_resolve_time else None,
+        )
+    )
 
 
 def handle_question_open(question: Question):
@@ -116,6 +151,7 @@ def resolve_question(
     if question.open_time and question.open_time > actual_resolve_time:
         raise ValidationError("Can't resolve a question before its open date")
 
+    previous_resolve_time = question.actual_resolve_time
     question.resolution = resolution
     question.resolution_set_time = timezone.now()
     question.actual_resolve_time = actual_resolve_time
@@ -254,14 +290,17 @@ def resolve_question(
         from questions.tasks import resolve_question_and_send_notifications
 
         transaction.on_commit(
-            lambda: resolve_question_and_send_notifications.send(question.id)
+            lambda: resolve_question_and_send_notifications.send(
+                question.id,
+                previous_resolve_time.isoformat() if previous_resolve_time else None,
+            )
         )
         return
 
     # Calculate scores here, so that a failure rolls the resolution back. A
     # request that outlives the server's own timeout rolls back the same way.
     try:
-        score_resolved_question(question, question.resolution)
+        score_resolved_question(question, question.resolution, previous_resolve_time)
     except Exception as exc:
         logger.exception("Scoring resolved question %s failed", question.id)
         raise APIException(
@@ -279,6 +318,7 @@ def resolve_question(
 
 @transaction.atomic()
 def unresolve_question(question: Question):
+    previous_resolve_time = question.actual_resolve_time
     question.resolution = None
     question.resolution_set_time = None
     question.actual_resolve_time = None
@@ -347,4 +387,4 @@ def unresolve_question(question: Question):
 
     # TODO: set up unresolution notifications
     # None is the equivalent of unsetting scores
-    score_resolved_question(question, None)
+    score_resolved_question(question, None, previous_resolve_time)

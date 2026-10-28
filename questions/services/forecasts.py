@@ -195,7 +195,19 @@ def after_forecast_actions(question: Question, user: User):
     # rollback can't leave workers rebuilding aggregates for rolled-back forecasts.
     from questions.tasks import run_build_question_forecasts
 
-    transaction.on_commit(lambda: run_build_question_forecasts.send(question.id))
+    if counts_toward_aggregates(question, user):
+        transaction.on_commit(lambda: run_build_question_forecasts.send(question.id))
+
+
+def counts_toward_aggregates(question: Question, user: User) -> bool:
+    """Whether the user's forecasts are part of the question's stored aggregates,
+    mirroring get_aggregation_history's default filtering. Forecasts that aren't
+    can't change them, so they don't trigger a rebuild."""
+    if user.exclude_from_aggregations:
+        return False
+    if user.is_bot:
+        return question.include_bots_in_aggregates and user.is_primary_bot
+    return True
 
 
 def create_forecast_bulk(
@@ -449,7 +461,7 @@ def get_aggregated_forecasts_for_questions(
     questions = list(questions)
     question_map = {q.pk: q for q in questions}
     if aggregated_forecast_qs is None:
-        aggregated_forecast_qs = AggregateForecast.objects.all()
+        aggregated_forecast_qs = AggregateForecast.objects.exclude_shadow_aggregations()
 
     questions_to_fetch = get_questions_cutoff(questions, group_cutoff=group_cutoff)
 

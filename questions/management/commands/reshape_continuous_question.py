@@ -14,6 +14,7 @@ from posts.models import Post
 from questions.models import QUESTION_CONTINUOUS_TYPES, Forecast, Question
 from questions.services.forecasts import build_question_forecasts
 from questions.services.common import clone_question
+from questions.services.lifecycle import queue_reputation_refresh
 from scoring.utils import score_question
 from utils.models import ModelBatchCreator, ModelBatchUpdater
 
@@ -593,6 +594,9 @@ class Command(BaseCommand):
                 score_question(
                     question_to_change,
                     question_to_change.resolution,
+                )
+                queue_reputation_refresh(
+                    question_to_change, question_to_change.actual_resolve_time
                 )
                 self.stdout.write(self.style.SUCCESS("Rescored question successfully!"))
 

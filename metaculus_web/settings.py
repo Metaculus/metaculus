@@ -647,3 +647,9 @@ CHECK_FOR_SPAM_IN_COMMENTS_AND_POSTS = (
 WEEKLY_TOP_COMMENTS_SEND_EMAILS = (
     os.environ.get("WEEKLY_TOP_COMMENTS_SEND_EMAILS", "false").lower() == "true"
 )
+
+# Kill switch for building aggregations that shadow the default one (see
+# questions.types.SHADOW_AGGREGATION_METHODS) without being shown to users
+SHADOW_AGGREGATIONS_ENABLED = (
+    os.environ.get("SHADOW_AGGREGATIONS_ENABLED", "false").lower() == "true"
+)
