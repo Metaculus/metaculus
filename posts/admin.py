@@ -14,7 +14,7 @@ from posts.tasks import run_post_generate_history_snapshot
 from projects.models import Project
 from projects.services.subscriptions import notify_post_added_to_project
 from questions.models import Question
-from questions.services.forecasts import build_question_forecasts
+from questions.services.forecasts import rebuild_question_aggregations
 from utils.csv_utils import export_all_data_for_questions
 from utils.models import CustomTranslationAdmin
 from utils.translation import automatic_translations_enabled
@@ -179,7 +179,7 @@ class PostAdmin(CustomTranslationAdmin):
     def rebuild_aggregation_history(self, request, queryset: QuerySet[Post]):
         for post in queryset:
             for question in post.get_questions():
-                build_question_forecasts(question)
+                rebuild_question_aggregations(question)
 
     def mark_as_deleted(self, request, queryset: QuerySet[Post]):
         updated = 0

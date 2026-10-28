@@ -603,6 +603,21 @@ def build_question_forecasts(
         AggregateForecast.objects.bulk_create(to_create, batch_size=50)
 
 
+def rebuild_question_aggregations(question: Question):
+    """
+    Rebuilds the default aggregation inline and queues the shadow ones, for
+    callers that change forecasts without going through run_build_question_forecasts
+    """
+    build_question_forecasts(question)
+
+    from questions.tasks import queue_shadow_aggregations
+
+    # This can run in a web process, so the worker checks the kill switch
+    transaction.on_commit(
+        lambda: queue_shadow_aggregations(question.id, check_enabled=False)
+    )
+
+
 def validate_and_create_forecasts(
     *,
     user: User,
