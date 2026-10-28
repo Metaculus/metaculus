@@ -191,6 +191,29 @@ class AdTile(TimeStampedModel):
         ),
     )
 
+    target_post = models.ForeignKey(
+        Post,
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE,
+        related_name="targeted_ad_tiles",
+        help_text=(
+            "Optional. Show this tile only in the sidebar of this question, "
+            "ahead of untargeted tiles."
+        ),
+    )
+    target_project = models.ForeignKey(
+        Project,
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE,
+        related_name="targeted_ad_tiles",
+        help_text=(
+            "Optional. Show this tile only in the sidebar of questions in this "
+            "project, ahead of untargeted tiles."
+        ),
+    )
+
     is_active = models.BooleanField(
         default=True, help_text="Master on/off switch, independent of the schedule."
     )

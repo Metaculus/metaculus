@@ -1,13 +1,22 @@
 import textwrap
+from enum import StrEnum
 from itertools import islice
 from typing import Iterable, Iterator
 
 import tiktoken
 from django.conf import settings
 from openai import OpenAI, AsyncOpenAI
+from openai.types.chat import ChatCompletionMessageParam
 from pydantic import BaseModel
 
-EMBEDDING_MODEL = "text-embedding-3-large"
+OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
+# OpenAI-hosted endpoints only; skip endpoints that don't support every sent param
+OPENROUTER_PROVIDER = {
+    "order": ["openai"],
+    "allow_fallbacks": False,
+    "require_parameters": True,
+}
+
 EMBEDDING_CTX_LENGTH = 8191
 EMBEDDING_ENCODING = "cl100k_base"
 
@@ -77,30 +86,62 @@ class SpamAnalysisResult(BaseModel):
     confidence: float
 
 
-def get_openai_client(api_key: str | None = None) -> OpenAI:
-    return OpenAI(api_key=api_key or settings.OPENAI_API_KEY)
+class LLMFeature(StrEnum):
+    """Sent as `user`; OpenRouter Activity breaks spend down by it."""
+
+    KEY_FACTORS = "key-factors"
+    SPAM_CONTENT = "spam-content"
+    SPAM_BIO = "spam-bio"
+    QUESTION_UNITS = "question-units"
+    EMBEDDINGS_SEARCH = "embeddings-search"
+    EMBEDDINGS_ITN = "embeddings-itn"
 
 
-def get_openai_client_async(api_key: str | None = None) -> AsyncOpenAI:
-    return AsyncOpenAI(api_key=api_key or settings.OPENAI_API_KEY)
+def _client_options() -> dict:
+    if not settings.OPENROUTER_API_KEY:
+        return {"api_key": settings.OPENAI_API_KEY}
+    return {
+        "base_url": OPENROUTER_BASE_URL,
+        "api_key": settings.OPENROUTER_API_KEY,
+        "default_headers": {
+            "HTTP-Referer": settings.PUBLIC_APP_URL,
+            "X-OpenRouter-Title": "Metaculus",
+        },
+    }
+
+
+def get_llm_client() -> OpenAI:
+    return OpenAI(**_client_options())
+
+
+def get_llm_client_async() -> AsyncOpenAI:
+    return AsyncOpenAI(**_client_options())
+
+
+def llm_options(feature: LLMFeature) -> dict:
+    if not settings.OPENROUTER_API_KEY:
+        return {}
+    return {"user": feature, "extra_body": {"provider": OPENROUTER_PROVIDER}}
 
 
 async def generate_text_async(
     model: str,
     prompt: str,
+    feature: LLMFeature,
     system_prompt: str | None = None,
     timeout: float | None = None,
 ) -> str:
-    messages = [{"role": "user", "content": prompt}]
+    messages: list[ChatCompletionMessageParam] = [{"role": "user", "content": prompt}]
     if system_prompt is not None:
         messages.insert(0, {"role": "system", "content": system_prompt})
 
-    client = get_openai_client_async()
+    client = get_llm_client_async()
     async with client as client:
         response = await client.chat.completions.create(
             model=model,
-            messages=messages,  # type: ignore
+            messages=messages,
             timeout=timeout,
+            **llm_options(feature),
         )
         response_text = response.choices[0].message.content
 
@@ -109,20 +150,25 @@ async def generate_text_async(
     return response_text
 
 
-def generate_text_embed_vector(text: str) -> list[float]:
-    response = get_openai_client().embeddings.create(input=text, model=EMBEDDING_MODEL)
+def generate_text_embed_vector(text: str, feature: LLMFeature) -> list[float]:
+    response = get_llm_client().embeddings.create(
+        input=text, model=settings.LLM_EMBEDDING_MODEL, **llm_options(feature)
+    )
     vector = response.data[0].embedding
 
     return vector
 
 
-async def generate_text_embed_vector_async(text: str) -> list[float]:
-    async with get_openai_client_async() as client:
+async def generate_text_embed_vector_async(
+    text: str, feature: LLMFeature
+) -> list[float]:
+    async with get_llm_client_async() as client:
         response = await client.embeddings.create(
             input=text,
-            model=EMBEDDING_MODEL,
+            model=settings.LLM_EMBEDDING_MODEL,
             # Set a timeout not to block worker
             timeout=5,
+            **llm_options(feature),
         )
     vector = response.data[0].embedding
 
@@ -171,33 +217,18 @@ def run_spam_analysis(text: str, content_type: str) -> SpamAnalysisResult:
         """
     )
 
-    response = get_openai_client().chat.completions.parse(
-        model="gpt-6-luna",
-        messages=[
-            {
-                "role": "system",
-                "content": system_prompt,
-            },
-            {
-                "role": "user",
-                "content": user_prompt,
-            },
-        ],
+    messages: list[ChatCompletionMessageParam] = [
+        {"role": "system", "content": system_prompt},
+        {"role": "user", "content": user_prompt},
+    ]
+    response = get_llm_client().chat.completions.parse(
+        model=settings.GENERAL_LLM_MODEL,
+        messages=messages,
         response_format=SpamAnalysisResult,
+        **llm_options(LLMFeature.SPAM_CONTENT),
     )
     result = response.choices[0].message.parsed
 
     if result is None:
         raise ValueError("No spam analysis was generated")
     return result
-
-
-def pydantic_to_openai_json_schema(model: BaseModel) -> dict:
-    """Convert a Pydantic model into an OpenAI-compatible JSON schema."""
-    return {
-        "type": "json_schema",
-        "json_schema": {
-            "name": "key_factors_response",
-            "schema": model.model_json_schema(),
-        },
-    }

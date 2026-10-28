@@ -104,9 +104,7 @@ def _get_linked_issues(pr_number):
       }
     }
     """
-    result = _gh_graphql(
-        query, {"owner": owner, "name": name, "number": pr_number}
-    )
+    result = _gh_graphql(query, {"owner": owner, "name": name, "number": pr_number})
     nodes = (
         result.get("data", {})
         .get("repository", {})
@@ -115,8 +113,7 @@ def _get_linked_issues(pr_number):
         .get("nodes", [])
     )
     return [
-        {"title": n["title"], "body": _truncate(n.get("body", ""), 300)}
-        for n in nodes
+        {"title": n["title"], "body": _truncate(n.get("body", ""), 300)} for n in nodes
     ]
 
 
@@ -230,11 +227,28 @@ Either array may be empty. Do NOT include PR numbers, links, or author names in 
 """
 
 
+_THEMES_SCHEMA = {
+    "type": "array",
+    "items": {
+        "type": "object",
+        "properties": {"name": {"type": "string"}},
+        "required": ["name"],
+        "additionalProperties": False,
+    },
+}
+CLASSIFICATION_SCHEMA = {
+    "type": "object",
+    "properties": {"in_flight": _THEMES_SCHEMA, "shipped": _THEMES_SCHEMA},
+    "required": ["in_flight", "shipped"],
+    "additionalProperties": False,
+}
+
+
 def classify_prs(in_flight_data, shipped_data):
     """Call Claude Sonnet to classify PRs. Returns parsed JSON."""
-    api_key = os.environ.get("ANTHROPIC_API_KEY", "")
+    api_key = os.environ.get("OPENROUTER_API_KEY", "")
     if not api_key:
-        print("ERROR: ANTHROPIC_API_KEY not set", file=sys.stderr)
+        print("ERROR: OPENROUTER_API_KEY not set", file=sys.stderr)
         sys.exit(1)
 
     in_flight_text = json.dumps(in_flight_data, indent=2) if in_flight_data else "None"
@@ -243,31 +257,38 @@ def classify_prs(in_flight_data, shipped_data):
 
     body = json.dumps(
         {
-            "model": "claude-sonnet-4-20250514",
+            "model": "anthropic/claude-sonnet-5.5",
             "max_tokens": 1024,
             "messages": [{"role": "user", "content": prompt}],
+            "response_format": {
+                "type": "json_schema",
+                "json_schema": {
+                    "name": "comms_digest",
+                    "strict": True,
+                    "schema": CLASSIFICATION_SCHEMA,
+                },
+            },
+            # Some endpoints accept response_format without enforcing the schema
+            "provider": {"require_parameters": True},
+            # Feature tag, see docs/llm-usage.md
+            "user": "comms-digest",
         }
     ).encode()
 
     req = urllib.request.Request(
-        "https://api.anthropic.com/v1/messages",
+        "https://openrouter.ai/api/v1/chat/completions",
         data=body,
         headers={
             "Content-Type": "application/json",
-            "x-api-key": api_key,
-            "anthropic-version": "2023-06-01",
+            "Authorization": f"Bearer {api_key}",
+            "HTTP-Referer": "https://www.metaculus.com",
+            "X-OpenRouter-Title": "Metaculus",
         },
     )
     with urllib.request.urlopen(req) as resp:
         result = json.loads(resp.read())
 
-    text = result["content"][0]["text"]
-    # Extract JSON from response (handle potential markdown fencing)
-    if "```" in text:
-        text = text.split("```")[1]
-        if text.startswith("json"):
-            text = text[4:]
-    return json.loads(text.strip())
+    return json.loads(result["choices"][0]["message"]["content"])
 
 
 # ---------------------------------------------------------------------------

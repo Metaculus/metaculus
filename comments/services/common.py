@@ -587,3 +587,16 @@ def privatize_user_comments(user) -> int:
     if to_privatize:
         Comment.objects.filter(id__in=to_privatize).update(is_private=True)
     return len(to_privatize)
+
+
+def publish_bot_private_comments(project: Project) -> int:
+    """
+    Makes bots' private comments public on the project's questions whose
+    community prediction is already revealed. Returns the number published.
+    """
+    return Comment.objects.filter(
+        on_post__default_project=project,
+        author__is_bot=True,
+        on_post__question__cp_reveal_time__lt=timezone.now(),
+        is_private=True,
+    ).update(is_private=False)

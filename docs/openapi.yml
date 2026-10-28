@@ -21,19 +21,76 @@ info:
     <br/>See the "How to Authenticate" section below for setup instructions.
     </p>
 
+    <h4>How access rules are enforced</h4>
+    <p>
+    On metaculus.com, every API request passes through a filtering API gateway that sits in front of the open-source Metaculus backend. The gateway is closed source and is not part of this repository. It decides, per account, which endpoints may be called and which fields of a response are populated. The schemas and examples on this page describe what the backend can return; what your account actually receives may be narrower, as described below.
+    </p>
+    <p>
+    The gateway removes data by setting values to <code>null</code>, not by deleting keys. A field that is hidden from you is still present in the response with the value <code>null</code>, so a <code>null</code> does not by itself mean the underlying value is empty. Write clients that tolerate <code>null</code> in any field listed below.
+    </p>
+
+    <h4>Access tiers</h4>
+    <ul>
+    <li><b>Restricted (default):</b> every authenticated account starts here. The rules on this page apply in full.</li>
+    <li><b>Bot Benchmarking:</b> same as Restricted, plus access to the bot benchmarking question list (see below).</li>
+    <li><b>Unrestricted:</b> no gateway filtering; responses are returned as the backend produces them. Granted by Metaculus on request.</li>
+    </ul>
+    <p>
+    Separately from your account tier, Metaculus can grant an account access to individual projects (for example, a specific tournament or question series). A project grant lifts the field restrictions below on questions in that project, and allows project-scoped data exports for it. A grant on one project reveals nothing about questions outside it.
+    </p>
+
     <h4>All Authenticated Accounts</h4>
     All users, given authentication, have access to the following data via the API:
     <ul>
     <li><b>Your own data:</b> Your predictions, scores, comments, and other personal data are always available.</li>
-    <li><b>Question text &amp; resolution values:</b> Open question text is always available. For closed questions, you can access the text and resolution value of any question you have predicted on.</li>
+    <li><b>Question metadata:</b> titles, type, status, timestamps, scaling, bounds, options, and your own forecasts (<code>my_forecasts</code>) are always returned.</li>
+    <li><b>Question text &amp; resolution values:</b> available under the conditions in the table below. In short: text is available while a question is open, and for any question you have forecast on; resolution values are available for any question you have forecast on.</li>
     <li><b>Staff comments:</b> Comments authored by Metaculus staff are available. To access comments, you must filter by <code>author</code> (your own user ID) or <code>author_is_staff=true</code>.</li>
-    <li><b>Community Prediction (limited):</b> The current value of the Community Prediction is available on a small set of ~50 questions. On all other questions, aggregation data (Community Prediction and other aggregates) is not included in API responses.</li>
+    <li><b>Community Prediction (limited):</b> The current value of the Community Prediction is available on a small set of ~50 questions in the bot testing area (project 32977). On all other questions, aggregation data (Community Prediction and other aggregates) is <code>null</code> in API responses.</li>
     </ul>
 
     <h4>Bot Benchmarking Access Tier</h4>
     <p>
-    An additional access tier is available for AI forecasting bot developers. This tier grants current Community Prediction, question text, and resolution access on a larger set of ~250 open questions and ~250 resolved questions, intended for training and evaluation purposes.
+    An additional access tier is available for AI forecasting bot developers. This tier grants current Community Prediction, question text, and resolution access on a larger set of ~250 open questions and ~250 resolved questions in the bot benchmarking question list (project 32979), intended for training and evaluation purposes.
     To request access, please fill out this form: <a href="https://docs.google.com/forms/d/e/1FAIpQLSeJhtZzHl5qMvBjbXbatyaqoS4IU7RE0GGw_vlhs6I9syqn1g/viewform?usp=pp_url&amp;entry.192763438=https://www.metaculus.com/api/">Metaculus Data Needs Form</a>.
+    </p>
+
+    <h4>Field availability on posts and questions</h4>
+    <p>
+    These rules apply to Restricted and Bot Benchmarking accounts on every endpoint that returns posts or questions (<code>/api/posts/</code>, <code>/api/posts/{postId}/</code>, and the other post and question listings). A post is in an <b>accessible project</b> if it belongs to the bot testing area (32977), to a project your account has been granted, or, for Bot Benchmarking accounts, to the bot benchmarking question list (32979).
+    </p>
+    <table>
+    <thead><tr><th>Field (on each question)</th><th>Returned when</th><th>Otherwise</th></tr></thead>
+    <tbody>
+    <tr><td><code>description</code>, <code>resolution_criteria</code>, <code>fine_print</code></td><td>The question is open right now (<code>open_time</code> has passed and <code>actual_close_time</code> has not), <b>or</b> you have forecast on it, <b>or</b> the post is in an accessible project</td><td><code>null</code></td></tr>
+    <tr><td><code>resolution</code></td><td>You have forecast on the question, <b>or</b> the post is in an accessible project</td><td><code>null</code></td></tr>
+    <tr><td><code>aggregations.recency_weighted.latest</code>, <code>aggregations.unweighted.latest</code></td><td>The post is in an accessible project</td><td><code>null</code></td></tr>
+    <tr><td><code>aggregations.*.history</code>, and all other aggregation methods</td><td>Never (Unrestricted accounts only)</td><td><code>null</code></td></tr>
+    <tr><td><code>options_history</code>, <code>all_options_ever</code>, <code>possibilities</code>, and any other question field not listed below as always returned</td><td>Never (Unrestricted accounts only)</td><td><code>null</code></td></tr>
+    </tbody>
+    </table>
+    <p>
+    Always returned on each question: <code>id</code>, <code>post_id</code>, <code>title</code>, <code>short_title</code>, <code>label</code>, <code>type</code>, <code>status</code>, <code>options</code>, <code>group_variable</code>, <code>group_rank</code>, <code>unit</code>, <code>scaling</code>, <code>open_upper_bound</code>, <code>open_lower_bound</code>, <code>inbound_outcome_count</code>, <code>created_at</code>, <code>open_time</code>, <code>cp_reveal_time</code>, <code>spot_scoring_time</code>, <code>scheduled_close_time</code>, <code>actual_close_time</code>, <code>scheduled_resolve_time</code>, <code>actual_resolve_time</code>, <code>resolution_set_time</code>, <code>include_bots_in_aggregates</code>, <code>question_weight</code>, <code>default_score_type</code>, <code>default_aggregation_method</code>, <code>average_coverage</code>, <code>my_forecasts</code>.
+    </p>
+    <p>Notes:</p>
+    <ul>
+    <li>Upcoming questions (whose <code>open_time</code> is still in the future) are not "open", so their text is <code>null</code> unless one of the other conditions holds.</li>
+    <li>Once a question closes, its text stays available only if you forecast on it before it closed, or the post is in an accessible project.</li>
+    <li>Each subquestion of a group or conditional post is evaluated on its own. The group-level <code>description</code>, <code>resolution_criteria</code>, and <code>fine_print</code> are returned if <i>any</i> subquestion is open or forecast on by you (or the post is in an accessible project).</li>
+    <li>Query parameters such as <code>with_cp</code>, <code>include_cp_history</code>, and <code>include_descriptions</code> ask the backend to include data. They do not override these rules: the fields are still <code>null</code> when the conditions above are not met.</li>
+    </ul>
+
+    <h4>Endpoint restrictions</h4>
+    <p>For Restricted and Bot Benchmarking accounts:</p>
+    <ul>
+    <li><b>Unauthenticated requests</b> are rejected with <code>403</code> on every endpoint.</li>
+    <li><b>Your own data only:</b> <code>/api/users/{id}/</code> requires your own user ID in the path. <code>/api/medals/</code> and <code>/api/medal_ranks/</code> require <code>userId=&lt;your user ID&gt;</code>; <code>/api/medals/contributions/</code> requires <code>for_user=&lt;your user ID&gt;</code>.</li>
+    <li><b>Comments:</b> <code>/api/comments/</code> requires <code>author=&lt;your user ID&gt;</code> and/or <code>author_is_staff=true</code>.</li>
+    <li><b>Data exports:</b> <code>/api/data/download/</code>, <code>/api/data/email/</code>, <code>/api/projects/{id}/download-data/</code>, and <code>/api/projects/{id}/email-data/</code> only work for a project your account has been granted. The project must be named with <code>project_id</code> (exactly once) or in the URL path, and <code>post_id</code>, <code>post_ids</code>, <code>question_id</code>, and <code>sub_question</code> are rejected. <code>/api/data/email/</code> must be a <code>POST</code> with a JSON body and <code>Content-Type: application/json</code>.</li>
+    <li><b>Unavailable:</b> the global leaderboard, per-post data downloads (<code>/api/posts/{postId}/download-data/</code> and <code>email-data/</code>), the aggregation explorer, account-management and sign-up/login endpoints, and a few other website-only endpoints return <code>403</code>.</li>
+    </ul>
+    <p>
+    A request the gateway rejects returns <code>403</code> with a message explaining why, or <code>400</code> for a malformed request. These responses come from the gateway rather than the backend, so their format can differ from the backend's own error responses.
     </p>
 
     <h4>Commercial API or Data Access</h4>
@@ -167,7 +224,7 @@ info:
           "50": 650,
           "percentile_75": "700",
           "percentile_99": 990,
-        }
+          }
         optionally, include `below_lower_bound` and `above_upper_bound`
         to indicate the amount of probability mass assigned strictly outside those bounds.
         Note: `below_lower_bound` is P(outcome < lower_bound), i.e. strictly less than.
@@ -178,7 +235,7 @@ info:
           "percentile_25": 500,
           "percentile_50": 650,
           "percentile_75": 700,
-        }
+          }
         below_lower_bound = 0.0025,
         above_upper_bound = 0.009,
 
@@ -334,6 +391,9 @@ info:
     With this tiny guide, you can be well along your way to submitting continuous forecasts to Metaculus.
     If you have any questions or suggestions, feel free to create tickets on the github: https://github.com/Metaculus/metaculus/issues
     </details>
+servers:
+  - url: /
+    description: The host serving these docs
 security:
   - TokenAuth: [ ]
 components:
@@ -540,10 +600,16 @@ components:
           example: 1
         description:
           type: string
+          nullable: true
+          description: "Set to `null` by the API gateway for Restricted and Bot Benchmarking accounts unless any subquestion is open right now, you have forecast on any subquestion, or the post is in an accessible project (see API Data Access above). When hidden, the key is still present with a `null` value."
         resolution_criteria:
           type: string
+          nullable: true
+          description: "Set to `null` by the API gateway for Restricted and Bot Benchmarking accounts unless any subquestion is open right now, you have forecast on any subquestion, or the post is in an accessible project (see API Data Access above). When hidden, the key is still present with a `null` value."
         fine_print:
           type: string
+          nullable: true
+          description: "Set to `null` by the API gateway for Restricted and Bot Benchmarking accounts unless any subquestion is open right now, you have forecast on any subquestion, or the post is in an accessible project (see API Data Access above). When hidden, the key is still present with a `null` value."
         group_variable:
           type: string
         graph_type:
@@ -565,7 +631,9 @@ components:
           example: "Binary Question"
         description:
           type: string
+          nullable: true
           example: "string"
+          description: "Set to `null` by the API gateway for Restricted and Bot Benchmarking accounts unless the question is open right now, you have forecast on it, or the post is in an accessible project (see API Data Access above). When hidden, the key is still present with a `null` value."
         created_at:
           type: string
           format: date-time
@@ -608,7 +676,8 @@ components:
           type: array
           items:
             type: string
-          description: "List of all options ever for multiple_choice questions"
+          nullable: true
+          description: "List of all options ever for multiple_choice questions. Always `null` for Restricted and Bot Benchmarking accounts (see API Data Access above)."
           example:
             - "Democratic"
             - "Republican"
@@ -618,7 +687,8 @@ components:
             - "Other"
         options_history:
           type: array
-          description: "List of [iso format time, options] pairs for multiple_choice questions"
+          nullable: true
+          description: "List of [iso format time, options] pairs for multiple_choice questions. Always `null` for Restricted and Bot Benchmarking accounts (see API Data Access above)."
           items:
             type: array
             items:
@@ -641,6 +711,7 @@ components:
         resolution:
           type: string
           nullable: true
+          description: "Set to `null` by the API gateway for Restricted and Bot Benchmarking accounts unless you have forecast on the question or the post is in an accessible project (see API Data Access above). When hidden, the key is still present with a `null` value."
         open_upper_bound:
           type: boolean
           nullable: false
@@ -653,10 +724,14 @@ components:
           example: 200
         resolution_criteria:
           type: string
+          nullable: true
           example: "string"
+          description: "Set to `null` by the API gateway for Restricted and Bot Benchmarking accounts unless the question is open right now, you have forecast on it, or the post is in an accessible project (see API Data Access above). When hidden, the key is still present with a `null` value."
         fine_print:
           type: string
+          nullable: true
           example: "string"
+          description: "Set to `null` by the API gateway for Restricted and Bot Benchmarking accounts unless the question is open right now, you have forecast on it, or the post is in an accessible project (see API Data Access above). When hidden, the key is still present with a `null` value."
         label:
           type: string
           nullable: true
@@ -667,6 +742,12 @@ components:
           default: ""
         scaling:
           $ref: '#/components/schemas/QuestionScaling'
+        aggregations:
+          type: object
+          description: |
+            Community Prediction and other aggregates, keyed by aggregation method (e.g. `recency_weighted`, `unweighted`). Each method has a `latest` entry and a `history` list; `history` is only populated when requested with `include_cp_history`.
+
+            For Restricted and Bot Benchmarking accounts, the API gateway sets `recency_weighted.latest` and `unweighted.latest` to `null` unless the post is in an accessible project, and always sets every `history` and all other aggregation methods to `null` (see API Data Access above).
 
     Vote:
       type: object
@@ -711,12 +792,11 @@ components:
           description: "Total number of possible outcomes within the question's range (does not include out of bounds)."
         continuous_range:
           type: array
-          example: [
-            "2023-01-01T00:00:00Z",
-            "2023-01-02T00:00:00Z",
-            "...",
-            "2023-01-03T00:00:00Z",
-          ]
+          example:
+            - "2023-01-01T00:00:00Z"
+            - "2023-01-02T00:00:00Z"
+            - "..."
+            - "2023-01-03T00:00:00Z"
           nullable: true
           description: "List of real-value locations corresponding to where the CDF is evaluated"
           items:
@@ -725,7 +805,7 @@ components:
 
 
     QuestionPossibilities:
-      description: "WARNING: this is a deprecated field and may be removed without notice."
+      description: "WARNING: this is a deprecated field and may be removed without notice. Always `null` for Restricted and Bot Benchmarking accounts (see API Data Access above)."
       oneOf:
         - type: object
           properties:
@@ -1317,20 +1397,20 @@ paths:
             type: boolean
             default: false
             example: true
-          description: "Include Community Prediction data in the response. Note: aggregation data is only available for certain questions depending on your API access tier (see above). When enabled on a group post, only the top 3 subquestions include CP; use the post details endpoint for all subquestions."
+          description: "Include Community Prediction data in the response. Note: for Restricted and Bot Benchmarking accounts, the API gateway sets aggregation data to `null` except on posts in an accessible project (see API Data Access above); this flag does not override that. When enabled on a group post, only the top 3 subquestions include CP; use the post details endpoint for all subquestions."
         - in: query
           name: include_cp_history
           schema:
             type: boolean
             default: false
             example: true
-          description: "Include full aggregation history in the response."
+          description: "Include full aggregation history in the response. Note: for Restricted and Bot Benchmarking accounts, the API gateway always sets aggregation history to `null` (see API Data Access above)."
         - in: query
           name: include_descriptions
           schema:
             type: boolean
             example: true
-          description: "With this flag enabled, each post question will include the description, fine_print, and resolution_criteria fields in its response."
+          description: "With this flag enabled, each post question will include the description, fine_print, and resolution_criteria fields in its response. Note: for Restricted and Bot Benchmarking accounts, the API gateway still sets these fields to `null` unless the question is open right now, you have forecast on it, or the post is in an accessible project (see API Data Access above)."
         - in: query
           name: not_forecaster_id
           schema:
@@ -1557,7 +1637,7 @@ paths:
                               39725322.9826,42433169.9851,45325595.3583,48415180.7489,51715365.4227,
                               55240504.7225,59005932.5125,63028027.8786,67324286.3744,71913396.1252,
                               76815319.1183,82051378.0350,87644349.0011,93618560.6603,100000000.0
-                            ]
+                              ]
                           post_id: 3530
                           aggregations:
                             recency_weighted:
@@ -2080,7 +2160,7 @@ paths:
         Downloads question data, forecast data, and optionally comments, scores, and key factors as a Zip file of CSVs.
         You must provide at least one of `post_id`, `question_id`, or `project_id` to specify the data to download.
 
-        **Note:** This is a restricted endpoint. To request access, please fill out the [Metaculus Data Needs Form](https://docs.google.com/forms/d/e/1FAIpQLSeJhtZzHl5qMvBjbXbatyaqoS4IU7RE0GGw_vlhs6I9syqn1g/viewform?usp=pp_url&amp;entry.192763438=https://www.metaculus.com/api/). For questions or feedback, contact [api-requests@metaculus.com](mailto:api-requests@metaculus.com). Additionally, the `project_id` parameter is only accepted if your account has been whitelisted for that specific project, to prevent heavy data requests.
+        **Note:** This is a restricted endpoint. For Restricted and Bot Benchmarking accounts, the API gateway only allows exports of a project your account has been granted: `project_id` must be given exactly once and name that project, and `post_id`, `question_id`, and `sub_question` are rejected with `403`. Unrestricted accounts may use all parameters. To request access, please fill out the [Metaculus Data Needs Form](https://docs.google.com/forms/d/e/1FAIpQLSeJhtZzHl5qMvBjbXbatyaqoS4IU7RE0GGw_vlhs6I9syqn1g/viewform?usp=pp_url&amp;entry.192763438=https://www.metaculus.com/api/). For questions or feedback, contact [api-requests@metaculus.com](mailto:api-requests@metaculus.com).
 
         This endpoint may time out for large data exports. If your download fails due to a timeout, use the `/api/data/email/` endpoint instead, which processes the export asynchronously.
       tags:
@@ -2177,7 +2257,7 @@ paths:
         Useful for large data exports that may time out with a direct download. Accepts the same parameters as `/api/data/download/`.
         You must provide at least one of `post_id`, `question_id`, or `project_id`.
 
-        **Note:** This is a restricted endpoint. To request access, please fill out the [Metaculus Data Needs Form](https://docs.google.com/forms/d/e/1FAIpQLSeJhtZzHl5qMvBjbXbatyaqoS4IU7RE0GGw_vlhs6I9syqn1g/viewform?usp=pp_url&amp;entry.192763438=https://www.metaculus.com/api/). For questions or feedback, contact [api-requests@metaculus.com](mailto:api-requests@metaculus.com). Additionally, the `project_id` parameter is only accepted if your account has been whitelisted for that specific project.
+        **Note:** This is a restricted endpoint. For Restricted and Bot Benchmarking accounts, the API gateway only allows exports of a project your account has been granted: the body's `project_id` must name that project (as a number or string), `post_id`, `post_ids`, `question_id`, and `sub_question` are rejected with `403`, and the request must be sent with `Content-Type: application/json`. Unrestricted accounts may use all parameters. To request access, please fill out the [Metaculus Data Needs Form](https://docs.google.com/forms/d/e/1FAIpQLSeJhtZzHl5qMvBjbXbatyaqoS4IU7RE0GGw_vlhs6I9syqn1g/viewform?usp=pp_url&amp;entry.192763438=https://www.metaculus.com/api/). For questions or feedback, contact [api-requests@metaculus.com](mailto:api-requests@metaculus.com).
 
         The email attachment has a size limit of 25 MB. If your export exceeds this limit, try removing `include_comments` to reduce the file size.
       tags:
@@ -2294,7 +2374,7 @@ paths:
                       0.93530, 0.94258, 0.94927, 0.95540, 0.96101, 0.96614, 0.97083, 0.97511, 
                       0.97901, 0.98257, 0.98582, 0.98877, 0.99146, 0.99390, 0.99613, 0.99815, 
                       1.00000
-                    ]
+                      ]
               ContinuousQuestionExample2:
                 summary: Continuous Question - open lower bound, closed upper bound
                 value:
@@ -2326,7 +2406,7 @@ paths:
                       0.99513, 0.99556, 0.99596, 0.99635, 0.99671, 0.99706, 0.99739, 0.99771, 
                       0.99801, 0.99830, 0.99858, 0.99884, 0.99909, 0.99933, 0.99956, 0.99978, 
                       1.00000
-                    ]
+                      ]
               ContinuousQuestionExample3:
                 summary: Discrete Question - inbound_outcome_count = 10, closed bounds
                 value:
@@ -2341,7 +2421,7 @@ paths:
                         "Futurama": 0.5,
                         "Paperclipalypse": 0.3,
                         "Singularia": 0.2
-                      }
+                        }
               ConditionalQuestionExample:
                 summary: Conditional Question
                 value:
@@ -2350,13 +2430,13 @@ paths:
                     {
                       "question": 1,
                       "probability_yes": 0.499,
-                    },
+                      },
                     # Forecast for question "if No"
                     {
                       "question": 2,
                       "probability_yes": 0.501,
-                    }
-                  ]
+                      }
+                      ]
               BinaryGroupExample:
                 summary: Binary group of questions forecast example
                 value:
@@ -2364,7 +2444,7 @@ paths:
                     { "question": 1, "probability_yes": 0.11 },
                     { "question": 2, "probability_yes": 0.22 },
                     { "question": 3, "probability_yes": 0.33 }
-                  ]
+                    ]
       responses:
         '201':
           description: Forecasts submitted successfully
@@ -2663,7 +2743,7 @@ paths:
     get:
       summary: Retrieve comments
       description: |
-        Fetch comments with filters for author and pagination. If API access is restricted, you must include at least one of: `author=<your own user ID>` and/or `author_is_staff=true` - requests without one of these filters will be rejected.
+        Fetch comments with filters for author and pagination. For Restricted and Bot Benchmarking accounts, the API gateway requires at least one of: `author=<your own user ID>` and/or `author_is_staff=true` - requests without one of these filters are rejected with `403`.
       tags:
         - Comments
       parameters:

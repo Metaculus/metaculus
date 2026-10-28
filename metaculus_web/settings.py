@@ -453,10 +453,18 @@ TURNSTILE_SECRET_KEY = os.environ.get("TURNSTILE_SECRET_KEY")
 # If none -> not restricted
 ALPHA_ACCESS_TOKEN = os.environ.get("ALPHA_ACCESS_TOKEN")
 
-# OpenAI configuration
+# LLM calls go through OpenRouter if its key is set, else to OpenAI directly; see docs/llm-usage.md
+OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY")
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
-# use a default value, otherwise openai lib will use the value from the default OPENAI_API_KEY variable
-OPENAI_API_KEY_FACTORS = os.environ.get("OPENAI_API_KEY_FACTORS", "nokey")
+
+
+def _llm_model(model: str) -> str:
+    return model if OPENROUTER_API_KEY else model.removeprefix("openai/")
+
+
+GENERAL_LLM_MODEL = _llm_model("openai/gpt-6-luna")
+# Stored Post/ITNArticle embedding vectors depend on it; changing requires re-embedding
+LLM_EMBEDDING_MODEL = _llm_model("openai/text-embedding-3-large")
 
 # Serper Google API key
 SERPER_API_KEY = os.environ.get("SERPER_API_KEY")

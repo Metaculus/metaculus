@@ -49,6 +49,7 @@ export type PostsParams = PaginationParams & {
 
 export type PostFetchParams = {
   include_cp_history?: boolean;
+  include_descriptions?: boolean;
 };
 
 export type ApprovePostParams = {
