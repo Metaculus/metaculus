@@ -1,7 +1,11 @@
 import { isNil, uniq } from "lodash";
 import { useTranslations } from "next-intl";
 
-import { METAC_COLORS, MULTIPLE_CHOICE_COLOR_SCALE } from "@/constants/colors";
+import {
+  getMcOptionColor,
+  METAC_COLORS,
+  MULTIPLE_CHOICE_COLOR_SCALE,
+} from "@/constants/colors";
 import { getEffectiveVisibleCount } from "@/constants/questions";
 import { ChoiceItem } from "@/types/choices";
 import { PostGroupOfQuestions, QuestionStatus } from "@/types/post";
@@ -173,7 +177,10 @@ export function generateChoiceItemsFromMultipleChoiceForecast(
           ? choice + " (" + t("Upcoming") + ")"
           : choice,
       isDeleted,
-      color: MULTIPLE_CHOICE_COLOR_SCALE[index] ?? METAC_COLORS.gray["400"],
+      color:
+        getMcOptionColor(question.options_colors?.[choice]) ??
+        MULTIPLE_CHOICE_COLOR_SCALE[index] ??
+        METAC_COLORS.gray["400"],
       highlighted: false,
       active: true,
       resolution:
@@ -373,7 +380,10 @@ export function generateChoiceItemsFromGroupQuestions(
     return {
       id: question.id,
       choice: label,
-      color: MULTIPLE_CHOICE_COLOR_SCALE[index] ?? METAC_COLORS.gray["400"],
+      color:
+        getMcOptionColor(question.label_color) ??
+        MULTIPLE_CHOICE_COLOR_SCALE[index] ??
+        METAC_COLORS.gray["400"],
       highlighted: false,
       active: true,
       resolution: question.resolution,
