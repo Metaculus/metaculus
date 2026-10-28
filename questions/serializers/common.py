@@ -20,8 +20,13 @@ from questions.models import (
 )
 from questions.serializers.aggregate_forecasts import serialize_question_aggregations
 from questions.services.multiple_choice_handlers import get_all_options_from_history
-from questions.types import OptionsHistoryType, QuestionMovement
+from questions.types import (
+    SHADOW_AGGREGATION_METHODS,
+    OptionsHistoryType,
+    QuestionMovement,
+)
 from users.models import User
+from utils.middlewares import shows_shadow_aggregations
 from utils.the_math.formulas import (
     get_scaled_quartiles_from_cdf,
     unscaled_location_to_scaled_location,
@@ -691,6 +696,11 @@ def serialize_question(
         question, aggregate_forecasts, full_forecast_values, minimize
     )
     serialized_data["average_coverage"] = question_average_coverage
+    # Staff who asked to see shadow aggregations see them in place of the default
+    if shows_shadow_aggregations(current_user):
+        for method in SHADOW_AGGREGATION_METHODS:
+            if serialized_data["aggregations"].get(method, {}).get("history"):
+                serialized_data["default_aggregation_method"] = method
 
     if question_movement:
         if default_agg := serialized_data["aggregations"].get(

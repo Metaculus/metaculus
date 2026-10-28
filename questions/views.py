@@ -21,6 +21,7 @@ from posts.utils import get_post_slug
 from projects.permissions import ObjectPermission
 from projects.services.common import get_projects_qs
 from utils.acting_user import get_acting_user
+from utils.middlewares import shows_shadow_aggregations
 from utils.models import get_by_pk_or_slug
 from utils.requests import is_internal_request
 from utils.the_math.aggregations import get_aggregations_at_time
@@ -61,7 +62,13 @@ def question_detail_api_view(request, pk: int):
             question,
             post=question.get_post(),
             aggregate_forecasts=(
-                question.aggregate_forecasts.order_by("start_time") if with_cp else None
+                (
+                    question.aggregate_forecasts.all()
+                    if shows_shadow_aggregations(request.user)
+                    else question.aggregate_forecasts.exclude_shadow_aggregations()
+                ).order_by("start_time")
+                if with_cp
+                else None
             ),
             current_user=request.user,
             minimize=minimize,

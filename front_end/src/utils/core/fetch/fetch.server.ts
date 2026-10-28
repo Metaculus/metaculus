@@ -1,7 +1,9 @@
 import "server-only";
 
+import { cookies } from "next/headers";
 import { getLocale } from "next-intl/server";
 
+import { SHADOW_AGGREGATIONS_COOKIE } from "@/constants/questions";
 import { getAuthCookieManager } from "@/services/auth_tokens";
 import { getAlphaTokenSession } from "@/services/session";
 import { FetchConfig, FetchOptions } from "@/types/fetch";
@@ -30,6 +32,10 @@ async function serverFetch<T>(
   const authManager = await getAuthCookieManager();
   const token = shouldPassAuth ? authManager.getAccessToken() : null;
   const alphaToken = await getAlphaTokenSession();
+  // Only with the user's token, so a shared cached response never includes them
+  const showShadowAggregations =
+    !!token &&
+    (await cookies()).get(SHADOW_AGGREGATIONS_COOKIE)?.value === "true";
 
   const requestOptions: FetchOptions = {
     ...options,
@@ -37,6 +43,7 @@ async function serverFetch<T>(
       ...options.headers,
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...(alphaToken ? { "x-alpha-auth-token": alphaToken } : {}),
+      ...(showShadowAggregations ? { "x-shadow-aggregations": "true" } : {}),
     },
   };
 

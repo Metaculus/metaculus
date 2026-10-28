@@ -47,6 +47,7 @@ from questions.services.movement import (
 )
 from users.models import User
 from utils.dtypes import flatten, generate_map_from_list
+from utils.middlewares import shows_shadow_aggregations
 from utils.serializers import SerializerKeyLookupMixin
 from .models import Notebook, Post, PostSubscription, PostUserSnapshot
 from .utils import get_post_slug
@@ -534,6 +535,11 @@ def serialize_post_many(
             questions,
             group_cutoff=group_cutoff,
             include_cp_history=include_cp_history,
+            aggregated_forecast_qs=(
+                AggregateForecast.objects.all()
+                if shows_shadow_aggregations(current_user)
+                else None
+            ),
         )
 
     comment_key_factors_map = {}

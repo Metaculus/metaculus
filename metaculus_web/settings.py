@@ -102,6 +102,7 @@ MIDDLEWARE = [
     "utils.middlewares.middleware_alpha_access_check",
     "utils.middlewares.AuthenticationRequiredMiddleware",
     "utils.middlewares.IsStaffQueryParamRequiredMiddleware",
+    "utils.middlewares.ShadowAggregationsMiddleware",
 ]
 
 if DEBUG:

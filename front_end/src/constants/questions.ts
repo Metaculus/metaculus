@@ -17,3 +17,7 @@ export const ContinuousQuestionTypes = [
   QuestionType.Date,
   QuestionType.Discrete,
 ] as const;
+
+// Session cookie with which staff view shadow aggregations (reputation_weighted)
+// in place of the default one. Forwarded to the API as X-Shadow-Aggregations.
+export const SHADOW_AGGREGATIONS_COOKIE = "show_shadow_aggregations";
