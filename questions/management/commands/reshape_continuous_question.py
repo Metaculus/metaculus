@@ -12,7 +12,7 @@ from utils.the_math.formulas import (
 )
 from posts.models import Post
 from questions.models import QUESTION_CONTINUOUS_TYPES, Forecast, Question
-from questions.services.forecasts import build_question_forecasts
+from questions.services.forecasts import rebuild_question_aggregations
 from questions.services.common import clone_question
 from questions.services.lifecycle import queue_reputation_refresh
 from scoring.utils import score_question
@@ -264,7 +264,7 @@ class Command(BaseCommand):
             self.stdout.write(self.style.SUCCESS(f"Copied {idx} forecasts... DONE"))
 
         new_question.aggregate_forecasts.all().delete()
-        build_question_forecasts(new_question)
+        rebuild_question_aggregations(new_question)
         self.stdout.write(
             self.style.SUCCESS(f"Making copy of question {question.id}... DONE")
         )
@@ -403,7 +403,7 @@ class Command(BaseCommand):
                 forecast.distribution_input = None
                 updater.append(forecast)
 
-        build_question_forecasts(question_to_change)
+        rebuild_question_aggregations(question_to_change)
 
     def handle(self, *args, **options) -> None:
         question_id = options["question_id"]

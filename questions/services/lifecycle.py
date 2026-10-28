@@ -16,7 +16,7 @@ from scoring.constants import ScoreTypes
 from scoring.reputations import question_counts_toward_reputation
 from scoring.utils import score_question
 from .common import update_leaderboards_for_question
-from .forecasts import build_question_forecasts
+from .forecasts import rebuild_question_aggregations
 
 logger = logging.getLogger(__name__)
 
@@ -51,14 +51,7 @@ def score_resolved_question(
         score_types=score_types,
     )
     update_leaderboards_for_question(question)
-    build_question_forecasts(question)
-
-    from questions.tasks import queue_shadow_aggregations
-
-    # This can run in a web process, so the worker checks the kill switch
-    transaction.on_commit(
-        lambda: queue_shadow_aggregations(question.id, check_enabled=False)
-    )
+    rebuild_question_aggregations(question)
 
     queue_reputation_refresh(question, previous_resolve_time)
 

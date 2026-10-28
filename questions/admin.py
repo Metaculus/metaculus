@@ -22,7 +22,7 @@ from questions.models import (
     GroupOfQuestions,
     Forecast,
 )
-from questions.services.forecasts import build_question_forecasts
+from questions.services.forecasts import rebuild_question_aggregations
 from questions.services.lifecycle import queue_reputation_refresh
 from questions.types import AggregationMethod
 from questions.services.multiple_choice_handlers import (
@@ -760,7 +760,7 @@ class QuestionAdmin(CustomTranslationAdmin, DynamicArrayMixin):
 
     def rebuild_aggregation_history(self, request, queryset: QuerySet[Question]):
         for question in queryset:
-            build_question_forecasts(question)
+            rebuild_question_aggregations(question)
 
     def trigger_scoring(self, request, queryset: QuerySet[Question]):
         from scoring.utils import score_question
