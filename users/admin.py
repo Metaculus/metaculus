@@ -255,7 +255,13 @@ class UserAdmin(admin.ModelAdmin):
         BotFilter,
         AutocompleteFilterFactory("Bot Owner", "bot_owner"),
     ]
-    readonly_fields = ["old_usernames", "auth_revoked_at", "email_changed_at"]
+    # api_access_tier is deprecated and no longer read; grants live in UserApiAccess.
+    readonly_fields = [
+        "old_usernames",
+        "auth_revoked_at",
+        "email_changed_at",
+        "api_access_tier",
+    ]
     autocomplete_fields = ["bot_owner"]
     inlines = [BotInline, ProjectUserPermissionInline]
 
