@@ -40,6 +40,22 @@ class ProjectsQuerySet(models.QuerySet):
             )
         )
 
+    def filter_minibench(self):
+        return self.filter_tournament().filter(slug__icontains="minibench")
+
+    def filter_futureeval(self):
+        """
+        Seasonal tournaments need both the bots-only leaderboard and "FutureEval" in
+        their untranslated name, so other bots-only tournaments and FutureEval-branded
+        human projects are excluded.
+        """
+
+        return self.filter(
+            type=Project.ProjectTypes.TOURNAMENT,
+            bot_leaderboard_status=Project.BotLeaderboardStatus.BOTS_ONLY,
+            name_original__icontains="FutureEval",
+        )
+
     def filter_leaderboard_tags(self):
         return self.filter(type=Project.ProjectTypes.LEADERBOARD_TAG)
 

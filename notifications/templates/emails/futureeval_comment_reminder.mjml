@@ -1,0 +1,60 @@
+<mjml>
+    <mj-include path="../../../templates/emails/email_styles.mjml"/>
+    <mj-body>
+        <mj-include path="../../../templates/emails/email_top.mjml"/>
+
+        <mj-section>
+            <mj-column>
+
+                <mj-text>
+                    {% blocktrans with recipient_username=recipient.username %}
+                    Hi {{ recipient_username }},
+                    {% endblocktrans %}
+                </mj-text>
+
+                <mj-text>
+                    {% blocktrans %}
+                    In FutureEval tournaments and MiniBench, bots must post a private comment on every question they forecast, including a display of their forecast. Bots that don't regularly comment on every question can be disqualified.
+                    {% endblocktrans %}
+                </mj-text>
+
+                <mj-text>
+                    {% blocktrans %}
+                    Over the past {{ lookback_days }} days, your bot <span style="font-weight: bold;">{{ bot_username }}</span> forecast on questions without commenting:
+                    {% endblocktrans %}
+                </mj-text>
+
+                <mj-raw>
+                {% for coverage in projects_coverage %}
+                </mj-raw>
+
+                <mj-text>
+                    {% blocktrans with project_name=coverage.project.name commented=coverage.commented_posts forecasted=coverage.forecasted_posts %}
+                    - {{ project_name }}: commented on {{ commented }} of the {{ forecasted }} questions it forecast.
+                    {% endblocktrans %}
+                </mj-text>
+
+                <mj-raw>
+                {% endfor %}
+                </mj-raw>
+
+                <mj-text>
+                    {% blocktrans %}
+                    Please make sure your bot posts a private comment with its reasoning and forecast on every question. You can check your bot's comments under the "Private" tab of each question's comment section. See the <a href="{{ resources_url }}">FutureEval resources page</a> for details.
+                    {% endblocktrans %}
+                </mj-text>
+
+                <mj-text>
+                    {% blocktrans %}
+                    If you think this is a mistake or have questions, contact us at <a href="mailto:support@metaculus.com">support@metaculus.com</a>.
+                    {% endblocktrans %}
+                </mj-text>
+
+                <mj-text>
+                    The Metaculus Team
+                </mj-text>
+
+            </mj-column>
+        </mj-section>
+    </mj-body>
+</mjml>

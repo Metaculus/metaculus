@@ -649,6 +649,11 @@ WEEKLY_TOP_COMMENTS_SEND_EMAILS = (
     os.environ.get("WEEKLY_TOP_COMMENTS_SEND_EMAILS", "false").lower() == "true"
 )
 
+FUTUREEVAL_COMMENT_REMINDERS_SEND_EMAILS = (
+    os.environ.get("FUTUREEVAL_COMMENT_REMINDERS_SEND_EMAILS", "false").lower()
+    == "true"
+)
+
 # Kill switch for building aggregations that shadow the default one (see
 # questions.types.SHADOW_AGGREGATION_METHODS) without being shown to users
 SHADOW_AGGREGATIONS_ENABLED = (
