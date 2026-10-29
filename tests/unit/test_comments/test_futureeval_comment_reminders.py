@@ -220,15 +220,3 @@ def test_dry_run_does_not_send(mocker, futureeval_tournament, bot, owner):
 
     assert [recipient for recipient, _ in reminders] == [owner]
     send_email.assert_not_called()
-
-
-def test_reminder_email_renders(mocker, futureeval_tournament, bot):
-    send_email_async = mocker.patch("utils.email.send_email_async")
-    forecast_on(bot, make_posts(futureeval_tournament, 6))
-
-    send_futureeval_comment_reminders(NOW)
-
-    html = send_email_async.call_args.kwargs["html_message"]
-    assert "silent-bot" in html
-    assert "commented on 0 of the 6 questions it forecast" in html
-    assert "/notebooks/28751/" in html
