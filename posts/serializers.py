@@ -534,6 +534,13 @@ def serialize_post_many(
             questions,
             group_cutoff=group_cutoff,
             include_cp_history=include_cp_history,
+            # Staff always get shadow aggregations, so the question page can
+            # flip to them without a request
+            aggregated_forecast_qs=(
+                AggregateForecast.objects.all()
+                if current_user and current_user.is_staff
+                else None
+            ),
         )
 
     comment_key_factors_map = {}

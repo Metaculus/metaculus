@@ -66,6 +66,7 @@ import FanGraphChartPanel from "../question_view/consumer_question_view/fan_grap
 import ConsumerQuestionPrediction from "../question_view/consumer_question_view/prediction";
 import QuestionTimeline from "../question_view/consumer_question_view/timeline";
 import QuestionHeaderCPStatus from "../question_view/forecaster_question_view/question_header/question_header_cp_status";
+import { useReputationWeightedToggle } from "../reputation_weighted_toggle";
 import RevealCPButton from "../reveal_cp_button";
 
 const baseSectionClassName =
@@ -77,11 +78,18 @@ const commentSectionClassName = `${baseSectionClassName} bg-blue-100 dark:bg-gra
 type ShellProps = {
   postData: PostWithForecasts;
   preselectedGroupQuestionId?: number;
+  // staff-only, temporary (see reputation_weighted_toggle.tsx)
+  reputationWeightedToggle?: ReactNode;
 };
 
 export const ForecasterShell: FC<
   ShellProps & { mobileSidebar?: ReactNode }
-> = ({ postData, preselectedGroupQuestionId, mobileSidebar }) => {
+> = ({
+  postData,
+  preselectedGroupQuestionId,
+  mobileSidebar,
+  reputationWeightedToggle,
+}) => {
   const { setBannerIsVisible } = useContentTranslatedBannerContext();
   const locale = useLocale();
 
@@ -138,6 +146,7 @@ export const ForecasterShell: FC<
             <div className="mb-2 h-px bg-gray-400 opacity-30 dark:bg-gray-400-dark lg:mb-3" />
           )}
           <div className="-mt-2 lg:-mt-3">
+            {reputationWeightedToggle}
             {isQuestionPost(postData) && (
               <DetailedQuestionCard
                 post={postData}
@@ -203,11 +212,12 @@ const BinaryCursorGauge: FC<{
   );
 };
 
-export const ConsumerShell: FC<{
-  postData: PostWithForecasts;
-  preselectedGroupQuestionId?: number;
-  mobileSidebar?: ReactNode;
-}> = ({ postData, preselectedGroupQuestionId, mobileSidebar }) => {
+export const ConsumerShell: FC<ShellProps & { mobileSidebar?: ReactNode }> = ({
+  postData,
+  preselectedGroupQuestionId,
+  mobileSidebar,
+  reputationWeightedToggle,
+}) => {
   const t = useTranslations();
   const { aggregateCoherenceLinks } = useCoherenceLinksContext();
   const { hideCP } = useHideCP();
@@ -302,6 +312,7 @@ export const ConsumerShell: FC<{
           <ActionRow post={postData} variant="consumer" />
         </div>
         <div className="order-1 sm:order-none md:-mt-2 lg:-mt-3">
+          {reputationWeightedToggle}
           {showClosedMessageMultipleChoice && (
             <p className="m-0 mb-8 text-center text-sm leading-[20px] text-gray-700 dark:text-gray-700-dark">
               {t("predictionClosedMessage")}
@@ -460,6 +471,7 @@ const QuestionPageShell: FC<Props> = ({
   preselectedGroupQuestionId,
   mobileSidebar,
 }) => {
+  const { post, toggle } = useReputationWeightedToggle(postData);
   return (
     <QuestionLayoutProvider>
       <QuestionVariantComposer
@@ -467,7 +479,8 @@ const QuestionPageShell: FC<Props> = ({
           <ContinuousChartCursorProvider>
             {/* Bridges timeline cursor to the mobile mini chart in consumer view */}
             <ConsumerShell
-              postData={postData}
+              postData={post}
+              reputationWeightedToggle={toggle}
               preselectedGroupQuestionId={preselectedGroupQuestionId}
               mobileSidebar={mobileSidebar}
             />
@@ -476,7 +489,8 @@ const QuestionPageShell: FC<Props> = ({
         forecaster={
           <ContinuousChartCursorProvider>
             <ForecasterShell
-              postData={postData}
+              postData={post}
+              reputationWeightedToggle={toggle}
               preselectedGroupQuestionId={preselectedGroupQuestionId}
               mobileSidebar={mobileSidebar}
             />

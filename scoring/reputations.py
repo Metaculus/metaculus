@@ -16,6 +16,7 @@ never more than one row per (user, type, time).
 """
 
 import logging
+from collections import defaultdict
 from datetime import datetime
 from typing import Iterable
 
@@ -230,6 +231,45 @@ def continuous_reputation(
         )
     scale = CONTINUOUS_SOFTPLUS_SCALE
     return scale * _softplus((blend - rho) / scale)
+
+
+def reputations_at_forecast_time(
+    forecasts: Iterable[Forecast],
+    reputation_type: str = Reputation.ReputationTypes.AVERAGE_PEER_SCORE,
+) -> dict[int, tuple[float, float]]:
+    """Forecast id -> (value, contribution) of its author's reputation when the
+    forecast was made, (0.0, 0.0) if they had none: what reputation_weighted
+    weights the forecast by"""
+    forecasts = list(forecasts)
+    if not forecasts:
+        return {}
+    rows = (
+        Reputation.objects.filter(
+            user_id__in={f.author_id for f in forecasts},
+            type=reputation_type,
+            time__lte=max(f.start_time for f in forecasts),
+        )
+        .order_by("user_id", "time")
+        .values_list("user_id", "time", "value", "contribution")
+    )
+    histories: dict[int, list[tuple[float, float, float]]] = defaultdict(list)
+    for user_id, time, value, contribution in rows:
+        histories[user_id].append((time.timestamp(), value, contribution))
+    by_author: dict[int, list[Forecast]] = defaultdict(list)
+    for forecast in forecasts:
+        by_author[forecast.author_id].append(forecast)
+    result = {}
+    for author_id, author_forecasts in by_author.items():
+        history = np.array(histories.get(author_id, []), dtype=float).reshape(-1, 3)
+        starts = [f.start_time.timestamp() for f in author_forecasts]
+        indexes = np.searchsorted(history[:, 0], starts, side="right") - 1
+        for forecast, index in zip(author_forecasts, indexes):
+            result[forecast.id] = (
+                (float(history[index, 1]), float(history[index, 2]))
+                if index >= 0
+                else (0.0, 0.0)
+            )
+    return result
 
 
 REPUTATION_FORMULAS = {

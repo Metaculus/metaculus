@@ -61,7 +61,16 @@ def question_detail_api_view(request, pk: int):
             question,
             post=question.get_post(),
             aggregate_forecasts=(
-                question.aggregate_forecasts.order_by("start_time") if with_cp else None
+                (
+                    question.aggregate_forecasts.all()
+                    if request.user.is_staff
+                    else question.aggregate_forecasts.exclude_shadow_aggregations()
+                )
+                # reputation_weighted stores a future entry at the spot scoring time
+                .filter(start_time__lte=timezone.now())
+                .order_by("start_time")
+                if with_cp
+                else None
             ),
             current_user=request.user,
             minimize=minimize,
@@ -485,7 +494,7 @@ def questions_community_predictions(request) -> Response:
             time=ts,
             aggregation_methods=[method],
             include_stats=True,
-            include_bots=question.include_bots_in_aggregates,
+            include_bots=None,
         )
         agg = aggs.get(method)
 

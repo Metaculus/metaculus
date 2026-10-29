@@ -513,8 +513,9 @@ def _reputation_arrays(
 class ReputationWeighted(Weighted):
     """Uses a Reputation to calculate a forecast's weight.
     Requires `get_reputation_history`, which returns each forecaster's
-    Reputations sorted by time, or an override of `get_reputation_arrays`. The
-    reputation at a timestep is the latest one at or before it, 0 if none."""
+    Reputations sorted by time, or an override of `get_reputation_arrays`. A
+    forecaster's reputation is the latest one at or before the time
+    `_lookup_epochs` gives (the timestep by default), 0 if none."""
 
     def __init__(
         self,
@@ -528,8 +529,14 @@ class ReputationWeighted(Weighted):
         self.question = question
         time_range = None
         if forecast_history:
-            timesteps = [forecast_set.timestep for forecast_set in forecast_history]
-            time_range = (min(timesteps), max(timesteps))
+            epochs = np.concatenate(
+                [self._lookup_epochs(forecast_set) for forecast_set in forecast_history]
+            )
+            if epochs.size:
+                time_range = (
+                    datetime.fromtimestamp(epochs.min(), dt_timezone.utc),
+                    datetime.fromtimestamp(epochs.max(), dt_timezone.utc),
+                )
         self.reputations: ReputationArrays = self.get_reputation_arrays(
             all_forecaster_ids, time_range
         )
@@ -543,6 +550,12 @@ class ReputationWeighted(Weighted):
         self, all_forecaster_ids: list[int] | set[int]
     ) -> dict[int, list[Reputation]]:
         raise NotImplementedError("Implement in Child Class")
+
+    def _lookup_epochs(self, forecast_set: ForecastSet) -> np.ndarray:
+        """When each of forecast_set's forecasters' reputation is read"""
+        return np.full(
+            len(forecast_set.forecaster_ids), forecast_set.timestep.timestamp()
+        )
 
     def get_reputation_arrays(
         self,
@@ -588,9 +601,7 @@ class ReputationWeighted(Weighted):
             dtype=np.int64,
             count=lengths.sum(),
         )
-        epochs = np.repeat(
-            [fs.timestep.timestamp() for fs in forecast_history], lengths
-        )
+        epochs = np.concatenate([self._lookup_epochs(fs) for fs in forecast_history])
         values = np.zeros(len(users))
         contributions = np.zeros(len(users))
         order = np.argsort(users, kind="stable")
@@ -614,9 +625,9 @@ class ReputationWeighted(Weighted):
     ) -> tuple[np.ndarray, np.ndarray]:
         values = np.zeros(len(forecast_set.forecaster_ids))
         contributions = np.zeros(len(forecast_set.forecaster_ids))
-        epoch = np.array([forecast_set.timestep.timestamp()])
+        epochs = self._lookup_epochs(forecast_set)
         for i, user_id in enumerate(forecast_set.forecaster_ids):
-            user_values, user_contributions = self._lookup(user_id, epoch)
+            user_values, user_contributions = self._lookup(user_id, epochs[i : i + 1])
             values[i] = user_values[0]
             contributions[i] = user_contributions[0]
         return values, contributions
@@ -624,9 +635,9 @@ class ReputationWeighted(Weighted):
     def get_reputations(
         self, forecast_set: ForecastSet
     ) -> tuple[np.ndarray, np.ndarray]:
-        """(values, contributions) of the reputation active at
-        forecast_set.timestep for each of forecast_set.forecaster_ids, 0 where
-        there is none"""
+        """(values, contributions) of the reputation of each of
+        forecast_set.forecaster_ids (see `_lookup_epochs`), 0 where there is
+        none"""
         precomputed = self._precomputed.get(id(forecast_set))
         if precomputed is not None and len(precomputed[0]) == len(
             forecast_set.forecaster_ids
@@ -685,6 +696,10 @@ class DecayReputationWeighted(ReputationWeighted):
         if b is not None:
             combiner_kwargs["b"] = b
         self.combiner = WEIGHT_COMBINERS[combiner](**combiner_kwargs)
+
+    def _lookup_epochs(self, forecast_set: ForecastSet) -> np.ndarray:
+        # A forecast keeps the reputation its forecaster had when it was made
+        return forecast_set.timesteps_epoch()
 
     @classmethod
     def transition_times(
@@ -1156,6 +1171,8 @@ class Aggregation(AggregatorMixin):
 
     method: str = "N/A"
     weighting_classes: list[WeightingSpec] = []  # defined in subclasses
+    # Counts primary bots' forecasts even on questions that exclude bots
+    always_include_bots: bool = False
 
     def __init__(
         self,
@@ -1283,6 +1300,7 @@ class ReputationWeightedAggregation(MeanAggregatorMixin, Aggregation):
     """
 
     method = AggregationMethod.REPUTATION_WEIGHTED
+    always_include_bots = True
     weighting_classes = [
         (
             DecayReputationWeighted,
@@ -1352,6 +1370,21 @@ METHODS_REQUIRING_JOINED_BEFORE: list[str] = [
 ]
 
 
+METHODS_ALWAYS_INCLUDING_BOTS: list[str] = [
+    aggregation.method
+    for aggregation in AGGREGATIONS
+    if aggregation.always_include_bots
+]
+
+
+def _split_always_including_bots(
+    aggregation_methods: list[AggregationMethod],
+) -> tuple[list[AggregationMethod], list[AggregationMethod]]:
+    """(methods that always include bots, the rest)"""
+    with_bots = [m for m in aggregation_methods if m in METHODS_ALWAYS_INCLUDING_BOTS]
+    return with_bots, [m for m in aggregation_methods if m not in with_bots]
+
+
 def get_aggregation_by_name(method: str) -> type[Aggregation]:
     return next(agg for agg in AGGREGATIONS if agg.method == method)
 
@@ -1363,12 +1396,33 @@ def get_aggregations_at_time(
     only_include_user_ids: list[int] | set[int] | None = None,
     include_stats: bool = False,
     histogram: bool = False,
-    include_bots: bool = False,
+    # None: the question's setting, overridden by Aggregation.always_include_bots
+    include_bots: bool | None = False,
     only_bots: bool = False,
     joined_before: datetime | None = None,
 ) -> dict[AggregationMethod, AggregateForecast]:
     """set include_stats to True if you want to include num_forecasters, q1s, medians,
     and q3s"""
+    if include_bots is None:
+        # The question's setting, which methods that always include bots override
+        with_bots, others = _split_always_including_bots(aggregation_methods)
+        if with_bots and others and not question.include_bots_in_aggregates:
+            kwargs = dict(
+                only_include_user_ids=only_include_user_ids,
+                include_stats=include_stats,
+                histogram=histogram,
+                only_bots=only_bots,
+                joined_before=joined_before,
+            )
+            aggregations = get_aggregations_at_time(
+                question, time, with_bots, include_bots=True, **kwargs
+            )
+            aggregations |= get_aggregations_at_time(
+                question, time, others, include_bots=False, **kwargs
+            )
+            return aggregations
+        include_bots = question.include_bots_in_aggregates or bool(with_bots)
+
     forecasts = (
         question.user_forecasts.filter_active_at(time)
         .order_by("start_time")
@@ -1657,13 +1711,38 @@ def get_aggregation_history(
     only_include_user_ids: list[int] | set[int] | None = None,
     minimize: bool | int = True,
     include_stats: bool = True,
-    include_bots: bool = False,
+    # None: the question's setting, overridden by Aggregation.always_include_bots
+    include_bots: bool | None = False,
     only_bots: bool = False,
     histogram: bool | None = None,
     include_future: bool = True,
     joined_before: datetime | None = None,
     include_pre_predictions: bool = False,
 ) -> dict[AggregationMethod, list[AggregateForecast]]:
+    if include_bots is None:
+        # The question's setting, which methods that always include bots override
+        with_bots, others = _split_always_including_bots(aggregation_methods)
+        if with_bots and others and not question.include_bots_in_aggregates:
+            kwargs = dict(
+                forecasts=forecasts,
+                only_include_user_ids=only_include_user_ids,
+                minimize=minimize,
+                include_stats=include_stats,
+                only_bots=only_bots,
+                histogram=histogram,
+                include_future=include_future,
+                joined_before=joined_before,
+                include_pre_predictions=include_pre_predictions,
+            )
+            full_summary = get_aggregation_history(
+                question, with_bots, include_bots=True, **kwargs
+            )
+            full_summary |= get_aggregation_history(
+                question, others, include_bots=False, **kwargs
+            )
+            return full_summary
+        include_bots = question.include_bots_in_aggregates or bool(with_bots)
+
     full_summary: dict[AggregationMethod, list[AggregateForecast]] = dict()
 
     if not forecasts:
