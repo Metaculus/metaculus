@@ -38,19 +38,7 @@ class BotMissingComments:
 
 
 def get_futureeval_projects() -> QuerySet[Project]:
-    """
-    Seasonal tournaments need both the bots-only leaderboard and "FutureEval" in
-    their untranslated name, so other bots-only tournaments and FutureEval-branded
-    human projects are excluded.
-    """
-
-    seasonal_tournaments = Project.objects.filter(
-        type=Project.ProjectTypes.TOURNAMENT,
-        bot_leaderboard_status=Project.BotLeaderboardStatus.BOTS_ONLY,
-        name_original__icontains="FutureEval",
-    )
-
-    return seasonal_tournaments | Project.objects.filter_minibench()
+    return Project.objects.filter_futureeval() | Project.objects.filter_minibench()
 
 
 def find_bots_missing_comments(now: datetime) -> list[BotMissingComments]:
