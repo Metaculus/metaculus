@@ -1171,6 +1171,8 @@ class Aggregation(AggregatorMixin):
 
     method: str = "N/A"
     weighting_classes: list[WeightingSpec] = []  # defined in subclasses
+    # Counts primary bots' forecasts even on questions that exclude bots
+    always_include_bots: bool = False
 
     def __init__(
         self,
@@ -1298,6 +1300,7 @@ class ReputationWeightedAggregation(MeanAggregatorMixin, Aggregation):
     """
 
     method = AggregationMethod.REPUTATION_WEIGHTED
+    always_include_bots = True
     weighting_classes = [
         (
             DecayReputationWeighted,
@@ -1367,6 +1370,21 @@ METHODS_REQUIRING_JOINED_BEFORE: list[str] = [
 ]
 
 
+METHODS_ALWAYS_INCLUDING_BOTS: list[str] = [
+    aggregation.method
+    for aggregation in AGGREGATIONS
+    if aggregation.always_include_bots
+]
+
+
+def _split_always_including_bots(
+    aggregation_methods: list[AggregationMethod],
+) -> tuple[list[AggregationMethod], list[AggregationMethod]]:
+    """(methods that always include bots, the rest)"""
+    with_bots = [m for m in aggregation_methods if m in METHODS_ALWAYS_INCLUDING_BOTS]
+    return with_bots, [m for m in aggregation_methods if m not in with_bots]
+
+
 def get_aggregation_by_name(method: str) -> type[Aggregation]:
     return next(agg for agg in AGGREGATIONS if agg.method == method)
 
@@ -1378,12 +1396,33 @@ def get_aggregations_at_time(
     only_include_user_ids: list[int] | set[int] | None = None,
     include_stats: bool = False,
     histogram: bool = False,
-    include_bots: bool = False,
+    # None: the question's setting, overridden by Aggregation.always_include_bots
+    include_bots: bool | None = False,
     only_bots: bool = False,
     joined_before: datetime | None = None,
 ) -> dict[AggregationMethod, AggregateForecast]:
     """set include_stats to True if you want to include num_forecasters, q1s, medians,
     and q3s"""
+    if include_bots is None:
+        # The question's setting, which methods that always include bots override
+        with_bots, others = _split_always_including_bots(aggregation_methods)
+        if with_bots and others and not question.include_bots_in_aggregates:
+            kwargs = dict(
+                only_include_user_ids=only_include_user_ids,
+                include_stats=include_stats,
+                histogram=histogram,
+                only_bots=only_bots,
+                joined_before=joined_before,
+            )
+            aggregations = get_aggregations_at_time(
+                question, time, with_bots, include_bots=True, **kwargs
+            )
+            aggregations |= get_aggregations_at_time(
+                question, time, others, include_bots=False, **kwargs
+            )
+            return aggregations
+        include_bots = question.include_bots_in_aggregates or bool(with_bots)
+
     forecasts = (
         question.user_forecasts.filter_active_at(time)
         .order_by("start_time")
@@ -1672,13 +1711,38 @@ def get_aggregation_history(
     only_include_user_ids: list[int] | set[int] | None = None,
     minimize: bool | int = True,
     include_stats: bool = True,
-    include_bots: bool = False,
+    # None: the question's setting, overridden by Aggregation.always_include_bots
+    include_bots: bool | None = False,
     only_bots: bool = False,
     histogram: bool | None = None,
     include_future: bool = True,
     joined_before: datetime | None = None,
     include_pre_predictions: bool = False,
 ) -> dict[AggregationMethod, list[AggregateForecast]]:
+    if include_bots is None:
+        # The question's setting, which methods that always include bots override
+        with_bots, others = _split_always_including_bots(aggregation_methods)
+        if with_bots and others and not question.include_bots_in_aggregates:
+            kwargs = dict(
+                forecasts=forecasts,
+                only_include_user_ids=only_include_user_ids,
+                minimize=minimize,
+                include_stats=include_stats,
+                only_bots=only_bots,
+                histogram=histogram,
+                include_future=include_future,
+                joined_before=joined_before,
+                include_pre_predictions=include_pre_predictions,
+            )
+            full_summary = get_aggregation_history(
+                question, with_bots, include_bots=True, **kwargs
+            )
+            full_summary |= get_aggregation_history(
+                question, others, include_bots=False, **kwargs
+            )
+            return full_summary
+        include_bots = question.include_bots_in_aggregates or bool(with_bots)
+
     full_summary: dict[AggregationMethod, list[AggregateForecast]] = dict()
 
     if not forecasts:

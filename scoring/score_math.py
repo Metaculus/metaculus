@@ -372,7 +372,7 @@ def evaluate_question(
         question,
         minimize=False,
         aggregation_methods=aggregations_to_calculate,
-        include_bots=bool(only_include_user_ids) or question.include_bots_in_aggregates,
+        include_bots=True if only_include_user_ids else None,
         include_stats=False,
         only_include_user_ids=only_include_user_ids,
     )

@@ -97,7 +97,7 @@ def serialize_question_aggregations(
                 ],
                 minimize=False,
                 include_stats=True,
-                include_bots=question.include_bots_in_aggregates,
+                include_bots=None,
                 histogram=True,
             )
 

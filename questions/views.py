@@ -492,7 +492,7 @@ def questions_community_predictions(request) -> Response:
             time=ts,
             aggregation_methods=[method],
             include_stats=True,
-            include_bots=question.include_bots_in_aggregates,
+            include_bots=None,
         )
         agg = aggs.get(method)
 
