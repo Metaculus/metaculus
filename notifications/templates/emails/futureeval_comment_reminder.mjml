@@ -14,7 +14,7 @@
 
                 <mj-text>
                     {% blocktrans %}
-                    In FutureEval tournaments and MiniBench, bots must post a private comment on every question they forecast, including a display of their forecast. Bots that don't comment on every question are not eligible for prizes.
+                    In FutureEval tournaments and MiniBench, bots must post a private comment on every question they forecast, including a display of their forecast. Bots that don't regularly comment on every question can be disqualified.
                     {% endblocktrans %}
                 </mj-text>
 
@@ -40,7 +40,7 @@
 
                 <mj-text>
                     {% blocktrans %}
-                    Please make sure your bot posts a private comment with its reasoning and forecast on every question. You can check your bot's comments under the "Private" tab of each question's comment section. See the <a href="{{ resources_url }}">FutureEval resources page</a> and the <a href="{{ rules_url }}">official rules</a> for details.
+                    Please make sure your bot posts a private comment with its reasoning and forecast on every question. You can check your bot's comments under the "Private" tab of each question's comment section. See the <a href="{{ resources_url }}">FutureEval resources page</a> for details.
                     {% endblocktrans %}
                 </mj-text>
 

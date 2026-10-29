@@ -22,7 +22,6 @@ GRACE_PERIOD = timedelta(days=1)
 MIN_FORECASTED_POSTS = 5
 MIN_COMMENTED_SHARE = 0.5
 RESOURCES_PAGE_PATH = "/notebooks/38928/ai-benchmark-resources/"
-OFFICIAL_RULES_PATH = "/notebooks/28751/"
 
 
 @dataclass
@@ -161,7 +160,6 @@ def send_futureeval_comment_reminder(
             "projects_coverage": bot_missing_comments.projects,
             "lookback_days": LOOKBACK.days,
             "resources_url": build_frontend_url(RESOURCES_PAGE_PATH),
-            "rules_url": build_frontend_url(OFFICIAL_RULES_PATH),
         },
         use_async=False,
     )
