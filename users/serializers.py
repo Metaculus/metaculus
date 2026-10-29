@@ -13,6 +13,8 @@ from users.services.bots_management import get_max_bots
 
 
 class BaseUserSerializer(serializers.ModelSerializer):
+    metadata = serializers.SerializerMethodField()
+
     class Meta:
         model = User
         fields = (
