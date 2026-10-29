@@ -1,5 +1,7 @@
 from admin_auto_filters.filters import AutocompleteFilterFactory
+from django import forms
 from django.contrib import admin, messages
+from django.core.exceptions import ValidationError
 from django.db.models import QuerySet
 from django.http import HttpResponse
 from django.shortcuts import redirect
@@ -20,8 +22,24 @@ from utils.models import CustomTranslationAdmin
 from utils.translation import automatic_translations_enabled
 
 
+class PostAdminForm(forms.ModelForm):
+    class Meta:
+        model = Post
+        fields = "__all__"
+
+    def _post_clean(self):
+        super()._post_clean()
+
+        # self.instance holds the submitted values only after _post_clean
+        try:
+            self.instance.validate_approved_questions_dates()
+        except ValidationError as e:
+            self.add_error(None, e)
+
+
 @admin.register(Post)
 class PostAdmin(CustomTranslationAdmin):
+    form = PostAdminForm
     list_display = [
         "title",
         "author",

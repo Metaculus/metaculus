@@ -1,5 +1,6 @@
 from itertools import chain
 
+from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 from django.db.models import (
@@ -944,6 +945,19 @@ class Post(TimeStampedModel, TranslatedModel):  # type: ignore
         exclude.add("embedding_vector")
 
         return super().clean_fields(exclude=exclude)
+
+    def validate_approved_questions_dates(self):
+        if self.curation_status != self.CurationStatus.APPROVED:
+            return
+
+        errors = [
+            error
+            for question in self.get_questions()
+            if (error := question.get_missing_dates_error())
+        ]
+
+        if errors:
+            raise ValidationError(errors)
 
     def is_private(self):
         return self.default_project.default_permission is None

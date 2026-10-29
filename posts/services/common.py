@@ -327,6 +327,8 @@ def update_post(
 
         update_notebook(post.notebook, **notebook)
 
+    post.validate_approved_questions_dates()
+
     post.sync_question_post_fk()
     post.update_pseudo_materialized_fields()
 
