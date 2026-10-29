@@ -144,10 +144,10 @@ def test_coverage_is_counted_per_project(futureeval_tournament, minibench, bot):
             "name_original": "AI Pathways Bot Tournament",
         },
         {
-            "type": Project.ProjectTypes.QUESTION_SERIES,
+            "type": Project.ProjectTypes.TOURNAMENT,
             "bot_leaderboard_status": Project.BotLeaderboardStatus.EXCLUDE_AND_SHOW,
-            "slug": "pro-benchmark-fall2026",
-            "name_original": "Pro Forecasters - FutureEval 2026 Fall",
+            "slug": "futureeval",
+            "name_original": "FutureEval",
         },
     ],
     ids=["other_tournament", "bots_only_not_futureeval", "futureeval_not_bots_only"],
