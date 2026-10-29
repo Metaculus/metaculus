@@ -210,8 +210,7 @@ def feed_project_tiles_api_view(request: Request):
 def minibench_tournaments_api_view(request: Request):
     qs = (
         get_projects_qs(user=request.user)
-        .filter_tournament()
-        .filter(slug__icontains="minibench")
+        .filter_minibench()
         .prefetch_related("primary_leaderboard")
     )
 

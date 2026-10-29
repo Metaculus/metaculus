@@ -3,7 +3,7 @@ from collections import defaultdict
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 
-from django.db.models import Exists, OuterRef, Q, QuerySet
+from django.db.models import Exists, OuterRef, QuerySet
 from django.utils.translation import gettext_lazy as _
 
 from comments.models import Comment
@@ -39,17 +39,18 @@ class BotMissingComments:
 
 def get_futureeval_projects() -> QuerySet[Project]:
     """
-    FutureEval seasonal tournaments are the only bots-only tournaments, and
-    MiniBenches are question series whose slug starts with "minibench".
+    Seasonal tournaments need both the bots-only leaderboard and "FutureEval" in
+    their untranslated name, so other bots-only tournaments and FutureEval-branded
+    human projects are excluded.
     """
 
-    return Project.objects.filter(
-        Q(
-            type=Project.ProjectTypes.TOURNAMENT,
-            bot_leaderboard_status=Project.BotLeaderboardStatus.BOTS_ONLY,
-        )
-        | Q(slug__startswith="minibench")
+    seasonal_tournaments = Project.objects.filter(
+        type=Project.ProjectTypes.TOURNAMENT,
+        bot_leaderboard_status=Project.BotLeaderboardStatus.BOTS_ONLY,
+        name_original__icontains="FutureEval",
     )
+
+    return seasonal_tournaments | Project.objects.filter_minibench()
 
 
 def find_bots_missing_comments(now: datetime) -> list[BotMissingComments]:

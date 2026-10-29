@@ -26,6 +26,7 @@ def futureeval_tournament() -> Project:
         type=Project.ProjectTypes.TOURNAMENT,
         bot_leaderboard_status=Project.BotLeaderboardStatus.BOTS_ONLY,
         slug="fall-futureeval-2026",
+        name_original="Fall 2026 FutureEval Bot Tournament",
     )
 
 
@@ -127,13 +128,32 @@ def test_coverage_is_counted_per_project(futureeval_tournament, minibench, bot):
     assert [coverage.project for coverage in result.projects] == [minibench]
 
 
-def test_ignores_projects_outside_futureeval(bot):
-    other_bots_tournament = factory_project(
-        type=Project.ProjectTypes.TOURNAMENT,
-        bot_leaderboard_status=Project.BotLeaderboardStatus.INCLUDE,
-        slug="metaculus-cup",
-    )
-    forecast_on(bot, make_posts(other_bots_tournament, 6))
+@pytest.mark.parametrize(
+    "project_kwargs",
+    [
+        {
+            "type": Project.ProjectTypes.TOURNAMENT,
+            "bot_leaderboard_status": Project.BotLeaderboardStatus.INCLUDE,
+            "slug": "metaculus-cup",
+            "name_original": "Metaculus Cup",
+        },
+        {
+            "type": Project.ProjectTypes.TOURNAMENT,
+            "bot_leaderboard_status": Project.BotLeaderboardStatus.BOTS_ONLY,
+            "slug": "ai-pathways-bots",
+            "name_original": "AI Pathways Bot Tournament",
+        },
+        {
+            "type": Project.ProjectTypes.QUESTION_SERIES,
+            "bot_leaderboard_status": Project.BotLeaderboardStatus.EXCLUDE_AND_SHOW,
+            "slug": "pro-benchmark-fall2026",
+            "name_original": "Pro Forecasters - FutureEval 2026 Fall",
+        },
+    ],
+    ids=["other_tournament", "bots_only_not_futureeval", "futureeval_not_bots_only"],
+)
+def test_ignores_projects_outside_futureeval(bot, project_kwargs):
+    forecast_on(bot, make_posts(factory_project(**project_kwargs), 6))
 
     assert find_bots_missing_comments(NOW) == []
 

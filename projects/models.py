@@ -40,6 +40,9 @@ class ProjectsQuerySet(models.QuerySet):
             )
         )
 
+    def filter_minibench(self):
+        return self.filter_tournament().filter(slug__icontains="minibench")
+
     def filter_leaderboard_tags(self):
         return self.filter(type=Project.ProjectTypes.LEADERBOARD_TAG)
 
