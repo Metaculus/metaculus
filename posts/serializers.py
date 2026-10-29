@@ -47,7 +47,6 @@ from questions.services.movement import (
 )
 from users.models import User
 from utils.dtypes import flatten, generate_map_from_list
-from utils.middlewares import shows_shadow_aggregations
 from utils.serializers import SerializerKeyLookupMixin
 from .models import Notebook, Post, PostSubscription, PostUserSnapshot
 from .utils import get_post_slug
@@ -535,9 +534,11 @@ def serialize_post_many(
             questions,
             group_cutoff=group_cutoff,
             include_cp_history=include_cp_history,
+            # Staff always get shadow aggregations, so the question page can
+            # flip to them without a request
             aggregated_forecast_qs=(
                 AggregateForecast.objects.all()
-                if shows_shadow_aggregations(current_user)
+                if current_user and current_user.is_staff
                 else None
             ),
         )

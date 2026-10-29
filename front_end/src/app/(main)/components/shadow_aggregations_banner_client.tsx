@@ -11,7 +11,7 @@ import {
 } from "@/utils/shadow_aggregations";
 
 // Hardcoded: a temporary, staff-only control
-const LABEL = "View reputation weighted aggregate (staff only)";
+const LABEL = "Simulate Reputation Weighted as default aggregate (staff only)";
 
 export const ShadowAggregationsBannerClient: FC<{ enabled: boolean }> = ({
   enabled,
