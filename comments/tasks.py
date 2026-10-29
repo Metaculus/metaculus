@@ -6,6 +6,9 @@ import dramatiq
 from django.utils import timezone
 
 from comments.models import Comment, CommentsOfTheWeekNotification
+from comments.services.futureeval_comment_reminders import (
+    send_futureeval_comment_reminders,
+)
 from comments.services.notifications import (
     notify_mentioned_users,
     notify_weekly_top_comments_subscribers,
@@ -121,3 +124,8 @@ def job_archive_bot_comment_texts():
         f"reclaiming {stats.chars_reclaimed} characters "
         f"({stats.failed} failed, {stats.skipped} skipped)"
     )
+
+
+@dramatiq.actor
+def job_send_futureeval_comment_reminders():
+    send_futureeval_comment_reminders(timezone.now())
