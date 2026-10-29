@@ -17,8 +17,7 @@ logger = logging.getLogger(__name__)
 
 LOOKBACK = timedelta(days=7)
 # Skips the newest forecasts so a comment the bot is still about to post isn't
-# counted as missing. The weekly windows stay contiguous because each one is
-# shifted by the same amount.
+# counted as missing.
 GRACE_PERIOD = timedelta(days=1)
 MIN_FORECASTED_POSTS = 5
 MIN_COMMENTED_SHARE = 0.5

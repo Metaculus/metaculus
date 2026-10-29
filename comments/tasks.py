@@ -126,6 +126,6 @@ def job_archive_bot_comment_texts():
     )
 
 
-@dramatiq.actor
+@dramatiq.actor(max_retries=0)
 def job_send_futureeval_comment_reminders():
     send_futureeval_comment_reminders(timezone.now())
