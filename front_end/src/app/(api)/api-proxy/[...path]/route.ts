@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getLocale } from "next-intl/server";
 
+import {
+  SHADOW_AGGREGATIONS_COOKIE,
+  SHADOW_AGGREGATIONS_HEADER,
+} from "@/constants/questions";
 import { refreshWithSingleFlight } from "@/services/auth_refresh";
 import {
   AuthCookieManager,
@@ -73,7 +77,12 @@ async function handleProxyRequest(request: NextRequest, method: string) {
     "x-empty-content",
     "x-pass-auth",
     "x-include-locale",
+    SHADOW_AGGREGATIONS_HEADER, // set below
   ];
+  // The calling tab's own setting, else the cookie (see utils/shadow_aggregations.ts)
+  const showShadowAggregations =
+    (request.headers.get(SHADOW_AGGREGATIONS_HEADER) ??
+      request.cookies.get(SHADOW_AGGREGATIONS_COOKIE)?.value) === "true";
 
   const buildHeaders = (accessToken?: string): Headers => {
     const headers = new Headers({
@@ -91,6 +100,8 @@ async function handleProxyRequest(request: NextRequest, method: string) {
     const token =
       accessToken ?? (shouldPassAuth ? authManager.getAccessToken() : null);
     if (token) headers.set("Authorization", `Bearer ${token}`);
+    if (token && showShadowAggregations)
+      headers.set(SHADOW_AGGREGATIONS_HEADER, "true");
     if (alphaToken) headers.set("x-alpha-auth-token", alphaToken);
 
     return headers;
