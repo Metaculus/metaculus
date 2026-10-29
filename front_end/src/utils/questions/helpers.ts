@@ -57,6 +57,17 @@ export function getPostTitle(post: Post) {
   return post.title;
 }
 
+// A conditional's stored short_title may carry a "Conditional " prefix, so
+// name it by its outcome question, as the conditional tile does.
+export function getPostShortTitle(post: Post) {
+  if (post.conditional) {
+    const { condition_child } = post.conditional;
+    return condition_child.short_title || condition_child.title;
+  }
+
+  return post.short_title || post.title;
+}
+
 export function getQuestionStatus(post: PostWithForecasts | null) {
   const isLive = post?.status == PostStatus.OPEN;
   const isDone =

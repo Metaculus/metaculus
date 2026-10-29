@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 
 import { EmbedChartType, TimelineChartZoomOption } from "@/types/charts";
 import { PostWithForecasts } from "@/types/post";
+import { isConditionalPost } from "@/utils/questions/helpers";
 
 import EmbedQuestionFooter from "./embed_question_footer";
 import EmbedQuestionHeader from "./embed_question_header";
@@ -78,8 +79,8 @@ const EmbedQuestionCard: React.FC<Props> = ({
     };
   }, [ogMode, headerHeight, legendHeight]);
 
-  return (
-    <QuestionViewModeProvider mode="embed" containerWidth={containerWidth}>
+  const content = (
+    <>
       <EmbedQuestionHeader
         post={post}
         onHeightChange={setHeaderHeight}
@@ -95,7 +96,21 @@ const EmbedQuestionCard: React.FC<Props> = ({
         defaultZoom={defaultZoom}
         embedChartType={embedChartType}
       />
-      <EmbedQuestionFooter ogReady={ogReady} post={post} />
+    </>
+  );
+
+  return (
+    <QuestionViewModeProvider mode="embed" containerWidth={containerWidth}>
+      {isConditionalPost(post) ? (
+        <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto">
+          {content}
+        </div>
+      ) : (
+        content
+      )}
+      <div className="shrink-0">
+        <EmbedQuestionFooter ogReady={ogReady} post={post} />
+      </div>
     </QuestionViewModeProvider>
   );
 };
