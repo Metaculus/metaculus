@@ -20,8 +20,12 @@ from questions.models import (
 from questions.services.multiple_choice_handlers import get_all_options_from_history
 from questions.types import AggregationMethod
 from scoring.models import ArchivedScore, Score
+from scoring.reputations import REPUTATION_FORMULAS, reputations_at_forecast_time
 from users.models import User
-from utils.the_math.aggregations import get_aggregation_history
+from utils.the_math.aggregations import (
+    ReputationWeightedAggregation,
+    get_aggregation_history,
+)
 from utils.the_math.formulas import (
     string_location_to_bucket_index,
     unscaled_location_to_scaled_location,
@@ -259,6 +263,28 @@ def export_data_for_questions(
         key_factors = None
         aggregate_question_links = None
 
+    # Staff downloading reputation_weighted with user forecasts also get each
+    # forecast's reputation, enough to rebuild the aggregate from the data
+    forecast_reputations = None
+    if (
+        is_staff
+        and include_user_data
+        and AggregationMethod.REPUTATION_WEIGHTED in (aggregation_methods or [])
+    ):
+        # evaluated once, so both see the same forecasts
+        user_forecasts = list(user_forecasts)
+        # forecasts reputation_weighted ignores get no reputation
+        ignored_authors = set(
+            User.objects.filter(
+                Q(exclude_from_aggregations=True)
+                | Q(is_bot=True, is_primary_bot=False),
+                id__in={forecast.author_id for forecast in user_forecasts},
+            ).values_list("id", flat=True)
+        )
+        forecast_reputations = reputations_at_forecast_time(
+            [f for f in user_forecasts if f.author_id not in ignored_authors]
+        )
+
     return generate_data(
         questions=questions,
         user_forecasts=user_forecasts,
@@ -268,6 +294,7 @@ def export_data_for_questions(
         key_factors=key_factors,
         aggregate_question_links=aggregate_question_links,
         anonymized=anonymized,
+        forecast_reputations=forecast_reputations,
     )
 
 
@@ -289,6 +316,36 @@ def export_data_for_user(user=User):
     )
 
 
+_REPUTATION_PARAMS = ReputationWeightedAggregation.weighting_classes[0][1]
+REPUTATION_COLUMNS_README = (
+    "**`Reputation Value`** - user forecasts that count toward `reputation_weighted` only (empty for forecasters excluded from aggregations and non-primary bots): the forecaster's stored reputation (average peer score, shrunk toward 0) when the forecast was made. 0 if they had none.\n"
+    + "**`Reputation Contribution`** - user forecasts only: the coverage (sum of per-question coverage) behind `Reputation Value`.\n"
+    + "**`Reputation`** - user forecasts only: the reputation the `reputation_weighted` aggregation weights the forecast by, "
+    + f"max({_REPUTATION_PARAMS['reputation_formula']}(value, contribution; rho={_REPUTATION_PARAMS['rho']}, gamma={_REPUTATION_PARAMS['gamma']}), e={_REPUTATION_PARAMS['e']}). "
+    + "A forecast keeps it for its whole life. At each time step, its weight is "
+    + f"(decay^a * Reputation^(1-a))^b with a={_REPUTATION_PARAMS['a']}, b={_REPUTATION_PARAMS['b']}, where decay is 1 before the question's `Spot Scoring Time` (in `question_data.csv`) "
+    + "and exp(-(time step - Start Time) / (Scheduled Close Time - Open Time)) from then on. The aggregate is the weighted mean of the active forecasts "
+    + "(unweighted if every weight is 0) of the forecasts with a `Reputation`, including primary bots' even where the question excludes bots.\n"
+)
+
+
+def _reputation_columns(
+    stored: tuple[float, float] | None,
+) -> list[float | None]:
+    """Reputation Value, Reputation Contribution and Reputation, empty for a
+    forecast reputation_weighted ignores"""
+    if stored is None:
+        return [None, None, None]
+    value, contribution = stored
+    reputation = REPUTATION_FORMULAS[_REPUTATION_PARAMS["reputation_formula"]](
+        np.array([value]),
+        np.array([contribution]),
+        _REPUTATION_PARAMS["rho"],
+        _REPUTATION_PARAMS["gamma"],
+    )[0]
+    return [value, contribution, float(max(reputation, _REPUTATION_PARAMS["e"]))]
+
+
 def generate_data(
     questions: QuerySet[Question],
     user_forecasts: QuerySet[Forecast] | list[Forecast] | None = None,
@@ -302,6 +359,7 @@ def generate_data(
         QuerySet[AggregateCoherenceLink] | list[AggregateCoherenceLink] | None
     ) = None,
     anonymized: bool = False,
+    forecast_reputations: dict[int, tuple[float, float]] | None = None,
 ) -> bytes:
     # generate a zip file with up to 6 csv files:
     #     question_data - Always
@@ -386,6 +444,11 @@ def generate_data(
         + "**`Resolution Known Time`** - the time when the resolution became known.\n"
         + "**`Include Bots in Aggregates`** - whether bots are included in the aggregations by default.\n"
         + "**`Question Weight`** - the weight of the question in the leaderboard.\n"
+        + (
+            "**`Spot Scoring Time`** - the question's spot scoring time. `reputation_weighted` only time-decays forecasts from then on (see `Reputation` in `forecast_data.csv`).\n"
+            if forecast_reputations is not None
+            else ""
+        )
     )
     question_output = io.StringIO()
     question_writer = csv.writer(question_output)
@@ -419,6 +482,7 @@ def generate_data(
             "Resolution Known Time",
             "Include Bots in Aggregates",
             "Question Weight",
+            *(["Spot Scoring Time"] if forecast_reputations is not None else []),
         ]
     )
     for question in questions:
@@ -485,6 +549,11 @@ def generate_data(
                 question.actual_resolve_time,
                 question.include_bots_in_aggregates,
                 question.question_weight,
+                *(
+                    [question.get_spot_scoring_time()]
+                    if forecast_reputations is not None
+                    else []
+                ),
             ]
         )
     # forecast_data csv file
@@ -550,6 +619,9 @@ def generate_data(
             "PDF at Resolution",
         ]
     )
+    if forecast_reputations is not None:
+        readme_output.write(REPUTATION_COLUMNS_README)
+        headers.extend(["Reputation Value", "Reputation Contribution", "Reputation"])
     forecast_writer.writerow(headers)
     for forecast in user_forecasts or []:
         row = [forecast.question_id]
@@ -590,7 +662,7 @@ def generate_data(
             forecast.question.resolution, forecast.question
         )
         if resolution_index is None:
-            row.append(None)
+            row.extend([None, None])
         else:
             pmf = forecast.get_pmf()
             forecast_at_resolution = (
@@ -604,6 +676,8 @@ def generate_data(
                 row.append(forecast_at_resolution * (len(pmf) - 2))
             else:
                 row.append(None)
+        if forecast_reputations is not None:
+            row.extend(_reputation_columns(forecast_reputations.get(forecast.id)))
 
         forecast_writer.writerow(row)
     for aggregate_forecast in aggregate_forecasts or []:
@@ -676,6 +750,9 @@ def generate_data(
                 row.append(forecast_at_resolution * (len(pmf) - 2))
             else:
                 row.append(None)
+        if forecast_reputations is not None:
+            # user forecasts only
+            row.extend([None] * (len(headers) - len(row)))
         forecast_writer.writerow(row)
 
     # comment_data csv file
