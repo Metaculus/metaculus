@@ -513,8 +513,9 @@ def _reputation_arrays(
 class ReputationWeighted(Weighted):
     """Uses a Reputation to calculate a forecast's weight.
     Requires `get_reputation_history`, which returns each forecaster's
-    Reputations sorted by time, or an override of `get_reputation_arrays`. The
-    reputation at a timestep is the latest one at or before it, 0 if none."""
+    Reputations sorted by time, or an override of `get_reputation_arrays`. A
+    forecaster's reputation is the latest one at or before the time
+    `_lookup_epochs` gives (the timestep by default), 0 if none."""
 
     def __init__(
         self,
@@ -528,8 +529,14 @@ class ReputationWeighted(Weighted):
         self.question = question
         time_range = None
         if forecast_history:
-            timesteps = [forecast_set.timestep for forecast_set in forecast_history]
-            time_range = (min(timesteps), max(timesteps))
+            epochs = np.concatenate(
+                [self._lookup_epochs(forecast_set) for forecast_set in forecast_history]
+            )
+            if epochs.size:
+                time_range = (
+                    datetime.fromtimestamp(epochs.min(), dt_timezone.utc),
+                    datetime.fromtimestamp(epochs.max(), dt_timezone.utc),
+                )
         self.reputations: ReputationArrays = self.get_reputation_arrays(
             all_forecaster_ids, time_range
         )
@@ -543,6 +550,12 @@ class ReputationWeighted(Weighted):
         self, all_forecaster_ids: list[int] | set[int]
     ) -> dict[int, list[Reputation]]:
         raise NotImplementedError("Implement in Child Class")
+
+    def _lookup_epochs(self, forecast_set: ForecastSet) -> np.ndarray:
+        """When each of forecast_set's forecasters' reputation is read"""
+        return np.full(
+            len(forecast_set.forecaster_ids), forecast_set.timestep.timestamp()
+        )
 
     def get_reputation_arrays(
         self,
@@ -588,9 +601,7 @@ class ReputationWeighted(Weighted):
             dtype=np.int64,
             count=lengths.sum(),
         )
-        epochs = np.repeat(
-            [fs.timestep.timestamp() for fs in forecast_history], lengths
-        )
+        epochs = np.concatenate([self._lookup_epochs(fs) for fs in forecast_history])
         values = np.zeros(len(users))
         contributions = np.zeros(len(users))
         order = np.argsort(users, kind="stable")
@@ -614,9 +625,9 @@ class ReputationWeighted(Weighted):
     ) -> tuple[np.ndarray, np.ndarray]:
         values = np.zeros(len(forecast_set.forecaster_ids))
         contributions = np.zeros(len(forecast_set.forecaster_ids))
-        epoch = np.array([forecast_set.timestep.timestamp()])
+        epochs = self._lookup_epochs(forecast_set)
         for i, user_id in enumerate(forecast_set.forecaster_ids):
-            user_values, user_contributions = self._lookup(user_id, epoch)
+            user_values, user_contributions = self._lookup(user_id, epochs[i : i + 1])
             values[i] = user_values[0]
             contributions[i] = user_contributions[0]
         return values, contributions
@@ -624,9 +635,9 @@ class ReputationWeighted(Weighted):
     def get_reputations(
         self, forecast_set: ForecastSet
     ) -> tuple[np.ndarray, np.ndarray]:
-        """(values, contributions) of the reputation active at
-        forecast_set.timestep for each of forecast_set.forecaster_ids, 0 where
-        there is none"""
+        """(values, contributions) of the reputation of each of
+        forecast_set.forecaster_ids (see `_lookup_epochs`), 0 where there is
+        none"""
         precomputed = self._precomputed.get(id(forecast_set))
         if precomputed is not None and len(precomputed[0]) == len(
             forecast_set.forecaster_ids
@@ -685,6 +696,10 @@ class DecayReputationWeighted(ReputationWeighted):
         if b is not None:
             combiner_kwargs["b"] = b
         self.combiner = WEIGHT_COMBINERS[combiner](**combiner_kwargs)
+
+    def _lookup_epochs(self, forecast_set: ForecastSet) -> np.ndarray:
+        # A forecast keeps the reputation its forecaster had when it was made
+        return forecast_set.timesteps_epoch()
 
     @classmethod
     def transition_times(
