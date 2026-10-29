@@ -189,6 +189,9 @@ def send_futureeval_comment_reminders(
     for recipient, bot_missing_comments in reminders:
         send_futureeval_comment_reminder(recipient, bot_missing_comments)
 
-    logger.info(f"Sent {len(reminders)} missing-comment reminder(s)")
+    logger.info(
+        f"Attempted {len(reminders)} missing-comment reminder(s); "
+        "failed sends are logged individually"
+    )
 
     return reminders

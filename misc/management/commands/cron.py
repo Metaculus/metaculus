@@ -254,7 +254,7 @@ class Command(BaseCommand):
         if settings.FUTUREEVAL_COMMENT_REMINDERS_SEND_EMAILS:
             scheduler.add_job(
                 close_old_connections(job_send_futureeval_comment_reminders.send),
-                trigger=CronTrigger.from_crontab("0 14 * * 1"),  # Mondays 14:00 UTC
+                trigger=CronTrigger.from_crontab("0 14 * * mon"),  # Mondays 14:00 UTC
                 id="comments_send_futureeval_comment_reminders",
                 max_instances=1,
                 replace_existing=True,
