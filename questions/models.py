@@ -779,7 +779,11 @@ class AggregateForecastQuerySet(QuerySet):
         return self.filter(method=F("question__default_aggregation_method"))
 
     def exclude_shadow_aggregations(self):
-        return self.exclude(method__in=SHADOW_AGGREGATION_METHODS)
+        # A shadow method that is the question's own default isn't a shadow there
+        return self.exclude(
+            Q(method__in=SHADOW_AGGREGATION_METHODS)
+            & ~Q(method=F("question__default_aggregation_method"))
+        )
 
 
 class AggregateForecast(models.Model):

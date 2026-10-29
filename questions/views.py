@@ -65,7 +65,10 @@ def question_detail_api_view(request, pk: int):
                     question.aggregate_forecasts.all()
                     if request.user.is_staff
                     else question.aggregate_forecasts.exclude_shadow_aggregations()
-                ).order_by("start_time")
+                )
+                # reputation_weighted stores a future entry at the spot scoring time
+                .filter(start_time__lte=timezone.now())
+                .order_by("start_time")
                 if with_cp
                 else None
             ),

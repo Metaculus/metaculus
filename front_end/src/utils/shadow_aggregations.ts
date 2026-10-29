@@ -44,30 +44,31 @@ export function shadowAggregationsHeaders(): Record<string, string> {
 /**
  * Keeps the cookie on this tab's setting while it has focus. `renderedWith` is
  * the setting this page was server-rendered with: a new tab adopts it, and a
- * tab whose page was rendered with another tab's setting reloads with its
- * own. Returns a cleanup function.
+ * page rendered with another setting (another tab's, or an older one restored
+ * from the back/forward cache) reloads with this tab's own. Only a focused tab
+ * touches the cookie, so a background tab can't change what the foreground
+ * one renders. Returns a cleanup function.
  */
 export function syncTabShadowAggregations(renderedWith: boolean): () => void {
-  const own = getTabSetting();
-  if (own === null) {
+  if (getTabSetting() === null) {
     safeSessionStorage.setItem(STORAGE_KEY, String(renderedWith));
-  } else if (own !== renderedWith && writeCookie(own)) {
-    // only if the cookie took, so blocked cookies can't loop
-    window.location.reload();
   }
 
-  const onFocus = () => {
-    const enabled = getTabSetting();
-    if (enabled !== null && document.visibilityState === "visible") {
-      writeCookie(enabled);
+  const reconcile = () => {
+    const own = getTabSetting();
+    if (own === null || !document.hasFocus()) return;
+    // only reload if the cookie took, so blocked cookies can't loop
+    if (writeCookie(own) && own !== renderedWith) {
+      window.location.reload();
     }
   };
-  window.addEventListener("focus", onFocus);
-  window.addEventListener("pageshow", onFocus);
-  document.addEventListener("visibilitychange", onFocus);
+  reconcile();
+  window.addEventListener("focus", reconcile);
+  window.addEventListener("pageshow", reconcile);
+  document.addEventListener("visibilitychange", reconcile);
   return () => {
-    window.removeEventListener("focus", onFocus);
-    window.removeEventListener("pageshow", onFocus);
-    document.removeEventListener("visibilitychange", onFocus);
+    window.removeEventListener("focus", reconcile);
+    window.removeEventListener("pageshow", reconcile);
+    document.removeEventListener("visibilitychange", reconcile);
   };
 }

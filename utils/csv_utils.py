@@ -273,12 +273,19 @@ def export_data_for_questions(
     ):
         # evaluated once, so both see the same forecasts
         user_forecasts = list(user_forecasts)
-        # forecasts reputation_weighted ignores get no reputation
+        # Forecasts the exported aggregate leaves out get no reputation. This
+        # mirrors get_aggregation_history's filtering: explicit user ids are
+        # taken as given, otherwise bots count unless include_bots is False.
+        ignored = Q(pk__in=[])
+        if not only_include_user_ids:
+            ignored = Q(exclude_from_aggregations=True) | Q(
+                is_bot=True, is_primary_bot=False
+            )
+            if include_bots is False:
+                ignored |= Q(is_bot=True)
         ignored_authors = set(
             User.objects.filter(
-                Q(exclude_from_aggregations=True)
-                | Q(is_bot=True, is_primary_bot=False),
-                id__in={forecast.author_id for forecast in user_forecasts},
+                ignored, id__in={forecast.author_id for forecast in user_forecasts}
             ).values_list("id", flat=True)
         )
         forecast_reputations = reputations_at_forecast_time(
@@ -318,14 +325,14 @@ def export_data_for_user(user=User):
 
 _REPUTATION_PARAMS = ReputationWeightedAggregation.weighting_classes[0][1]
 REPUTATION_COLUMNS_README = (
-    "**`Reputation Value`** - user forecasts that count toward `reputation_weighted` only (empty for forecasters excluded from aggregations and non-primary bots): the forecaster's stored reputation (average peer score, shrunk toward 0) when the forecast was made. 0 if they had none.\n"
+    "**`Reputation Value`** - user forecasts that count toward `reputation_weighted` only (empty for forecasts the exported `reputation_weighted` aggregate leaves out, e.g. users excluded from aggregations, non-primary bots, or bots when they were excluded): the forecaster's stored reputation (average peer score, shrunk toward 0) when the forecast was made. 0 if they had none.\n"
     + "**`Reputation Contribution`** - user forecasts only: the coverage (sum of per-question coverage) behind `Reputation Value`.\n"
     + "**`Reputation`** - user forecasts only: the reputation the `reputation_weighted` aggregation weights the forecast by, "
     + f"max({_REPUTATION_PARAMS['reputation_formula']}(value, contribution; rho={_REPUTATION_PARAMS['rho']}, gamma={_REPUTATION_PARAMS['gamma']}), e={_REPUTATION_PARAMS['e']}). "
     + "A forecast keeps it for its whole life. At each time step, its weight is "
     + f"(decay^a * Reputation^(1-a))^b with a={_REPUTATION_PARAMS['a']}, b={_REPUTATION_PARAMS['b']}, where decay is 1 before the question's `Spot Scoring Time` (in `question_data.csv`) "
     + "and exp(-(time step - Start Time) / (Scheduled Close Time - Open Time)) from then on. The aggregate is the weighted mean of the active forecasts "
-    + "(unweighted if every weight is 0) of the forecasts with a `Reputation`, including primary bots' even where the question excludes bots.\n"
+    + "(unweighted if every weight is 0) of the forecasts with a `Reputation`.\n"
 )
 
 
