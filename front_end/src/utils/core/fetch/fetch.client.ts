@@ -1,4 +1,5 @@
 import { FetchOptions, FetchConfig } from "@/types/fetch";
+import { shadowAggregationsHeaders } from "@/utils/shadow_aggregations";
 
 import { createFetcher, defaultOptions, handleResponse } from "./fetch.shared";
 
@@ -26,6 +27,7 @@ const clientAppFetch = async <T>(
       "x-empty-content": emptyContentType ? "true" : "false",
       "x-pass-auth": passAuthHeader ? "true" : "false",
       "x-include-locale": includeLocale ? "true" : "false",
+      ...shadowAggregationsHeaders(),
     },
   };
 

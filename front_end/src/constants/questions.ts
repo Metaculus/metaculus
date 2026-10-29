@@ -19,5 +19,7 @@ export const ContinuousQuestionTypes = [
 ] as const;
 
 // Session cookie with which staff view shadow aggregations (reputation_weighted)
-// in place of the default one. Forwarded to the API as X-Shadow-Aggregations.
+// in place of the default one. Forwarded to the API as SHADOW_AGGREGATIONS_HEADER.
+// The focused tab's setting; see utils/shadow_aggregations.ts.
 export const SHADOW_AGGREGATIONS_COOKIE = "show_shadow_aggregations";
+export const SHADOW_AGGREGATIONS_HEADER = "x-shadow-aggregations";

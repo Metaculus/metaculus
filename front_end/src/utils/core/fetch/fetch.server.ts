@@ -3,7 +3,10 @@ import "server-only";
 import { cookies } from "next/headers";
 import { getLocale } from "next-intl/server";
 
-import { SHADOW_AGGREGATIONS_COOKIE } from "@/constants/questions";
+import {
+  SHADOW_AGGREGATIONS_COOKIE,
+  SHADOW_AGGREGATIONS_HEADER,
+} from "@/constants/questions";
 import { getAuthCookieManager } from "@/services/auth_tokens";
 import { getAlphaTokenSession } from "@/services/session";
 import { FetchConfig, FetchOptions } from "@/types/fetch";
@@ -43,7 +46,9 @@ async function serverFetch<T>(
       ...options.headers,
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...(alphaToken ? { "x-alpha-auth-token": alphaToken } : {}),
-      ...(showShadowAggregations ? { "x-shadow-aggregations": "true" } : {}),
+      ...(showShadowAggregations
+        ? { [SHADOW_AGGREGATIONS_HEADER]: "true" }
+        : {}),
     },
   };
 

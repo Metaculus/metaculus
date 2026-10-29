@@ -1,12 +1,14 @@
 "use client";
 
-import { FC, useState } from "react";
+import { FC, useEffect, useState } from "react";
 
 import Checkbox from "@/components/ui/checkbox";
-import { SHADOW_AGGREGATIONS_COOKIE } from "@/constants/questions";
 import { useAuth } from "@/contexts/auth_context";
 import cn from "@/utils/core/cn";
-import { safeDocumentCookie } from "@/utils/core/storage";
+import {
+  setTabShadowAggregations,
+  syncTabShadowAggregations,
+} from "@/utils/shadow_aggregations";
 
 // Hardcoded: a temporary, staff-only control
 const LABEL = "View reputation weighted aggregate (staff only)";
@@ -16,16 +18,19 @@ export const ShadowAggregationsBannerClient: FC<{ enabled: boolean }> = ({
 }) => {
   const { user } = useAuth();
   const [checked, setChecked] = useState(enabled);
+  const isStaff = !!user?.is_staff;
 
-  if (!user?.is_staff) return null;
+  useEffect(
+    () => (isStaff ? syncTabShadowAggregations(enabled) : undefined),
+    [isStaff, enabled]
+  );
+
+  if (!isStaff) return null;
 
   const handleChange = (value: boolean) => {
     setChecked(value);
-    // A session cookie, so it lasts while navigating but not across sessions
-    safeDocumentCookie.set(
-      SHADOW_AGGREGATIONS_COOKIE,
-      value ? "true" : "false"
-    );
+    // This tab only: other tabs keep their own setting
+    setTabShadowAggregations(value);
     // A full reload, so client-side caches (feeds, prediction flow) refetch too
     window.location.reload();
   };
