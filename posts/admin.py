@@ -247,6 +247,7 @@ class PostAdmin(CustomTranslationAdmin):
             old_default_project_id = form.initial.get("default_project")
 
         super().save_model(request, obj, form, change)
+        obj.sync_question_post_fk()
 
         if (
             old_default_project_id is not None

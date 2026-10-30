@@ -1,13 +1,14 @@
 from datetime import datetime
 
 import pytest  # noqa
+from django.contrib import admin
 from django.core.exceptions import ValidationError
 from django.forms import model_to_dict
 from django.utils import timezone
 from django.utils.timezone import make_aware
 from freezegun import freeze_time
 
-from posts.admin import PostAdminForm
+from posts.admin import PostAdmin, PostAdminForm
 from posts.models import Post
 from projects.models import Project, ProjectUserPermission
 from projects.permissions import ObjectPermission
@@ -568,3 +569,18 @@ class TestApprovedQuestionDates:
 
         assert not form.is_valid()
         assert '"Q1" is missing: open time' in form.non_field_errors()[0]
+
+    def test_admin_relink_syncs_question_post(self, user1, mocker):
+        mocker.patch("posts.admin.run_post_generate_history_snapshot.send")
+        post = factory_post(
+            author=user1,
+            question=create_question(question_type=Question.QuestionType.BINARY),
+        )
+        post.question = create_question(question_type=Question.QuestionType.BINARY)
+
+        PostAdmin(Post, admin.site).save_model(
+            mocker.Mock(user=user1), post, mocker.Mock(changed_data=[]), change=True
+        )
+
+        post.question.refresh_from_db()
+        assert post.question.post_id == post.id
