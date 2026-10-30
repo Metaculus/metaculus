@@ -311,6 +311,31 @@ class Question(TimeStampedModel, TranslatedModel):  # type: ignore
         ):
             raise ValidationError("Scheduled Resolve Time must be after open_time")
 
+        if (
+            self.post_id
+            and self.post.curation_status == self.post.CurationStatus.APPROVED
+            and (error := self.get_missing_dates_error())
+        ):
+            raise ValidationError(error)
+
+    def get_missing_dates_error(self) -> str | None:
+        missing = [
+            self._meta.get_field(field).verbose_name
+            for field in (
+                "open_time",
+                "cp_reveal_time",
+                "scheduled_close_time",
+                "scheduled_resolve_time",
+            )
+            if getattr(self, field) is None
+        ]
+
+        if missing:
+            return (
+                f'Approved question "{self.label or self.title}" is missing: '
+                f"{', '.join(missing)}"
+            )
+
     def save(self, **kwargs):
         # Ensure resolution is always null or non-empty string
         if self.resolution is not None and self.resolution.strip() == "":
