@@ -162,7 +162,7 @@ const NumericQuestionInput: React.FC<{
     inbound_outcome_count: isNil(defaultInboundOutcomeCount)
       ? questionType !== QuestionType.Discrete || isNil(min) || isNil(max)
         ? DefaultInboundOutcomeCount
-        : Math.max(3, Math.min(200, Math.round((max - min) / step) + 1))
+        : Math.max(3, Math.min(401, Math.round((max - min) / step) + 1))
       : defaultInboundOutcomeCount,
     aggregations: {
       recency_weighted: { history: [], latest: undefined },
@@ -224,10 +224,10 @@ const NumericQuestionInput: React.FC<{
           );
         }
         // inbound outcome count is (max - min) / step + 1, so cap the ratio
-        // at 199 to keep it <= 200. Small tolerance for float division.
-        if (step != 0 && (max - min) / step > 199 + 1e-9) {
+        // at 400 to keep it <= 401. Small tolerance for float division.
+        if (step != 0 && (max - min) / step > 400 + 1e-9) {
           current_errors.push(
-            t.rich("stepError1", { rangePortion: (max - min) / 199 })
+            t.rich("stepError1", { rangePortion: (max - min) / 400 })
           );
         }
       }
@@ -253,15 +253,18 @@ const NumericQuestionInput: React.FC<{
     let mn: number = Math.round(1e10 * (min as number)) / 1e10;
     let mx: number = Math.round(1e10 * (max as number)) / 1e10;
     if (questionType === QuestionType.Discrete) {
-      mx = mx - (Math.round(1e10 * (mx - mn)) % (1e10 * step)) / 1e10; // estimate new value
-      mx = Math.round(1e10 * (mx + 0.5 * step)) / 1e10;
+      // snap max down to a whole number of steps from min; round the ratio
+      // first so float error (e.g. 19.899 / 0.1005 = 197.99999...) doesn't
+      // drop a full step on every save
+      const stepCount = Math.floor(Math.round(1e8 * ((mx - mn) / step)) / 1e8);
+      mx = Math.round(1e10 * (mn + stepCount * step + 0.5 * step)) / 1e10;
       mn -= 0.5 * step;
     }
     let inboundOutcomeCount: number;
     if (questionType === QuestionType.Discrete) {
       inboundOutcomeCount = Math.max(
         3,
-        Math.min(200, Math.round((mx - mn) / step))
+        Math.min(401, Math.round((mx - mn) / step))
       );
     } else {
       inboundOutcomeCount = DefaultInboundOutcomeCount;
