@@ -223,9 +223,11 @@ const NumericQuestionInput: React.FC<{
             t.rich("stepError0", { halfRange: (max - min) / 2 })
           );
         }
-        if (step != 0 && step < (max - min) / 200) {
+        // inbound outcome count is (max - min) / step + 1, so cap the ratio
+        // at 199 to keep it <= 200. Small tolerance for float division.
+        if (step != 0 && (max - min) / step > 199 + 1e-9) {
           current_errors.push(
-            t.rich("stepError1", { rangePortion: (max - min) / 2 })
+            t.rich("stepError1", { rangePortion: (max - min) / 199 })
           );
         }
       }
