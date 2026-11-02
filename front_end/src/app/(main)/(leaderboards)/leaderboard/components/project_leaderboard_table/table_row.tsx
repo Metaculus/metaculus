@@ -133,7 +133,7 @@ const TableRow: FC<Props> = ({
         )}
       </Td>
       {withRankCI && (
-        <Td className="sticky left-0 w-0 text-left" highlight={highlight}>
+        <Td className="w-0 text-left" highlight={highlight}>
           <Interval
             lower={rank_ci_lower}
             upper={rank_ci_upper}
