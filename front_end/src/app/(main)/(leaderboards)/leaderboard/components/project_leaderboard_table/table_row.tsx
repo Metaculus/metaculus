@@ -7,6 +7,7 @@ import { ExclusionStatuses, LeaderboardEntry } from "@/types/scoring";
 import cn from "@/utils/core/cn";
 import { formatUsername } from "@/utils/formatters/users";
 
+import { formatCompact, formatRankBound, formatScoreBound } from "./formatters";
 import MedalIcon from "../../../components/medal_icon";
 import AggregationRankTooltip from "../aggregation_rank_tooltip";
 import ExcludedEntryTooltip from "../excluded_entry_tooltop";
@@ -18,32 +19,32 @@ type Props = {
   withPrizePool?: boolean;
   withRankCI?: boolean;
   withScoreCI?: boolean;
+  rankBoundChars?: number;
+  scoreBoundChars?: number;
   compactScores?: boolean;
   isAdvanced?: boolean;
 };
 
-// One decimal below `threshold`, none from there on
-function formatCompact(value: number, threshold: number): string {
-  const withDecimal = value.toFixed(1);
-  return Math.abs(Number(withDecimal)) < threshold
-    ? withDecimal
-    : value.toFixed(0);
-}
-
-// Renders the " (lower–upper)" suffix shown after a rank or score
-const IntervalSuffix: FC<{
+// Renders "lower–upper" with each bound in a `boundChars`-wide slot so the
+// dashes line up down the column
+const Interval: FC<{
   lower: number | null | undefined;
   upper: number | null | undefined;
   format: (value: number) => string;
-}> = ({ lower, upper, format }) => {
+  boundChars: number;
+}> = ({ lower, upper, format, boundChars }) => {
   if (isNil(lower) || isNil(upper)) {
     return null;
   }
+  const slot = `minmax(${boundChars}ch, auto)`;
   return (
-    <span className="ml-1 text-xs">
-      ({format(lower)}
-      {"\u2013"}
-      {format(upper)})
+    <span
+      className="inline-grid tabular-nums"
+      style={{ gridTemplateColumns: `${slot} auto ${slot}` }}
+    >
+      <span className="text-right">{format(lower)}</span>
+      <span>{"–"}</span>
+      <span className="text-left">{format(upper)}</span>
     </span>
   );
 };
@@ -55,6 +56,8 @@ const TableRow: FC<Props> = ({
   withPrizePool = true,
   withRankCI = false,
   withScoreCI = false,
+  rankBoundChars = 0,
+  scoreBoundChars = 0,
   compactScores = false,
   isAdvanced = false,
 }) => {
@@ -93,8 +96,6 @@ const TableRow: FC<Props> = ({
         : aggregation_method ?? "";
   const formatScore = (value: number) =>
     compactScores ? formatCompact(value, 10) : value.toFixed(3);
-  const formatScoreBound = (value: number) =>
-    compactScores ? formatCompact(value, 10) : value.toFixed(1);
   const formatTake = (value: number) =>
     compactScores ? formatCompact(value, 100) : value.toFixed(3);
   const forecasterLink = user
@@ -126,26 +127,21 @@ const TableRow: FC<Props> = ({
               ))}
 
             <span className="flex-1 text-center tabular-nums">
-              {isExcludedFromRanking ? (
-                <>
-                  <ExcludedEntryTooltip />
-                </>
-              ) : (
-                <>
-                  {rank}
-                  {withRankCI && (
-                    <IntervalSuffix
-                      lower={rank_ci_lower}
-                      upper={rank_ci_upper}
-                      format={(value) => value.toFixed(0)}
-                    />
-                  )}
-                </>
-              )}
+              {isExcludedFromRanking ? <ExcludedEntryTooltip /> : rank}
             </span>
           </>
         )}
       </Td>
+      {withRankCI && (
+        <Td className="sticky left-0 w-0 text-left" highlight={highlight}>
+          <Interval
+            lower={rank_ci_lower}
+            upper={rank_ci_upper}
+            format={formatRankBound}
+            boundChars={rankBoundChars}
+          />
+        </Td>
+      )}
       <Td
         className="sticky left-0 w-0 max-w-[9rem] text-left sm:max-w-[16rem]"
         highlight={highlight}
@@ -160,14 +156,17 @@ const TableRow: FC<Props> = ({
       </Td>
       <Td className="text-right tabular-nums" highlight={highlight}>
         {formatScore(score)}
-        {isAdvanced && withScoreCI && (
-          <IntervalSuffix
+      </Td>
+      {isAdvanced && withScoreCI && (
+        <Td className="text-right" highlight={highlight}>
+          <Interval
             lower={ci_lower}
             upper={ci_upper}
-            format={formatScoreBound}
+            format={(value) => formatScoreBound(value, compactScores)}
+            boundChars={scoreBoundChars}
           />
-        )}
-      </Td>
+        </Td>
+      )}
       {isAdvanced && (
         <>
           <Td className="text-right tabular-nums" highlight={highlight}>

@@ -11,6 +11,7 @@ import {
   LeaderboardDisplayConfig,
 } from "@/types/scoring";
 
+import { formatRankBound, formatScoreBound, maxBoundChars } from "./formatters";
 import TableHeader from "./table_header";
 import TableRow from "./table_row";
 import ConfidenceIntervalTooltip from "../confidence_interval_tooltip";
@@ -98,9 +99,40 @@ const ProjectLeaderboardTable: FC<Props> = ({
     [leaderboardDetails.entries]
   );
 
+  // Widths come from every row that can be shown, not just the current page,
+  // so the interval columns don't jump when more rows are loaded
+  const displayedEntries = useMemo(
+    () =>
+      leaderboardDetails.userEntry
+        ? [leaderboardDetails.userEntry, ...filteredEntries]
+        : filteredEntries,
+    [leaderboardDetails.userEntry, filteredEntries]
+  );
+  const rankBoundChars = useMemo(
+    () =>
+      maxBoundChars(
+        displayedEntries.flatMap((entry) => [
+          entry.rank_ci_lower,
+          entry.rank_ci_upper,
+        ]),
+        formatRankBound
+      ),
+    [displayedEntries]
+  );
+  const scoreBoundChars = useMemo(
+    () =>
+      maxBoundChars(
+        displayedEntries.flatMap((entry) => [entry.ci_lower, entry.ci_upper]),
+        (value) => formatScoreBound(value, compactScores)
+      ),
+    [displayedEntries, compactScores]
+  );
+
   const getColumnCount = () => {
     let count = 3;
+    if (withRankCI) count += 1;
     if (isAdvanced) count += 2;
+    if (isAdvanced && withScoreCI) count += 1;
     if (!!leaderboardDetails.prize_pool) {
       count += isAdvanced ? 3 : 1;
     }
@@ -114,15 +146,23 @@ const ProjectLeaderboardTable: FC<Props> = ({
           <tr>
             <TableHeader className="sticky left-0 w-0 text-left">
               {getColumnName("rank", columnRenames)}
-              {withRankCI && <ConfidenceIntervalTooltip />}
             </TableHeader>
+            {withRankCI && (
+              <TableHeader className="sticky left-0 w-0 text-left">
+                <ConfidenceIntervalTooltip />
+              </TableHeader>
+            )}
             <TableHeader className="sticky left-0 w-0 max-w-[9rem] text-left sm:max-w-[16rem]">
               {getColumnName("forecaster", columnRenames)}
             </TableHeader>
             <TableHeader className="text-right">
               {getColumnName("totalScore", columnRenames)}
-              {isAdvanced && withScoreCI && <ConfidenceIntervalTooltip />}
             </TableHeader>
+            {isAdvanced && withScoreCI && (
+              <TableHeader className="text-right">
+                <ConfidenceIntervalTooltip />
+              </TableHeader>
+            )}
             {isAdvanced && (
               <>
                 <TableHeader className=" text-right">
@@ -169,6 +209,8 @@ const ProjectLeaderboardTable: FC<Props> = ({
               withPrizePool={!!leaderboardDetails.prize_pool}
               withRankCI={withRankCI}
               withScoreCI={withScoreCI}
+              rankBoundChars={rankBoundChars}
+              scoreBoundChars={scoreBoundChars}
               compactScores={compactScores}
               isAdvanced={isAdvanced}
             />
@@ -183,6 +225,8 @@ const ProjectLeaderboardTable: FC<Props> = ({
                   withPrizePool={!!leaderboardDetails.prize_pool}
                   withRankCI={withRankCI}
                   withScoreCI={withScoreCI}
+                  rankBoundChars={rankBoundChars}
+                  scoreBoundChars={scoreBoundChars}
                   compactScores={compactScores}
                   isAdvanced={isAdvanced}
                 />
