@@ -7,6 +7,7 @@ from decimal import Decimal
 from io import StringIO
 
 import numpy as np
+from django.conf import settings
 from django.db import transaction
 from django.db.models import (
     QuerySet,
@@ -36,7 +37,7 @@ from projects.permissions import ObjectPermission
 from questions.cache import invalidate_average_coverage_cache
 from questions.constants import UnsuccessfulResolutionType
 from questions.models import Question, Forecast
-from questions.types import AggregationMethod
+from questions.types import AggregationMethod, SHADOW_AGGREGATION_METHODS
 from scoring.constants import ScoreTypes, LeaderboardScoreTypes
 from scoring.models import (
     ArchivedScore,
@@ -77,6 +78,8 @@ def get_question_scores(
             AggregationMethod.RECENCY_WEIGHTED,
             AggregationMethod.UNWEIGHTED,
         ]
+        if settings.SHADOW_AGGREGATIONS_ENABLED:
+            aggregation_methods += SHADOW_AGGREGATION_METHODS
     if not spot_scoring_time:
         spot_scoring_time = question.get_spot_scoring_time()
     score_types = score_types or [s for s in ScoreTypes if s != ScoreTypes.MANUAL]
