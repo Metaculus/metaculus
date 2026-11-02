@@ -2676,5 +2676,15 @@
   "initiativeFroCastingName": "FRO-casting",
   "initiativeFroCastingDescription": "與 Federation of American Scientists 合作，利用預測評估影響、提供回饋，並為研究經費分配提供依據。",
   "initiativeAINuclearLandscapeName": "人工智慧與核安全局勢預測",
-  "initiativeAINuclearLandscapeDescription": "與 Institute for Security and Technology 合作的報告，評估美中局勢升級的風險，包括將人工智慧納入核指揮、控制與通訊系統。"
+  "initiativeAINuclearLandscapeDescription": "與 Institute for Security and Technology 合作的報告，評估美中局勢升級的風險，包括將人工智慧納入核指揮、控制與通訊系統。",
+  "aboutChartFounded": "Metaculus 成立",
+  "aboutChartTrumpKim": "川普–金正恩\n峰會",
+  "aboutChartCovid": "新冠疫情\n爆發",
+  "aboutChartUkraine": "烏克蘭\n戰爭爆發",
+  "aboutChartIsraelHamas": "以色列–哈瑪斯\n戰爭爆發",
+  "aboutChartUsElection": "美國\n總統大選",
+  "aboutChartIranStrikes": "美國\n空襲伊朗",
+  "aboutChartHuggingFace": "Hugging Face 遭入侵",
+  "aboutChartAxisCaption": "預測\n數量",
+  "aboutChartPredictionsCount": "{count} 則預測"
 }

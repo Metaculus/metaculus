@@ -24,11 +24,14 @@ export type GetInTouchForm = {
   service: string;
 };
 
+export type PredictionsByMonth = { month: string; cumulative: number }[];
+
 export interface SiteStats {
   predictions: number;
   questions: number;
   resolved_questions: number;
   years_of_predictions: number;
+  predictions_by_month?: PredictionsByMonth;
 }
 
 export type BulletinItem = {

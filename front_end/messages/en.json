@@ -2668,5 +2668,15 @@
   "initiativeFroCastingName": "FRO-casting",
   "initiativeFroCastingDescription": "Collaboration with the Federation of American Scientists to use predictions to assess impact, deliver feedback, and inform the allocation of research funding.",
   "initiativeAINuclearLandscapeName": "Forecasting the AI and Nuclear Landscape",
-  "initiativeAINuclearLandscapeDescription": "In partnership with the Institute for Security and Technology, a report assessing the risks of US-China escalation, including integrating AI into nuclear command, control, and communications."
+  "initiativeAINuclearLandscapeDescription": "In partnership with the Institute for Security and Technology, a report assessing the risks of US-China escalation, including integrating AI into nuclear command, control, and communications.",
+  "aboutChartFounded": "Metaculus founded",
+  "aboutChartTrumpKim": "Trump–Kim\nSummit",
+  "aboutChartCovid": "Covid-19\nPandemic\nBegins",
+  "aboutChartUkraine": "War in Ukraine\nOutbreak",
+  "aboutChartIsraelHamas": "Israel–Hamas\nWar Begins",
+  "aboutChartUsElection": "US Presidential\nElection",
+  "aboutChartIranStrikes": "US Strikes\non Iran",
+  "aboutChartHuggingFace": "Hugging Face Hack",
+  "aboutChartAxisCaption": "Number of\npredictions",
+  "aboutChartPredictionsCount": "{count} predictions"
 }

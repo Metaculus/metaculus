@@ -2,8 +2,10 @@ import { getLocale } from "next-intl/server";
 import { getTranslations } from "next-intl/server";
 
 import serverMiscApi from "@/services/api/misc/misc.server";
+import { SiteStats } from "@/services/api/misc/misc.shared";
 
-import { AboutHeader } from "./components/AboutHeader";
+import { PREDICTIONS_BY_MONTH_FALLBACK } from "./components/predictions_chart_fallback";
+import PredictionsChart from "./components/PredictionsChart";
 import TeamBlock from "./components/TeamBlock";
 import content_pt from "./page_pt";
 import EngageBlock from "../(home)/components/engage_block";
@@ -15,7 +17,7 @@ export const metadata = {
 };
 
 export default async function AboutPage() {
-  let siteStats = {
+  let siteStats: SiteStats = {
     predictions: 2133159,
     questions: 17357,
     resolved_questions: 6654,
@@ -64,7 +66,14 @@ export default async function AboutPage() {
           {t("aboutMetaculusDescription")}
         </p>
       </div>
-      <AboutHeader className="text-metac-blue-800 dark:text-metac-blue-800-dark -mt-40 hidden xl:block" />
+      <PredictionsChart
+        series={
+          siteStats.predictions_by_month?.length
+            ? siteStats.predictions_by_month
+            : PREDICTIONS_BY_MONTH_FALLBACK
+        }
+        className="-mt-40 hidden xl:block"
+      />
       <div className="my-10 md:my-20">
         <div className="grid gap-2 xs:grid-cols-2 lg:grid-cols-4">
           {numbers.map(({ title, number }) => (

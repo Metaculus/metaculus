@@ -2679,5 +2679,15 @@
   "initiativeFroCastingName": "FRO-casting",
   "initiativeFroCastingDescription": "Spolupráce s Federation of American Scientists využívající prognózy k hodnocení dopadu, poskytování zpětné vazby a rozhodování o přidělování prostředků na výzkum.",
   "initiativeAINuclearLandscapeName": "Prognózy AI a jaderné bezpečnosti",
-  "initiativeAINuclearLandscapeDescription": "Ve spolupráci s Institute for Security and Technology zpráva hodnotící rizika eskalace mezi USA a Čínou, včetně začlenění AI do jaderného velení, řízení a komunikace."
+  "initiativeAINuclearLandscapeDescription": "Ve spolupráci s Institute for Security and Technology zpráva hodnotící rizika eskalace mezi USA a Čínou, včetně začlenění AI do jaderného velení, řízení a komunikace.",
+  "aboutChartFounded": "Založení Metaculu",
+  "aboutChartTrumpKim": "Summit\nTrump–Kim",
+  "aboutChartCovid": "Začátek\npandemie\nCovid-19",
+  "aboutChartUkraine": "Vypuknutí\nválky na Ukrajině",
+  "aboutChartIsraelHamas": "Začátek války\nIzrael–Hamás",
+  "aboutChartUsElection": "Prezidentské\nvolby v USA",
+  "aboutChartIranStrikes": "Údery USA\nna Írán",
+  "aboutChartHuggingFace": "Útok na Hugging Face",
+  "aboutChartAxisCaption": "Počet\npředpovědí",
+  "aboutChartPredictionsCount": "{count} předpovědí"
 }

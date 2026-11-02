@@ -2679,5 +2679,15 @@
   "initiativeFroCastingName": "FRO-casting",
   "initiativeFroCastingDescription": "Colaboración con la Federation of American Scientists para usar pronósticos que permitan evaluar impactos, aportar información y orientar la asignación de fondos de investigación.",
   "initiativeAINuclearLandscapeName": "Pronósticos sobre la IA y el panorama nuclear",
-  "initiativeAINuclearLandscapeDescription": "En colaboración con el Institute for Security and Technology, un informe que evalúa los riesgos de escalada entre EE. UU. y China, incluida la integración de la IA en el mando, control y comunicaciones nucleares."
+  "initiativeAINuclearLandscapeDescription": "En colaboración con el Institute for Security and Technology, un informe que evalúa los riesgos de escalada entre EE. UU. y China, incluida la integración de la IA en el mando, control y comunicaciones nucleares.",
+  "aboutChartFounded": "Fundación de Metaculus",
+  "aboutChartTrumpKim": "Cumbre\nTrump–Kim",
+  "aboutChartCovid": "Comienza la\npandemia de\nCovid-19",
+  "aboutChartUkraine": "Estalla la\nguerra en Ucrania",
+  "aboutChartIsraelHamas": "Comienza la guerra\nIsrael–Hamás",
+  "aboutChartUsElection": "Elecciones\npresidenciales EE. UU.",
+  "aboutChartIranStrikes": "Ataques de EE. UU.\ncontra Irán",
+  "aboutChartHuggingFace": "Hackeo a Hugging Face",
+  "aboutChartAxisCaption": "Número de\npredicciones",
+  "aboutChartPredictionsCount": "{count} predicciones"
 }

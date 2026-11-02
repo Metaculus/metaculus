@@ -2681,5 +2681,15 @@
   "initiativeFroCastingName": "FRO-casting",
   "initiativeFroCastingDescription": "与 Federation of American Scientists 合作，利用预测评估影响、提供反馈，并为研究资金分配提供依据。",
   "initiativeAINuclearLandscapeName": "人工智能与核安全格局预测",
-  "initiativeAINuclearLandscapeDescription": "与 Institute for Security and Technology 合作的报告，评估美中局势升级的风险，包括将人工智能纳入核指挥、控制和通信系统。"
+  "initiativeAINuclearLandscapeDescription": "与 Institute for Security and Technology 合作的报告，评估美中局势升级的风险，包括将人工智能纳入核指挥、控制和通信系统。",
+  "aboutChartFounded": "Metaculus 成立",
+  "aboutChartTrumpKim": "特朗普–金正恩\n峰会",
+  "aboutChartCovid": "新冠疫情\n暴发",
+  "aboutChartUkraine": "乌克兰\n战争爆发",
+  "aboutChartIsraelHamas": "以色列–哈马斯\n战争爆发",
+  "aboutChartUsElection": "美国\n总统大选",
+  "aboutChartIranStrikes": "美国\n空袭伊朗",
+  "aboutChartHuggingFace": "Hugging Face 遭入侵",
+  "aboutChartAxisCaption": "预测\n数量",
+  "aboutChartPredictionsCount": "{count} 条预测"
 }
