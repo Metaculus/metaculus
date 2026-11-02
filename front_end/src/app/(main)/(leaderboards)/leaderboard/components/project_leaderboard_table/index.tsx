@@ -12,7 +12,6 @@ import {
 } from "@/types/scoring";
 import cn from "@/utils/core/cn";
 
-import { formatRankBound, formatScoreBound, maxBoundChars } from "./formatters";
 import TableHeader from "./table_header";
 import TableRow from "./table_row";
 import ConfidenceIntervalTooltip from "../confidence_interval_tooltip";
@@ -98,35 +97,6 @@ const ProjectLeaderboardTable: FC<Props> = ({
         (entry) => !isNil(entry.ci_lower) && !isNil(entry.ci_upper)
       ),
     [leaderboardDetails.entries]
-  );
-
-  // Widths come from every row that can be shown, not just the current page,
-  // so the interval columns don't jump when more rows are loaded
-  const displayedEntries = useMemo(
-    () =>
-      leaderboardDetails.userEntry
-        ? [leaderboardDetails.userEntry, ...filteredEntries]
-        : filteredEntries,
-    [leaderboardDetails.userEntry, filteredEntries]
-  );
-  const rankBoundChars = useMemo(
-    () =>
-      maxBoundChars(
-        displayedEntries.flatMap((entry) => [
-          entry.rank_ci_lower,
-          entry.rank_ci_upper,
-        ]),
-        formatRankBound
-      ),
-    [displayedEntries]
-  );
-  const scoreBoundChars = useMemo(
-    () =>
-      maxBoundChars(
-        displayedEntries.flatMap((entry) => [entry.ci_lower, entry.ci_upper]),
-        (value) => formatScoreBound(value, compactScores)
-      ),
-    [displayedEntries, compactScores]
   );
 
   const getColumnCount = () => {
@@ -217,8 +187,6 @@ const ProjectLeaderboardTable: FC<Props> = ({
               withPrizePool={!!leaderboardDetails.prize_pool}
               withRankCI={withRankCI}
               withScoreCI={withScoreCI}
-              rankBoundChars={rankBoundChars}
-              scoreBoundChars={scoreBoundChars}
               compactScores={compactScores}
               isAdvanced={isAdvanced}
             />
@@ -233,8 +201,6 @@ const ProjectLeaderboardTable: FC<Props> = ({
                   withPrizePool={!!leaderboardDetails.prize_pool}
                   withRankCI={withRankCI}
                   withScoreCI={withScoreCI}
-                  rankBoundChars={rankBoundChars}
-                  scoreBoundChars={scoreBoundChars}
                   compactScores={compactScores}
                   isAdvanced={isAdvanced}
                 />

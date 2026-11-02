@@ -7,7 +7,6 @@ import { ExclusionStatuses, LeaderboardEntry } from "@/types/scoring";
 import cn from "@/utils/core/cn";
 import { formatUsername } from "@/utils/formatters/users";
 
-import { formatCompact, formatRankBound, formatScoreBound } from "./formatters";
 import MedalIcon from "../../../components/medal_icon";
 import AggregationRankTooltip from "../aggregation_rank_tooltip";
 import ExcludedEntryTooltip from "../excluded_entry_tooltop";
@@ -19,33 +18,32 @@ type Props = {
   withPrizePool?: boolean;
   withRankCI?: boolean;
   withScoreCI?: boolean;
-  rankBoundChars?: number;
-  scoreBoundChars?: number;
   compactScores?: boolean;
   isAdvanced?: boolean;
 };
 
-// Renders "(lower–upper)" with each bound in an equal-width slot so the dashes
-// line up down the column; the parentheses sit inside the slots so they hug
-// the numbers
+// One decimal below `threshold`, none from there on
+function formatCompact(value: number, threshold: number): string {
+  const withDecimal = value.toFixed(1);
+  return Math.abs(Number(withDecimal)) < threshold
+    ? withDecimal
+    : value.toFixed(0);
+}
+
+// Renders the "(lower–upper)" interval shown beside a rank or score
 const Interval: FC<{
   lower: number | null | undefined;
   upper: number | null | undefined;
   format: (value: number) => string;
-  boundChars: number;
-}> = ({ lower, upper, format, boundChars }) => {
+}> = ({ lower, upper, format }) => {
   if (isNil(lower) || isNil(upper)) {
     return null;
   }
-  const slot = `minmax(${boundChars + 1}ch, auto)`;
   return (
-    <span
-      className="inline-grid text-xs tabular-nums"
-      style={{ gridTemplateColumns: `${slot} auto ${slot}` }}
-    >
-      <span className="text-right">({format(lower)}</span>
-      <span>{"–"}</span>
-      <span className="text-left">{format(upper)})</span>
+    <span className="text-xs tabular-nums">
+      ({format(lower)}
+      {"–"}
+      {format(upper)})
     </span>
   );
 };
@@ -57,8 +55,6 @@ const TableRow: FC<Props> = ({
   withPrizePool = true,
   withRankCI = false,
   withScoreCI = false,
-  rankBoundChars = 0,
-  scoreBoundChars = 0,
   compactScores = false,
   isAdvanced = false,
 }) => {
@@ -97,6 +93,8 @@ const TableRow: FC<Props> = ({
         : aggregation_method ?? "";
   const formatScore = (value: number) =>
     compactScores ? formatCompact(value, 10) : value.toFixed(3);
+  const formatScoreBound = (value: number) =>
+    compactScores ? formatCompact(value, 10) : value.toFixed(1);
   const formatTake = (value: number) =>
     compactScores ? formatCompact(value, 100) : value.toFixed(3);
   const forecasterLink = user
@@ -141,8 +139,7 @@ const TableRow: FC<Props> = ({
           <Interval
             lower={rank_ci_lower}
             upper={rank_ci_upper}
-            format={formatRankBound}
-            boundChars={rankBoundChars}
+            format={(value) => value.toFixed(0)}
           />
         </Td>
       )}
@@ -172,8 +169,7 @@ const TableRow: FC<Props> = ({
           <Interval
             lower={ci_lower}
             upper={ci_upper}
-            format={(value) => formatScoreBound(value, compactScores)}
-            boundChars={scoreBoundChars}
+            format={formatScoreBound}
           />
         </Td>
       )}
