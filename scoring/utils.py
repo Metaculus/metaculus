@@ -502,6 +502,9 @@ def assign_exclusions_(
 
     for entry in entries:
         entry.exclusion_status = exclusion_statuses[entry.user_id]
+        # TODO: remove this exclusion once the RW aggregate is finalized
+        if entry.aggregation_method == AggregationMethod.REPUTATION_WEIGHTED:
+            entry.exclusion_status = ExclusionStatuses.EXCLUDE
 
 
 def assign_ranks_(
