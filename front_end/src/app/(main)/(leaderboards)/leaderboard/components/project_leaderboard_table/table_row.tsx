@@ -25,8 +25,9 @@ type Props = {
   isAdvanced?: boolean;
 };
 
-// Renders "lower–upper" with each bound in a `boundChars`-wide slot so the
-// dashes line up down the column
+// Renders "(lower–upper)" with each bound in an equal-width slot so the dashes
+// line up down the column; the parentheses sit inside the slots so they hug
+// the numbers
 const Interval: FC<{
   lower: number | null | undefined;
   upper: number | null | undefined;
@@ -36,15 +37,15 @@ const Interval: FC<{
   if (isNil(lower) || isNil(upper)) {
     return null;
   }
-  const slot = `minmax(${boundChars}ch, auto)`;
+  const slot = `minmax(${boundChars + 1}ch, auto)`;
   return (
     <span
-      className="inline-grid tabular-nums"
+      className="inline-grid text-xs tabular-nums"
       style={{ gridTemplateColumns: `${slot} auto ${slot}` }}
     >
-      <span className="text-right">{format(lower)}</span>
+      <span className="text-right">({format(lower)}</span>
       <span>{"–"}</span>
-      <span className="text-left">{format(upper)}</span>
+      <span className="text-left">{format(upper)})</span>
     </span>
   );
 };
@@ -104,7 +105,10 @@ const TableRow: FC<Props> = ({
 
   return (
     <tr>
-      <Td className="sticky left-0 w-0 text-left" highlight={highlight}>
+      <Td
+        className={cn("sticky left-0 w-0 text-left", withRankCI && "pr-1")}
+        highlight={highlight}
+      >
         {!user &&
         (aggregation_method === "recency_weighted" ||
           aggregation_method === "unweighted") ? (
@@ -133,7 +137,7 @@ const TableRow: FC<Props> = ({
         )}
       </Td>
       {withRankCI && (
-        <Td className="w-0 text-left" highlight={highlight}>
+        <Td className="w-0 pl-1 text-left" highlight={highlight}>
           <Interval
             lower={rank_ci_lower}
             upper={rank_ci_upper}
@@ -154,11 +158,17 @@ const TableRow: FC<Props> = ({
           {forecasterLabel}
         </Link>
       </Td>
-      <Td className="text-right tabular-nums" highlight={highlight}>
+      <Td
+        className={cn(
+          "text-right tabular-nums",
+          isAdvanced && withScoreCI && "pr-1"
+        )}
+        highlight={highlight}
+      >
         {formatScore(score)}
       </Td>
       {isAdvanced && withScoreCI && (
-        <Td className="text-right" highlight={highlight}>
+        <Td className="pl-1 text-left" highlight={highlight}>
           <Interval
             lower={ci_lower}
             upper={ci_upper}

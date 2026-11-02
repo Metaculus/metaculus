@@ -10,6 +10,7 @@ import {
   LeaderboardDetails,
   LeaderboardDisplayConfig,
 } from "@/types/scoring";
+import cn from "@/utils/core/cn";
 
 import { formatRankBound, formatScoreBound, maxBoundChars } from "./formatters";
 import TableHeader from "./table_header";
@@ -144,22 +145,29 @@ const ProjectLeaderboardTable: FC<Props> = ({
       <table className="mb-0 w-full border-separate whitespace-nowrap">
         <thead>
           <tr>
-            <TableHeader className="sticky left-0 w-0 text-left">
+            <TableHeader
+              className={cn(
+                "sticky left-0 w-0 text-left",
+                withRankCI && "pr-1"
+              )}
+            >
               {getColumnName("rank", columnRenames)}
             </TableHeader>
             {withRankCI && (
-              <TableHeader className="w-0 text-left">
+              <TableHeader className="w-0 pl-1 text-left">
                 <ConfidenceIntervalTooltip />
               </TableHeader>
             )}
             <TableHeader className="sticky left-0 w-0 max-w-[9rem] text-left sm:max-w-[16rem]">
               {getColumnName("forecaster", columnRenames)}
             </TableHeader>
-            <TableHeader className="text-right">
+            <TableHeader
+              className={cn("text-right", isAdvanced && withScoreCI && "pr-1")}
+            >
               {getColumnName("totalScore", columnRenames)}
             </TableHeader>
             {isAdvanced && withScoreCI && (
-              <TableHeader className="text-right">
+              <TableHeader className="pl-1 text-left">
                 <ConfidenceIntervalTooltip />
               </TableHeader>
             )}

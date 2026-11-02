@@ -4,12 +4,13 @@ import { FC } from "react";
 
 import Tooltip from "@/components/ui/tooltip";
 
-// Renders the "95% CI ⓘ" column header, with the method in the tooltip
+// Renders the "(95% CI ⓘ)" column header shown beside Rank / Total Score,
+// with the method in the tooltip
 const ConfidenceIntervalTooltip: FC = () => {
   const t = useTranslations();
   return (
-    <span className="inline-flex items-center">
-      <span className="mr-1">{t("confidenceInterval95")}</span>
+    <span className="inline-flex items-center text-xs">
+      (<span className="mr-1">{t("confidenceInterval95")}</span>
       <Tooltip
         showDelayMs={200}
         placement={"right"}
@@ -43,6 +44,7 @@ const ConfidenceIntervalTooltip: FC = () => {
       >
         <span className="leading-none">ⓘ</span>
       </Tooltip>
+      )
     </span>
   );
 };
