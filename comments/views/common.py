@@ -39,6 +39,7 @@ from comments.services.common import (
 from comments.services.feed import get_comments_feed
 from comments.services.text_archive import get_full_text
 from notifications.services import send_comment_report_notification_to_staff
+from posts.models import Post
 from posts.services.common import get_post_permission_for_user
 from projects.models import Project
 from projects.permissions import ObjectPermission
@@ -354,6 +355,11 @@ def comments_of_week_view(request: Request):
     # Admins can see all top (max 18) candidates for the weekly top comments
     top_comments_of_week_entries = CommentsOfTheWeekEntry.objects.filter(
         week_start_date=week_start_date,
+        comment__is_private=False,
+        comment__is_soft_deleted=False,
+        comment__on_post__in=Post.objects.filter_permission(
+            user=user if user.is_authenticated else None
+        ),
     ).order_by("-score", "comment__created_at")
 
     # Users only see the top 6 comments which are not excluded
