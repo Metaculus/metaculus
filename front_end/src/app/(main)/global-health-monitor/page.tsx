@@ -186,7 +186,9 @@ export default async function GlobalHealthMonitorPage({ searchParams }: Props) {
           )}
           <MethodologySection />
           <PrintAttribution />
-          <EngagementSection />
+          <EngagementSection
+            showNewsletter={!!process.env.MAILJET_GLOBAL_HEALTH_NEWSLETTER_ID}
+          />
         </div>
       </GhmDataProvider>
     </main>
