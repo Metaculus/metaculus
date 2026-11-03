@@ -66,6 +66,9 @@ def get_posts_feed(  # noqa: C901
     if commented_by and (not user or commented_by != user.id):
         raise PermissionDenied()
 
+    if upvoted_by and (not user or upvoted_by != user.id):
+        raise PermissionDenied()
+
     if qs is None:
         qs = Post.objects.all()
 
