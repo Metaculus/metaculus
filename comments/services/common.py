@@ -443,6 +443,11 @@ def update_top_comments_of_week(week_start_date: datetime.date):
         created_at__lt=week_end_datetime,
         on_post__isnull=False,
         on_post__default_project__visibility=Project.Visibility.NORMAL,
+        # Visibility is independent of access, so private projects are excluded too
+        on_post__default_project__default_permission__isnull=False,
+        on_post__curation_status=Post.CurationStatus.APPROVED,
+        is_private=False,
+        is_soft_deleted=False,
     ).exclude(author__is_staff=True)
 
     comments_of_week = weeks_comments.annotate(
