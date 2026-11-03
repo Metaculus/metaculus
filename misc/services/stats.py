@@ -9,33 +9,35 @@ from questions.models import Forecast, Question
 from utils.cache import cached_singleton
 
 
-def get_predictions_by_month(forecasts) -> list[dict]:
+def get_prediction_counts(forecasts) -> tuple[int, list[dict]]:
     """
-    Cumulative prediction count at the end of each complete calendar month.
+    Total prediction count, plus the cumulative count at the end of each
+    complete calendar month.
 
-    Uses the same forecast queryset as the headline "predictions" count, so the
-    About page chart and the stat tile under it always agree. The current,
-    partial month is left out so the curve ends on a complete month.
+    One GROUP BY pass gives both, so the headline "predictions" number and the
+    About page chart come from the same rows and always agree. The current,
+    partial month counts toward the total but is left out of the series, so
+    the curve ends on a complete month.
     """
     month_start = timezone.now().replace(
         day=1, hour=0, minute=0, second=0, microsecond=0
     )
     rows = (
-        forecasts.filter(start_time__lt=month_start)
-        .annotate(month=TruncMonth("start_time"))
+        forecasts.annotate(month=TruncMonth("start_time"))
         .values("month")
         .annotate(n=Count("id"))
         .order_by("month")
     )
 
+    total = 0
     series = []
-    cumulative = 0
     for row in rows:
-        cumulative += row["n"]
-        series.append(
-            {"month": row["month"].strftime("%Y-%m"), "cumulative": cumulative}
-        )
-    return series
+        total += row["n"]
+        if row["month"] is not None and row["month"] < month_start:
+            series.append(
+                {"month": row["month"].strftime("%Y-%m"), "cumulative": total}
+            )
+    return total, series
 
 
 @cached_singleton(timeout=60 * 60 * 24)
@@ -46,8 +48,10 @@ def get_cached_site_stats() -> dict:
         source=Forecast.SourceChoices.AUTOMATIC
     )
 
+    predictions, predictions_by_month = get_prediction_counts(public_forecasts)
+
     return {
-        "predictions": public_forecasts.count(),
+        "predictions": predictions,
         "questions": public_questions.count(),
         "resolved_questions": (
             public_questions.filter(actual_resolve_time__isnull=False)
@@ -55,5 +59,5 @@ def get_cached_site_stats() -> dict:
             .count()
         ),
         "years_of_predictions": now_year - 2015 + 1,
-        "predictions_by_month": get_predictions_by_month(public_forecasts),
+        "predictions_by_month": predictions_by_month,
     }

@@ -2,7 +2,7 @@ from datetime import datetime, timezone as dt_timezone
 
 from freezegun import freeze_time
 
-from misc.services.stats import get_cached_site_stats, get_predictions_by_month
+from misc.services.stats import get_cached_site_stats, get_prediction_counts
 from questions.models import Forecast, Question
 from tests.unit.test_posts.factories import factory_post
 from tests.unit.test_projects.factories import factory_project
@@ -30,15 +30,16 @@ def utc(*args):
 
 
 @freeze_time("2026-03-15")
-def test_predictions_by_month_is_cumulative_and_skips_current_month(user1):
+def test_prediction_counts_total_and_cumulative_series_skip_current_month(user1):
     question = _question()
     _forecast(question, user1, utc(2026, 1, 3))
     _forecast(question, user1, utc(2026, 1, 20))
     _forecast(question, user1, utc(2026, 2, 10))
-    _forecast(question, user1, utc(2026, 3, 1))  # current month, excluded
+    _forecast(question, user1, utc(2026, 3, 1))  # current month: total only
 
-    series = get_predictions_by_month(Forecast.objects.all())
+    total, series = get_prediction_counts(Forecast.objects.all())
 
+    assert total == 4
     assert series == [
         {"month": "2026-01", "cumulative": 2},
         {"month": "2026-02", "cumulative": 3},
