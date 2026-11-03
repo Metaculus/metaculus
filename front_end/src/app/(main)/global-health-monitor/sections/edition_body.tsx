@@ -5,6 +5,7 @@ import {
   DiseaseSection,
   DiseaseSectionRow,
 } from "../components/disease_section";
+import { PdfReadyMarker } from "../components/pdf_ready_marker";
 import {
   getSectionPostIds,
   getSectionRows,
@@ -37,6 +38,7 @@ export function EditionBody({ edition, layout, posts, asOfTime }: Props) {
 
   return (
     <>
+      <PdfReadyMarker />
       <KeyTakeawaysSection edition={edition} posts={posts} />
       {getSectionRows(layout).map((row) =>
         row.kind === "section" ? (

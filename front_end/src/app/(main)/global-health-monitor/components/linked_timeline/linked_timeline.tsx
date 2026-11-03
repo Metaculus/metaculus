@@ -21,7 +21,23 @@ export type TakeawayView = {
   content: ReactNode;
 };
 
-function TakeawayCard({ takeaway }: { takeaway: TakeawayView }) {
+// The PDF lays the takeaways out as a bento with full rows: 4 → 2×2, 5 → two wide over three,
+// 6 → 3×2. Literal classes, so Tailwind keeps them.
+function getPrintSpan(index: number, count: number) {
+  if (count === 1) return "print:col-span-6";
+  if (count % 3 === 1 || (count % 3 === 2 && index < 2)) {
+    return "print:col-span-3";
+  }
+  return "print:col-span-2";
+}
+
+function TakeawayCard({
+  takeaway,
+  className,
+}: {
+  takeaway: TakeawayView;
+  className?: string;
+}) {
   const t = useTranslations();
   const snapshot = useGhmSnapshot();
   const linkedTimeline = useLinkedTimeline();
@@ -39,7 +55,8 @@ function TakeawayCard({ takeaway }: { takeaway: TakeawayView }) {
         isActive
           ? "border-blue-600 ring-1 ring-blue-600 dark:border-blue-600-dark dark:ring-blue-600-dark"
           : "border-blue-300 hover:border-blue-500 dark:border-blue-300-dark dark:hover:border-blue-500-dark",
-        "print:ring-0"
+        "print:border-blue-300 print:ring-0",
+        className
       )}
     >
       {/* Points at the chart, which shares the active border. */}
@@ -108,16 +125,21 @@ export function LinkedTimeline({
       defaultKey={firstLead}
       chartKeys={chartKeys}
     >
-      <div className="grid gap-5 md:grid-cols-2 md:gap-8 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] print:grid-cols-2">
-        <div className="flex flex-col gap-2">
-          {takeaways.map((takeaway) => (
-            <TakeawayCard key={takeaway.id} takeaway={takeaway} />
+      <div className="grid gap-5 md:grid-cols-2 md:gap-8 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] print:block">
+        <div className="flex flex-col gap-2 print:grid print:grid-cols-6 print:gap-3">
+          {takeaways.map((takeaway, index) => (
+            <TakeawayCard
+              key={takeaway.id}
+              takeaway={takeaway}
+              className={getPrintSpan(index, takeaways.length)}
+            />
           ))}
         </div>
-        <div>
-          <div className="md:sticky md:top-40 print:static">
+        {/* The chart follows the hovered takeaway, which a PDF can't do. */}
+        <div className="print:hidden">
+          <div className="md:sticky md:top-40">
             <ActiveChart charts={charts} />
-            <p className="mb-0 mt-2 text-xs text-blue-600 dark:text-blue-600-dark print:hidden">
+            <p className="mb-0 mt-2 text-xs text-blue-600 dark:text-blue-600-dark">
               {t("globalHealthMonitorTakeawaysChartHint")}
             </p>
           </div>
