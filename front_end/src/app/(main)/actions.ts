@@ -29,7 +29,11 @@ const NEWSLETTER_LIST_IDS: Record<string, string | undefined> = {
 };
 
 export async function subscribeToNewsletter(email: string, listKey?: string) {
-  const listId = listKey ? NEWSLETTER_LIST_IDS[listKey] : undefined;
+  // Own keys only: a key like "toString" would otherwise read an inherited function.
+  const listId =
+    listKey && Object.hasOwn(NEWSLETTER_LIST_IDS, listKey)
+      ? NEWSLETTER_LIST_IDS[listKey]
+      : undefined;
   if (listKey && !listId) {
     throw new Error(`No Mailjet list configured for "${listKey}"`);
   }
