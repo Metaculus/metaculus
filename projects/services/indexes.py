@@ -1,7 +1,7 @@
 from collections import defaultdict
 from typing import TypedDict, Iterable
 
-from django.db.models import F
+from django.db.models import F, Q
 from django.utils import timezone
 
 from posts.models import Post
@@ -21,8 +21,10 @@ def _get_index_posts_with_weights(index: ProjectIndex) -> dict[Post, float]:
     """
     Return a {post: weight} mapping for the given project's index.
     """
+    # Index posts may come from any project, so private ones are left out
     posts = (
         Post.objects.filter(index_weights__index=index)
+        .filter_public()
         .filter_published()
         .prefetch_related("questions")
         .annotate(_weight=F("index_weights__weight"))
@@ -38,6 +40,12 @@ def _generate_questions_agg_map(
         AggregateForecast.objects.filter_default_aggregation()
         .filter(question__in=questions)
         .filter(start_time__lte=timezone.now())
+        # Don't reveal a CP through the index before its reveal time
+        .filter(
+            Q(question__resolution__isnull=False)
+            | Q(question__cp_reveal_time__isnull=True)
+            | Q(question__cp_reveal_time__lte=timezone.now())
+        )
         .only(
             "question_id",
             "forecast_values",

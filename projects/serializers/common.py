@@ -6,6 +6,7 @@ from django.db.models import Q
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
+from posts.models import Post
 from projects.models import Project, ProjectUserPermission, ProjectIndex
 from projects.serializers.communities import CommunitySerializer
 from projects.services.cache import get_projects_questions_count_cached
@@ -251,7 +252,9 @@ class ProjectUserSerializer(serializers.ModelSerializer):
 
 
 def serialize_index_data(index: ProjectIndex):
-    index_posts = index.post_weights.all()
+    index_posts = index.post_weights.filter(
+        post__in=Post.objects.filter_public().filter_published()
+    )
 
     if index.type == ProjectIndex.IndexType.MULTI_YEAR:
         data = get_multi_year_index_data(index)
