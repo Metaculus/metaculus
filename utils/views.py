@@ -170,17 +170,34 @@ def validate_data_request(request: Request, **kwargs):
 
     # Context for the serializer
     is_staff = user.is_authenticated and user.is_staff
-    project_ids = [project.id] if project else []
-    for post in posts:
-        project_ids.extend(post.projects.values_list("id", flat=True))
-    data_access_entries = UserDataAccess.objects.filter(
-        (Q(post__in=posts) if posts else Q())
-        | (Q(project_id__in=project_ids) if project_ids else Q())
-        | Q(project__isnull=True, post__isnull=True),
-        user_id=user.id or 0,
-        view_user_data=True,
+    data_access_entries = list(
+        UserDataAccess.objects.filter(user_id=user.id or 0, view_user_data=True)
     )
-    has_data_access = user.is_authenticated and data_access_entries.exists()
+    post_project_ids = {
+        post.id: {post.default_project_id, *post.projects.values_list("id", flat=True)}
+        for post in posts
+    }
+
+    def entry_covers(entry: UserDataAccess, post: Post | None) -> bool:
+        if entry.post_id is None and entry.project_id is None:
+            return True
+        if post:
+            return (
+                entry.post_id == post.id
+                or entry.project_id in post_project_ids[post.id]
+            )
+        return bool(project) and entry.project_id == project.id
+
+    def entries_cover_request(entries: list[UserDataAccess]) -> bool:
+        # Access must cover every exported post, so a grant for one post or
+        # project can't be stretched over others requested alongside it
+        if posts:
+            return all(any(entry_covers(e, post) for e in entries) for post in posts)
+        return any(entry_covers(e, None) for e in entries)
+
+    has_data_access = user.is_authenticated and entries_cover_request(
+        data_access_entries
+    )
     serializer_context = {
         "user": user if user.is_authenticated else None,
         "is_staff": is_staff,
@@ -205,7 +222,9 @@ def validate_data_request(request: Request, **kwargs):
     if is_staff:
         anonymized = params.get("anonymized", False)
     elif has_data_access:
-        if data_access_entries.filter(view_deanonymized_data=True).exists():
+        if entries_cover_request(
+            [e for e in data_access_entries if e.view_deanonymized_data]
+        ):
             anonymized = params.get("anonymized", False)
         else:
             anonymized = True
