@@ -254,9 +254,14 @@ def export_data_for_questions(
             )
             .order_by("created_at")
         )
-        aggregate_question_links = AggregateCoherenceLink.objects.filter(
-            Q(question1_id__in=question_ids) | Q(question2_id__in=question_ids)
-        ).select_related("question1__post", "question2__post")
+        # The other side of a link may be a question the user can't view
+        aggregate_question_links = (
+            AggregateCoherenceLink.objects.filter(
+                Q(question1_id__in=question_ids) | Q(question2_id__in=question_ids)
+            )
+            .filter_permission(user=user)
+            .select_related("question1__post", "question2__post")
+        )
     else:
         key_factors = None
         aggregate_question_links = None
