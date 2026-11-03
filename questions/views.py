@@ -301,11 +301,13 @@ def bulk_forecast_and_comment_api_view(request):
     now = timezone.now()
     errors = []
 
-    # Validate forecasts and resolve question IDs to Question objects
+    # Validate forecasts and resolve question IDs to Question objects. Questions
+    # the user can't view are left out, so they fail like ones that don't exist
     questions_map = {
         q.pk: q
         for q in Question.objects.filter(
-            pk__in=[f["question"] for f in forecasts_data]
+            pk__in=[f["question"] for f in forecasts_data],
+            post__in=Post.objects.filter_permission(user=user),
         ).select_related("post")
     }
 
