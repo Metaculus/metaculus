@@ -1,6 +1,8 @@
 from rest_framework import serializers
 
 from questions.constants import UnsuccessfulResolutionType
+from questions.types import AggregationMethod
+from scoring.constants import ExclusionStatuses
 from scoring.models import Leaderboard, LeaderboardEntry
 from users.serializers import BaseUserSerializer
 
@@ -17,7 +19,7 @@ class LeaderboardEntrySerializer(serializers.ModelSerializer):
     # deprecate in favor of exclusion_status
     excluded = serializers.BooleanField()
     show_when_excluded = serializers.BooleanField()
-    exclusion_status = serializers.IntegerField()
+    exclusion_status = serializers.SerializerMethodField()
     medal = serializers.CharField()
     prize = serializers.FloatField()
     coverage = serializers.FloatField()
@@ -49,6 +51,12 @@ class LeaderboardEntrySerializer(serializers.ModelSerializer):
             "take",
             "percent_prize",
         ]
+
+    def get_exclusion_status(self, entry: LeaderboardEntry) -> int:
+        # PREVIEW: show reputation_weighted entries like the CP (visible, unranked)
+        if entry.aggregation_method == AggregationMethod.REPUTATION_WEIGHTED:
+            return ExclusionStatuses.EXCLUDE_AND_SHOW
+        return entry.exclusion_status
 
 
 class LeaderboardSerializer(serializers.Serializer):

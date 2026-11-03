@@ -15,6 +15,7 @@ from projects.models import Project
 from projects.permissions import ObjectPermission
 from projects.services.common import get_site_main_project
 from projects.views import get_projects_qs, get_project_permission_for_user
+from questions.types import AggregationMethod
 from scoring.constants import LeaderboardScoreTypes
 from scoring.models import (
     Leaderboard,
@@ -86,11 +87,14 @@ def global_leaderboard_view(
                 )
             )
             | (Q(user_id=user.id) if user.is_authenticated else Q())
+            # PREVIEW: always return reputation_weighted entries
+            | Q(aggregation_method=AggregationMethod.REPUTATION_WEIGHTED)
         )
 
     if not user.is_staff:
         entries = entries.filter(
-            exclusion_status__lte=ExclusionStatuses.EXCLUDE_AND_SHOW_IN_ADVANCED
+            Q(exclusion_status__lte=ExclusionStatuses.EXCLUDE_AND_SHOW_IN_ADVANCED)
+            | Q(aggregation_method=AggregationMethod.REPUTATION_WEIGHTED)
         )
 
     leaderboard_data["entries"] = LeaderboardEntrySerializer(entries, many=True).data
