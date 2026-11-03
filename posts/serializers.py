@@ -476,6 +476,41 @@ def serialize_post(
     return serialized_data
 
 
+def exclude_conditionals_with_hidden_questions(
+    posts: list[Post], user: User | None
+) -> list[Post]:
+    """
+    A conditional embeds its condition and child questions, which live on other
+    posts, so it's only shown to users who can view both of those posts
+    """
+
+    linked_post_ids = {
+        question.post_id
+        for post in posts
+        if post.conditional_id
+        for question in (post.conditional.condition, post.conditional.condition_child)
+    }
+
+    if not linked_post_ids:
+        return posts
+
+    visible_post_ids = set(
+        Post.objects.filter_permission(user=user)
+        .filter(id__in=linked_post_ids)
+        .values_list("id", flat=True)
+    )
+
+    return [
+        post
+        for post in posts
+        if not post.conditional_id
+        or (
+            post.conditional.condition.post_id in visible_post_ids
+            and post.conditional.condition_child.post_id in visible_post_ids
+        )
+    ]
+
+
 def serialize_post_many(
     posts: Union[QuerySet[Post], list[Post], list[int] | set[int]],
     with_cp: bool = False,
@@ -537,6 +572,7 @@ def serialize_post_many(
 
     # Restore the original ordering
     posts = sorted(qs.all(), key=lambda obj: ids.index(obj.id))
+    posts = exclude_conditionals_with_hidden_questions(posts, current_user)
     aggregate_forecasts = {}
     questions = flatten([p.get_questions() for p in posts])
 
@@ -738,6 +774,7 @@ def serialize_posts_many_forecast_flow(
         Post.objects.filter(id__in=ids).prefetch_questions(),
         key=lambda obj: ids.index(obj.id),
     )
+    posts = exclude_conditionals_with_hidden_questions(posts, current_user)
 
     questions = flatten([p.get_questions() for p in posts])
     now = timezone.now()
