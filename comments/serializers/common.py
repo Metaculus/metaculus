@@ -303,7 +303,9 @@ def serialize_comment_many(
     if with_key_factors:
         comment_key_factors_map = generate_map_from_list(
             serialize_key_factors_many(
-                flatten([c.key_factors.all() for c in objects]),
+                flatten(
+                    [c.key_factors.all() for c in objects if not c.is_soft_deleted]
+                ),
                 current_user=current_user,
             ),
             key=lambda x: x["comment_id"],

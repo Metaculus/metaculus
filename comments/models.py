@@ -254,6 +254,13 @@ class KeyFactorQuerySet(models.QuerySet):
     def filter_active(self):
         return self.filter(is_active=True)
 
+    def filter_public_comments(self):
+        """
+        Excludes key factors of private or deleted comments
+        """
+
+        return self.filter(comment__is_private=False, comment__is_soft_deleted=False)
+
     def annotate_user_vote(self, user: User):
         """
         Annotates queryset with the user's vote option

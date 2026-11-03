@@ -572,6 +572,7 @@ def serialize_post_many(
             serialize_key_factors_many(
                 KeyFactor.objects.for_posts(posts)
                 .filter_active()
+                .filter_public_comments()
                 .order_by("-votes_score"),
                 current_user=current_user,
             ),
