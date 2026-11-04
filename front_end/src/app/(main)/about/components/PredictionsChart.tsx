@@ -1,12 +1,26 @@
 "use client";
 
 import { useLocale, useTranslations } from "next-intl";
-import { FC, PointerEvent, useId, useMemo, useRef, useState } from "react";
+import {
+  FC,
+  PointerEvent,
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
 import { PredictionsByMonth } from "@/services/api/misc/misc.shared";
 import cn from "@/utils/core/cn";
 
 import { CHART_EVENTS, ChartEvent } from "./predictions_chart_events";
+import {
+  Box,
+  initialVisible,
+  nextSwap,
+  RotationSlot,
+} from "./predictions_chart_rotation";
 
 // Geometry of the original 1100x422 design frame
 const WIDTH = 1100;
@@ -24,6 +38,37 @@ const ARROW_LENGTH = 26;
 const HERO_OVERLAP_HEIGHT = 170;
 const HERO_OVERLAP_WIDTH = 700;
 
+// News events rotate: this many stay up, and on each swap the newcomer fades
+// in just before the leaving one fades out, so 4-5 are visible at any
+// moment. The founding marker is always shown.
+//
+// Paced to read as ambient rather than busy: swaps land at irregular
+// intervals averaging ~2.4 s (each label stays up ~10 s, well over the ~2 s
+// it takes to read), and slow 1.6-2 s fades, varied per label. The page
+// pauses on hover and skips rotation for reduced motion (WCAG 2.2.2).
+const VISIBLE_EVENTS = 4;
+const SWAP_MIN_MS = 1900;
+const SWAP_MAX_MS = 2900;
+const FADE_MIN_MS = 1600;
+const FADE_STEP_MS = 100;
+const FADE_STEPS = 5;
+const FADE_OUT_DELAY_MS = 250;
+// A label that left is still partly visible this long; newcomers avoid it
+const FADE_OUT_TOTAL_MS =
+  FADE_OUT_DELAY_MS + FADE_MIN_MS + FADE_STEP_MS * (FADE_STEPS - 1);
+
+const swapDelay = () =>
+  SWAP_MIN_MS + Math.random() * (SWAP_MAX_MS - SWAP_MIN_MS);
+
+// Stable per-label fade length, so fades vary without flickering on re-render
+const fadeMs = (id: string) => {
+  let hash = 0;
+  for (const ch of id) hash = (hash * 31 + ch.charCodeAt(0)) % 997;
+  return FADE_MIN_MS + (hash % FADE_STEPS) * FADE_STEP_MS;
+};
+// Y-axis labels are right-aligned at this x
+const Y_LABEL_X = WIDTH - 2;
+
 type Point = { x: number; y: number; month: string; value: number };
 type LabelLine = { text: string; sub: boolean };
 
@@ -31,6 +76,9 @@ const monthIndex = (month: string) => {
   const [year, m] = month.split("-").map(Number);
   return (year ?? 0) * 12 + (m ?? 1) - 1;
 };
+
+// Two events can share a month, so identify them by month + title
+const eventId = (event: ChartEvent) => `${event.month}-${event.titleKey}`;
 
 const monthToDate = (month: string) => new Date(`${month}-01T00:00:00Z`);
 
@@ -52,6 +100,7 @@ const PredictionsChart: FC<Props> = ({ series, className }) => {
   const uid = useId().replace(/[^a-zA-Z0-9]/g, "");
   const svgRef = useRef<SVGSVGElement>(null);
   const [active, setActive] = useState<Point | null>(null);
+  const [shown, setShown] = useState<string[]>([]);
 
   const chart = useMemo(() => {
     const firstPoint = series[0];
@@ -123,8 +172,120 @@ const PredictionsChart: FC<Props> = ({ series, className }) => {
       y: sy(valueAt(event.month)),
     }));
 
-    return { points, line, area, tip, head, grid, events };
+    const rotating = events
+      .filter(({ event }) => !event.origin)
+      .map(({ event, x }) => ({
+        id: eventId(event),
+        x,
+        initial: event.initial,
+      }));
+
+    return { points, line, area, tip, head, grid, events, rotating };
   }, [series, locale]);
+
+  const initialShown = useMemo(
+    () => (chart ? initialVisible(chart.rotating, VISIBLE_EVENTS) : []),
+    [chart]
+  );
+  const visible = shown.length ? shown : initialShown;
+
+  // No new swaps while the pointer is over the chart (fades already running
+  // finish), nor for a full interval after it leaves, nor while the tab is
+  // hidden or the chart is scrolled out of view. No rotation for reduced
+  // motion.
+  const hoverRef = useRef(false);
+  const resumeAtRef = useRef(0);
+  const visibleRef = useRef(visible);
+  useEffect(() => {
+    visibleRef.current = visible;
+  });
+  const handleEnter = () => {
+    hoverRef.current = true;
+  };
+  const handleLeave = () => {
+    hoverRef.current = false;
+    resumeAtRef.current = Date.now() + swapDelay();
+    setActive(null);
+  };
+  useEffect(() => {
+    const slots = chart?.rotating ?? [];
+    if (slots.length <= VISIBLE_EVENTS) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    let onScreen = true;
+    const observer =
+      svgRef.current && "IntersectionObserver" in window
+        ? new IntersectionObserver(([entry]) => {
+            onScreen = !!entry?.isIntersecting;
+          })
+        : null;
+    if (observer && svgRef.current) observer.observe(svgRef.current);
+
+    // Measured on every tick rather than once, so late-loading fonts and
+    // locale changes are picked up without extra bookkeeping
+    const measure = (id: string): Box[] => {
+      const group = svgRef.current?.querySelector(`[data-event="${id}"]`);
+      if (!group) return [];
+      return Array.from(group.querySelectorAll<SVGGElement>("[data-part]"))
+        .map((part) => part.getBBox())
+        .filter((b) => b.width > 0 && b.height > 0)
+        .map((b) => ({
+          x0: b.x,
+          y0: b.y,
+          x1: b.x + b.width,
+          y1: b.y + b.height,
+        }));
+    };
+    const fixedIds = (chart?.events ?? [])
+      .filter(({ event }) => event.origin)
+      .map(({ event }) => eventId(event));
+
+    const recent: string[] = [];
+    const leftAt = new Map<string, number>();
+    let timer = 0;
+    const tick = () => {
+      timer = window.setTimeout(tick, swapDelay());
+      if (
+        hoverRef.current ||
+        Date.now() < resumeAtRef.current ||
+        !onScreen ||
+        document.hidden
+      ) {
+        return;
+      }
+      const now = Date.now();
+      const fading = [...leftAt]
+        .filter(([, at]) => now - at < FADE_OUT_TOTAL_MS)
+        .map(([id]) => id);
+      const current = visibleRef.current;
+      const measured: RotationSlot[] = slots.map((slot) => ({
+        ...slot,
+        boxes: measure(slot.id),
+      }));
+      const swap = nextSwap(
+        measured,
+        current,
+        recent,
+        VISIBLE_EVENTS,
+        Math.random,
+        [...fixedIds, ...fading].flatMap(measure)
+      );
+      if (!swap) return;
+      if (swap.leaving) {
+        recent.unshift(swap.leaving);
+        recent.length = Math.min(recent.length, 2);
+        leftAt.set(swap.leaving, now);
+      }
+      const next = current.filter((id) => id !== swap.leaving);
+      setShown(swap.entering ? [...next, swap.entering] : next);
+    };
+    timer = window.setTimeout(tick, swapDelay());
+
+    return () => {
+      window.clearTimeout(timer);
+      observer?.disconnect();
+    };
+  }, [chart]);
 
   if (!chart) return null;
 
@@ -156,12 +317,13 @@ const PredictionsChart: FC<Props> = ({ series, className }) => {
         aria-label={t("aboutChartAxisCaption").replace("\n", " ")}
       >
         <defs>
+          {/* Vertical: blue at the bottom, green toward the top of the line */}
           <linearGradient
             id={`${uid}-area`}
             x1="0"
-            y1="296"
-            x2="1102"
-            y2="296"
+            y1={HEIGHT}
+            x2="0"
+            y2={Y_TOP}
             gradientUnits="userSpaceOnUse"
           >
             <stop stopColor="#00467F" />
@@ -213,8 +375,9 @@ const PredictionsChart: FC<Props> = ({ series, className }) => {
                 />
                 {label && (
                   <text
-                    x={x1}
+                    x={Y_LABEL_X}
                     y={y - 4}
+                    textAnchor="end"
                     fontSize={10.6}
                     className="fill-[#4F6882] dark:fill-[#D7E4F2]"
                   >
@@ -224,9 +387,19 @@ const PredictionsChart: FC<Props> = ({ series, className }) => {
               </g>
             );
           })}
+          {/* Zero line at 75% of the other gridlines' opacity */}
+          <line
+            x1={X_START}
+            x2={WIDTH}
+            y1={Y_ZERO}
+            y2={Y_ZERO}
+            strokeWidth={1}
+            className="stroke-[#4F6882] [stroke-opacity:0.12] dark:stroke-[#92ACC8] dark:[stroke-opacity:0.15]"
+          />
           <text
-            x={X_START}
+            x={Y_LABEL_X}
             y={Y_ZERO - 4}
+            textAnchor="end"
             fontSize={10.6}
             className="fill-[#4F6882] dark:fill-[#D7E4F2]"
           >
@@ -251,17 +424,35 @@ const PredictionsChart: FC<Props> = ({ series, className }) => {
               active && "opacity-25"
             )}
           >
-            {chart.events.map(({ event, x, y }) => (
-              <EventMarker
-                key={event.month}
-                event={event}
-                x={x}
-                y={y}
-                uid={uid}
-                title={t(event.titleKey as Parameters<typeof t>[0])}
-                subtitle={formatMonth(event.month, event.yearOnly)}
-              />
-            ))}
+            {chart.events.map(({ event, x, y }) => {
+              const isShown = event.origin || visible.includes(eventId(event));
+              return (
+                <g
+                  key={eventId(event)}
+                  data-event={eventId(event)}
+                  aria-hidden={!isShown}
+                  className={cn(
+                    "transition-opacity ease-in-out",
+                    isShown ? "opacity-100" : "opacity-0"
+                  )}
+                  style={{
+                    transitionDuration: `${fadeMs(eventId(event))}ms`,
+                    // The newcomer fades in first; the leaving label waits
+                    // for it so the count never dips
+                    transitionDelay: isShown ? "0ms" : `${FADE_OUT_DELAY_MS}ms`,
+                  }}
+                >
+                  <EventMarker
+                    event={event}
+                    x={x}
+                    y={y}
+                    uid={uid}
+                    title={t(event.titleKey as Parameters<typeof t>[0])}
+                    subtitle={formatMonth(event.month, event.yearOnly)}
+                  />
+                </g>
+              );
+            })}
           </g>
 
           <AxisCaption text={t("aboutChartAxisCaption")} />
@@ -295,9 +486,10 @@ const PredictionsChart: FC<Props> = ({ series, className }) => {
           height={HEIGHT - HERO_OVERLAP_HEIGHT}
           fill="transparent"
           className="pointer-events-auto"
+          onPointerEnter={handleEnter}
           onPointerMove={handlePointer}
           onPointerDown={handlePointer}
-          onPointerLeave={() => setActive(null)}
+          onPointerLeave={handleLeave}
         />
         <rect
           x={HERO_OVERLAP_WIDTH}
@@ -306,9 +498,10 @@ const PredictionsChart: FC<Props> = ({ series, className }) => {
           height={HERO_OVERLAP_HEIGHT}
           fill="transparent"
           className="pointer-events-auto"
+          onPointerEnter={handleEnter}
           onPointerMove={handlePointer}
           onPointerDown={handlePointer}
-          onPointerLeave={() => setActive(null)}
+          onPointerLeave={handleLeave}
         />
       </svg>
 
@@ -379,111 +572,115 @@ const EventMarker: FC<{
 
   return (
     <g>
-      {event.leader > 0 && (
-        <>
-          <defs>
-            <linearGradient
-              id={`${uid}-leader-${event.month}`}
-              gradientUnits="userSpaceOnUse"
-              x1="0"
+      <g data-part="marker">
+        {event.leader > 0 && (
+          <>
+            <defs>
+              <linearGradient
+                id={`${uid}-leader-${eventId(event)}`}
+                gradientUnits="userSpaceOnUse"
+                x1="0"
+                y1={leaderEnd}
+                x2="0"
+                y2={y}
+              >
+                <stop stopColor="#F7F7F8" stopOpacity="0" />
+                <stop offset="0.5" stopColor="#4F6882" stopOpacity="0.5" />
+                <stop offset="1" stopColor="#4F6882" />
+              </linearGradient>
+              <linearGradient
+                id={`${uid}-leader-dark-${eventId(event)}`}
+                gradientUnits="userSpaceOnUse"
+                x1="0"
+                y1={leaderEnd}
+                x2="0"
+                y2={y}
+              >
+                <stop stopColor="#292929" stopOpacity="0" />
+                <stop offset="0.5" stopColor="#C7DBF1" stopOpacity="0.5" />
+                <stop offset="1" stopColor="#FFFFFF" />
+              </linearGradient>
+            </defs>
+            <line
+              x1={x}
+              x2={x}
               y1={leaderEnd}
-              x2="0"
-              y2={y}
-            >
-              <stop stopColor="#F7F7F8" stopOpacity="0" />
-              <stop offset="0.5" stopColor="#4F6882" stopOpacity="0.5" />
-              <stop offset="1" stopColor="#4F6882" />
-            </linearGradient>
-            <linearGradient
-              id={`${uid}-leader-dark-${event.month}`}
-              gradientUnits="userSpaceOnUse"
-              x1="0"
+              y2={leaderStop}
+              stroke={`url(#${uid}-leader-${eventId(event)})`}
+              strokeWidth={2.23}
+              strokeDasharray="6.7 2.23"
+              className="dark:hidden"
+            />
+            <line
+              x1={x}
+              x2={x}
               y1={leaderEnd}
-              x2="0"
-              y2={y}
-            >
-              <stop stopColor="#292929" stopOpacity="0" />
-              <stop offset="0.5" stopColor="#C7DBF1" stopOpacity="0.5" />
-              <stop offset="1" stopColor="#FFFFFF" />
-            </linearGradient>
-          </defs>
-          <line
-            x1={x}
-            x2={x}
-            y1={leaderEnd}
-            y2={leaderStop}
-            stroke={`url(#${uid}-leader-${event.month})`}
-            strokeWidth={2.23}
-            strokeDasharray="6.7 2.23"
-            className="dark:hidden"
-          />
-          <line
-            x1={x}
-            x2={x}
-            y1={leaderEnd}
-            y2={leaderStop}
-            stroke={`url(#${uid}-leader-dark-${event.month})`}
-            strokeWidth={2.23}
-            strokeDasharray="6.7 2.23"
-            className="hidden dark:inline"
-          />
-        </>
-      )}
+              y2={leaderStop}
+              stroke={`url(#${uid}-leader-dark-${eventId(event)})`}
+              strokeWidth={2.23}
+              strokeDasharray="6.7 2.23"
+              className="hidden dark:inline"
+            />
+          </>
+        )}
 
-      {event.origin ? (
-        <circle
-          cx={x}
-          cy={y}
-          r={7.26}
-          strokeWidth={2.23}
-          className="fill-[#EFF4F4] stroke-[#4F6882] dark:fill-blue-50-dark dark:stroke-white"
-        />
-      ) : (
-        <>
+        {event.origin ? (
           <circle
             cx={x}
             cy={y}
-            r={14.52}
-            fill="none"
+            r={7.26}
             strokeWidth={2.23}
-            className="stroke-[#283441] opacity-[0.16]"
+            className="fill-[#EFF4F4] stroke-[#4F6882] dark:fill-blue-50-dark dark:stroke-white"
           />
-          <circle
-            cx={x}
-            cy={y}
-            r={7.82}
-            filter={`url(#${uid}-shadow)`}
-            className="fill-white dark:fill-blue-50-dark"
-          />
-          <circle
-            cx={x}
-            cy={y}
-            r={5.59}
-            fill="none"
-            strokeWidth={4.47}
-            className="stroke-[#2F4155] dark:stroke-white"
-          />
-        </>
-      )}
+        ) : (
+          <>
+            <circle
+              cx={x}
+              cy={y}
+              r={14.52}
+              fill="none"
+              strokeWidth={2.23}
+              className="stroke-[#283441] opacity-[0.16]"
+            />
+            <circle
+              cx={x}
+              cy={y}
+              r={7.82}
+              filter={`url(#${uid}-shadow)`}
+              className="fill-white dark:fill-blue-50-dark"
+            />
+            <circle
+              cx={x}
+              cy={y}
+              r={5.59}
+              fill="none"
+              strokeWidth={4.47}
+              className="stroke-[#2F4155] dark:stroke-white"
+            />
+          </>
+        )}
+      </g>
 
-      {lines.map((line, i) => (
-        <text
-          key={i}
-          x={labelX}
-          y={ys[i]}
-          textAnchor={event.anchor}
-          fontSize={line.sub ? 14 : 15}
-          fontWeight={line.sub ? 400 : 700}
-          letterSpacing={line.sub ? 0.11 : 0.22}
-          className={
-            line.sub
-              ? "fill-black opacity-50 dark:fill-white"
-              : "fill-[#2F4155] dark:fill-[#D7E4F2]"
-          }
-        >
-          {line.text}
-        </text>
-      ))}
+      <g data-part="label">
+        {lines.map((line, i) => (
+          <text
+            key={i}
+            x={labelX}
+            y={ys[i]}
+            textAnchor={event.anchor}
+            fontSize={line.sub ? 14 : 15}
+            fontWeight={line.sub ? 400 : 700}
+            letterSpacing={line.sub ? 0.11 : 0.22}
+            className={
+              line.sub
+                ? "fill-black opacity-50 dark:fill-white"
+                : "fill-[#2F4155] dark:fill-[#D7E4F2]"
+            }
+          >
+            {line.text}
+          </text>
+        ))}
+      </g>
     </g>
   );
 };
