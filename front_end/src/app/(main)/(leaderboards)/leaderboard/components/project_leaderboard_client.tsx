@@ -138,6 +138,22 @@ const ProjectLeaderboardClient = ({
                     })}
                   </dd>
                 </div>
+                {isAdvanced && (
+                  <div className="m-2 flex text-sm">
+                    <dt className="mr-2 w-28 flex-none font-bold">
+                      {t("coverage")}
+                    </dt>
+                    <dd>
+                      {t.rich("leaderboardCoverageInfo", {
+                        link: (chunks) => (
+                          <Link href="/help/scores-faq/#coverage">
+                            {chunks}
+                          </Link>
+                        ),
+                      })}
+                    </dd>
+                  </div>
+                )}
               </dl>
             </div>
           </InfoToggle>
