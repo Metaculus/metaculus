@@ -40,5 +40,7 @@ export function getPublicSettings() {
         : defVals.PUBLIC_AUTHENTICATION_REQUIRED,
     PUBLIC_SCREENSHOT_SERVICE_ENABLED: !!process.env.SCREENSHOT_SERVICE_API_URL,
     PUBLIC_GTM_ID: process.env.PUBLIC_GTM_ID ?? "",
+    PUBLIC_REDDIT_SERVICES_PIXEL_ID:
+      process.env.PUBLIC_REDDIT_SERVICES_PIXEL_ID ?? "",
   };
 }

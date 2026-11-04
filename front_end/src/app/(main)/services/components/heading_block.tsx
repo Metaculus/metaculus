@@ -4,8 +4,8 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useTranslations } from "next-intl";
 import { FC } from "react";
 
-import Button from "./button";
 import ClientImage from "./client_image";
+import ContactUsButton from "./contact_us_button";
 import HeadingDark from "../assets/heading-dark.svg?url";
 import HeadingLight from "../assets/heading-light.svg?url";
 
@@ -49,7 +49,7 @@ const HeadingBlock: FC<Props> = ({ statsList, purpose, overview }) => {
             </p>
           ))}
         </div>
-        <Button href="#contact-us">{t("contactUs")}</Button>
+        <ContactUsButton>{t("contactUs")}</ContactUsButton>
       </div>
       <ClientImage
         lightSrc={HeadingLight}
