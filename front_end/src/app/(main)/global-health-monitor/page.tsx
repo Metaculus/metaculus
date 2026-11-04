@@ -137,7 +137,7 @@ export default async function GlobalHealthMonitorPage({ searchParams }: Props) {
   return (
     <main className="relative mb-24 min-h-screen xl:mt-12 print:mb-0 print:mt-0 print:[zoom:0.75] [&_[id]]:scroll-mt-24">
       <GhmDataProvider snapshot={snapshot}>
-        <div className="mx-auto w-full max-w-7xl xl:px-16 print:mb-6 print:px-0">
+        <div className="mx-auto w-full max-w-7xl xl:px-16 print:px-0">
           <HeroSection snapshot={snapshot} latestSlug={latest.slug} pdf={pdf} />
         </div>
         <LaborHubNavigation
@@ -155,7 +155,8 @@ export default async function GlobalHealthMonitorPage({ searchParams }: Props) {
             isLatest ? undefined : <EditionNavChip edition={snapshot.edition} />
           }
         />
-        <div className="mx-auto flex w-full max-w-7xl flex-col gap-5 px-1 sm:gap-6 sm:px-8 md:gap-8 xl:px-16 print:gap-8 print:px-0">
+        {/* On paper the section cards lose their backgrounds, so a rule separates them instead. */}
+        <div className="mx-auto flex w-full max-w-7xl flex-col gap-5 px-1 sm:gap-6 sm:px-8 md:gap-8 xl:px-16 print:gap-0 print:px-0 print:[&>section+section]:border-t print:[&>section+section]:border-gray-300 print:[&>section]:py-8">
           {asOfTime === undefined ? (
             <EditionBody edition={edition} layout={layout} posts={posts} />
           ) : (
@@ -185,7 +186,9 @@ export default async function GlobalHealthMonitorPage({ searchParams }: Props) {
           )}
           <MethodologySection />
           <PrintAttribution />
-          <EngagementSection />
+          <EngagementSection
+            showNewsletter={!!process.env.MAILJET_GLOBAL_HEALTH_NEWSLETTER_ID}
+          />
         </div>
       </GhmDataProvider>
     </main>
