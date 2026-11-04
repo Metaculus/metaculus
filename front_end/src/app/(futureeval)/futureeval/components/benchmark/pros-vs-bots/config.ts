@@ -6,10 +6,12 @@ export const BINARY_ONLY_EXAMPLE: DiffDatum[] = [
   { x: "2025 Q1", mean: 9.81, lo: -2.25, hi: 21.87 },
   { x: "2025 Q2", mean: 14.84, lo: 2.47, hi: 27.2 },
   { x: "2026 Spring", mean: 2.51, lo: -1.33, hi: 6.35 },
+  { x: "2026 Summer", mean: 1.2, lo: -6.19, hi: 8.59 },
 ];
 
 export const ALL_TYPES: DiffDatum[] = [
   { x: "2025 Q1", mean: 17.7, lo: 7.0, hi: 28.3 },
   { x: "2025 Q2", mean: 20.03, lo: 11.41, hi: 28.63 },
   { x: "2026 Spring", mean: 1.25, lo: -2.37, hi: 4.87 },
+  { x: "2026 Summer", mean: 0.26, lo: -5.96, hi: 6.47 },
 ];

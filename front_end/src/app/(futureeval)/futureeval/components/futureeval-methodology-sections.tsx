@@ -658,8 +658,8 @@ const FutureEvalMethodologySections: React.FC = () => {
             included numeric and multiple choice questions. In Q1 and Q2 2025,
             the Pro lead was larger on non-binary question types, which may
             partly explain the increase in those quarters. In Spring 2026, the
-            gap narrowed sharply, and the Pro lead was not statistically
-            significant.
+            gap narrowed sharply, and it stayed small in Summer 2026. Neither
+            season&apos;s Pro lead was statistically significant.
           </p>
           <p className="m-0">
             You can find the full details and methodology of these analyses in
