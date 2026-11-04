@@ -217,8 +217,8 @@ export const PostDropdownMenu: FC<Props> = ({ post, button, hideShare }) => {
         ]
       : []),
 
-    // Include if upcoming and user is admin or curator
-    ...(isUpcoming && (isAdmin || isCurator)
+    // Include if post is approved & upcoming and user is admin or curator
+    ...(isApproved && isUpcoming && (isAdmin || isCurator)
       ? [
           {
             id: "sendBackToReview",
