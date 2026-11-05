@@ -16,6 +16,7 @@ import { isSuccessfullyResolved } from "@/utils/questions/resolution";
 
 type Props = {
   question: QuestionWithForecasts;
+  colorOverride?: string;
 };
 
 // Fixed min width so every variant (binary gauge, continuous value+chart,
@@ -23,14 +24,17 @@ type Props = {
 const TILE_WRAPPER_CLASS =
   "flex min-w-[110px] flex-col items-center justify-center gap-1";
 
-const CoherencePredictionTile: FC<Props> = ({ question }) => {
+const CoherencePredictionTile: FC<Props> = ({ question, colorOverride }) => {
   const locale = useLocale();
 
   if (question.resolution) {
     // Dates get a compact "MMM yyyy" override so the tile stays narrow;
     // formatResolution would otherwise produce "05 May 2023 07:53 UTC".
     let formattedResolution: string;
-    if (question.type === QuestionType.Date) {
+    if (
+      question.type === QuestionType.Date &&
+      isSuccessfullyResolved(question.resolution)
+    ) {
       const dateCandidate = new Date(
         isNaN(Number(question.resolution))
           ? question.resolution
@@ -67,7 +71,11 @@ const CoherencePredictionTile: FC<Props> = ({ question }) => {
   if (question.type === QuestionType.Binary) {
     return (
       <div className={TILE_WRAPPER_CLASS}>
-        <BinaryCPBar question={question} size="sm" />
+        <BinaryCPBar
+          question={question}
+          size="sm"
+          colorOverride={colorOverride}
+        />
       </div>
     );
   }
