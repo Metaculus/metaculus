@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
 import {
   FC,
@@ -14,13 +15,8 @@ import {
 import { PredictionsByMonth } from "@/services/api/misc/misc.shared";
 import cn from "@/utils/core/cn";
 
+import { ChartCall, LeadUp, leadUp } from "./predictions_chart_calls";
 import { CHART_EVENTS, ChartEvent } from "./predictions_chart_events";
-import {
-  Box,
-  initialVisible,
-  nextSwap,
-  RotationSlot,
-} from "./predictions_chart_rotation";
 
 // Geometry of the original 1100x422 design frame
 const WIDTH = 1100;
@@ -38,49 +34,41 @@ const ARROW_LENGTH = 26;
 const HERO_OVERLAP_HEIGHT = 170;
 const HERO_OVERLAP_WIDTH = 700;
 
-// News events rotate: this many stay up, and on each swap the newcomer fades
-// in just before the leaving one fades out, so 4-5 are visible at any
-// moment. The founding marker is always shown.
-//
-// Paced to read as ambient rather than busy: swaps land at irregular
-// intervals averaging ~2.4 s (each label stays up ~10 s, well over the ~2 s
-// it takes to read), and slow 1.6-2 s fades, varied per label. The page
-// pauses on hover and skips rotation for reduced motion (WCAG 2.2.2).
-const VISIBLE_EVENTS = 4;
-const SWAP_MIN_MS = 1900;
-const SWAP_MAX_MS = 2900;
-const FADE_MIN_MS = 1600;
-const FADE_STEP_MS = 100;
-const FADE_STEPS = 5;
-const FADE_OUT_DELAY_MS = 250;
-// A label that left is still partly visible this long; newcomers avoid it
-const FADE_OUT_TOTAL_MS =
-  FADE_OUT_DELAY_MS + FADE_MIN_MS + FADE_STEP_MS * (FADE_STEPS - 1);
+// The spotlight moves to the next call every SPOTLIGHT_MS. It pauses while
+// the pointer or keyboard focus is on the chart, offscreen, in a hidden tab,
+// and for reduced motion (WCAG 2.2.2).
+const SPOTLIGHT_MS = 7000;
+// Spotlight card size, in chart units (about 1 px at the xl breakpoint)
+const CARD_W = 236;
+const CARD_H = 142;
+// The lead-up band on the main chart is only a few units wide at this
+// scale; keep it visible
+const MIN_BAND_W = 4;
 
-const swapDelay = () =>
-  SWAP_MIN_MS + Math.random() * (SWAP_MAX_MS - SWAP_MIN_MS);
-
-// Stable per-label fade length, so fades vary without flickering on re-render
-const fadeMs = (id: string) => {
-  let hash = 0;
-  for (const ch of id) hash = (hash * 31 + ch.charCodeAt(0)) % 997;
-  return FADE_MIN_MS + (hash % FADE_STEPS) * FADE_STEP_MS;
-};
 // Y-axis labels are right-aligned at this x
 const Y_LABEL_X = WIDTH - 2;
 
 type Point = { x: number; y: number; month: string; value: number };
-type LabelLine = { text: string; sub: boolean };
+type LabelLine = { text: string; kind: "title" | "sub" | "badge" };
+// Lead-up band on the main chart: its x range and the line height at each end
+type Band = { x0: number; x1: number; y0: number; y1: number };
 
 const monthIndex = (month: string) => {
   const [year, m] = month.split("-").map(Number);
   return (year ?? 0) * 12 + (m ?? 1) - 1;
 };
 
-// Two events can share a month, so identify them by month + title
-const eventId = (event: ChartEvent) => `${event.month}-${event.titleKey}`;
+// Fractional month index of a "YYYY-MM-DD" day
+const dayIndex = (date: string) => {
+  const [year = 0, m = 1, d = 1] = date.split("-").map(Number);
+  const daysInMonth = new Date(Date.UTC(year, m, 0)).getUTCDate();
+  return year * 12 + m - 1 + (d - 1) / daysInMonth;
+};
+
+const eventId = (event: ChartEvent) => `${event.date}-${event.titleKey}`;
 
 const monthToDate = (month: string) => new Date(`${month}-01T00:00:00Z`);
+const dayToDate = (date: string) => new Date(`${date}T00:00:00Z`);
 
 function gridStep(max: number) {
   for (const step of [1e6, 2e6, 5e6, 1e7, 2e7, 5e7]) {
@@ -100,7 +88,7 @@ const PredictionsChart: FC<Props> = ({ series, className }) => {
   const uid = useId().replace(/[^a-zA-Z0-9]/g, "");
   const svgRef = useRef<SVGSVGElement>(null);
   const [active, setActive] = useState<Point | null>(null);
-  const [shown, setShown] = useState<string[]>([]);
+  const [spotlight, setSpotlight] = useState<string | null>(null);
 
   const chart = useMemo(() => {
     const firstPoint = series[0];
@@ -154,62 +142,69 @@ const PredictionsChart: FC<Props> = ({ series, className }) => {
       });
     }
 
-    const valueAt = (month: string) => {
-      const idx = monthIndex(month);
-      let value = 0;
-      for (const p of series) {
-        if (monthIndex(p.month) > idx) break;
-        value = p.cumulative;
+    const sxDay = (date: string) =>
+      X_START + ((X_END - X_START) * (dayIndex(date) - first)) / (last - first);
+    // Height of the drawn line at x, so markers sit on it between months
+    const lineY = (x: number) => {
+      for (let i = 1; i < points.length; i++) {
+        const a = points[i - 1];
+        const b = points[i];
+        if (a && b && x <= b.x) {
+          return a.y + ((b.y - a.y) * (x - a.x)) / (b.x - a.x || 1);
+        }
       }
-      return value;
+      return tail.y;
     };
 
     const events = CHART_EVENTS.filter(
-      (e) => monthIndex(e.month) >= first && monthIndex(e.month) <= last
-    ).map((event) => ({
-      event,
-      x: sx(event.month),
-      y: sy(valueAt(event.month)),
-    }));
+      (e) => dayIndex(e.date) >= first && dayIndex(e.date) <= last + 1
+    ).map((event) => {
+      const x = sxDay(event.date);
+      const lead = event.call ? leadUp(event.call) : null;
+      // Lead-up band: from the day the call held to the event
+      let band: Band | null = null;
+      if (lead) {
+        const x1 = x;
+        const x0 = Math.min(sxDay(lead.since), x1 - MIN_BAND_W);
+        band = { x0, x1, y0: lineY(x0), y1: lineY(x1) };
+      }
+      return { event, x, y: lineY(x), lead, band };
+    });
 
-    const rotating = events
-      .filter(({ event }) => !event.origin)
-      .map(({ event, x }) => ({
-        id: eventId(event),
-        x,
-        initial: event.initial,
-      }));
-
-    return { points, line, area, tip, head, grid, events, rotating };
+    return { points, line, area, tip, head, grid, events };
   }, [series, locale]);
 
-  const initialShown = useMemo(
-    () => (chart ? initialVisible(chart.rotating, VISIBLE_EVENTS) : []),
+  const callIds = useMemo(
+    () =>
+      (chart?.events ?? [])
+        .filter(({ lead }) => lead)
+        .map(({ event }) => eventId(event)),
     [chart]
   );
-  const visible = shown.length ? shown : initialShown;
+  const initialSpotlight =
+    (chart?.events ?? [])
+      .filter(({ lead, event }) => lead && event.initial)
+      .map(({ event }) => eventId(event))[0] ?? callIds[0];
+  const current = spotlight ?? initialSpotlight;
 
-  // No new swaps while the pointer is over the chart (fades already running
-  // finish), nor for a full interval after it leaves, nor while the tab is
-  // hidden or the chart is scrolled out of view. No rotation for reduced
-  // motion.
-  const hoverRef = useRef(false);
+  // The spotlight waits while the pointer or keyboard focus is on the chart,
+  // and for a full interval after the pointer leaves
+  const pausedRef = useRef(false);
   const resumeAtRef = useRef(0);
-  const visibleRef = useRef(visible);
-  useEffect(() => {
-    visibleRef.current = visible;
-  });
   const handleEnter = () => {
-    hoverRef.current = true;
+    pausedRef.current = true;
   };
   const handleLeave = () => {
-    hoverRef.current = false;
-    resumeAtRef.current = Date.now() + swapDelay();
+    pausedRef.current = false;
+    resumeAtRef.current = Date.now() + SPOTLIGHT_MS;
     setActive(null);
   };
+  const focus = (id: string) => {
+    setActive(null);
+    setSpotlight(id);
+  };
   useEffect(() => {
-    const slots = chart?.rotating ?? [];
-    if (slots.length <= VISIBLE_EVENTS) return;
+    if (callIds.length < 2) return;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
     let onScreen = true;
@@ -221,71 +216,26 @@ const PredictionsChart: FC<Props> = ({ series, className }) => {
         : null;
     if (observer && svgRef.current) observer.observe(svgRef.current);
 
-    // Measured on every tick rather than once, so late-loading fonts and
-    // locale changes are picked up without extra bookkeeping
-    const measure = (id: string): Box[] => {
-      const group = svgRef.current?.querySelector(`[data-event="${id}"]`);
-      if (!group) return [];
-      return Array.from(group.querySelectorAll<SVGGElement>("[data-part]"))
-        .map((part) => part.getBBox())
-        .filter((b) => b.width > 0 && b.height > 0)
-        .map((b) => ({
-          x0: b.x,
-          y0: b.y,
-          x1: b.x + b.width,
-          y1: b.y + b.height,
-        }));
-    };
-    const fixedIds = (chart?.events ?? [])
-      .filter(({ event }) => event.origin)
-      .map(({ event }) => eventId(event));
-
-    const recent: string[] = [];
-    const leftAt = new Map<string, number>();
-    let timer = 0;
-    const tick = () => {
-      timer = window.setTimeout(tick, swapDelay());
+    const timer = window.setInterval(() => {
       if (
-        hoverRef.current ||
+        pausedRef.current ||
         Date.now() < resumeAtRef.current ||
         !onScreen ||
         document.hidden
       ) {
         return;
       }
-      const now = Date.now();
-      const fading = [...leftAt]
-        .filter(([, at]) => now - at < FADE_OUT_TOTAL_MS)
-        .map(([id]) => id);
-      const current = visibleRef.current;
-      const measured: RotationSlot[] = slots.map((slot) => ({
-        ...slot,
-        boxes: measure(slot.id),
-      }));
-      const swap = nextSwap(
-        measured,
-        current,
-        recent,
-        VISIBLE_EVENTS,
-        Math.random,
-        [...fixedIds, ...fading].flatMap(measure)
-      );
-      if (!swap) return;
-      if (swap.leaving) {
-        recent.unshift(swap.leaving);
-        recent.length = Math.min(recent.length, 2);
-        leftAt.set(swap.leaving, now);
-      }
-      const next = current.filter((id) => id !== swap.leaving);
-      setShown(swap.entering ? [...next, swap.entering] : next);
-    };
-    timer = window.setTimeout(tick, swapDelay());
+      setSpotlight((prev) => {
+        const idx = callIds.indexOf(prev ?? initialSpotlight ?? "");
+        return callIds[(idx + 1) % callIds.length] ?? null;
+      });
+    }, SPOTLIGHT_MS);
 
     return () => {
-      window.clearTimeout(timer);
+      window.clearInterval(timer);
       observer?.disconnect();
     };
-  }, [chart]);
+  }, [callIds, initialSpotlight]);
 
   if (!chart) return null;
 
@@ -295,6 +245,22 @@ const PredictionsChart: FC<Props> = ({ series, className }) => {
       month: yearOnly ? undefined : "long",
       timeZone: "UTC",
     }).format(monthToDate(month));
+
+  const formatDay = (date: string) =>
+    new Intl.DateTimeFormat(locale, {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      timeZone: "UTC",
+    }).format(dayToDate(date));
+
+  const formatThreshold = (call: ChartCall) =>
+    new Intl.NumberFormat(
+      locale,
+      call.kind === "probability"
+        ? { style: "percent" }
+        : { notation: "compact" }
+    ).format(call.thresholdDisplay);
 
   const handlePointer = (e: PointerEvent<SVGRectElement>) => {
     const rect = svgRef.current?.getBoundingClientRect();
@@ -308,7 +274,13 @@ const PredictionsChart: FC<Props> = ({ series, className }) => {
   };
 
   return (
-    <div className={cn("pointer-events-none relative", className)}>
+    <div
+      className={cn("pointer-events-none relative", className)}
+      onPointerEnter={handleEnter}
+      onPointerLeave={handleLeave}
+      onFocus={handleEnter}
+      onBlur={handleLeave}
+    >
       <svg
         ref={svgRef}
         viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
@@ -424,33 +396,52 @@ const PredictionsChart: FC<Props> = ({ series, className }) => {
               active && "opacity-25"
             )}
           >
-            {chart.events.map(({ event, x, y }) => {
-              const isShown = event.origin || visible.includes(eventId(event));
+            {chart.events.map(({ event, band }) => {
+              if (!band) return null;
+              const id = eventId(event);
+              const isSpot = id === current;
+              const card = event.card;
               return (
-                <g
-                  key={eventId(event)}
-                  data-event={eventId(event)}
-                  aria-hidden={!isShown}
-                  className={cn(
-                    "transition-opacity ease-in-out",
-                    isShown ? "opacity-100" : "opacity-0"
+                <g key={`band-${id}`}>
+                  {/* Zoom lens from the lead-up band to the card */}
+                  {card && (
+                    <polygon
+                      points={lensPoints(band, card)}
+                      className={cn(
+                        "fill-olive-500 transition-opacity duration-500 dark:fill-olive-500-dark",
+                        isSpot ? "opacity-25" : "opacity-0"
+                      )}
+                    />
                   )}
-                  style={{
-                    transitionDuration: `${fadeMs(eventId(event))}ms`,
-                    // The newcomer fades in first; the leaving label waits
-                    // for it so the count never dips
-                    transitionDelay: isShown ? "0ms" : `${FADE_OUT_DELAY_MS}ms`,
-                  }}
-                >
-                  <EventMarker
-                    event={event}
-                    x={x}
-                    y={y}
-                    uid={uid}
-                    title={t(event.titleKey as Parameters<typeof t>[0])}
-                    subtitle={formatMonth(event.month, event.yearOnly)}
+                  <polygon
+                    points={`${band.x0},${band.y0} ${band.x1},${band.y1} ${band.x1},${Y_ZERO} ${band.x0},${Y_ZERO}`}
+                    className={cn(
+                      "fill-olive-700 transition-opacity duration-500 dark:fill-olive-500-dark",
+                      isSpot ? "opacity-50" : "opacity-20"
+                    )}
                   />
                 </g>
+              );
+            })}
+            {chart.events.map(({ event, x, y, lead }) => {
+              const id = eventId(event);
+              // The spotlight card stands in for the label
+              const labelShown = !(lead && event.card && id === current);
+              return (
+                <EventMarker
+                  key={id}
+                  event={event}
+                  x={x}
+                  y={y}
+                  uid={uid}
+                  labelShown={labelShown}
+                  title={t(event.titleKey as Parameters<typeof t>[0])}
+                  subtitle={
+                    lead
+                      ? t("aboutChartDaysAhead", { days: lead.days })
+                      : formatMonth(event.date.slice(0, 7), event.yearOnly)
+                  }
+                />
               );
             })}
           </g>
@@ -486,10 +477,9 @@ const PredictionsChart: FC<Props> = ({ series, className }) => {
           height={HEIGHT - HERO_OVERLAP_HEIGHT}
           fill="transparent"
           className="pointer-events-auto"
-          onPointerEnter={handleEnter}
           onPointerMove={handlePointer}
           onPointerDown={handlePointer}
-          onPointerLeave={handleLeave}
+          onPointerLeave={() => setActive(null)}
         />
         <rect
           x={HERO_OVERLAP_WIDTH}
@@ -498,12 +488,63 @@ const PredictionsChart: FC<Props> = ({ series, className }) => {
           height={HERO_OVERLAP_HEIGHT}
           fill="transparent"
           className="pointer-events-auto"
-          onPointerEnter={handleEnter}
           onPointerMove={handlePointer}
           onPointerDown={handlePointer}
-          onPointerLeave={handleLeave}
+          onPointerLeave={() => setActive(null)}
         />
+
+        {/* Calls take the pointer over the scrub so their spotlight can be
+            picked by hovering, tapping or tabbing to the marker */}
+        {chart.events.map(({ event, x, y, lead }) => {
+          if (!lead) return null;
+          const id = eventId(event);
+          return (
+            <circle
+              key={`hit-${id}`}
+              cx={x}
+              cy={y}
+              r={18}
+              fill="transparent"
+              tabIndex={0}
+              role="button"
+              aria-label={`${t(event.titleKey as Parameters<typeof t>[0]).replace(/\n/g, " ")}, ${t("aboutChartDaysAhead", { days: lead.days })}`}
+              aria-pressed={id === current}
+              className="pointer-events-auto cursor-pointer outline-none"
+              onPointerEnter={() => focus(id)}
+              onPointerDown={() => focus(id)}
+              onFocus={() => focus(id)}
+            />
+          );
+        })}
       </svg>
+
+      {chart.events.map(({ event, lead }) => {
+        if (!lead || !event.call || !event.card) return null;
+        const id = eventId(event);
+        const isSpot = id === current;
+        return (
+          <SpotlightCard
+            key={`card-${id}`}
+            call={event.call}
+            lead={lead}
+            card={event.card}
+            shown={isSpot && !active}
+            title={t(event.titleKey as Parameters<typeof t>[0]).replace(
+              /\n/g,
+              " "
+            )}
+            date={formatDay(event.date)}
+            headline={t("aboutChartCalledAhead", { days: lead.days })}
+            caption={t("aboutChartCallSince", {
+              kind: event.call.kind,
+              threshold: formatThreshold(event.call),
+              date: formatDay(lead.since),
+            })}
+            question={t(event.call.questionKey as Parameters<typeof t>[0])}
+            thresholdLabel={formatThreshold(event.call)}
+          />
+        );
+      })}
 
       {active && (
         <div
@@ -534,22 +575,23 @@ const EventMarker: FC<{
   x: number;
   y: number;
   uid: string;
+  labelShown: boolean;
   title: string;
   subtitle: string;
-}> = ({ event, x, y, uid, title, subtitle }) => {
-  const titleLines = title.split("\n");
+}> = ({ event, x, y, uid, labelShown, title, subtitle }) => {
   const labelX = x + (event.dx ?? 0);
   const above = event.side === "above";
 
-  // Subtitle sits under the title, except for the founding marker and
-  // labels below the line where the date reads first.
-  const subtitleFirst = event.origin || !above;
-  const titleItems: LabelLine[] = titleLines.map((text) => ({
-    text,
-    sub: false,
-  }));
-  const subtitleItem: LabelLine = { text: subtitle, sub: true };
-  const lines = subtitleFirst
+  // The founding marker reads date first. Elsewhere the title comes first,
+  // then the date, or for a call how many days ahead it was forecast.
+  const titleItems: LabelLine[] = title
+    .split("\n")
+    .map((text) => ({ text, kind: "title" }));
+  const subtitleItem: LabelLine = {
+    text: subtitle,
+    kind: event.call ? "badge" : "sub",
+  };
+  const lines = event.origin
     ? [subtitleItem, ...titleItems]
     : [...titleItems, subtitleItem];
 
@@ -559,20 +601,20 @@ const EventMarker: FC<{
     let cursor = leaderEnd - 6;
     for (const line of [...lines].reverse()) {
       ys.unshift(cursor);
-      cursor -= line.sub ? SUBTITLE_GAP : TITLE_LINE_HEIGHT;
+      cursor -= line.kind === "title" ? TITLE_LINE_HEIGHT : SUBTITLE_GAP;
     }
   } else {
     let cursor = leaderEnd + 15;
     for (const line of lines) {
       ys.push(cursor);
-      cursor += line.sub ? SUBTITLE_GAP : TITLE_LINE_HEIGHT;
+      cursor += line.kind === "title" ? TITLE_LINE_HEIGHT : SUBTITLE_GAP;
     }
   }
   const leaderStop = above ? y - 8 : y + 8;
 
   return (
     <g>
-      <g data-part="marker">
+      <g>
         {event.leader > 0 && (
           <>
             <defs>
@@ -601,26 +643,33 @@ const EventMarker: FC<{
                 <stop offset="1" stopColor="#FFFFFF" />
               </linearGradient>
             </defs>
-            <line
-              x1={x}
-              x2={x}
-              y1={leaderEnd}
-              y2={leaderStop}
-              stroke={`url(#${uid}-leader-${eventId(event)})`}
-              strokeWidth={2.23}
-              strokeDasharray="6.7 2.23"
-              className="dark:hidden"
-            />
-            <line
-              x1={x}
-              x2={x}
-              y1={leaderEnd}
-              y2={leaderStop}
-              stroke={`url(#${uid}-leader-dark-${eventId(event)})`}
-              strokeWidth={2.23}
-              strokeDasharray="6.7 2.23"
-              className="hidden dark:inline"
-            />
+            <g
+              className={cn(
+                "transition-opacity duration-500",
+                labelShown ? "opacity-100" : "opacity-0"
+              )}
+            >
+              <line
+                x1={x}
+                x2={x}
+                y1={leaderEnd}
+                y2={leaderStop}
+                stroke={`url(#${uid}-leader-${eventId(event)})`}
+                strokeWidth={2.23}
+                strokeDasharray="6.7 2.23"
+                className="dark:hidden"
+              />
+              <line
+                x1={x}
+                x2={x}
+                y1={leaderEnd}
+                y2={leaderStop}
+                stroke={`url(#${uid}-leader-dark-${eventId(event)})`}
+                strokeWidth={2.23}
+                strokeDasharray="6.7 2.23"
+                className="hidden dark:inline"
+              />
+            </g>
           </>
         )}
 
@@ -661,20 +710,28 @@ const EventMarker: FC<{
         )}
       </g>
 
-      <g data-part="label">
+      <g
+        className={cn(
+          "transition-opacity duration-500",
+          labelShown ? "opacity-100" : "opacity-0"
+        )}
+        aria-hidden={!labelShown}
+      >
         {lines.map((line, i) => (
           <text
             key={i}
             x={labelX}
             y={ys[i]}
             textAnchor={event.anchor}
-            fontSize={line.sub ? 14 : 15}
-            fontWeight={line.sub ? 400 : 700}
-            letterSpacing={line.sub ? 0.11 : 0.22}
+            fontSize={line.kind === "title" ? 15 : 14}
+            fontWeight={line.kind === "sub" ? 400 : 700}
+            letterSpacing={line.kind === "title" ? 0.22 : 0.11}
             className={
-              line.sub
-                ? "fill-black opacity-50 dark:fill-white"
-                : "fill-[#2F4155] dark:fill-[#D7E4F2]"
+              line.kind === "title"
+                ? "fill-[#2F4155] dark:fill-[#D7E4F2]"
+                : line.kind === "badge"
+                  ? "fill-olive-800 dark:fill-olive-800-dark"
+                  : "fill-black opacity-50 dark:fill-white"
             }
           >
             {line.text}
@@ -682,6 +739,142 @@ const EventMarker: FC<{
         ))}
       </g>
     </g>
+  );
+};
+
+// Fan from the lead-up band on the line to the card edge facing it
+function lensPoints(band: Band, card: { x: number; y: number }) {
+  const start = `${band.x0},${band.y0}`;
+  const end = `${band.x1},${band.y1}`;
+  const left = card.x;
+  const right = card.x + CARD_W;
+  const top = card.y;
+  const bottom = card.y + CARD_H;
+  if (band.x0 > right) {
+    // Card to the left: its right edge
+    return `${start} ${right},${bottom} ${right},${top} ${end}`;
+  }
+  // Card above the band, or above and to its right
+  return `${start} ${left},${bottom} ${right},${bottom} ${end}`;
+}
+
+const SpotlightCard: FC<{
+  call: ChartCall;
+  lead: LeadUp;
+  card: { x: number; y: number };
+  shown: boolean;
+  title: string;
+  date: string;
+  headline: string;
+  caption: string;
+  question: string;
+  thresholdLabel: string;
+}> = ({
+  call,
+  lead,
+  card,
+  shown,
+  title,
+  date,
+  headline,
+  caption,
+  question,
+  thresholdLabel,
+}) => (
+  <div
+    aria-hidden={!shown}
+    className={cn(
+      "not-prose absolute flex flex-col rounded border border-blue-400 bg-white px-3 py-2 shadow-md transition-opacity duration-500 dark:border-blue-400-dark dark:bg-blue-900",
+      shown ? "pointer-events-auto opacity-100" : "opacity-0"
+    )}
+    style={{
+      left: `${(card.x / WIDTH) * 100}%`,
+      top: `${(card.y / HEIGHT) * 100}%`,
+      width: `${(CARD_W / WIDTH) * 100}%`,
+      height: `${(CARD_H / HEIGHT) * 100}%`,
+    }}
+  >
+    <div className="flex gap-2 text-[11px] leading-4 text-gray-600 dark:text-gray-600-dark">
+      <span className="truncate">{title}</span>
+      <span className="ml-auto shrink-0">{date}</span>
+    </div>
+    <div className="text-[15px] font-bold leading-5 text-olive-800 dark:text-olive-800-dark">
+      {headline}
+    </div>
+    <CallSparkline call={call} lead={lead} thresholdLabel={thresholdLabel} />
+    <div className="text-[10px] leading-3 text-gray-600 dark:text-gray-600-dark">
+      {caption}
+    </div>
+    <Link
+      href={`/questions/${call.postId}/`}
+      tabIndex={shown ? 0 : -1}
+      className="mt-auto line-clamp-1 text-[11px] leading-4"
+    >
+      {question} →
+    </Link>
+  </div>
+);
+
+const SPARK_W = 212;
+const SPARK_H = 44;
+
+// The community forecast from the day the question opened to the event, with
+// the lead-up shaded the same way as the band on the main chart
+const CallSparkline: FC<{
+  call: ChartCall;
+  lead: LeadUp;
+  thresholdLabel: string;
+}> = ({ call, lead, thresholdLabel }) => {
+  const n = call.series.length;
+  const px = (i: number) => (SPARK_W * i) / Math.max(1, n - 1);
+  const py = (v: number) => SPARK_H - 3 - (SPARK_H - 6) * v;
+  const path =
+    "M" + call.series.map(([, v], i) => `${px(i)} ${py(v)}`).join("L");
+  const last = call.series[n - 1]?.[1] ?? 0;
+  return (
+    <svg
+      viewBox={`0 0 ${SPARK_W} ${SPARK_H}`}
+      className="my-1 block h-auto w-full overflow-visible"
+      aria-hidden
+    >
+      <rect
+        x={px(lead.sinceIndex)}
+        y={0}
+        width={SPARK_W - px(lead.sinceIndex)}
+        height={SPARK_H}
+        className="fill-olive-400 dark:fill-olive-400-dark"
+      />
+      <line
+        x1={0}
+        x2={SPARK_W}
+        y1={py(call.threshold)}
+        y2={py(call.threshold)}
+        strokeDasharray="2 2"
+        strokeWidth={1}
+        className="stroke-gray-500 dark:stroke-gray-500-dark"
+      />
+      <text
+        x={2}
+        y={py(call.threshold) - 3}
+        fontSize={9}
+        className="fill-gray-600 dark:fill-gray-600-dark"
+      >
+        {thresholdLabel}
+      </text>
+      <path
+        d={path}
+        fill="none"
+        strokeWidth={1.5}
+        strokeLinejoin="round"
+        className="stroke-olive-700 dark:stroke-olive-700-dark"
+      />
+      <circle
+        cx={SPARK_W}
+        cy={py(last)}
+        r={2.5}
+        className="fill-olive-700 dark:fill-olive-700-dark"
+      />
+    </svg>
   );
 };
 
