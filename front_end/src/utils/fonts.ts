@@ -1,8 +1,10 @@
 import {
+  Fraunces,
   Geist,
   Geist_Mono,
   JetBrains_Mono,
   Newsreader,
+  Roboto_Mono,
 } from "next/font/google";
 import localFont from "next/font/local";
 
@@ -118,6 +120,22 @@ export const newsreader = Newsreader({
   style: ["normal", "italic"],
 });
 
+export const fraunces = Fraunces({
+  subsets: ["latin"],
+  variable: "--font-fraunces",
+  display: "swap",
+  axes: ["SOFT", "opsz"],
+  preload: false,
+});
+
+export const robotoMono = Roboto_Mono({
+  subsets: ["latin"],
+  variable: "--font-roboto-mono",
+  display: "swap",
+  weight: ["400", "500"],
+  preload: false,
+});
+
 export const getFontsString = () => {
-  return `${interVariable.variable} ${inter.variable} ${sourceSerifPro.variable} ${leagueGothic.variable} ${geist.variable} ${geistMono.variable} ${jetbrainsMono.variable} ${newsreader.variable}`;
+  return `${interVariable.variable} ${inter.variable} ${sourceSerifPro.variable} ${leagueGothic.variable} ${geist.variable} ${geistMono.variable} ${jetbrainsMono.variable} ${newsreader.variable} ${fraunces.variable} ${robotoMono.variable}`;
 };

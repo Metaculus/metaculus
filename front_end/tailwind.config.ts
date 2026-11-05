@@ -97,6 +97,11 @@ const config: Config = {
           "var(--font-newsreader)",
           ...defaultTheme.fontFamily.serif,
         ],
+        fraunces: ["var(--font-fraunces)", ...defaultTheme.fontFamily.serif],
+        "roboto-mono": [
+          "var(--font-roboto-mono)",
+          ...defaultTheme.fontFamily.mono,
+        ],
       },
       strokeWidth: {
         "3": "3px",
