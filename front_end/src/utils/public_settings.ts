@@ -15,7 +15,6 @@ export interface PublicSettings {
   PUBLIC_AUTHENTICATION_REQUIRED: boolean;
   PUBLIC_SCREENSHOT_SERVICE_ENABLED: boolean;
   PUBLIC_GTM_ID: string;
-  PUBLIC_REDDIT_SERVICES_PIXEL_ID: string;
 }
 
 export const defaultPublicSettingsValues: PublicSettings = {
@@ -35,5 +34,4 @@ export const defaultPublicSettingsValues: PublicSettings = {
   PUBLIC_AUTHENTICATION_REQUIRED: false,
   PUBLIC_SCREENSHOT_SERVICE_ENABLED: false,
   PUBLIC_GTM_ID: "",
-  PUBLIC_REDDIT_SERVICES_PIXEL_ID: "",
 };

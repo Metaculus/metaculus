@@ -13,7 +13,6 @@ import { FormErrorMessage, Input, Textarea } from "@/components/ui/form_field";
 import LoadingSpinner from "@/components/ui/loading_spiner";
 import Select from "@/components/ui/select";
 import { ServiceType } from "@/constants/services";
-import { usePublicSettings } from "@/contexts/public_settings_context";
 import { TranslationKey } from "@/types/translations";
 import { sendAnalyticsEvent } from "@/utils/analytics";
 import cn from "@/utils/core/cn";
@@ -89,7 +88,6 @@ const ContactForm: React.FC<ContactFormProps> = ({
   serviceOptions = SERVICE_OPTIONS,
 }) => {
   const t = useTranslations();
-  const { PUBLIC_REDDIT_SERVICES_PIXEL_ID: pixelId } = usePublicSettings();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<
     (Error & { digest?: string }) | undefined
@@ -137,7 +135,7 @@ const ContactForm: React.FC<ContactFormProps> = ({
         });
 
         sendAnalyticsEvent("ServiceContactForm", { event_label: pageLabel });
-        trackServicesLead(pixelId);
+        trackServicesLead();
         reset();
       } catch (e) {
         logError(e);
@@ -146,7 +144,7 @@ const ContactForm: React.FC<ContactFormProps> = ({
         setIsLoading(false);
       }
     },
-    [pageLabel, pixelId, reset]
+    [pageLabel, reset]
   );
 
   const selectOptions = serviceOptions.map((o) => ({

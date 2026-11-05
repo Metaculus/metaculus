@@ -8,7 +8,6 @@ import { safeLocalStorage } from "@/utils/core/storage";
 
 import {
   linkedinPixelInit,
-  redditPixelInit,
   fbPixelTrackPage,
   fbPixelInit,
   gtagPixelInit,
@@ -110,46 +109,6 @@ export const LinkedInInsightTag: FC<{ partnerID?: string }> = ({
   );
 };
 
-export const RedditPixelTag: FC<{ pixelID?: string }> = ({ pixelID }) => {
-  const consent =
-    typeof window !== "undefined"
-      ? getAnalyticsCookieConsentGiven()
-      : "undecided";
-
-  useEffect(() => {
-    if (consent !== "yes" || !pixelID) return;
-
-    redditPixelInit(pixelID);
-  }, [consent, pixelID]);
-
-  return (
-    <>
-      {pixelID && (
-        <>
-          <Script id="reddit-pixel-tag">
-            {`
-               !(function (w, d) {
-                  if (!w.rdt) {
-                    var p = (w.rdt = function () {
-                      p.sendEvent
-                        ? p.sendEvent.apply(p, arguments)
-                        : p.callQueue.push(arguments);
-                    });
-                    p.callQueue = [];
-                    var t = d.createElement("script");
-                    (t.src = "https://www.redditstatic.com/ads/pixel.js"), (t.async = !0);
-                    var s = d.getElementsByTagName("script")[0];
-                    s.parentNode.insertBefore(t, s);
-                  }
-                })(window, document);
-            `}
-          </Script>
-        </>
-      )}
-    </>
-  );
-};
-
 export const GoogleTag: FC<{ tagID?: string }> = ({ tagID }) => {
   const consent =
     typeof window !== "undefined"
@@ -195,7 +154,6 @@ export const AllBWPixelTagsForRegisteredUsers: FC = () => {
     <>
       <FacebookPixelTag pixelID={PIXEL_CONSTANTS.FACEBOOK} />
       <LinkedInInsightTag partnerID={PIXEL_CONSTANTS.LINKEDIN} />
-      <RedditPixelTag pixelID={PIXEL_CONSTANTS.REDDIT} />
       <GoogleTag tagID={PIXEL_CONSTANTS.GOOGLE} />
     </>
   );

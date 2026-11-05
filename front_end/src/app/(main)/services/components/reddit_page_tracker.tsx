@@ -4,7 +4,6 @@ import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 import { getAnalyticsCookieConsentGiven } from "@/app/(main)/components/cookies_banner";
-import { usePublicSettings } from "@/contexts/public_settings_context";
 
 import {
   ANALYTICS_CONSENT_CHANGED,
@@ -14,9 +13,8 @@ import {
 
 export default function RedditPageTracker() {
   const pathname = usePathname();
-  const { PUBLIC_REDDIT_SERVICES_PIXEL_ID: pixelId } = usePublicSettings();
   const [hasConsent, setHasConsent] = useState(false);
-  const lastTrackedPath = useRef<string | null>(null);
+  const previousPath = useRef<string | null>(null);
 
   useEffect(() => {
     const updateConsent = () => {
@@ -34,16 +32,14 @@ export default function RedditPageTracker() {
   }, []);
 
   useEffect(() => {
-    if (!hasConsent || !pixelId || !isTrackedServicesPath(pathname)) {
-      lastTrackedPath.current = null;
-      return;
+    const isClientNavigation =
+      previousPath.current !== null && previousPath.current !== pathname;
+    previousPath.current = pathname;
+
+    if (isClientNavigation && hasConsent && isTrackedServicesPath(pathname)) {
+      trackServicesPageVisit();
     }
-
-    if (lastTrackedPath.current === pathname) return;
-
-    trackServicesPageVisit(pixelId);
-    lastTrackedPath.current = pathname;
-  }, [hasConsent, pathname, pixelId]);
+  }, [hasConsent, pathname]);
 
   return null;
 }
