@@ -122,6 +122,7 @@ const ContactForm: React.FC<ContactFormProps> = ({
 
   const onSubmit = useCallback(
     async (data: ContactFormSchema) => {
+      const submissionPath = window.location.pathname;
       setIsLoading(true);
       setError(undefined);
 
@@ -135,7 +136,7 @@ const ContactForm: React.FC<ContactFormProps> = ({
         });
 
         sendAnalyticsEvent("ServiceContactForm", { event_label: pageLabel });
-        trackServicesLead();
+        trackServicesLead(submissionPath);
         reset();
       } catch (e) {
         logError(e);

@@ -13,16 +13,36 @@ export function isTrackedServicesPath(pathname: string): boolean {
   return TRACKED_PATHS.has(pathname.replace(/\/$/, ""));
 }
 
-function trackRedditEvent(event: string, data?: Record<string, unknown>): void {
+function trackRedditEvent(
+  event: string,
+  data?: Record<string, unknown>,
+  pathname?: string
+): void {
   if (
     typeof window === "undefined" ||
-    !isTrackedServicesPath(window.location.pathname) ||
+    !isTrackedServicesPath(pathname ?? window.location.pathname) ||
     getAnalyticsCookieConsentGiven() !== "yes"
   ) {
     return;
   }
 
-  window.rdt?.("track", event, data);
+  if (window.rdt) {
+    window.rdt("track", event, data);
+    return;
+  }
+
+  let attempts = 0;
+  const interval = window.setInterval(() => {
+    if (getAnalyticsCookieConsentGiven() !== "yes" || attempts++ >= 100) {
+      window.clearInterval(interval);
+      return;
+    }
+
+    if (window.rdt) {
+      window.clearInterval(interval);
+      window.rdt("track", event, data);
+    }
+  }, 100);
 }
 
 export function trackServicesPageVisit(): void {
@@ -35,6 +55,12 @@ export function trackServicesContactClick(): void {
   });
 }
 
-export function trackServicesLead(): void {
-  trackRedditEvent("Lead");
+export function trackServicesContactArrival(): void {
+  trackRedditEvent("Custom", {
+    customEventName: "ServicesContactUsDirectArrival",
+  });
+}
+
+export function trackServicesLead(pathname: string): void {
+  trackRedditEvent("Lead", undefined, pathname);
 }

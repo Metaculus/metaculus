@@ -8,6 +8,7 @@ import { getAnalyticsCookieConsentGiven } from "@/app/(main)/components/cookies_
 import {
   ANALYTICS_CONSENT_CHANGED,
   isTrackedServicesPath,
+  trackServicesContactArrival,
   trackServicesPageVisit,
 } from "./reddit_pixel";
 
@@ -15,8 +16,17 @@ export default function RedditPageTracker() {
   const pathname = usePathname();
   const [hasConsent, setHasConsent] = useState(false);
   const previousPath = useRef<string | null>(null);
+  const directArrivalPath = useRef<string | null>(null);
+  const directArrivalTracked = useRef(false);
 
   useEffect(() => {
+    if (
+      isTrackedServicesPath(window.location.pathname) &&
+      window.location.hash === "#contact-us"
+    ) {
+      directArrivalPath.current = window.location.pathname;
+    }
+
     const updateConsent = () => {
       setHasConsent(getAnalyticsCookieConsentGiven() === "yes");
     };
@@ -35,6 +45,19 @@ export default function RedditPageTracker() {
     const isClientNavigation =
       previousPath.current !== null && previousPath.current !== pathname;
     previousPath.current = pathname;
+
+    if (isClientNavigation) {
+      directArrivalPath.current = null;
+    }
+
+    if (
+      hasConsent &&
+      !directArrivalTracked.current &&
+      directArrivalPath.current === pathname
+    ) {
+      directArrivalTracked.current = true;
+      trackServicesContactArrival();
+    }
 
     if (isClientNavigation && hasConsent && isTrackedServicesPath(pathname)) {
       trackServicesPageVisit();
