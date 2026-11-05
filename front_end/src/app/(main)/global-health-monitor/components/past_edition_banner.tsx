@@ -11,7 +11,7 @@ export async function PastEditionBanner({
   const t = await getTranslations();
 
   return (
-    <div className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-purple-400 bg-purple-100 px-4 py-3 text-sm text-purple-900 dark:border-purple-400-dark dark:bg-purple-100-dark dark:text-purple-900-dark">
+    <div className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-purple-400 bg-purple-100 px-4 py-3 text-sm text-purple-900 dark:border-purple-400-dark dark:bg-purple-100-dark dark:text-purple-900-dark print:mt-8">
       <span>{t("globalHealthMonitorPastEditionBanner", { date })}</span>
       <Link
         href={href}
