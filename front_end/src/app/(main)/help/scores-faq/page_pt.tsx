@@ -2262,7 +2262,9 @@ export default function ScoresFAQ() {
           </a>
           : reamostramos as perguntas do torneio com reposição milhares de
           vezes, recalculamos a pontuação e a classificação de todos em cada
-          reamostragem e tomamos os percentis 2,5 e 97,5.
+          reamostragem e tomamos os percentis 2,5 e 97,5. Entradas que não são
+          elegíveis para a classificação ainda mostram um intervalo de Rank, que
+          indica onde teriam ficado se fossem elegíveis.
         </p>
         {/* <hr> */}
         <h2 className="scroll-mt-nav" id="legacy-tournament-scores">
