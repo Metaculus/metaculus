@@ -357,9 +357,7 @@ class GroupOfQuestionsUpdateSerializer(GroupOfQuestionsWriteSerializer):
 class ForecastSerializer(serializers.ModelSerializer):
     quartiles = serializers.SerializerMethodField()
     scaling = serializers.SerializerMethodField()
-    options = serializers.ListField(
-        child=serializers.CharField(), source="question.options"
-    )
+    options = serializers.SerializerMethodField()
     question_type = serializers.CharField(source="question.type")
     question_unit = serializers.CharField(source="question.unit")
 
@@ -376,6 +374,14 @@ class ForecastSerializer(serializers.ModelSerializer):
             "question_type",
             "question_unit",
         )
+
+    def get_options(self, forecast: Forecast) -> list[str] | None:
+        # Multiple choice PMFs are indexed against every option the question has
+        # ever had, not just the current ones, so labels must match that list.
+        question = forecast.question
+        if question.options_history:
+            return get_all_options_from_history(question.options_history)
+        return question.options
 
     def get_quartiles(self, forecast: Forecast):
         question = forecast.question
