@@ -15,6 +15,7 @@ from projects.models import Project
 from projects.permissions import ObjectPermission
 from projects.services.common import get_site_main_project
 from projects.views import get_projects_qs, get_project_permission_for_user
+from questions.types import SHADOW_AGGREGATION_METHODS
 from scoring.constants import LeaderboardScoreTypes
 from scoring.models import (
     Leaderboard,
@@ -31,6 +32,17 @@ from scoring.serializers import (
 from scoring.utils import get_contributions, update_project_leaderboard
 from users.models import User
 from scoring.utils import get_cached_metaculus_stats
+
+
+def show_shadow_entries_to_staff(entries, user) -> None:
+    """Staff see shadow aggregation (reputation_weighted) entries like the CP:
+    visible but unranked. They're stored EXCLUDE so nobody else does. Temporary,
+    like the staff shadow aggregation view; remove with it."""
+    if not (user and user.is_staff):
+        return
+    for entry in entries:
+        if entry.aggregation_method in SHADOW_AGGREGATION_METHODS:
+            entry.exclusion_status = ExclusionStatuses.EXCLUDE_AND_SHOW
 
 
 @api_view(["GET"])
@@ -86,6 +98,12 @@ def global_leaderboard_view(
                 )
             )
             | (Q(user_id=user.id) if user.is_authenticated else Q())
+            # staff also get shadow aggregation entries, wherever they rank
+            | (
+                Q(aggregation_method__in=SHADOW_AGGREGATION_METHODS)
+                if user.is_staff
+                else Q()
+            )
         )
 
     if not user.is_staff:
@@ -93,6 +111,8 @@ def global_leaderboard_view(
             exclusion_status__lte=ExclusionStatuses.EXCLUDE_AND_SHOW_IN_ADVANCED
         )
 
+    entries = list(entries)
+    show_shadow_entries_to_staff(entries, user)
     leaderboard_data["entries"] = LeaderboardEntrySerializer(entries, many=True).data
     # add user entry
     for entry in entries:
@@ -162,6 +182,8 @@ def project_leaderboard_view(
         | (Q(user_id=user.id) if user else Q())
     )
 
+    entries = list(entries)
+    show_shadow_entries_to_staff(entries, user)
     entries_map = defaultdict(list)
     user_entry_map = dict()
     for entry in entries:
