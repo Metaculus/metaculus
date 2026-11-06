@@ -1,0 +1,23 @@
+@keyframes wby-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes wby-drop-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+
+@keyframes wby-settle-in {
+  from {
+    opacity: 0.35;
+  }
+}
