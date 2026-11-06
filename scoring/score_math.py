@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import datetime
 from typing import Sequence
 
@@ -398,6 +398,12 @@ def evaluate_question(
     geometric_means: list[AggregationEntry] = []
     if ScoreTypes.PEER in score_types:
         geometric_means = get_geometric_means(base_forecasts)
+    # Peer scoring moves geometric-mean timestamps up to the horizon start in
+    # place. With a clipped horizon, give it copies so spot peer scoring (which
+    # reads the same entries) still sees the original timestamps.
+    peer_geometric_means = geometric_means
+    if horizon_start != question.open_time:
+        peer_geometric_means = [replace(gm) for gm in geometric_means]
 
     scores: list[Score] = []
     for score_type in score_types:
@@ -457,7 +463,7 @@ def evaluate_question(
                 actual_close_time,
                 forecast_horizon_end,
                 question.type,
-                geometric_means=geometric_means,
+                geometric_means=peer_geometric_means,
             )
             for method in aggregation_methods:
                 aggregation_forecasts = aggregations[method]
@@ -469,7 +475,7 @@ def evaluate_question(
                     actual_close_time,
                     forecast_horizon_end,
                     question.type,
-                    geometric_means=geometric_means,
+                    geometric_means=peer_geometric_means,
                 )
         elif score_type == ScoreTypes.SPOT_PEER:
             user_scores = evaluate_forecasts_peer_spot_forecast(

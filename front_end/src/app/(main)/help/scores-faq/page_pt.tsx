@@ -1959,7 +1959,10 @@ export default function ScoresFAQ() {
           aberta antes do seu início, a Pontuação e a Cobertura dessa pergunta
           no torneio contam apenas o tempo desde o início do torneio. As suas
           Pontuações na página da pergunta continuam a contar toda a sua
-          duração. Torneios que terminaram antes da introdução desta regra
+          duração. Isto não se aplica às pontuações pontuais (spot), que usam
+          apenas a previsão vigente num momento específico, nem a perguntas que
+          fecharam antes do início do torneio, que mantêm as pontuações de toda
+          a sua duração. Torneios que terminaram antes da introdução desta regra
           mantêm os seus resultados originais.
         </p>
         <h3 className="scroll-mt-nav" id="old-points">

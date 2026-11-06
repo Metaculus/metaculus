@@ -189,8 +189,8 @@ def get_leaderboard_horizon_start(leaderboard: Leaderboard) -> datetime | None:
     marks the start of the competition. Returns None when no clipping applies:
     other project types (global leaderboards, communities, ...), leaderboards
     without a start date, spot-scored leaderboards, leaderboards that concluded
-    before HORIZON_CLIPPING_CUTOFF, and finalized leaderboards with no
-    finalize_time or close_date.
+    before HORIZON_CLIPPING_CUTOFF, and leaderboards with no finalize_time or
+    close_date that were created before it.
     """
     project = leaderboard.project
     if project is None or project.type not in (
@@ -201,9 +201,15 @@ def get_leaderboard_horizon_start(leaderboard: Leaderboard) -> datetime | None:
     concluded_at = leaderboard.finalize_time or project.close_date
     if concluded_at and concluded_at < HORIZON_CLIPPING_CUTOFF:
         return None
-    if concluded_at is None and leaderboard.finalized:
-        # Without dates a leaderboard can only have been finalized manually;
-        # treat it as concluded so its frozen results stay consistent.
+    if (
+        concluded_at is None
+        and leaderboard.created_at
+        and leaderboard.created_at < HORIZON_CLIPPING_CUTOFF
+    ):
+        # Without a finalize_time or close_date there is no conclusion date to
+        # compare, so decide by when the leaderboard was created. This never
+        # changes, so a leaderboard that is force-finalized later keeps the
+        # same scoring rule for its final results, breakdowns and force updates.
         return None
     if leaderboard.score_type in (
         LeaderboardScoreTypes.COMMENT_INSIGHT,
@@ -232,16 +238,21 @@ def question_needs_clipping(question: Question, horizon_start: datetime | None) 
 
 
 def get_clipped_question_scores(
-    question: Question, score_type: str, horizon_start: datetime
+    question: Question,
+    score_type: str,
+    horizon_start: datetime,
+    aggregation_methods: list[AggregationMethod],
 ) -> list[Score]:
     """
-    Unsaved Scores (users and aggregations) for `question` evaluated with its
-    forecast horizon starting at `horizon_start`. Cached until the question is
-    rescored.
+    Unsaved Scores for `question`'s users and the given `aggregation_methods`,
+    evaluated with its forecast horizon starting at `horizon_start`. Cached
+    until the question is rescored.
     """
+    aggregation_methods = sorted(set(aggregation_methods))
     version = cache.get(_clipped_scores_version_key(question.id), 0)
     key = (
         f"clipped_scores:{question.id}:{version}:{score_type}:"
+        f"{','.join(aggregation_methods)}:"
         f"{horizon_start.timestamp()}:{question.resolution}:"
         f"{question.resolution_set_time.timestamp() if question.resolution_set_time else ''}"
     )
@@ -251,6 +262,7 @@ def get_clipped_question_scores(
             question=question,
             resolution=question.resolution,
             score_types=[score_type],
+            aggregation_methods=aggregation_methods,
             forecast_horizon_start=horizon_start,
         )
         rows = [(s.user_id, s.aggregation_method, s.score, s.coverage) for s in scores]
@@ -277,32 +289,48 @@ def apply_leaderboard_horizon(
     """
     Replaces the stored Scores of questions that opened before the leaderboard's
     start with Scores computed from that start (see get_leaderboard_horizon_start).
-    ArchivedScores are left untouched. If `user_ids` is given, only those users'
-    recomputed scores are kept (aggregations included only if user_ids is None).
+    Only the aggregation methods present in `scores` are recomputed. If
+    `user_ids` is given, only those users' recomputed scores are kept.
+
+    Questions with any ArchivedScore of the score type are never clipped. This
+    is checked against the database rather than `scores`, so the leaderboard and
+    a single user's contributions make the same decision.
     """
     horizon_start = get_leaderboard_horizon_start(leaderboard)
     if not horizon_start:
         return scores
-    archived_question_ids = {
-        s.question_id for s in scores if isinstance(s, ArchivedScore)
-    }
     to_rescore: dict[int, tuple[Question, str]] = {}
+    methods: dict[int, set[AggregationMethod]] = defaultdict(set)
     for score in scores:
-        if (
-            isinstance(score, ArchivedScore)
-            or score.question_id in archived_question_ids
-        ):
+        if isinstance(score, ArchivedScore):
             continue
         if score.score_type not in HORIZON_DEPENDENT_SCORE_TYPES:
             continue
         if question_needs_clipping(score.question, horizon_start):
             to_rescore[score.question_id] = (score.question, score.score_type)
+            if score.aggregation_method:
+                methods[score.question_id].add(score.aggregation_method)
+    if not to_rescore:
+        return scores
+    archived = set(
+        ArchivedScore.objects.filter(
+            question_id__in=to_rescore.keys(),
+            score_type__in={score_type for _, score_type in to_rescore.values()},
+        ).values_list("question_id", "score_type")
+    )
+    to_rescore = {
+        question_id: (question, score_type)
+        for question_id, (question, score_type) in to_rescore.items()
+        if (question_id, score_type) not in archived
+    }
     if not to_rescore:
         return scores
 
     new_scores = [s for s in scores if s.question_id not in to_rescore]
-    for question, score_type in to_rescore.values():
-        for score in get_clipped_question_scores(question, score_type, horizon_start):
+    for question_id, (question, score_type) in to_rescore.items():
+        for score in get_clipped_question_scores(
+            question, score_type, horizon_start, list(methods[question_id])
+        ):
             if user_ids is None or score.user_id in user_ids:
                 new_scores.append(score)
     return new_scores

@@ -6,16 +6,21 @@ leaderboard as if they opened at the tournament start.
 from datetime import timedelta
 
 import pytest
+from django.core.cache import cache
 from django.utils import timezone
 
 from projects.models import Project
 from questions.models import Forecast, Question
 from questions.types import AggregationMethod
 from scoring.constants import LeaderboardScoreTypes, ScoreTypes
-from scoring.models import Leaderboard, Score
+from scoring.models import ArchivedScore, Leaderboard, Score
 from scoring.score_math import evaluate_question
+from scoring.management.commands.score_aggregations import (
+    score_question_aggregations,
+)
 from scoring.utils import (
     HORIZON_CLIPPING_CUTOFF,
+    _clipped_scores_version_key,
     get_clipped_question_scores,
     get_contributions,
     get_leaderboard_horizon_start,
@@ -255,12 +260,14 @@ def test_clipped_scores_cache_invalidated_on_rescore():
     question = _question()
     _add_forecasts(question, users)
     score_question(question, "yes")
-    before = get_clipped_question_scores(question, ScoreTypes.PEER, TOURNAMENT_START)
+    before = get_clipped_question_scores(
+        question, ScoreTypes.PEER, TOURNAMENT_START, []
+    )
 
     newcomer = factory_user()
     _forecast(question, newcomer, 0.9, TOURNAMENT_START + timedelta(days=10))
     score_question(question, "yes")
-    after = get_clipped_question_scores(question, ScoreTypes.PEER, TOURNAMENT_START)
+    after = get_clipped_question_scores(question, ScoreTypes.PEER, TOURNAMENT_START, [])
 
     assert newcomer.id not in {s.user_id for s in before}
     assert newcomer.id in {s.user_id for s in after}
@@ -383,8 +390,22 @@ def test_leaderboard_start_time_overrides_project_start_date():
     assert get_leaderboard_horizon_start(leaderboard) == later
 
 
-@pytest.mark.parametrize("finalized,expected", [(False, True), (True, False)])
-def test_finalized_leaderboard_without_dates_is_not_clipped(finalized, expected):
+@pytest.mark.parametrize("finalized", [False, True])
+@pytest.mark.parametrize(
+    "created_at,expected",
+    [
+        (HORIZON_CLIPPING_CUTOFF - timedelta(days=1), False),
+        (HORIZON_CLIPPING_CUTOFF + timedelta(days=1), True),
+    ],
+)
+def test_leaderboard_without_dates_is_gated_by_creation_time(
+    created_at, expected, finalized
+):
+    """
+    Without a finalize_time or close_date, clipping depends only on when the
+    leaderboard was created, never on `finalized`, so force-finalizing a
+    leaderboard doesn't change which rule its results use.
+    """
     project = factory_project(
         type=Project.ProjectTypes.TOURNAMENT,
         start_date=TOURNAMENT_START,
@@ -394,8 +415,45 @@ def test_finalized_leaderboard_without_dates_is_not_clipped(finalized, expected)
         project=project,
         score_type=LeaderboardScoreTypes.PEER_TOURNAMENT,
         finalized=finalized,
+        created_at=created_at,
     )
     assert (get_leaderboard_horizon_start(leaderboard) == TOURNAMENT_START) is expected
+
+
+def test_force_finalizing_dateless_leaderboard_keeps_clipped_results():
+    project = factory_project(
+        type=Project.ProjectTypes.TOURNAMENT,
+        start_date=TOURNAMENT_START,
+        close_date=None,
+    )
+    leaderboard = Leaderboard.objects.create(
+        project=project, score_type=LeaderboardScoreTypes.PEER_TOURNAMENT
+    )
+    users = [factory_user() for _ in range(3)]
+    question = _question(project=project)
+    _add_forecasts(question, users)
+    score_question(question, "yes")
+
+    finalized = {
+        e.user_id: e
+        for e in update_project_leaderboard(project, leaderboard, force_finalize=True)
+        if e.user_id
+    }
+    leaderboard.refresh_from_db()
+    assert leaderboard.finalized
+    assert finalized[users[0].id].coverage == pytest.approx(1.0)
+
+    after = {
+        e.user_id: e
+        for e in update_project_leaderboard(project, leaderboard, force_update=True)
+        if e.user_id
+    }
+    for user in users:
+        assert after[user.id].coverage == pytest.approx(finalized[user.id].coverage)
+        (contribution,) = [
+            c for c in get_contributions(user, leaderboard) if c.score is not None
+        ]
+        assert contribution.coverage == pytest.approx(finalized[user.id].coverage)
 
 
 def test_question_closed_early_before_start_keeps_full_lifetime_scores(tournament):
@@ -436,3 +494,95 @@ def test_question_closed_early_before_start_keeps_full_lifetime_scores(tournamen
     for entry in entries:
         assert entry.coverage == pytest.approx(stored[entry.user_id].coverage)
         assert entry.coverage > 0
+
+
+def test_peer_clipping_does_not_shift_spot_peer_inputs():
+    """
+    Peer and spot peer scoring share geometric-mean entries; clipping the peer
+    horizon must not move them for a spot time before the horizon start.
+    """
+    users = [factory_user() for _ in range(3)]
+    question = _question()
+    _add_forecasts(question, users)
+    spot_time = OPEN + timedelta(days=20)
+
+    both = evaluate_question(
+        question,
+        "yes",
+        [ScoreTypes.PEER, ScoreTypes.SPOT_PEER],
+        spot_forecast_time=spot_time,
+        forecast_horizon_start=TOURNAMENT_START,
+    )
+    spot_only = evaluate_question(
+        question, "yes", [ScoreTypes.SPOT_PEER], spot_forecast_time=spot_time
+    )
+    spot_from_both = _by_key(s for s in both if s.score_type == ScoreTypes.SPOT_PEER)
+    spot_only = _by_key(spot_only)
+    assert spot_only, "expected spot peer scores at the spot time"
+    assert spot_from_both.keys() == spot_only.keys()
+    for key, score in spot_only.items():
+        assert spot_from_both[key].score == pytest.approx(score.score)
+        assert spot_from_both[key].coverage == pytest.approx(score.coverage)
+
+
+def test_clipping_recomputes_only_stored_aggregation_methods(tournament):
+    project, leaderboard = tournament
+    users = [factory_user() for _ in range(3)]
+    question = _question(project=project)
+    _add_forecasts(question, users)
+    score_question(question, "yes")
+    Score.objects.filter(
+        question=question, aggregation_method=AggregationMethod.UNWEIGHTED
+    ).delete()
+
+    methods = {
+        e.aggregation_method
+        for e in update_project_leaderboard(project, leaderboard)
+        if e.aggregation_method
+    }
+    assert methods == {AggregationMethod.RECENCY_WEIGHTED}
+
+
+def test_archived_scores_on_question_disable_clipping_everywhere(tournament):
+    """
+    An ArchivedScore for one user keeps the question unclipped both on the
+    leaderboard and in other users' contributions.
+    """
+    project, leaderboard = tournament
+    users = [factory_user() for _ in range(3)]
+    question = _question(project=project)
+    _add_forecasts(question, users)
+    score_question(question, "yes")
+    ArchivedScore.objects.create(
+        question=question,
+        user=users[1],
+        score=1.0,
+        coverage=0.5,
+        score_type=ScoreTypes.PEER,
+    )
+    stored = {
+        s.user_id: s
+        for s in Score.objects.filter(question=question, score_type=ScoreTypes.PEER)
+        if s.user_id
+    }
+
+    entries = {e.user_id: e for e in update_project_leaderboard(project, leaderboard)}
+    u1 = users[0]
+    assert entries[u1.id].coverage == pytest.approx(stored[u1.id].coverage)
+    (contribution,) = [
+        c for c in get_contributions(u1, leaderboard) if c.score is not None
+    ]
+    assert contribution.coverage == pytest.approx(entries[u1.id].coverage)
+
+
+def test_score_aggregations_invalidates_clipped_cache():
+    users = [factory_user() for _ in range(3)]
+    question = _question()
+    _add_forecasts(question, users)
+    score_question(question, "yes")
+    before = cache.get(_clipped_scores_version_key(question.id))
+
+    score_question_aggregations(
+        question, [AggregationMethod.UNWEIGHTED], [ScoreTypes.PEER]
+    )
+    assert cache.get(_clipped_scores_version_key(question.id)) != before
