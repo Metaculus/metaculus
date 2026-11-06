@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useRef } from "react";
 
 import cn from "@/utils/core/cn";
 
@@ -12,54 +12,22 @@ import HeroYearControl, {
   HeroYearControlTwin,
 } from "../components/hero_year_control";
 import { PlayPauseIcon } from "../components/icons";
-import {
-  clampYear,
-  INITIAL_YEAR,
-  PLAY_END_YEAR,
-  YEAR_MIN,
-} from "../helpers/forecast";
-
-const PLAY_STEP_MS = 1000;
+import { useWorldYear } from "../components/world_year_provider";
 
 export function HeroSection() {
   const t = useTranslations();
   const heroRef = useRef<HTMLElement>(null);
   const headRef = useRef<HTMLDivElement>(null);
   const frostRef = useRef<HTMLSpanElement>(null);
-  const holdRef = useRef(false);
-  const [year, setYear] = useState(INITIAL_YEAR);
-  const [playing, setPlaying] = useState(false);
-  const [scrubbing, setScrubbing] = useState(false);
-
-  const changeYear = useCallback((next: number) => {
-    setPlaying(false);
-    setYear(clampYear(next));
-  }, []);
-
-  const changeScrubbing = useCallback((value: boolean) => {
-    holdRef.current = value;
-    setScrubbing(value);
-  }, []);
-
-  useEffect(() => {
-    if (!playing) return;
-    const timer = setTimeout(() => {
-      const next = year + 1;
-      setYear(next);
-      if (next >= PLAY_END_YEAR) setPlaying(false);
-    }, PLAY_STEP_MS);
-    return () => clearTimeout(timer);
-  }, [playing, year]);
-
-  const togglePlay = () => {
-    if (playing) {
-      setPlaying(false);
-      return;
-    }
-    const next = (year >= PLAY_END_YEAR ? YEAR_MIN : year) + 1;
-    setYear(next);
-    setPlaying(next < PLAY_END_YEAR);
-  };
+  const {
+    year,
+    playing,
+    scrubbing,
+    holdRef,
+    changeYear,
+    changeScrubbing,
+    togglePlay,
+  } = useWorldYear();
 
   return (
     <section

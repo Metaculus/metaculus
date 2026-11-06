@@ -73,6 +73,18 @@ export const yearAtPosition = (fraction: number) =>
 export const yearFillPosition = (year: number) =>
   timelinePosition(Math.min(year + 1, T1));
 
+export const linearPosition = (t: number) => clamp01((t - T0) / (T1 - T0));
+
+export const yearAtLinearPosition = (fraction: number) =>
+  clampYear(Math.floor(T0 + clamp01(fraction) * (T1 - T0) - 0.5));
+
+export const firstLikelyYear = (question: WorldQuestion) => {
+  for (let year = YEAR_MIN; year <= YEAR_MAX; year++) {
+    if (isLikelyByEndOf(year, question)) return year;
+  }
+  return null;
+};
+
 export const medianDate = (median: number) =>
   new Date(Date.UTC(Math.floor(median), Math.floor((median % 1) * 12), 1));
 

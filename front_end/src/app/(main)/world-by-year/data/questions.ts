@@ -10,6 +10,9 @@ export type WorldQuestion = {
   median: number;
   spread: number;
   headlineKey: keyof Messages;
+  changeKey: keyof Messages;
+  // The adoption question this capability unlocks.
+  pairId?: string;
 };
 
 export const AREA_TITLE_KEYS: Record<WorldArea, keyof Messages> = {
@@ -30,6 +33,8 @@ export const WORLD_QUESTIONS: WorldQuestion[] = [
     median: 2027.9,
     spread: 0.4,
     headlineKey: "worldByYearMilestoneHe1",
+    changeKey: "worldByYearChangeHe1",
+    pairId: "he2",
   },
   {
     id: "he2",
@@ -38,6 +43,7 @@ export const WORLD_QUESTIONS: WorldQuestion[] = [
     median: 2031.2,
     spread: 0.45,
     headlineKey: "worldByYearMilestoneHe2",
+    changeKey: "worldByYearChangeHe2",
   },
   {
     id: "he5",
@@ -46,6 +52,8 @@ export const WORLD_QUESTIONS: WorldQuestion[] = [
     median: 2029.0,
     spread: 0.45,
     headlineKey: "worldByYearMilestoneHe5",
+    changeKey: "worldByYearChangeHe5",
+    pairId: "he6",
   },
   {
     id: "he3",
@@ -54,6 +62,7 @@ export const WORLD_QUESTIONS: WorldQuestion[] = [
     median: 2032.4,
     spread: 0.5,
     headlineKey: "worldByYearMilestoneHe3",
+    changeKey: "worldByYearChangeHe3",
   },
   {
     id: "he6",
@@ -62,6 +71,7 @@ export const WORLD_QUESTIONS: WorldQuestion[] = [
     median: 2036.0,
     spread: 0.5,
     headlineKey: "worldByYearMilestoneHe6",
+    changeKey: "worldByYearChangeHe6",
   },
   {
     id: "he4",
@@ -70,6 +80,7 @@ export const WORLD_QUESTIONS: WorldQuestion[] = [
     median: 2031.1,
     spread: 0.4,
     headlineKey: "worldByYearMilestoneHe4",
+    changeKey: "worldByYearChangeHe4",
   },
   {
     id: "he7",
@@ -78,6 +89,7 @@ export const WORLD_QUESTIONS: WorldQuestion[] = [
     median: 2042.0,
     spread: 0.6,
     headlineKey: "worldByYearMilestoneHe7",
+    changeKey: "worldByYearChangeHe7",
   },
   {
     id: "l6",
@@ -86,6 +98,7 @@ export const WORLD_QUESTIONS: WorldQuestion[] = [
     median: 2032.0,
     spread: 0.55,
     headlineKey: "worldByYearMilestoneL6",
+    changeKey: "worldByYearChangeL6",
   },
   {
     id: "mq10411",
@@ -94,6 +107,7 @@ export const WORLD_QUESTIONS: WorldQuestion[] = [
     median: 2039.87,
     spread: 2.04,
     headlineKey: "worldByYearMilestoneMq10411",
+    changeKey: "worldByYearChangeMq10411",
   },
   {
     id: "w5",
@@ -102,6 +116,8 @@ export const WORLD_QUESTIONS: WorldQuestion[] = [
     median: 2027.8,
     spread: 0.4,
     headlineKey: "worldByYearMilestoneW5",
+    changeKey: "worldByYearChangeW5",
+    pairId: "w6",
   },
   {
     id: "w6",
@@ -110,6 +126,7 @@ export const WORLD_QUESTIONS: WorldQuestion[] = [
     median: 2036.0,
     spread: 0.6,
     headlineKey: "worldByYearMilestoneW6",
+    changeKey: "worldByYearChangeW6",
   },
   {
     id: "p3",
@@ -118,6 +135,7 @@ export const WORLD_QUESTIONS: WorldQuestion[] = [
     median: 2028.9,
     spread: 0.4,
     headlineKey: "worldByYearMilestoneP3",
+    changeKey: "worldByYearChangeP3",
   },
   {
     id: "p1",
@@ -126,6 +144,8 @@ export const WORLD_QUESTIONS: WorldQuestion[] = [
     median: 2029.2,
     spread: 0.45,
     headlineKey: "worldByYearMilestoneP1",
+    changeKey: "worldByYearChangeP1",
+    pairId: "p2",
   },
   {
     id: "p2",
@@ -134,6 +154,7 @@ export const WORLD_QUESTIONS: WorldQuestion[] = [
     median: 2034.0,
     spread: 0.5,
     headlineKey: "worldByYearMilestoneP2",
+    changeKey: "worldByYearChangeP2",
   },
   {
     id: "mq38391",
@@ -142,6 +163,7 @@ export const WORLD_QUESTIONS: WorldQuestion[] = [
     median: 2027.47,
     spread: 1.16,
     headlineKey: "worldByYearMilestoneMq38391",
+    changeKey: "worldByYearChangeMq38391",
   },
   {
     id: "mq406",
@@ -150,6 +172,7 @@ export const WORLD_QUESTIONS: WorldQuestion[] = [
     median: 2027.83,
     spread: 1.72,
     headlineKey: "worldByYearMilestoneMq406",
+    changeKey: "worldByYearChangeMq406",
   },
   {
     id: "w1",
@@ -158,6 +181,8 @@ export const WORLD_QUESTIONS: WorldQuestion[] = [
     median: 2029.4,
     spread: 0.55,
     headlineKey: "worldByYearMilestoneW1",
+    changeKey: "worldByYearChangeW1",
+    pairId: "w3",
   },
   {
     id: "w2",
@@ -166,6 +191,7 @@ export const WORLD_QUESTIONS: WorldQuestion[] = [
     median: 2029.1,
     spread: 0.45,
     headlineKey: "worldByYearMilestoneW2",
+    changeKey: "worldByYearChangeW2",
   },
   {
     id: "w7",
@@ -174,6 +200,7 @@ export const WORLD_QUESTIONS: WorldQuestion[] = [
     median: 2029.8,
     spread: 0.4,
     headlineKey: "worldByYearMilestoneW7",
+    changeKey: "worldByYearChangeW7",
   },
   {
     id: "w3",
@@ -182,6 +209,7 @@ export const WORLD_QUESTIONS: WorldQuestion[] = [
     median: 2034.0,
     spread: 0.5,
     headlineKey: "worldByYearMilestoneW3",
+    changeKey: "worldByYearChangeW3",
   },
   {
     id: "w4",
@@ -190,6 +218,7 @@ export const WORLD_QUESTIONS: WorldQuestion[] = [
     median: 2045.3,
     spread: 0.6,
     headlineKey: "worldByYearMilestoneW4",
+    changeKey: "worldByYearChangeW4",
   },
   {
     id: "l3",
@@ -198,6 +227,8 @@ export const WORLD_QUESTIONS: WorldQuestion[] = [
     median: 2027.7,
     spread: 0.4,
     headlineKey: "worldByYearMilestoneL3",
+    changeKey: "worldByYearChangeL3",
+    pairId: "l4",
   },
   {
     id: "l4",
@@ -206,6 +237,7 @@ export const WORLD_QUESTIONS: WorldQuestion[] = [
     median: 2033.0,
     spread: 0.5,
     headlineKey: "worldByYearMilestoneL4",
+    changeKey: "worldByYearChangeL4",
   },
   {
     id: "l5",
@@ -214,6 +246,7 @@ export const WORLD_QUESTIONS: WorldQuestion[] = [
     median: 2037.0,
     spread: 0.6,
     headlineKey: "worldByYearMilestoneL5",
+    changeKey: "worldByYearChangeL5",
   },
   {
     id: "c1",
@@ -222,6 +255,8 @@ export const WORLD_QUESTIONS: WorldQuestion[] = [
     median: 2028.4,
     spread: 0.4,
     headlineKey: "worldByYearMilestoneC1",
+    changeKey: "worldByYearChangeC1",
+    pairId: "c2",
   },
   {
     id: "c2",
@@ -230,6 +265,7 @@ export const WORLD_QUESTIONS: WorldQuestion[] = [
     median: 2033.3,
     spread: 0.5,
     headlineKey: "worldByYearMilestoneC2",
+    changeKey: "worldByYearChangeC2",
   },
   {
     id: "mq19356",
@@ -238,6 +274,7 @@ export const WORLD_QUESTIONS: WorldQuestion[] = [
     median: 2042.7,
     spread: 1.78,
     headlineKey: "worldByYearMilestoneMq19356",
+    changeKey: "worldByYearChangeMq19356",
   },
   {
     id: "mq16625",
@@ -246,6 +283,8 @@ export const WORLD_QUESTIONS: WorldQuestion[] = [
     median: 2030.7,
     spread: 0.87,
     headlineKey: "worldByYearMilestoneMq16625",
+    changeKey: "worldByYearChangeMq16625",
+    pairId: "h4",
   },
   {
     id: "h4",
@@ -254,6 +293,7 @@ export const WORLD_QUESTIONS: WorldQuestion[] = [
     median: 2034.2,
     spread: 0.5,
     headlineKey: "worldByYearMilestoneH4",
+    changeKey: "worldByYearChangeH4",
   },
   {
     id: "h5",
@@ -262,6 +302,7 @@ export const WORLD_QUESTIONS: WorldQuestion[] = [
     median: 2036.4,
     spread: 0.55,
     headlineKey: "worldByYearMilestoneH5",
+    changeKey: "worldByYearChangeH5",
   },
   {
     id: "m1",
@@ -270,6 +311,8 @@ export const WORLD_QUESTIONS: WorldQuestion[] = [
     median: 2030.4,
     spread: 0.45,
     headlineKey: "worldByYearMilestoneM1",
+    changeKey: "worldByYearChangeM1",
+    pairId: "m3",
   },
   {
     id: "m2",
@@ -278,6 +321,7 @@ export const WORLD_QUESTIONS: WorldQuestion[] = [
     median: 2031.3,
     spread: 0.45,
     headlineKey: "worldByYearMilestoneM2",
+    changeKey: "worldByYearChangeM2",
   },
   {
     id: "m3",
@@ -286,6 +330,7 @@ export const WORLD_QUESTIONS: WorldQuestion[] = [
     median: 2040.1,
     spread: 0.45,
     headlineKey: "worldByYearMilestoneM3",
+    changeKey: "worldByYearChangeM3",
   },
   {
     id: "m4",
@@ -294,6 +339,7 @@ export const WORLD_QUESTIONS: WorldQuestion[] = [
     median: 2035.5,
     spread: 0.5,
     headlineKey: "worldByYearMilestoneM4",
+    changeKey: "worldByYearChangeM4",
   },
   {
     id: "m5",
@@ -302,6 +348,7 @@ export const WORLD_QUESTIONS: WorldQuestion[] = [
     median: 2041.0,
     spread: 0.55,
     headlineKey: "worldByYearMilestoneM5",
+    changeKey: "worldByYearChangeM5",
   },
   {
     id: "m6",
@@ -310,6 +357,7 @@ export const WORLD_QUESTIONS: WorldQuestion[] = [
     median: 2046.0,
     spread: 0.6,
     headlineKey: "worldByYearMilestoneM6",
+    changeKey: "worldByYearChangeM6",
   },
   {
     id: "mq43262",
@@ -318,6 +366,7 @@ export const WORLD_QUESTIONS: WorldQuestion[] = [
     median: 2029.85,
     spread: 0.64,
     headlineKey: "worldByYearMilestoneMq43262",
+    changeKey: "worldByYearChangeMq43262",
   },
   {
     id: "mq43263",
@@ -326,6 +375,7 @@ export const WORLD_QUESTIONS: WorldQuestion[] = [
     median: 2030.11,
     spread: 0.78,
     headlineKey: "worldByYearMilestoneMq43263",
+    changeKey: "worldByYearChangeMq43263",
   },
   {
     id: "h6",
@@ -334,6 +384,7 @@ export const WORLD_QUESTIONS: WorldQuestion[] = [
     median: 2028.2,
     spread: 0.4,
     headlineKey: "worldByYearMilestoneH6",
+    changeKey: "worldByYearChangeH6",
   },
   {
     id: "mq17401",
@@ -342,6 +393,8 @@ export const WORLD_QUESTIONS: WorldQuestion[] = [
     median: 2030.94,
     spread: 1.03,
     headlineKey: "worldByYearMilestoneMq17401",
+    changeKey: "worldByYearChangeMq17401",
+    pairId: "c4",
   },
   {
     id: "c4",
@@ -350,6 +403,7 @@ export const WORLD_QUESTIONS: WorldQuestion[] = [
     median: 2031.8,
     spread: 0.55,
     headlineKey: "worldByYearMilestoneC4",
+    changeKey: "worldByYearChangeC4",
   },
   {
     id: "c5",
@@ -358,6 +412,7 @@ export const WORLD_QUESTIONS: WorldQuestion[] = [
     median: 2034.0,
     spread: 0.55,
     headlineKey: "worldByYearMilestoneC5",
+    changeKey: "worldByYearChangeC5",
   },
   {
     id: "md2",
@@ -366,6 +421,7 @@ export const WORLD_QUESTIONS: WorldQuestion[] = [
     median: 2030.5,
     spread: 0.5,
     headlineKey: "worldByYearMilestoneMd2",
+    changeKey: "worldByYearChangeMd2",
   },
   {
     id: "md1",
@@ -374,6 +430,7 @@ export const WORLD_QUESTIONS: WorldQuestion[] = [
     median: 2032.0,
     spread: 0.5,
     headlineKey: "worldByYearMilestoneMd1",
+    changeKey: "worldByYearChangeMd1",
   },
   {
     id: "mq10955",
@@ -382,6 +439,7 @@ export const WORLD_QUESTIONS: WorldQuestion[] = [
     median: 2029.78,
     spread: 1.68,
     headlineKey: "worldByYearMilestoneMq10955",
+    changeKey: "worldByYearChangeMq10955",
   },
   {
     id: "mq11679",
@@ -390,5 +448,6 @@ export const WORLD_QUESTIONS: WorldQuestion[] = [
     median: 2030.89,
     spread: 1.81,
     headlineKey: "worldByYearMilestoneMq11679",
+    changeKey: "worldByYearChangeMq11679",
   },
 ];

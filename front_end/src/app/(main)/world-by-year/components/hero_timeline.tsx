@@ -23,6 +23,10 @@ import { YEAR_STEP_KEYS } from "./hero_year_control";
 import { AreaIcon } from "./icons";
 import MilestoneCard, { KIND_COLOR } from "./milestone_card";
 import {
+  SETTLE_AFTER_EDGE_KEY_MS,
+  SETTLE_AFTER_KEY_MS,
+} from "./world_year_provider";
+import {
   AREA_TITLE_KEYS,
   WORLD_QUESTIONS,
   WorldQuestion,
@@ -63,7 +67,7 @@ type Props = {
   playing: boolean;
   heroRef: RefObject<HTMLElement | null>;
   headRef: RefObject<HTMLElement | null>;
-  onYearChange: (year: number) => void;
+  onYearChange: (year: number, settleAfterMs?: number) => void;
   onScrubChange: (scrubbing: boolean) => void;
 };
 
@@ -230,10 +234,13 @@ const HeroTimeline: FC<Props> = ({
     const step = YEAR_STEP_KEYS[event.key];
     if (step != null) {
       event.preventDefault();
-      onYearChange(year + step);
+      onYearChange(year + step, SETTLE_AFTER_KEY_MS);
     } else if (event.key === "Home" || event.key === "End") {
       event.preventDefault();
-      onYearChange(event.key === "Home" ? YEAR_MIN : YEAR_MAX);
+      onYearChange(
+        event.key === "Home" ? YEAR_MIN : YEAR_MAX,
+        SETTLE_AFTER_EDGE_KEY_MS
+      );
     }
   };
 

@@ -15,3 +15,9 @@
     transform: translateY(-4px);
   }
 }
+
+@keyframes wby-settle-in {
+  from {
+    opacity: 0.35;
+  }
+}
