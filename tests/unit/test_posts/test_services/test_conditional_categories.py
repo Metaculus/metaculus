@@ -23,6 +23,12 @@ class TestConditionalCategoryPropagation:
 
         scheduled_close = make_aware(datetime.datetime(2024, 1, 1))
         scheduled_resolve = make_aware(datetime.datetime(2024, 6, 1))
+        branch_dates = {
+            "open_time": make_aware(datetime.datetime(2023, 11, 1)),
+            "cp_reveal_time": make_aware(datetime.datetime(2023, 11, 1)),
+            "scheduled_close_time": scheduled_close,
+            "scheduled_resolve_time": scheduled_resolve,
+        }
 
         condition = create_question(
             question_type=Question.QuestionType.BINARY,
@@ -50,10 +56,12 @@ class TestConditionalCategoryPropagation:
             question_yes=create_question(
                 question_type=Question.QuestionType.BINARY,
                 title="If Yes",
+                **branch_dates,
             ),
             question_no=create_question(
                 question_type=Question.QuestionType.BINARY,
                 title="If No",
+                **branch_dates,
             ),
         )
 
