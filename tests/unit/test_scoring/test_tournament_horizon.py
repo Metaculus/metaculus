@@ -381,3 +381,58 @@ def test_leaderboard_start_time_overrides_project_start_date():
         start_time=later,
     )
     assert get_leaderboard_horizon_start(leaderboard) == later
+
+
+@pytest.mark.parametrize("finalized,expected", [(False, True), (True, False)])
+def test_finalized_leaderboard_without_dates_is_not_clipped(finalized, expected):
+    project = factory_project(
+        type=Project.ProjectTypes.TOURNAMENT,
+        start_date=TOURNAMENT_START,
+        close_date=None,
+    )
+    leaderboard = Leaderboard(
+        project=project,
+        score_type=LeaderboardScoreTypes.PEER_TOURNAMENT,
+        finalized=finalized,
+    )
+    assert (get_leaderboard_horizon_start(leaderboard) == TOURNAMENT_START) is expected
+
+
+def test_question_closed_early_before_start_keeps_full_lifetime_scores(tournament):
+    """
+    A question that actually closed before the tournament started (although its
+    scheduled close is later) must not be clipped to an empty window, which
+    would score everyone 0 while still counting toward max coverage.
+    """
+    project, leaderboard = tournament
+    users = [factory_user() for _ in range(3)]
+    early_close = TOURNAMENT_START - timedelta(days=10)
+    question = _question(project=project)
+    question.actual_close_time = early_close
+    question.save(update_fields=["actual_close_time"])
+    u1, u2, u3 = users
+    _forecast(question, u1, 0.8, OPEN + timedelta(days=5))
+    _forecast(question, u2, 0.6, OPEN)
+    _forecast(question, u3, 0.3, OPEN + timedelta(days=20))
+
+    base = _by_key(evaluate_question(question, "yes", [ScoreTypes.PEER]))
+    with_start = _by_key(
+        evaluate_question(
+            question, "yes", [ScoreTypes.PEER], forecast_horizon_start=TOURNAMENT_START
+        )
+    )
+    assert base.keys() == with_start.keys()
+    for key in base:
+        assert with_start[key].coverage == base[key].coverage
+
+    score_question(question, "yes")
+    stored = {
+        s.user_id: s
+        for s in Score.objects.filter(question=question, score_type=ScoreTypes.PEER)
+        if s.user_id
+    }
+    entries = [e for e in update_project_leaderboard(project, leaderboard) if e.user_id]
+    assert len(entries) == 3
+    for entry in entries:
+        assert entry.coverage == pytest.approx(stored[entry.user_id].coverage)
+        assert entry.coverage > 0

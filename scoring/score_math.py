@@ -340,9 +340,9 @@ def evaluate_question(
     user_ids: optional - list of user IDs. If given, this question will be evaluated
         as if those users are the only ones who participated on the question
         NOTE: overrides "include_bots_in_aggregates"
-    forecast_horizon_start: optional - if later than the question's open_time,
-        duration-based scores (and coverage) are computed as if the question
-        opened at this time. Used by tournament leaderboards whose start is after
+    forecast_horizon_start: optional - if later than the question's open_time
+        and earlier than its (actual or scheduled) close time, duration-based
+        scores (and coverage) are computed as if the question opened at this time. Used by tournament leaderboards whose start is after
         the question opened. Spot scores are unaffected.
     """
     resolution_bucket = string_location_to_bucket_index(resolution, question)
@@ -355,9 +355,15 @@ def evaluate_question(
     ):
         aggregations_to_calculate.append(AggregationMethod.RECENCY_WEIGHTED)
     horizon_start = question.open_time
+    # Ignored unless it falls within the question's lifetime: a question that
+    # closed (or was scheduled to close) before it is scored over its whole life.
+    question_end = min(
+        question.scheduled_close_time,
+        question.actual_close_time or question.scheduled_close_time,
+    )
     if (
         forecast_horizon_start
-        and question.open_time < forecast_horizon_start < question.scheduled_close_time
+        and question.open_time < forecast_horizon_start < question_end
     ):
         horizon_start = forecast_horizon_start
     forecast_horizon_start = horizon_start.timestamp()

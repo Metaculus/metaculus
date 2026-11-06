@@ -161,7 +161,7 @@ class Leaderboard(TimeStampedModel):
         blank=True,
         help_text="""Optional (required for global leaderboards). If not set, the Project's open_date will be used instead.
         </br>- Global Leaderboards: filters for questions that have an open time after this. Automatically set, do not change.
-        </br>- Non-Global Leaderboards: has no effect on question filtering. For tournaments and question series, questions that opened before this time (or the Project's start_date if this is not set) are scored on this leaderboard as if they opened at this time, so coverage and duration-based scores only count the time since it. Spot-scored leaderboards, and leaderboards whose finalize_time (or the Project's close_date) is before November 6, 2026, are unaffected. The questions' own scores are unchanged.
+        </br>- Non-Global Leaderboards: has no effect on question filtering. For tournaments and question series, questions that opened before this time (or the Project's start_date if this is not set) are scored on this leaderboard as if they opened at this time, so coverage and duration-based scores only count the time since it. Spot-scored leaderboards, and leaderboards that concluded before this rule was introduced, are unaffected. The questions' own scores are unchanged.
         </br>- Filtering MedalExclusionRecords: MedalExclusionRecords that have no end_time or an end_time greater than this (and a start_time before this Leaderboard's end_time or finalize_time) will be triggered.
         """,
     )

@@ -157,7 +157,8 @@ CLIPPED_SCORES_CACHE_TIMEOUT = 60 * 60 * 24 * 7
 # Leaderboards that concluded (finalize_time, or the project's close_date)
 # before this date keep scoring every question over its full lifetime, so past
 # results, medals and prizes do not change - even on a forced recalculation.
-# Set to the date the tournament-start horizon was introduced.
+# Set to the date the tournament-start horizon was released. The help text and
+# FAQ deliberately don't repeat the date, so only this constant needs changing.
 HORIZON_CLIPPING_CUTOFF = make_aware(datetime(2026, 11, 6))
 
 
@@ -187,8 +188,9 @@ def get_leaderboard_horizon_start(leaderboard: Leaderboard) -> datetime | None:
     Only tournaments and question series are clipped, since their start date
     marks the start of the competition. Returns None when no clipping applies:
     other project types (global leaderboards, communities, ...), leaderboards
-    without a start date, spot-scored leaderboards, and leaderboards that
-    concluded before HORIZON_CLIPPING_CUTOFF.
+    without a start date, spot-scored leaderboards, leaderboards that concluded
+    before HORIZON_CLIPPING_CUTOFF, and finalized leaderboards with no
+    finalize_time or close_date.
     """
     project = leaderboard.project
     if project is None or project.type not in (
@@ -198,6 +200,10 @@ def get_leaderboard_horizon_start(leaderboard: Leaderboard) -> datetime | None:
         return None
     concluded_at = leaderboard.finalize_time or project.close_date
     if concluded_at and concluded_at < HORIZON_CLIPPING_CUTOFF:
+        return None
+    if concluded_at is None and leaderboard.finalized:
+        # Without dates a leaderboard can only have been finalized manually;
+        # treat it as concluded so its frozen results stay consistent.
         return None
     if leaderboard.score_type in (
         LeaderboardScoreTypes.COMMENT_INSIGHT,
@@ -211,12 +217,18 @@ def get_leaderboard_horizon_start(leaderboard: Leaderboard) -> datetime | None:
 
 
 def question_needs_clipping(question: Question, horizon_start: datetime | None) -> bool:
-    return bool(
-        horizon_start
-        and question.open_time
-        and question.scheduled_close_time
-        and question.open_time < horizon_start < question.scheduled_close_time
+    """
+    True if the question opened before `horizon_start` and was still open then.
+    Questions that closed (early or on schedule) before the start keep their
+    full-lifetime scores rather than scoring zero for everyone.
+    """
+    if not (horizon_start and question.open_time and question.scheduled_close_time):
+        return False
+    question_end = min(
+        question.scheduled_close_time,
+        question.actual_close_time or question.scheduled_close_time,
     )
+    return question.open_time < horizon_start < question_end
 
 
 def get_clipped_question_scores(
