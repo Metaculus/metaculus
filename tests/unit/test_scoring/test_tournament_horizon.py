@@ -530,7 +530,15 @@ def test_clipping_recomputes_only_stored_aggregation_methods(tournament):
     users = [factory_user() for _ in range(3)]
     question = _question(project=project)
     _add_forecasts(question, users)
-    score_question(question, "yes")
+    # Explicit methods, so shadow aggregation settings can't add stored methods.
+    score_question(
+        question,
+        "yes",
+        aggregation_methods=[
+            AggregationMethod.RECENCY_WEIGHTED,
+            AggregationMethod.UNWEIGHTED,
+        ],
+    )
     Score.objects.filter(
         question=question, aggregation_method=AggregationMethod.UNWEIGHTED
     ).delete()
