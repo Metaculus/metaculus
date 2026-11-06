@@ -255,6 +255,32 @@ def test_live_coverage_counts_from_tournament_start(tournament):
     assert contribution.coverage == pytest.approx(expected, rel=1e-3)
 
 
+def test_live_coverage_not_clipped_with_archived_scores(tournament):
+    """An ArchivedScore on the question keeps live coverage at full lifetime too."""
+    project, leaderboard = tournament
+    user = factory_user()
+    question = create_question(
+        question_type=Question.QuestionType.BINARY,
+        open_time=OPEN,
+        scheduled_close_time=datetime_aware(2100, 1, 1),
+    )
+    question.post = factory_post(question=question, default_project=project)
+    question.save(update_fields=["post"])
+    _forecast(question, user, 0.5, TOURNAMENT_START)
+    ArchivedScore.objects.create(
+        question=question,
+        user=factory_user(),
+        score=1.0,
+        coverage=0.5,
+        score_type=question.default_score_type,
+    )
+
+    (contribution,) = get_contributions(user, leaderboard, with_live_coverage=True)
+    now = timezone.now()
+    expected = (now - TOURNAMENT_START) / (datetime_aware(2100, 1, 1) - OPEN)
+    assert contribution.coverage == pytest.approx(expected, rel=1e-3)
+
+
 def test_clipped_scores_cache_invalidated_on_rescore():
     users = [factory_user() for _ in range(3)]
     question = _question()

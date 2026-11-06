@@ -281,6 +281,28 @@ def get_clipped_question_scores(
     ]
 
 
+def get_archived_question_score_types(
+    question_score_types: dict[int, str],
+) -> set[tuple[int, str]]:
+    """
+    Returns the (question_id, score_type) pairs, out of those given, that have
+    any ArchivedScore. Such questions are never clipped.
+    """
+    if not question_score_types:
+        return set()
+    pairs = set(
+        ArchivedScore.objects.filter(
+            question_id__in=question_score_types.keys(),
+            score_type__in=set(question_score_types.values()),
+        ).values_list("question_id", "score_type")
+    )
+    return {
+        (question_id, score_type)
+        for question_id, score_type in pairs
+        if question_score_types[question_id] == score_type
+    }
+
+
 def apply_leaderboard_horizon(
     scores: list[Score | ArchivedScore],
     leaderboard: Leaderboard,
@@ -312,11 +334,8 @@ def apply_leaderboard_horizon(
                 methods[score.question_id].add(score.aggregation_method)
     if not to_rescore:
         return scores
-    archived = set(
-        ArchivedScore.objects.filter(
-            question_id__in=to_rescore.keys(),
-            score_type__in={score_type for _, score_type in to_rescore.values()},
-        ).values_list("question_id", "score_type")
+    archived = get_archived_question_score_types(
+        {question_id: score_type for question_id, (_, score_type) in to_rescore.items()}
     )
     to_rescore = {
         question_id: (question, score_type)
@@ -1464,6 +1483,23 @@ def get_contributions(
     # add unpopulated contributions for other questions
     scored_question = {score.question for score in scores}
     horizon_start = get_leaderboard_horizon_start(leaderboard)
+    base_score_type = LeaderboardScoreTypes.get_base_score(leaderboard.score_type)
+    live_clipped_ids: set[int] = set()
+    if with_live_coverage and horizon_start:
+        # Same rule as apply_leaderboard_horizon: no clipping for questions
+        # with archived scores of the score type.
+        clip_candidates = {
+            question.id: base_score_type or question.default_score_type
+            for question in questions
+            if question not in scored_question
+            and question_needs_clipping(question, horizon_start)
+        }
+        archived = get_archived_question_score_types(clip_candidates)
+        live_clipped_ids = {
+            question_id
+            for question_id, score_type in clip_candidates.items()
+            if (question_id, score_type) not in archived
+        }
     if leaderboard.score_type in [
         LeaderboardScoreTypes.PEER_TOURNAMENT,
         LeaderboardScoreTypes.DEFAULT,
@@ -1478,7 +1514,7 @@ def get_contributions(
                 if with_live_coverage:
                     # coverage is added for questions that the user has predicted
                     forecast_horizon_start = question.open_time.timestamp()
-                    if question_needs_clipping(question, horizon_start):
+                    if question.id in live_clipped_ids:
                         forecast_horizon_start = horizon_start.timestamp()
                     forecast_horizon_end = question.scheduled_close_time.timestamp()
                     now = timezone.now().timestamp()
