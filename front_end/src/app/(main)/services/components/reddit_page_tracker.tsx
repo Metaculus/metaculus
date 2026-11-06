@@ -60,7 +60,7 @@ export default function RedditPageTracker() {
     }
 
     if (isClientNavigation && hasConsent && isTrackedServicesPath(pathname)) {
-      trackServicesPageVisit();
+      trackServicesPageVisit(pathname);
     }
   }, [hasConsent, pathname]);
 

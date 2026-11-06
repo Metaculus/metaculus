@@ -1,5 +1,6 @@
 declare global {
   interface Window {
+    dataLayer?: unknown[];
     rdt?: (
       command: string,
       event?: string,

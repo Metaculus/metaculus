@@ -8,6 +8,7 @@ const TRACKED_PATHS = new Set([
 ]);
 
 export const ANALYTICS_CONSENT_CHANGED = "analytics-consent-changed";
+export const SERVICES_REDDIT_PAGE_VISIT = "services_reddit_page_visit";
 
 export function isTrackedServicesPath(pathname: string): boolean {
   return TRACKED_PATHS.has(pathname.replace(/\/$/, ""));
@@ -45,8 +46,17 @@ function trackRedditEvent(
   }, 100);
 }
 
-export function trackServicesPageVisit(): void {
-  trackRedditEvent("PageVisit");
+export function trackServicesPageVisit(pathname: string): void {
+  if (
+    typeof window === "undefined" ||
+    !isTrackedServicesPath(pathname) ||
+    getAnalyticsCookieConsentGiven() !== "yes"
+  ) {
+    return;
+  }
+
+  window.dataLayer ??= [];
+  window.dataLayer.push({ event: SERVICES_REDDIT_PAGE_VISIT });
 }
 
 export function trackServicesContactClick(): void {
