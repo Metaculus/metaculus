@@ -64,6 +64,9 @@ function CSPostHogProvider({
         person_profiles: "always",
         // Disable automatic pageview capture, as we capture manually
         capture_pageview: false,
+        // Embeds render inside third-party iframes, where survey popovers
+        // cover the embedded content
+        disable_surveys: window.location.pathname.includes("/embed/"),
         persistence:
           getAnalyticsCookieConsentGiven() === "yes"
             ? "localStorage+cookie"
