@@ -1038,6 +1038,14 @@ export default async function ScoresFAQ() {
       <p>
         The Coverage is used in tournaments, to incentivize early predictions.
       </p>
+      <p>
+        If a tournament or question series includes a question that opened
+        before it started, that question&apos;s tournament Score and Coverage
+        only count the time since the tournament started. Its Scores on the
+        question page still count its whole lifetime. This applies to
+        tournaments that ended on or after November 6, 2026; earlier
+        tournaments keep their original results.
+      </p>
 
       <h3 className="scroll-mt-nav" id="old-points">
         What are Metaculus points?
