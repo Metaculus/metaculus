@@ -16,6 +16,10 @@ import cn from "@/utils/core/cn";
 
 import { HERO_THEME_CLASSNAME } from "./hero_theme";
 import { ArrowIcon } from "./icons";
+import {
+  SETTLE_AFTER_ARROW_MS,
+  SETTLE_AFTER_KEY_MS,
+} from "./world_year_provider";
 import { YEAR_JUMPS } from "../helpers/forecast";
 
 const DRAG_START_PX = 6;
@@ -50,7 +54,7 @@ type DragState = {
 type Props = {
   year: number;
   scrubbing: boolean;
-  onYearChange: (year: number) => void;
+  onYearChange: (year: number, settleAfterMs?: number) => void;
   onScrubChange: (scrubbing: boolean) => void;
 };
 
@@ -224,7 +228,7 @@ const HeroYearControl: FC<Props> = ({
     const step = YEAR_STEP_KEYS[event.key];
     if (step != null) {
       event.preventDefault();
-      onYearChange(year + step);
+      onYearChange(year + step, SETTLE_AFTER_KEY_MS);
     } else if (event.key === "Enter" || event.key === " ") {
       event.preventDefault();
       setOpen(true);
@@ -267,7 +271,7 @@ const HeroYearControl: FC<Props> = ({
             aria-label={t(
               delta < 0 ? "worldByYearPreviousYear" : "worldByYearNextYear"
             )}
-            onClick={() => onYearChange(year + delta)}
+            onClick={() => onYearChange(year + delta, SETTLE_AFTER_ARROW_MS)}
             className={cn(
               arrowClassName,
               "cursor-pointer hover:bg-[rgba(var(--wby-ink),.08)] hover:opacity-100 focus-visible:bg-[rgba(var(--wby-ink),.08)] focus-visible:opacity-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[var(--wby-year)] active:scale-[.92]"
