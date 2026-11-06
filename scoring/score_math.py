@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import datetime
 from typing import Sequence
 
@@ -334,11 +334,16 @@ def evaluate_question(
     spot_forecast_time: datetime | None = None,
     aggregation_methods: list[AggregationMethod] | None = None,
     only_include_user_ids: list[int] | None = None,
+    forecast_horizon_start: datetime | None = None,
 ) -> list[Score]:
     """
     user_ids: optional - list of user IDs. If given, this question will be evaluated
         as if those users are the only ones who participated on the question
         NOTE: overrides "include_bots_in_aggregates"
+    forecast_horizon_start: optional - if later than the question's open_time
+        and earlier than its (actual or scheduled) close time, duration-based
+        scores (and coverage) are computed as if the question opened at this time. Used by tournament leaderboards whose start is after
+        the question opened. Spot scores are unaffected.
     """
     resolution_bucket = string_location_to_bucket_index(resolution, question)
     if resolution_bucket is None:
@@ -349,7 +354,19 @@ def evaluate_question(
         AggregationMethod.RECENCY_WEIGHTED not in aggregations_to_calculate
     ):
         aggregations_to_calculate.append(AggregationMethod.RECENCY_WEIGHTED)
-    forecast_horizon_start = question.open_time.timestamp()
+    horizon_start = question.open_time
+    # Ignored unless it falls within the question's lifetime: a question that
+    # closed (or was scheduled to close) before it is scored over its whole life.
+    question_end = min(
+        question.scheduled_close_time,
+        question.actual_close_time or question.scheduled_close_time,
+    )
+    if (
+        forecast_horizon_start
+        and question.open_time < forecast_horizon_start < question_end
+    ):
+        horizon_start = forecast_horizon_start
+    forecast_horizon_start = horizon_start.timestamp()
     actual_close_time = question.actual_close_time.timestamp()
     forecast_horizon_end = question.scheduled_close_time.timestamp()
     spot_forecast_timestamp: float | None = None
@@ -381,6 +398,12 @@ def evaluate_question(
     geometric_means: list[AggregationEntry] = []
     if ScoreTypes.PEER in score_types:
         geometric_means = get_geometric_means(base_forecasts)
+    # Peer scoring moves geometric-mean timestamps up to the horizon start in
+    # place. With a clipped horizon, give it copies so spot peer scoring (which
+    # reads the same entries) still sees the original timestamps.
+    peer_geometric_means = geometric_means
+    if horizon_start != question.open_time:
+        peer_geometric_means = [replace(gm) for gm in geometric_means]
 
     scores: list[Score] = []
     for score_type in score_types:
@@ -440,7 +463,7 @@ def evaluate_question(
                 actual_close_time,
                 forecast_horizon_end,
                 question.type,
-                geometric_means=geometric_means,
+                geometric_means=peer_geometric_means,
             )
             for method in aggregation_methods:
                 aggregation_forecasts = aggregations[method]
@@ -452,7 +475,7 @@ def evaluate_question(
                     actual_close_time,
                     forecast_horizon_end,
                     question.type,
-                    geometric_means=geometric_means,
+                    geometric_means=peer_geometric_means,
                 )
         elif score_type == ScoreTypes.SPOT_PEER:
             user_scores = evaluate_forecasts_peer_spot_forecast(
