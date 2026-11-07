@@ -1,5 +1,4 @@
 import asyncio
-import json
 import logging
 import textwrap
 import time
@@ -180,32 +179,6 @@ def check_profile_update_for_spam(
         )
 
     return identified_as_spam, reasoning
-
-
-def record_rejected_profile_update(
-    *,
-    user: User,
-    profile: User,
-    valid_serializer: UserUpdateProfileSerializer,
-    reason: str,
-) -> None:
-    """
-    Rejected profile updates are never saved to the profile itself, so their
-    submitted fields are kept here for staff review.
-    """
-    UserSpamActivity.objects.create(
-        user=user,
-        reason=reason,
-        confidence=1.0,
-        content_type=UserSpamActivity.SpamContentType.PROFILE,
-        content_id=profile.id,
-        text=json.dumps(
-            valid_serializer.validated_data,
-            default=str,
-            ensure_ascii=False,
-            indent=2,
-        ),
-    )
 
 
 async def ask_gpt_to_check_profile_for_spam(bio_plus_websites: str) -> tuple[bool, str]:

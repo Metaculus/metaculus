@@ -498,8 +498,6 @@ class UserSpamActivityAdmin(admin.ModelAdmin):
                 url = f"/admin/posts/post/{obj.content_id}/change/"
             case UserSpamActivity.SpamContentType.NOTEBOOK:
                 url = f"/admin/posts/notebook/{obj.content_id}/change/"
-            case UserSpamActivity.SpamContentType.PROFILE:
-                url = f"/admin/users/user/{obj.content_id}/change/"
             case _:
                 url = None
 
