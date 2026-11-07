@@ -53,6 +53,7 @@ from .services.bots_management import create_bot, get_user_bots
 from .services.profile_stats import serialize_user_stats
 from .services.spam_detection import (
     check_profile_update_for_spam,
+    record_rejected_profile_update,
     send_deactivation_email,
 )
 
@@ -163,9 +164,12 @@ def update_profile_api_view(request: Request) -> Response:
     )
     serializer.is_valid(raise_exception=True)
 
-    is_spam, _ = check_profile_update_for_spam(user, serializer)
+    is_spam, reason = check_profile_update_for_spam(user, serializer)
 
     if is_spam:
+        record_rejected_profile_update(
+            user=user, profile=user, valid_serializer=serializer, reason=reason
+        )
         mark_user_as_spam(user)
         send_deactivation_email(user.email)
         return Response(
@@ -306,9 +310,12 @@ def update_bot_profile_api_view(request: Request, pk: int):
     serializer = BotUpdateProfileSerializer(bot, data=request.data, partial=True)
     serializer.is_valid(raise_exception=True)
 
-    is_spam, _ = check_profile_update_for_spam(bot, serializer)
+    is_spam, reason = check_profile_update_for_spam(bot, serializer)
 
     if is_spam:
+        record_rejected_profile_update(
+            user=user, profile=bot, valid_serializer=serializer, reason=reason
+        )
         mark_user_as_spam(user)
         send_deactivation_email(user.email)
 

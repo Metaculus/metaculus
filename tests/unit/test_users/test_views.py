@@ -1,4 +1,5 @@
 from datetime import timedelta
+import json
 import logging
 import pytest
 import asyncio
@@ -9,7 +10,8 @@ from rest_framework.reverse import reverse
 from rest_framework.test import APIClient
 from rest_framework.response import Response
 from django.utils import timezone
-from users.models import User
+from users.models import User, UserSpamActivity
+from users.services.bots_management import create_bot
 from users.services.spam_detection import ask_gpt_to_check_profile_for_spam
 
 logger = logging.getLogger(__name__)
@@ -41,6 +43,56 @@ class TestUserProfileUpdate:
         self.assert_response_is_403_with_proper_error_code(response)
         self.assert_user_is_deactivated_and_unchanged(user1, original_bio, new_bio)
         self.assert_notification_email_sent(mock_send_mail, self.user_email)
+
+    def test_rejected_profile_is_recorded_for_staff_review(
+        self, user1_client: APIClient, mocker: Mock, user1: User
+    ) -> None:
+        mock_spam_detection_and_email(mocker, True)
+        self.set_up_user(user1, 1)
+        new_bio = "Best window cleaning in town"
+        new_website = "https://spam.example.com"
+
+        user1_client.patch(
+            self.url, {"bio": new_bio, "website": new_website}, format="json"
+        )
+
+        activity = UserSpamActivity.objects.get(user=user1)
+        assert activity.content_type == UserSpamActivity.SpamContentType.PROFILE
+        assert activity.content_id == user1.id
+        assert activity.reason == "Mocked reasoning"
+        assert json.loads(activity.text) == {"bio": new_bio, "website": new_website}
+        user1.refresh_from_db()
+        assert user1.bio != new_bio
+        assert user1.website != new_website
+
+    def test_rejected_bot_profile_is_recorded_under_owner(
+        self, user1_client: APIClient, mocker: Mock, user1: User
+    ) -> None:
+        mock_spam_detection_and_email(mocker, True)
+        self.set_up_user(user1, 30)
+        bot = create_bot(bot_owner=user1, username="user1-bot")
+        new_bio = "Best window cleaning in town"
+
+        response = user1_client.patch(
+            reverse("update-bot", args=[bot.id]), {"bio": new_bio}, format="json"
+        )
+
+        self.assert_response_is_403_with_proper_error_code(response)
+        activity = UserSpamActivity.objects.get(user=user1)
+        assert activity.content_id == bot.id
+        assert json.loads(activity.text) == {"bio": new_bio}
+        bot.refresh_from_db()
+        assert bot.bio != new_bio
+
+    def test_accepted_profile_is_not_recorded(
+        self, user1_client: APIClient, mocker: Mock, user1: User
+    ) -> None:
+        mock_spam_detection_and_email(mocker, False)
+        self.set_up_user(user1, 1)
+
+        user1_client.patch(self.url, {"bio": "Forecasting hobbyist"}, format="json")
+
+        assert not UserSpamActivity.objects.exists()
 
     def test_update_bio_without_spam(
         self, user1_client: APIClient, mocker: Mock, user1: User

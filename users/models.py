@@ -347,6 +347,7 @@ class UserSpamActivity(TimeStampedModel):
         COMMENT = "comment"
         QUESTION = "question"
         NOTEBOOK = "notebook"
+        PROFILE = "profile"
 
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     reason = models.TextField()
