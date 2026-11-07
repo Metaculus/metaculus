@@ -17,6 +17,12 @@ import cn from "@/utils/core/cn";
 
 import { ChartCall, LeadUp, leadUp } from "./predictions_chart_calls";
 import { CHART_EVENTS, ChartEvent } from "./predictions_chart_events";
+import {
+  Box,
+  initialVisible,
+  nextSwap,
+  RotationSlot,
+} from "./predictions_chart_rotation";
 
 // Geometry of the original 1100x422 design frame
 const WIDTH = 1100;
@@ -33,18 +39,51 @@ const ARROW_LENGTH = 26;
 // where it does not overlap that text.
 const HERO_OVERLAP_HEIGHT = 170;
 const HERO_OVERLAP_WIDTH = 700;
+// Where the hero paragraph actually sits; labels never fade in over it
+const HERO_TEXT_BOX: Box = { x0: 0, y0: 0, x1: 680, y1: 158 };
 
-// The spotlight moves to the next call every SPOTLIGHT_MS. It pauses while
-// the pointer or keyboard focus is on the chart, offscreen, in a hidden tab,
-// and for reduced motion (WCAG 2.2.2).
-const SPOTLIGHT_MS = 7000;
-// Spotlight card size, in chart units (about 1 px at the xl breakpoint)
-const CARD_W = 236;
-const CARD_H = 142;
-// The lead-up band on the main chart is only a few units wide at this
-// scale; keep it visible
+// Events rotate: this many stay up, and on each swap the newcomer fades in
+// just before the leaving one fades out, so 4-5 are visible at any moment.
+// The founding marker is always shown.
+//
+// Paced to read as ambient rather than busy: swaps land at irregular
+// intervals averaging ~2.4 s (each label stays up ~10 s, well over the ~2 s
+// it takes to read), and slow 1.6-2 s fades, varied per label. The page
+// pauses on hover and skips rotation for reduced motion (WCAG 2.2.2).
+const VISIBLE_EVENTS = 4;
+const SWAP_MIN_MS = 1900;
+const SWAP_MAX_MS = 2900;
+const FADE_MIN_MS = 1600;
+const FADE_STEP_MS = 100;
+const FADE_STEPS = 5;
+const FADE_OUT_DELAY_MS = 250;
+// A label that left is still partly visible this long; newcomers avoid it
+const FADE_OUT_TOTAL_MS =
+  FADE_OUT_DELAY_MS + FADE_MIN_MS + FADE_STEP_MS * (FADE_STEPS - 1);
+
+// Calls are picked this many times as often as plain news
+const CALL_WEIGHT = 2;
+// The spotlight card moves to a call that rotates in, but stays at least
+// this long on each one so it can be read
+const CARD_DWELL_MS = 8000;
+
+// Spotlight card, below the chart, in chart units (about 1 px at the xl
+// breakpoint). The lens fans from the lead-up band on the axis down to it.
+const CARD_W = 560;
+const CARD_H = 128;
+const CARD_GAP = 26;
+// The lead-up band is only a few units wide at this scale; keep it visible
 const MIN_BAND_W = 4;
 
+const swapDelay = () =>
+  SWAP_MIN_MS + Math.random() * (SWAP_MAX_MS - SWAP_MIN_MS);
+
+// Stable per-label fade length, so fades vary without flickering on re-render
+const fadeMs = (id: string) => {
+  let hash = 0;
+  for (const ch of id) hash = (hash * 31 + ch.charCodeAt(0)) % 997;
+  return FADE_MIN_MS + (hash % FADE_STEPS) * FADE_STEP_MS;
+};
 // Y-axis labels are right-aligned at this x
 const Y_LABEL_X = WIDTH - 2;
 
@@ -77,6 +116,10 @@ function gridStep(max: number) {
   return 1e8;
 }
 
+// Left edge of the card under a band, kept inside the chart
+const cardLeft = (band: Band) =>
+  Math.min(WIDTH - CARD_W, Math.max(0, (band.x0 + band.x1) / 2 - CARD_W / 2));
+
 type Props = {
   series: PredictionsByMonth;
   className?: string;
@@ -88,6 +131,7 @@ const PredictionsChart: FC<Props> = ({ series, className }) => {
   const uid = useId().replace(/[^a-zA-Z0-9]/g, "");
   const svgRef = useRef<SVGSVGElement>(null);
   const [active, setActive] = useState<Point | null>(null);
+  const [shown, setShown] = useState<string[]>([]);
   const [spotlight, setSpotlight] = useState<string | null>(null);
 
   const chart = useMemo(() => {
@@ -160,7 +204,7 @@ const PredictionsChart: FC<Props> = ({ series, className }) => {
       (e) => dayIndex(e.date) >= first && dayIndex(e.date) <= last + 1
     ).map((event) => {
       const x = sxDay(event.date);
-      const lead = event.call ? leadUp(event.call) : null;
+      const lead = event.call ? leadUp(event.call, event.date) : null;
       // Lead-up band: from the day the call held to the event
       let band: Band | null = null;
       if (lead) {
@@ -171,40 +215,64 @@ const PredictionsChart: FC<Props> = ({ series, className }) => {
       return { event, x, y: lineY(x), lead, band };
     });
 
-    return { points, line, area, tip, head, grid, events };
+    const rotating = events
+      .filter(({ event }) => !event.origin)
+      .map(({ event, x, lead }) => ({
+        id: eventId(event),
+        x,
+        initial: event.initial,
+        weight: lead ? CALL_WEIGHT : 1,
+      }));
+    const callIds = new Set(
+      events.filter(({ lead }) => lead).map(({ event }) => eventId(event))
+    );
+
+    return { points, line, area, tip, head, grid, events, rotating, callIds };
   }, [series, locale]);
 
-  const callIds = useMemo(
-    () =>
-      (chart?.events ?? [])
-        .filter(({ lead }) => lead)
-        .map(({ event }) => eventId(event)),
+  const initialShown = useMemo(
+    () => (chart ? initialVisible(chart.rotating, VISIBLE_EVENTS) : []),
     [chart]
   );
+  const visible = shown.length ? shown : initialShown;
   const initialSpotlight =
-    (chart?.events ?? [])
-      .filter(({ lead, event }) => lead && event.initial)
-      .map(({ event }) => eventId(event))[0] ?? callIds[0];
+    initialShown.find((id) => chart?.callIds.has(id)) ??
+    [...(chart?.callIds ?? [])][0] ??
+    null;
   const current = spotlight ?? initialSpotlight;
 
-  // The spotlight waits while the pointer or keyboard focus is on the chart,
-  // and for a full interval after the pointer leaves
+  // No new swaps while the pointer or keyboard focus is on the chart
+  // (fades already running finish), nor for a full interval after the
+  // pointer leaves, nor while the tab is hidden or the chart is scrolled out
+  // of view. No rotation for reduced motion.
   const pausedRef = useRef(false);
   const resumeAtRef = useRef(0);
+  const visibleRef = useRef(visible);
+  const spotlightRef = useRef(current);
+  const spotlightSinceRef = useRef(0);
+  useEffect(() => {
+    visibleRef.current = visible;
+    spotlightRef.current = current;
+  });
   const handleEnter = () => {
     pausedRef.current = true;
   };
   const handleLeave = () => {
     pausedRef.current = false;
-    resumeAtRef.current = Date.now() + SPOTLIGHT_MS;
+    resumeAtRef.current = Date.now() + swapDelay();
     setActive(null);
   };
-  const focus = (id: string) => {
+  const focusCall = (id: string) => {
     setActive(null);
     setSpotlight(id);
   };
+  // The card's dwell time counts from whenever the spotlight last moved
   useEffect(() => {
-    if (callIds.length < 2) return;
+    spotlightSinceRef.current = Date.now();
+  }, [spotlight]);
+  useEffect(() => {
+    const slots = chart?.rotating ?? [];
+    if (slots.length <= VISIBLE_EVENTS) return;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
     let onScreen = true;
@@ -216,7 +284,30 @@ const PredictionsChart: FC<Props> = ({ series, className }) => {
         : null;
     if (observer && svgRef.current) observer.observe(svgRef.current);
 
-    const timer = window.setInterval(() => {
+    // Measured on every tick rather than once, so late-loading fonts and
+    // locale changes are picked up without extra bookkeeping
+    const measure = (id: string): Box[] => {
+      const group = svgRef.current?.querySelector(`[data-event="${id}"]`);
+      if (!group) return [];
+      return Array.from(group.querySelectorAll<SVGGElement>("[data-part]"))
+        .map((part) => part.getBBox())
+        .filter((b) => b.width > 0 && b.height > 0)
+        .map((b) => ({
+          x0: b.x,
+          y0: b.y,
+          x1: b.x + b.width,
+          y1: b.y + b.height,
+        }));
+    };
+    const fixedIds = (chart?.events ?? [])
+      .filter(({ event }) => event.origin)
+      .map(({ event }) => eventId(event));
+
+    const recent: string[] = [];
+    const leftAt = new Map<string, number>();
+    let timer = 0;
+    const tick = () => {
+      timer = window.setTimeout(tick, swapDelay());
       if (
         pausedRef.current ||
         Date.now() < resumeAtRef.current ||
@@ -225,17 +316,50 @@ const PredictionsChart: FC<Props> = ({ series, className }) => {
       ) {
         return;
       }
-      setSpotlight((prev) => {
-        const idx = callIds.indexOf(prev ?? initialSpotlight ?? "");
-        return callIds[(idx + 1) % callIds.length] ?? null;
-      });
-    }, SPOTLIGHT_MS);
+      const now = Date.now();
+      const fading = [...leftAt]
+        .filter(([, at]) => now - at < FADE_OUT_TOTAL_MS)
+        .map(([id]) => id);
+      // The spotlighted call keeps its label: treat it as the newest arrival,
+      // which is never the next to leave
+      const spot = spotlightRef.current;
+      const order = visibleRef.current.filter((id) => id !== spot);
+      if (spot && visibleRef.current.includes(spot)) order.push(spot);
+      const measured: RotationSlot[] = slots.map((slot) => ({
+        ...slot,
+        boxes: measure(slot.id),
+      }));
+      const swap = nextSwap(
+        measured,
+        order,
+        recent,
+        VISIBLE_EVENTS,
+        Math.random,
+        [...[...fixedIds, ...fading].flatMap(measure), HERO_TEXT_BOX]
+      );
+      if (!swap) return;
+      if (swap.leaving) {
+        recent.unshift(swap.leaving);
+        recent.length = Math.min(recent.length, 2);
+        leftAt.set(swap.leaving, now);
+      }
+      const next = order.filter((id) => id !== swap.leaving);
+      setShown(swap.entering ? [...next, swap.entering] : next);
+      if (
+        swap.entering &&
+        chart?.callIds.has(swap.entering) &&
+        now - spotlightSinceRef.current >= CARD_DWELL_MS
+      ) {
+        setSpotlight(swap.entering);
+      }
+    };
+    timer = window.setTimeout(tick, swapDelay());
 
     return () => {
-      window.clearInterval(timer);
+      window.clearTimeout(timer);
       observer?.disconnect();
     };
-  }, [callIds, initialSpotlight]);
+  }, [chart]);
 
   if (!chart) return null;
 
@@ -255,12 +379,10 @@ const PredictionsChart: FC<Props> = ({ series, className }) => {
     }).format(dayToDate(date));
 
   const formatThreshold = (call: ChartCall) =>
-    new Intl.NumberFormat(
-      locale,
-      call.kind === "probability"
-        ? { style: "percent" }
-        : { notation: "compact" }
-    ).format(call.thresholdDisplay);
+    new Intl.NumberFormat(locale, { style: "percent" }).format(call.threshold);
+
+  const titleOf = (event: ChartEvent) =>
+    t(event.titleKey as Parameters<typeof t>[0]);
 
   const handlePointer = (e: PointerEvent<SVGRectElement>) => {
     const rect = svgRef.current?.getBoundingClientRect();
@@ -272,6 +394,8 @@ const PredictionsChart: FC<Props> = ({ series, className }) => {
     }
     setActive(best);
   };
+
+  const spot = chart.events.find(({ event }) => eventId(event) === current);
 
   return (
     <div
@@ -378,6 +502,17 @@ const PredictionsChart: FC<Props> = ({ series, className }) => {
             0
           </text>
 
+          {/* The spotlighted call's lead-up, under the line */}
+          {spot?.band && (
+            <polygon
+              points={`${spot.band.x0},${spot.band.y0} ${spot.band.x1},${spot.band.y1} ${spot.band.x1},${Y_ZERO} ${spot.band.x0},${Y_ZERO}`}
+              className={cn(
+                "fill-olive-700 opacity-60 transition-opacity duration-150 dark:fill-olive-500-dark",
+                active && "opacity-15"
+              )}
+            />
+          )}
+
           <path
             d={chart.line}
             fill="none"
@@ -396,52 +531,39 @@ const PredictionsChart: FC<Props> = ({ series, className }) => {
               active && "opacity-25"
             )}
           >
-            {chart.events.map(({ event, band }) => {
-              if (!band) return null;
-              const id = eventId(event);
-              const isSpot = id === current;
-              const card = event.card;
-              return (
-                <g key={`band-${id}`}>
-                  {/* Zoom lens from the lead-up band to the card */}
-                  {card && (
-                    <polygon
-                      points={lensPoints(band, card)}
-                      className={cn(
-                        "fill-olive-500 transition-opacity duration-500 dark:fill-olive-500-dark",
-                        isSpot ? "opacity-25" : "opacity-0"
-                      )}
-                    />
-                  )}
-                  <polygon
-                    points={`${band.x0},${band.y0} ${band.x1},${band.y1} ${band.x1},${Y_ZERO} ${band.x0},${Y_ZERO}`}
-                    className={cn(
-                      "fill-olive-700 transition-opacity duration-500 dark:fill-olive-500-dark",
-                      isSpot ? "opacity-50" : "opacity-20"
-                    )}
-                  />
-                </g>
-              );
-            })}
             {chart.events.map(({ event, x, y, lead }) => {
               const id = eventId(event);
-              // The spotlight card stands in for the label
-              const labelShown = !(lead && event.card && id === current);
+              const isShown = event.origin || visible.includes(id);
               return (
-                <EventMarker
+                <g
                   key={id}
-                  event={event}
-                  x={x}
-                  y={y}
-                  uid={uid}
-                  labelShown={labelShown}
-                  title={t(event.titleKey as Parameters<typeof t>[0])}
-                  subtitle={
-                    lead
-                      ? t("aboutChartDaysAhead", { days: lead.days })
-                      : formatMonth(event.date.slice(0, 7), event.yearOnly)
-                  }
-                />
+                  data-event={id}
+                  aria-hidden={!isShown}
+                  className={cn(
+                    "transition-opacity ease-in-out",
+                    isShown ? "opacity-100" : "opacity-0"
+                  )}
+                  style={{
+                    transitionDuration: `${fadeMs(id)}ms`,
+                    // The newcomer fades in first; the leaving label waits
+                    // for it so the count never dips
+                    transitionDelay: isShown ? "0ms" : `${FADE_OUT_DELAY_MS}ms`,
+                  }}
+                >
+                  <EventMarker
+                    event={event}
+                    x={x}
+                    y={y}
+                    uid={uid}
+                    spotlit={id === current}
+                    title={titleOf(event)}
+                    subtitle={
+                      lead
+                        ? t("aboutChartDaysAhead", { days: lead.days })
+                        : formatMonth(event.date.slice(0, 7), event.yearOnly)
+                    }
+                  />
+                </g>
               );
             })}
           </g>
@@ -470,6 +592,14 @@ const PredictionsChart: FC<Props> = ({ series, className }) => {
           )}
         </g>
 
+        {/* Zoom lens: from the lead-up on the time axis down to the card */}
+        {spot?.band && (
+          <polygon
+            points={`${spot.band.x0},${Y_ZERO} ${spot.band.x1},${Y_ZERO} ${cardLeft(spot.band) + CARD_W},${HEIGHT + CARD_GAP} ${cardLeft(spot.band)},${HEIGHT + CARD_GAP}`}
+            className="fill-olive-500 opacity-25 transition-all duration-500 dark:fill-olive-500-dark"
+          />
+        )}
+
         <rect
           x={0}
           y={HERO_OVERLAP_HEIGHT}
@@ -493,11 +623,11 @@ const PredictionsChart: FC<Props> = ({ series, className }) => {
           onPointerLeave={() => setActive(null)}
         />
 
-        {/* Calls take the pointer over the scrub so their spotlight can be
-            picked by hovering, tapping or tabbing to the marker */}
+        {/* Calls on screen take the pointer over the scrub, so the card can
+            be switched by hovering, tapping or tabbing to a marker */}
         {chart.events.map(({ event, x, y, lead }) => {
-          if (!lead) return null;
           const id = eventId(event);
+          if (!lead || !visible.includes(id)) return null;
           return (
             <circle
               key={`hit-${id}`}
@@ -507,51 +637,56 @@ const PredictionsChart: FC<Props> = ({ series, className }) => {
               fill="transparent"
               tabIndex={0}
               role="button"
-              aria-label={`${t(event.titleKey as Parameters<typeof t>[0]).replace(/\n/g, " ")}, ${t("aboutChartDaysAhead", { days: lead.days })}`}
+              aria-label={`${titleOf(event).replace(/\n/g, " ")}, ${t("aboutChartDaysAhead", { days: lead.days })}`}
               aria-pressed={id === current}
               className="pointer-events-auto cursor-pointer outline-none"
-              onPointerEnter={() => focus(id)}
-              onPointerDown={() => focus(id)}
-              onFocus={() => focus(id)}
+              onPointerEnter={() => focusCall(id)}
+              onPointerDown={() => focusCall(id)}
+              onFocus={() => focusCall(id)}
             />
           );
         })}
       </svg>
 
-      {chart.events.map(({ event, lead }) => {
-        if (!lead || !event.call || !event.card) return null;
-        const id = eventId(event);
-        const isSpot = id === current;
-        return (
-          <SpotlightCard
-            key={`card-${id}`}
-            call={event.call}
-            lead={lead}
-            card={event.card}
-            shown={isSpot && !active}
-            title={t(event.titleKey as Parameters<typeof t>[0]).replace(
-              /\n/g,
-              " "
-            )}
-            date={formatDay(event.date)}
-            headline={t("aboutChartCalledAhead", { days: lead.days })}
-            caption={t("aboutChartCallSince", {
-              kind: event.call.kind,
-              threshold: formatThreshold(event.call),
-              date: formatDay(lead.since),
-            })}
-            question={t(event.call.questionKey as Parameters<typeof t>[0])}
-            thresholdLabel={formatThreshold(event.call)}
-          />
-        );
-      })}
+      {/* Card row below the chart; its height scales with the chart width */}
+      <div
+        className="relative"
+        style={{ paddingTop: `${((CARD_GAP + CARD_H) / WIDTH) * 100}%` }}
+      >
+        {chart.events.map(({ event, lead, band }) => {
+          if (!lead || !band || !event.call) return null;
+          const id = eventId(event);
+          return (
+            <SpotlightCard
+              key={`card-${id}`}
+              call={event.call}
+              lead={lead}
+              left={cardLeft(band)}
+              shown={id === current}
+              dimmed={!!active}
+              title={titleOf(event).replace(/\n/g, " ")}
+              date={formatDay(event.date)}
+              headline={t("aboutChartCalledAhead", { days: lead.days })}
+              caption={t("aboutChartCallSince", {
+                direction: event.call.direction,
+                threshold: formatThreshold(event.call),
+                date: formatDay(lead.since),
+              })}
+              versusLabel={t("aboutChartCallMeanwhile")}
+              versus={t(event.call.versusKey as Parameters<typeof t>[0])}
+              question={t(event.call.questionKey as Parameters<typeof t>[0])}
+              thresholdLabel={formatThreshold(event.call)}
+            />
+          );
+        })}
+      </div>
 
       {active && (
         <div
           className="pointer-events-none absolute whitespace-nowrap rounded bg-[#2F4155] px-2 py-1 text-xs text-white shadow dark:bg-[#D7E4F2] dark:text-blue-50-dark"
           style={{
             left: `${(active.x / WIDTH) * 100}%`,
-            top: `${(Math.max(4, active.y - 46) / HEIGHT) * 100}%`,
+            top: `${(Math.max(4, active.y - 46) / (HEIGHT + CARD_GAP + CARD_H)) * 100}%`,
             transform:
               active.x > WIDTH * 0.8
                 ? "translateX(calc(-100% - 12px))"
@@ -575,15 +710,16 @@ const EventMarker: FC<{
   x: number;
   y: number;
   uid: string;
-  labelShown: boolean;
+  spotlit: boolean;
   title: string;
   subtitle: string;
-}> = ({ event, x, y, uid, labelShown, title, subtitle }) => {
+}> = ({ event, x, y, uid, spotlit, title, subtitle }) => {
   const labelX = x + (event.dx ?? 0);
   const above = event.side === "above";
 
-  // The founding marker reads date first. Elsewhere the title comes first,
-  // then the date, or for a call how many days ahead it was forecast.
+  // News reads title then date, except the founding marker and labels below
+  // the line where the date reads first. Calls always read title, then how
+  // many days ahead they were forecast.
   const titleItems: LabelLine[] = title
     .split("\n")
     .map((text) => ({ text, kind: "title" }));
@@ -591,7 +727,8 @@ const EventMarker: FC<{
     text: subtitle,
     kind: event.call ? "badge" : "sub",
   };
-  const lines = event.origin
+  const subtitleFirst = !event.call && (event.origin || !above);
+  const lines = subtitleFirst
     ? [subtitleItem, ...titleItems]
     : [...titleItems, subtitleItem];
 
@@ -614,7 +751,7 @@ const EventMarker: FC<{
 
   return (
     <g>
-      <g>
+      <g data-part="marker">
         {event.leader > 0 && (
           <>
             <defs>
@@ -643,33 +780,26 @@ const EventMarker: FC<{
                 <stop offset="1" stopColor="#FFFFFF" />
               </linearGradient>
             </defs>
-            <g
-              className={cn(
-                "transition-opacity duration-500",
-                labelShown ? "opacity-100" : "opacity-0"
-              )}
-            >
-              <line
-                x1={x}
-                x2={x}
-                y1={leaderEnd}
-                y2={leaderStop}
-                stroke={`url(#${uid}-leader-${eventId(event)})`}
-                strokeWidth={2.23}
-                strokeDasharray="6.7 2.23"
-                className="dark:hidden"
-              />
-              <line
-                x1={x}
-                x2={x}
-                y1={leaderEnd}
-                y2={leaderStop}
-                stroke={`url(#${uid}-leader-dark-${eventId(event)})`}
-                strokeWidth={2.23}
-                strokeDasharray="6.7 2.23"
-                className="hidden dark:inline"
-              />
-            </g>
+            <line
+              x1={x}
+              x2={x}
+              y1={leaderEnd}
+              y2={leaderStop}
+              stroke={`url(#${uid}-leader-${eventId(event)})`}
+              strokeWidth={2.23}
+              strokeDasharray="6.7 2.23"
+              className="dark:hidden"
+            />
+            <line
+              x1={x}
+              x2={x}
+              y1={leaderEnd}
+              y2={leaderStop}
+              stroke={`url(#${uid}-leader-dark-${eventId(event)})`}
+              strokeWidth={2.23}
+              strokeDasharray="6.7 2.23"
+              className="hidden dark:inline"
+            />
           </>
         )}
 
@@ -689,7 +819,12 @@ const EventMarker: FC<{
               r={14.52}
               fill="none"
               strokeWidth={2.23}
-              className="stroke-[#283441] opacity-[0.16]"
+              className={cn(
+                "transition-colors duration-500",
+                spotlit
+                  ? "stroke-olive-700 opacity-60 dark:stroke-olive-500-dark"
+                  : "stroke-[#283441] opacity-[0.16]"
+              )}
             />
             <circle
               cx={x}
@@ -698,25 +833,21 @@ const EventMarker: FC<{
               filter={`url(#${uid}-shadow)`}
               className="fill-white dark:fill-blue-50-dark"
             />
+            {/* Things that didn't happen get a hollow, dashed marker */}
             <circle
               cx={x}
               cy={y}
-              r={5.59}
+              r={event.nonEvent ? 6 : 5.59}
               fill="none"
-              strokeWidth={4.47}
+              strokeWidth={event.nonEvent ? 2.2 : 4.47}
+              strokeDasharray={event.nonEvent ? "3 2.3" : undefined}
               className="stroke-[#2F4155] dark:stroke-white"
             />
           </>
         )}
       </g>
 
-      <g
-        className={cn(
-          "transition-opacity duration-500",
-          labelShown ? "opacity-100" : "opacity-0"
-        )}
-        aria-hidden={!labelShown}
-      >
+      <g data-part="label">
         {lines.map((line, i) => (
           <text
             key={i}
@@ -742,84 +873,86 @@ const EventMarker: FC<{
   );
 };
 
-// Fan from the lead-up band on the line to the card edge facing it
-function lensPoints(band: Band, card: { x: number; y: number }) {
-  const start = `${band.x0},${band.y0}`;
-  const end = `${band.x1},${band.y1}`;
-  const left = card.x;
-  const right = card.x + CARD_W;
-  const top = card.y;
-  const bottom = card.y + CARD_H;
-  if (band.x0 > right) {
-    // Card to the left: its right edge
-    return `${start} ${right},${bottom} ${right},${top} ${end}`;
-  }
-  // Card above the band, or above and to its right
-  return `${start} ${left},${bottom} ${right},${bottom} ${end}`;
-}
-
 const SpotlightCard: FC<{
   call: ChartCall;
   lead: LeadUp;
-  card: { x: number; y: number };
+  left: number;
   shown: boolean;
+  dimmed: boolean;
   title: string;
   date: string;
   headline: string;
   caption: string;
+  versusLabel: string;
+  versus: string;
   question: string;
   thresholdLabel: string;
 }> = ({
   call,
   lead,
-  card,
+  left,
   shown,
+  dimmed,
   title,
   date,
   headline,
   caption,
+  versusLabel,
+  versus,
   question,
   thresholdLabel,
 }) => (
   <div
     aria-hidden={!shown}
+    aria-live="polite"
     className={cn(
-      "not-prose absolute flex flex-col rounded border border-blue-400 bg-white px-3 py-2 shadow-md transition-opacity duration-500 dark:border-blue-400-dark dark:bg-blue-900",
-      shown ? "pointer-events-auto opacity-100" : "opacity-0"
+      "not-prose absolute flex gap-4 rounded border border-blue-400 bg-white px-3 py-2 shadow-md transition-opacity duration-500 dark:border-blue-400-dark dark:bg-blue-900",
+      shown ? "pointer-events-auto" : "opacity-0",
+      shown && (dimmed ? "opacity-40" : "opacity-100")
     )}
     style={{
-      left: `${(card.x / WIDTH) * 100}%`,
-      top: `${(card.y / HEIGHT) * 100}%`,
+      left: `${(left / WIDTH) * 100}%`,
+      top: `${(CARD_GAP / (CARD_GAP + CARD_H)) * 100}%`,
       width: `${(CARD_W / WIDTH) * 100}%`,
-      height: `${(CARD_H / HEIGHT) * 100}%`,
+      height: `${(CARD_H / (CARD_GAP + CARD_H)) * 100}%`,
     }}
   >
-    <div className="flex gap-2 text-[11px] leading-4 text-gray-600 dark:text-gray-600-dark">
-      <span className="truncate">{title}</span>
-      <span className="ml-auto shrink-0">{date}</span>
+    <div className="flex min-w-0 flex-1 flex-col">
+      <div className="flex gap-2 text-[11px] leading-4 text-gray-600 dark:text-gray-600-dark">
+        <span className="truncate">{title}</span>
+        <span className="ml-auto shrink-0">{date}</span>
+      </div>
+      <div className="text-[15px] font-bold leading-5 text-olive-800 dark:text-olive-800-dark">
+        {headline}
+      </div>
+      <div className="text-[11px] leading-4 text-gray-700 dark:text-gray-700-dark">
+        {caption}
+      </div>
+      <div className="mt-1 line-clamp-2 text-[11px] leading-4 text-gray-700 dark:text-gray-700-dark">
+        <span className="font-bold uppercase tracking-wide text-gray-500 dark:text-gray-500-dark">
+          {versusLabel}
+        </span>{" "}
+        {versus}
+      </div>
+      <Link
+        href={`/questions/${call.postId}/`}
+        tabIndex={shown ? 0 : -1}
+        className="mt-auto line-clamp-1 text-[11px] leading-4"
+      >
+        {question} →
+      </Link>
     </div>
-    <div className="text-[15px] font-bold leading-5 text-olive-800 dark:text-olive-800-dark">
-      {headline}
+    <div className="flex w-[38%] shrink-0 items-center">
+      <CallSparkline call={call} lead={lead} thresholdLabel={thresholdLabel} />
     </div>
-    <CallSparkline call={call} lead={lead} thresholdLabel={thresholdLabel} />
-    <div className="text-[10px] leading-3 text-gray-600 dark:text-gray-600-dark">
-      {caption}
-    </div>
-    <Link
-      href={`/questions/${call.postId}/`}
-      tabIndex={shown ? 0 : -1}
-      className="mt-auto line-clamp-1 text-[11px] leading-4"
-    >
-      {question} →
-    </Link>
   </div>
 );
 
 const SPARK_W = 212;
-const SPARK_H = 44;
+const SPARK_H = 80;
 
-// The community forecast from the day the question opened to the event, with
-// the lead-up shaded the same way as the band on the main chart
+// The community forecast over the lead-up, with the called period shaded the
+// same way as the band on the main chart
 const CallSparkline: FC<{
   call: ChartCall;
   lead: LeadUp;
@@ -827,14 +960,14 @@ const CallSparkline: FC<{
 }> = ({ call, lead, thresholdLabel }) => {
   const n = call.series.length;
   const px = (i: number) => (SPARK_W * i) / Math.max(1, n - 1);
-  const py = (v: number) => SPARK_H - 3 - (SPARK_H - 6) * v;
+  const py = (v: number) => SPARK_H - 4 - (SPARK_H - 8) * v;
   const path =
     "M" + call.series.map(([, v], i) => `${px(i)} ${py(v)}`).join("L");
   const last = call.series[n - 1]?.[1] ?? 0;
   return (
     <svg
       viewBox={`0 0 ${SPARK_W} ${SPARK_H}`}
-      className="my-1 block h-auto w-full overflow-visible"
+      className="block h-auto w-full overflow-visible"
       aria-hidden
     >
       <rect
