@@ -260,18 +260,15 @@ def mark_user_as_spam(user: User) -> None:
 @transaction.atomic
 def deactivate_spam_profile(profile: User, rejected_data: dict) -> None:
     """
-    Deactivates a profile whose update was rejected as spam, plus its owner when
-    it is a bot, keeping the rejected bio and website so staff can review the flag.
+    Deactivates a profile whose update was rejected as spam, keeping the rejected
+    bio and website so staff can review the flag.
     """
     profile.bio = rejected_data.get("bio", profile.bio)
     profile.website = rejected_data.get("website", profile.website)
     mark_user_as_spam(profile)
 
-    owner = profile.bot_owner or profile
-    if owner != profile:
-        mark_user_as_spam(owner)
-
-    transaction.on_commit(lambda: send_deactivation_email(owner.email))
+    if not profile.is_bot:
+        transaction.on_commit(lambda: send_deactivation_email(profile.email))
 
 
 @transaction.atomic

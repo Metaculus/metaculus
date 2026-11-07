@@ -48,7 +48,7 @@ class TestUserProfileUpdate:
         self.assert_deactivated_with_rejected_bio_kept(user1, new_bio, anon_client)
         self.assert_notification_email_sent(mock_send_mail, self.user_email)
 
-    def test_rejected_bot_profile_deactivates_bot_and_owner(
+    def test_rejected_bot_profile_deactivates_only_the_bot(
         self,
         user1_client: APIClient,
         anon_client: APIClient,
@@ -69,11 +69,11 @@ class TestUserProfileUpdate:
         self.assert_response_is_403_with_proper_error_code(response)
         user1.refresh_from_db()
         bot.refresh_from_db()
-        assert not user1.is_active and user1.is_spam
+        assert user1.is_active and not user1.is_spam
         self.assert_deactivated_with_rejected_bio_kept(bot, new_bio, anon_client)
-        self.assert_notification_email_sent(mock_send_mail, self.user_email)
+        mock_send_mail.assert_not_called()
 
-    def test_rejected_profile_while_logged_in_as_bot_deactivates_owner_too(
+    def test_rejected_profile_while_logged_in_as_bot_deactivates_only_the_bot(
         self,
         anon_client: APIClient,
         mocker: Mock,
@@ -93,9 +93,9 @@ class TestUserProfileUpdate:
         self.assert_response_is_403_with_proper_error_code(response)
         user1.refresh_from_db()
         bot.refresh_from_db()
-        assert not user1.is_active and user1.is_spam
+        assert user1.is_active and not user1.is_spam
         self.assert_deactivated_with_rejected_bio_kept(bot, new_bio, anon_client)
-        self.assert_notification_email_sent(mock_send_mail, self.user_email)
+        mock_send_mail.assert_not_called()
 
     def test_update_bio_without_spam(
         self, user1_client: APIClient, mocker: Mock, user1: User
