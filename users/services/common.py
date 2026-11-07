@@ -261,8 +261,7 @@ def mark_user_as_spam(user: User) -> None:
 def deactivate_spam_profile(profile: User, rejected_data: dict) -> None:
     """
     Deactivates a profile whose update was rejected as spam, plus its owner when
-    it is a bot, keeping the rejected bio and website so staff can review the
-    flag. Deactivated accounts are hidden from non-staff, so this text is not public.
+    it is a bot, keeping the rejected bio and website so staff can review the flag.
     """
     profile.bio = rejected_data.get("bio", profile.bio)
     profile.website = rejected_data.get("website", profile.website)
