@@ -48,6 +48,20 @@ class TestUserProfileUpdate:
         self.assert_deactivated_with_rejected_bio_kept(user1, new_bio, anon_client)
         self.assert_notification_email_sent(mock_send_mail, self.user_email)
 
+    def test_rejected_website_is_kept(
+        self, user1_client: APIClient, mocker: Mock, user1: User
+    ) -> None:
+        mock_spam_detection_and_email(mocker, True)
+        self.set_up_user(user1, self.spam_free_pass_threshold - 1)
+        new_website = "https://spam-casino.example"
+
+        response = user1_client.patch(self.url, {"website": new_website}, format="json")
+
+        self.assert_response_is_403_with_proper_error_code(response)
+        user1.refresh_from_db()
+        assert not user1.is_active and user1.is_spam
+        assert user1.website == new_website
+
     def test_rejected_bot_profile_deactivates_only_the_bot(
         self,
         user1_client: APIClient,
