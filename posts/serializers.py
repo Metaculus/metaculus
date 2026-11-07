@@ -504,7 +504,11 @@ def serialize_post_many(
         qs = qs.annotate_user_vote(current_user)
 
     if with_cp:
-        qs = qs.prefetch_questions_scores()
+        # Staff always get shadow aggregations and their scores, so the question
+        # page can flip to them without a request
+        qs = qs.prefetch_questions_scores(
+            include_shadow_aggregations=bool(current_user and current_user.is_staff)
+        )
 
         if current_user and include_user_forecasts:
             qs = qs.prefetch_user_forecasts(current_user.id)

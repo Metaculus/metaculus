@@ -3,7 +3,7 @@ from collections import defaultdict
 import sentry_sdk
 
 from questions.models import AggregateForecast, Question
-from questions.types import AggregationMethod
+from questions.types import AggregationMethod, SHADOW_AGGREGATION_METHODS
 from utils.the_math.aggregations import get_aggregation_history
 
 
@@ -104,6 +104,12 @@ def serialize_question_aggregations(
         if question.is_cp_hidden:
             # don't show any forecasts
             aggregate_forecasts_by_method = {}
+
+        # Shadow aggregations are only passed in for staff; they get their
+        # score data too, so the question page can show either aggregate's scores
+        for method in SHADOW_AGGREGATION_METHODS:
+            if aggregate_forecasts_by_method.get(method):
+                serialized_data[method]  # ensure it exists for the score data
 
         # Appending score data
         for suffix, scores in (

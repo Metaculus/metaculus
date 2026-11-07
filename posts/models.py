@@ -29,6 +29,7 @@ from questions.models import (
     GroupOfQuestions,
     Forecast,
 )
+from questions.types import SHADOW_AGGREGATION_METHODS
 from scoring.models import Score, ArchivedScore
 from users.models import User
 from utils.models import TimeStampedModel, TranslatedModel
@@ -97,7 +98,13 @@ class PostQuerySet(models.QuerySet):
             "conditional__question_no",
         )
 
-    def prefetch_questions_scores(self):
+    def prefetch_questions_scores(self, include_shadow_aggregations: bool = False):
+        """Prefetches the questions' scores for their default aggregation method,
+        and for the shadow aggregation methods if `include_shadow_aggregations`
+        (staff only, so the question page can show either)."""
+        scores_filter = Q(aggregation_method=F("question__default_aggregation_method"))
+        if include_shadow_aggregations:
+            scores_filter |= Q(aggregation_method__in=SHADOW_AGGREGATION_METHODS)
         question_relations = [
             "question",
             "conditional__question_yes",
@@ -111,11 +118,7 @@ class PostQuerySet(models.QuerySet):
                     [
                         Prefetch(
                             f"{rel}__scores",
-                            Score.objects.filter(
-                                aggregation_method=F(
-                                    "question__default_aggregation_method"
-                                )
-                            ),
+                            Score.objects.filter(scores_filter),
                         ),
                         Prefetch(
                             f"{rel}__archived_scores",

@@ -7,8 +7,13 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 
+import { NewsletterSubscribeCard } from "@/app/(main)/labor-hub/components/newsletter_subscribe_card";
 import { useModal } from "@/contexts/modal_context";
 import { useCopyUrl, useShareOnTwitterLink } from "@/hooks/share";
+import cn from "@/utils/core/cn";
+
+// Mailjet contact list key for this hub — resolved in app/(main)/actions.ts.
+const NEWSLETTER_LIST_KEY = "globalHealth";
 
 function PartnerCard() {
   const t = useTranslations();
@@ -99,14 +104,38 @@ function ShareCard() {
   );
 }
 
-export function EngagementSection() {
+// `showNewsletter` stays off until the hub's Mailjet list ID is set.
+export function EngagementSection({
+  showNewsletter,
+}: {
+  showNewsletter: boolean;
+}) {
+  const t = useTranslations();
+
   return (
     <section
       id="engagement"
-      className="grid gap-4 sm:gap-6 lg:grid-cols-2 lg:gap-8 print:hidden"
+      className={cn(
+        "grid gap-4 sm:gap-6 lg:gap-8 print:hidden",
+        showNewsletter ? "lg:grid-cols-3" : "lg:grid-cols-2"
+      )}
     >
       <PartnerCard />
       <ShareCard />
+      {showNewsletter && (
+        <NewsletterSubscribeCard
+          listKey={NEWSLETTER_LIST_KEY}
+          copy={{
+            title: t("globalHealthMonitorEngagementNewsletterTitle"),
+            description: t("globalHealthMonitorEngagementNewsletterBody"),
+            placeholder: t("globalHealthMonitorEngagementEmailPlaceholder"),
+            submit: t("globalHealthMonitorEngagementNewsletterSubmit"),
+            success: t("globalHealthMonitorEngagementNewsletterSuccess"),
+            toastSuccess: t("globalHealthMonitorEngagementToastSuccess"),
+            toastError: t("globalHealthMonitorEngagementToastError"),
+          }}
+        />
+      )}
     </section>
   );
 }

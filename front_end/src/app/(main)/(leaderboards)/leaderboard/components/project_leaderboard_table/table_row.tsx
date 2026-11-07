@@ -30,8 +30,8 @@ function formatCompact(value: number, threshold: number): string {
     : value.toFixed(0);
 }
 
-// Renders the " (lower–upper)" suffix shown after a rank or score
-const IntervalSuffix: FC<{
+// Renders the "(lower–upper)" interval shown beside a rank or score
+const Interval: FC<{
   lower: number | null | undefined;
   upper: number | null | undefined;
   format: (value: number) => string;
@@ -40,9 +40,9 @@ const IntervalSuffix: FC<{
     return null;
   }
   return (
-    <span className="ml-1 text-xs">
+    <span className="text-xs tabular-nums">
       ({format(lower)}
-      {"\u2013"}
+      {"–"}
       {format(upper)})
     </span>
   );
@@ -103,7 +103,10 @@ const TableRow: FC<Props> = ({
 
   return (
     <tr>
-      <Td className="sticky left-0 w-0 text-left" highlight={highlight}>
+      <Td
+        className={cn("sticky left-0 w-0 text-left", withRankCI && "pr-1")}
+        highlight={highlight}
+      >
         {!user &&
         (aggregation_method === "recency_weighted" ||
           aggregation_method === "unweighted") ? (
@@ -126,26 +129,20 @@ const TableRow: FC<Props> = ({
               ))}
 
             <span className="flex-1 text-center tabular-nums">
-              {isExcludedFromRanking ? (
-                <>
-                  <ExcludedEntryTooltip />
-                </>
-              ) : (
-                <>
-                  {rank}
-                  {withRankCI && (
-                    <IntervalSuffix
-                      lower={rank_ci_lower}
-                      upper={rank_ci_upper}
-                      format={(value) => value.toFixed(0)}
-                    />
-                  )}
-                </>
-              )}
+              {isExcludedFromRanking ? <ExcludedEntryTooltip /> : rank}
             </span>
           </>
         )}
       </Td>
+      {withRankCI && (
+        <Td className="w-0 pl-1 text-left" highlight={highlight}>
+          <Interval
+            lower={rank_ci_lower}
+            upper={rank_ci_upper}
+            format={(value) => value.toFixed(0)}
+          />
+        </Td>
+      )}
       <Td
         className="sticky left-0 w-0 max-w-[9rem] text-left sm:max-w-[16rem]"
         highlight={highlight}
@@ -158,16 +155,24 @@ const TableRow: FC<Props> = ({
           {forecasterLabel}
         </Link>
       </Td>
-      <Td className="text-right tabular-nums" highlight={highlight}>
+      <Td
+        className={cn(
+          "text-right tabular-nums",
+          isAdvanced && withScoreCI && "pr-1"
+        )}
+        highlight={highlight}
+      >
         {formatScore(score)}
-        {isAdvanced && withScoreCI && (
-          <IntervalSuffix
+      </Td>
+      {isAdvanced && withScoreCI && (
+        <Td className="pl-1 text-left" highlight={highlight}>
+          <Interval
             lower={ci_lower}
             upper={ci_upper}
             format={formatScoreBound}
           />
-        )}
-      </Td>
+        </Td>
+      )}
       {isAdvanced && (
         <>
           <Td className="text-right tabular-nums" highlight={highlight}>
