@@ -1,3 +1,4 @@
+import logging
 from datetime import timedelta
 
 import requests
@@ -30,6 +31,8 @@ from users.services.spam_detection import (
     send_deactivation_email,
 )
 from utils.cache import cached_singleton
+
+logger = logging.getLogger(__name__)
 
 
 @cached_singleton(timeout=60 * 60)
@@ -271,7 +274,14 @@ def deactivate_spam_profile(profile: User, rejected_data: dict) -> None:
     mark_user_as_spam(profile)
 
     owner = profile.bot_owner
-    if owner:
+    notified_user = owner or profile
+    if not notified_user.email:
+        logger.warning(
+            "Deactivated user %s for spam, but user %s has no email to notify",
+            profile.id,
+            notified_user.id,
+        )
+    elif owner:
         transaction.on_commit(
             lambda: send_bot_deactivation_email(owner.email, profile.username)
         )

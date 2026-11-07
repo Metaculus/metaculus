@@ -87,6 +87,31 @@ class TestUserProfileUpdate:
         self.assert_deactivated_with_rejected_bio_kept(bot, new_bio, anon_client)
         self.assert_bot_deactivation_email_sent_to_owner(mock_send_mail, bot)
 
+    def test_owner_without_email_gets_warning_logged_instead_of_email(
+        self,
+        user1_client: APIClient,
+        mocker: Mock,
+        user1: User,
+        django_capture_on_commit_callbacks,
+        caplog: pytest.LogCaptureFixture,
+    ) -> None:
+        _, mock_send_mail = mock_spam_detection_and_email(mocker, True)
+        self.set_up_user(user1, 30)
+        user1.email = ""
+        user1.save()
+        bot = create_bot(bot_owner=user1, username="user1-bot")
+
+        with django_capture_on_commit_callbacks(execute=True):
+            response = user1_client.patch(
+                reverse("update-bot", args=[bot.id]),
+                {"bio": "This is spam content"},
+                format="json",
+            )
+
+        self.assert_response_is_403_with_proper_error_code(response)
+        mock_send_mail.assert_not_called()
+        assert "has no email to notify" in caplog.text
+
     def test_owner_cannot_overwrite_rejected_bio_on_deactivated_bot(
         self, user1_client: APIClient, mocker: Mock, user1: User
     ) -> None:
