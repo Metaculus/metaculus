@@ -298,7 +298,7 @@ def create_bot_api_view(request: Request):
 def update_bot_profile_api_view(request: Request, pk: int):
     user: User = request.user
     # Check user bot permissions
-    bot = get_object_or_404(get_user_bots(user), pk=pk)
+    bot = get_object_or_404(get_user_bots(user).filter(is_active=True), pk=pk)
 
     serializer = BotUpdateProfileSerializer(bot, data=request.data, partial=True)
     serializer.is_valid(raise_exception=True)

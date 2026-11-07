@@ -25,7 +25,10 @@ from projects.models import Project, ProjectUserPermission
 from projects.permissions import ObjectPermission
 from users.models import User, UserCampaignRegistration
 from users.serializers import UserPrivateSerializer
-from users.services.spam_detection import send_deactivation_email
+from users.services.spam_detection import (
+    send_bot_deactivation_email,
+    send_deactivation_email,
+)
 from utils.cache import cached_singleton
 
 
@@ -267,7 +270,12 @@ def deactivate_spam_profile(profile: User, rejected_data: dict) -> None:
     profile.website = rejected_data.get("website", profile.website)
     mark_user_as_spam(profile)
 
-    if not profile.is_bot:
+    owner = profile.bot_owner
+    if owner:
+        transaction.on_commit(
+            lambda: send_bot_deactivation_email(owner.email, profile.username)
+        )
+    else:
         transaction.on_commit(lambda: send_deactivation_email(profile.email))
 
 

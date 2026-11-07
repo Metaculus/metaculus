@@ -71,7 +71,23 @@ class TestUserProfileUpdate:
         bot.refresh_from_db()
         assert user1.is_active and not user1.is_spam
         self.assert_deactivated_with_rejected_bio_kept(bot, new_bio, anon_client)
-        mock_send_mail.assert_not_called()
+        self.assert_bot_deactivation_email_sent_to_owner(mock_send_mail, bot)
+
+    def test_owner_cannot_overwrite_rejected_bio_on_deactivated_bot(
+        self, user1_client: APIClient, mocker: Mock, user1: User
+    ) -> None:
+        mock_spam_detection_and_email(mocker, True)
+        self.set_up_user(user1, 30)
+        bot = create_bot(bot_owner=user1, username="user1-bot")
+        update_bot_url = reverse("update-bot", args=[bot.id])
+        user1_client.patch(update_bot_url, {"bio": "This is spam content"})
+
+        mock_spam_detection_and_email(mocker, False)
+        response = user1_client.patch(update_bot_url, {"bio": "A clean bio"})
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+        bot.refresh_from_db()
+        assert bot.bio == "This is spam content"
 
     def test_rejected_profile_while_logged_in_as_bot_deactivates_only_the_bot(
         self,
@@ -95,7 +111,7 @@ class TestUserProfileUpdate:
         bot.refresh_from_db()
         assert user1.is_active and not user1.is_spam
         self.assert_deactivated_with_rejected_bio_kept(bot, new_bio, anon_client)
-        mock_send_mail.assert_not_called()
+        self.assert_bot_deactivation_email_sent_to_owner(mock_send_mail, bot)
 
     def test_update_bio_without_spam(
         self, user1_client: APIClient, mocker: Mock, user1: User
@@ -284,6 +300,14 @@ class TestUserProfileUpdate:
         assert "support@metaculus.com" in call_kwargs["message"], (
             "Message should mention support email"
         )
+
+    def assert_bot_deactivation_email_sent_to_owner(
+        self, mock_send_mail: Mock, bot: User
+    ) -> None:
+        self.assert_notification_email_sent(mock_send_mail, self.user_email)
+        message = mock_send_mail.call_args[1]["message"]
+        assert bot.username in message, "Email should name the deactivated bot"
+        assert "Your own account is not affected" in message
 
 
 def mock_spam_detection_and_email(
