@@ -27,6 +27,7 @@ class TestUserProfileUpdate:
         anon_client: APIClient,
         mocker: Mock,
         user1: User,
+        django_capture_on_commit_callbacks,
     ) -> None:
         mock_gpt_spam_check, mock_send_mail = mock_spam_detection_and_email(
             mocker, True
@@ -36,7 +37,8 @@ class TestUserProfileUpdate:
         self.set_up_user(user1, days_since_joining)
         new_bio = "This is spam content"
 
-        response = user1_client.patch(self.url, {"bio": new_bio}, format="json")
+        with django_capture_on_commit_callbacks(execute=True):
+            response = user1_client.patch(self.url, {"bio": new_bio}, format="json")
 
         assert isinstance(response, Response)
         user1.refresh_from_db()
@@ -52,15 +54,17 @@ class TestUserProfileUpdate:
         anon_client: APIClient,
         mocker: Mock,
         user1: User,
+        django_capture_on_commit_callbacks,
     ) -> None:
         _, mock_send_mail = mock_spam_detection_and_email(mocker, True)
         self.set_up_user(user1, 30)
         bot = create_bot(bot_owner=user1, username="user1-bot")
         new_bio = "This is spam content"
 
-        response = user1_client.patch(
-            reverse("update-bot", args=[bot.id]), {"bio": new_bio}, format="json"
-        )
+        with django_capture_on_commit_callbacks(execute=True):
+            response = user1_client.patch(
+                reverse("update-bot", args=[bot.id]), {"bio": new_bio}, format="json"
+            )
 
         self.assert_response_is_403_with_proper_error_code(response)
         user1.refresh_from_db()
@@ -70,7 +74,11 @@ class TestUserProfileUpdate:
         self.assert_notification_email_sent(mock_send_mail, self.user_email)
 
     def test_rejected_profile_while_logged_in_as_bot_deactivates_owner_too(
-        self, anon_client: APIClient, mocker: Mock, user1: User
+        self,
+        anon_client: APIClient,
+        mocker: Mock,
+        user1: User,
+        django_capture_on_commit_callbacks,
     ) -> None:
         _, mock_send_mail = mock_spam_detection_and_email(mocker, True)
         self.set_up_user(user1, 30)
@@ -79,7 +87,8 @@ class TestUserProfileUpdate:
         bot_client.force_authenticate(user=bot)
         new_bio = "This is spam content"
 
-        response = bot_client.patch(self.url, {"bio": new_bio}, format="json")
+        with django_capture_on_commit_callbacks(execute=True):
+            response = bot_client.patch(self.url, {"bio": new_bio}, format="json")
 
         self.assert_response_is_403_with_proper_error_code(response)
         user1.refresh_from_db()
