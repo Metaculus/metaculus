@@ -246,6 +246,22 @@ def send_deactivation_email(user_email: str) -> None:
     )
 
 
+def send_bot_deactivation_email(owner_email: str, bot_username: str) -> None:
+    send_email_async.send(
+        subject=f'Your Metaculus bot "{bot_username}" was deactivated',
+        message=textwrap.dedent(
+            f"""\
+            Your bot "{bot_username}" was deactivated by an automated system because its profile bio or website looked like spam. Your own account is not affected.
+
+            Just for reference, we set our links so that Google doesn't pick them up for SEO. Adding spam to the site does nothing to help your rankings.
+
+            If you believe your bot was marked as spam in error, please contact support@metaculus.com"""
+        ),
+        from_email=settings.EMAIL_HOST_USER,
+        recipient_list=[owner_email],
+    )
+
+
 def send_suspected_spam_to_admins_email(
     to_emails: list[str],
     author: User,

@@ -25,6 +25,10 @@ from projects.models import Project, ProjectUserPermission
 from projects.permissions import ObjectPermission
 from users.models import User, UserCampaignRegistration
 from users.serializers import UserPrivateSerializer
+from users.services.spam_detection import (
+    send_bot_deactivation_email,
+    send_deactivation_email,
+)
 from utils.cache import cached_singleton
 
 
@@ -254,6 +258,25 @@ def soft_delete_user(user: User) -> None:
 def mark_user_as_spam(user: User) -> None:
     user.is_spam = True
     soft_delete_user(user)
+
+
+@transaction.atomic
+def deactivate_spam_profile(profile: User, rejected_data: dict) -> None:
+    """
+    Deactivates a profile whose update was rejected as spam, keeping the rejected
+    bio and website so staff can review the flag.
+    """
+    profile.bio = rejected_data.get("bio", profile.bio)
+    profile.website = rejected_data.get("website", profile.website)
+    mark_user_as_spam(profile)
+
+    owner = profile.bot_owner
+    if owner:
+        transaction.on_commit(
+            lambda: send_bot_deactivation_email(owner.email, profile.username)
+        )
+    else:
+        transaction.on_commit(lambda: send_deactivation_email(profile.email))
 
 
 @transaction.atomic
