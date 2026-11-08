@@ -1545,6 +1545,7 @@
   "configureRelationship": "Konfigurovat vztah",
   "coherenceSearchPlaceholder": "Hledat podle klíčového slova nebo ID otázky…",
   "suggestedQuestions": "Navrhované otázky",
+  "findingQuestionLinks": "Hledání odkazů na otázky... Může to trvat několik sekund.",
   "noSuggestions": "Žádné návrhy nejsou k dispozici",
   "swapCausality": "Prohodit kauzalitu",
   "linkCreateGenericError": "Odkaz se nepodařilo vytvořit. Zkuste to prosím znovu.",

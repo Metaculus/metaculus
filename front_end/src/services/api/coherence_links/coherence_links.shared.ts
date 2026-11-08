@@ -13,8 +13,10 @@ export type SuggestedLinkEntry = {
   // Which sub-question of `post` the suggestion actually points at.
   // For non-group posts this is just the post's question id.
   suggested_question_id: number;
-  // How many suggestion methods agreed on this candidate.
-  score: number;
+  // The suggested link's configuration, as a CoherenceLink stores it.
+  target_is_cause: boolean;
+  direction: 1 | -1;
+  strength: number;
 };
 
 export type FetchedSuggestedLinks = {
@@ -48,9 +50,9 @@ class CoherenceLinksApi extends ApiService {
   }
 
   /**
-   * Retrieves AI-driven question-link suggestions for a question.
-   * Returns an empty list if SUGGESTIONS_AI_ENABLED is off on the server
-   * or no suggestions have been computed for the target yet.
+   * Retrieves AI-driven question-link suggestions for a question. The first
+   * request for a question computes them, which takes several seconds.
+   * Returns an empty list when the feature is off or unavailable.
    */
   async getSuggestedLinksForQuestion(
     questionId: number

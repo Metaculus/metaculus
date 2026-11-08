@@ -16,6 +16,7 @@ import { FormErrorMessage } from "@/components/ui/form_field";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { useDebouncedCallback } from "@/hooks/use_debounce";
 import ClientCoherenceLinksApi from "@/services/api/coherence_links/coherence_links.client";
+import { SuggestedLinkEntry } from "@/services/api/coherence_links/coherence_links.shared";
 import ClientPostsApi from "@/services/api/posts/posts.client";
 import {
   ALLOWED_COHERENCE_LINK_QUESTION_TYPES,
@@ -40,13 +41,39 @@ type Props = {
 
 type Step = "pick" | "configure";
 
-const SUGGESTION_LIMIT = 8;
+const SIMILAR_QUESTIONS_LIMIT = 8;
+
+type LinkConfig = { isOutgoing: boolean; direction: 1 | -1; strength: number };
+
+// Pre-filled when a picked question isn't an AI suggestion.
+const DEFAULT_LINK_CONFIG: LinkConfig = {
+  isOutgoing: false,
+  direction: 1,
+  strength: 2,
+};
+
+const toLinkConfig = (entry: SuggestedLinkEntry): LinkConfig => ({
+  // The current question is the target, so it being the cause is outgoing.
+  isOutgoing: entry.target_is_cause,
+  direction: entry.direction,
+  strength: entry.strength,
+});
+
+type AiSuggestion = { question: QuestionWithForecasts; config: LinkConfig };
 
 // Group posts don't have a single `question` — expand them to their subquestions
 // so the modal treats each sub as a linkable target. Conditionals/notebooks
 // aren't linkable at all, so they drop out as an empty list.
 const expandPost = (p: PostWithForecasts): QuestionWithForecasts[] =>
   p.question ? [p.question] : p.group_of_questions?.questions ?? [];
+
+const toAiSuggestions = (entries: SuggestedLinkEntry[]): AiSuggestion[] =>
+  entries.flatMap((entry) => {
+    const question = expandPost(entry.post).find(
+      (q) => q.id === entry.suggested_question_id
+    );
+    return question ? [{ question, config: toLinkConfig(entry) }] : [];
+  });
 
 const AddCoherenceLinkModal: FC<Props> = ({ post, isOpen, onClose }) => {
   const t = useTranslations();
@@ -62,12 +89,15 @@ const AddCoherenceLinkModal: FC<Props> = ({ post, isOpen, onClose }) => {
 
   const [step, setStep] = useState<Step>("pick");
   const [search, setSearch] = useState("");
-  const [suggested, setSuggested] = useState<QuestionWithForecasts[]>([]);
-  // True when `suggested` came from the AI endpoint; false when we fell back
-  // to the embedding-similarity feed (different header label).
-  const [suggestedIsAi, setSuggestedIsAi] = useState(false);
+  // Stored unfiltered: what's linkable is decided on render, because links can
+  // change while the AI request is in flight.
+  const [aiSuggestions, setAiSuggestions] = useState<AiSuggestion[]>([]);
+  const [similarQuestions, setSimilarQuestions] = useState<
+    QuestionWithForecasts[]
+  >([]);
   const [results, setResults] = useState<QuestionWithForecasts[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
 
   const isLinkable = (q: QuestionWithForecasts): boolean =>
     ALLOWED_COHERENCE_LINK_QUESTION_TYPES.includes(q.type) &&
@@ -78,9 +108,11 @@ const AddCoherenceLinkModal: FC<Props> = ({ post, isOpen, onClose }) => {
   // `isOutgoing = true` means current question → selected (current causes selected).
   // Default is `false`: the picked question points down to the current question, matching
   // the at-a-glance mental model the add modal presents before the user configures.
-  const [isOutgoing, setIsOutgoing] = useState(false);
-  const [direction, setDirection] = useState<1 | -1>(1);
-  const [strength, setStrength] = useState(2);
+  const [isOutgoing, setIsOutgoing] = useState(DEFAULT_LINK_CONFIG.isOutgoing);
+  const [direction, setDirection] = useState<1 | -1>(
+    DEFAULT_LINK_CONFIG.direction
+  );
+  const [strength, setStrength] = useState(DEFAULT_LINK_CONFIG.strength);
   const [submitError, setSubmitError] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -89,9 +121,9 @@ const AddCoherenceLinkModal: FC<Props> = ({ post, isOpen, onClose }) => {
     setSearch("");
     setResults([]);
     setSelected(null);
-    setIsOutgoing(false);
-    setDirection(1);
-    setStrength(2);
+    setIsOutgoing(DEFAULT_LINK_CONFIG.isOutgoing);
+    setDirection(DEFAULT_LINK_CONFIG.direction);
+    setStrength(DEFAULT_LINK_CONFIG.strength);
     setSubmitError(false);
     setIsSubmitting(false);
   }, []);
@@ -105,42 +137,24 @@ const AddCoherenceLinkModal: FC<Props> = ({ post, isOpen, onClose }) => {
     if (!questionId) return;
     let cancelled = false;
     (async () => {
-      setIsLoading(true);
-      try {
-        // Prefer AI-driven suggestions; fall back to the similar-questions
-        // feed when they're unavailable, empty, or the request fails.
-        let questions: QuestionWithForecasts[] = [];
-        let fromAi = false;
-        try {
-          const aiResp =
-            await ClientCoherenceLinksApi.getSuggestedLinksForQuestion(
-              questionId
-            );
-          // Keep server-side ranking. For each entry, expand the post and
-          // pick the specific subquestion the suggestion pointed at.
-          for (const entry of aiResp.data ?? []) {
-            const picked = expandPost(entry.post).find(
-              (q) => q.id === entry.suggested_question_id
-            );
-            if (picked) questions.push(picked);
-          }
-          fromAi = questions.length > 0;
-        } catch (e) {
-          logError(e);
-        }
-        if (!fromAi) {
-          const similar = await ClientPostsApi.getSimilarPosts(post.id);
-          questions = similar.flatMap(expandPost);
-        }
-        if (!cancelled) {
-          setSuggested(questions.filter(isLinkable).slice(0, SUGGESTION_LIMIT));
-          setSuggestedIsAi(fromAi);
-        }
-      } catch (e) {
-        logError(e);
-      } finally {
-        if (!cancelled) setIsLoading(false);
+      setIsLoadingSuggestions(true);
+      // Similar Questions is the fallback when no AI suggestion is linkable,
+      // so it's fetched alongside the slower AI request rather than after it.
+      const [ai, similar] = await Promise.allSettled([
+        ClientCoherenceLinksApi.getSuggestedLinksForQuestion(questionId),
+        ClientPostsApi.getSimilarPosts(post.id),
+      ]);
+      for (const result of [ai, similar]) {
+        if (result.status === "rejected") logError(result.reason);
       }
+      if (cancelled) return;
+      setAiSuggestions(
+        ai.status === "fulfilled" ? toAiSuggestions(ai.value.data) : []
+      );
+      setSimilarQuestions(
+        similar.status === "fulfilled" ? similar.value.flatMap(expandPost) : []
+      );
+      setIsLoadingSuggestions(false);
     })();
     return () => {
       cancelled = true;
@@ -150,7 +164,7 @@ const AddCoherenceLinkModal: FC<Props> = ({ post, isOpen, onClose }) => {
   const runSearch = useDebouncedCallback(async (query: string) => {
     if (!query.trim()) {
       setResults([]);
-      setIsLoading(false);
+      setIsSearching(false);
       return;
     }
     try {
@@ -169,24 +183,40 @@ const AddCoherenceLinkModal: FC<Props> = ({ post, isOpen, onClose }) => {
         });
         questions = results.flatMap(expandPost);
       }
-      setResults(questions.filter(isLinkable));
+      setResults(questions);
     } catch (e) {
       logError(e);
       setResults([]);
     } finally {
-      setIsLoading(false);
+      setIsSearching(false);
     }
   }, 400);
 
   useEffect(() => {
     if (step !== "pick") return;
-    if (search.trim()) setIsLoading(true);
+    if (search.trim()) setIsSearching(true);
     runSearch(search);
   }, [search, step, runSearch]);
 
-  const displayedQuestions = search.trim() ? results : suggested;
+  const linkableAiQuestions = aiSuggestions
+    .map((s) => s.question)
+    .filter(isLinkable);
+  const suggestedIsAi = linkableAiQuestions.length > 0;
+  const suggested = suggestedIsAi
+    ? linkableAiQuestions
+    : similarQuestions.filter(isLinkable).slice(0, SIMILAR_QUESTIONS_LIMIT);
+  const displayedQuestions = search.trim()
+    ? results.filter(isLinkable)
+    : suggested;
+  const isLoading = search.trim() ? isSearching : isLoadingSuggestions;
 
   function selectQuestion(q: QuestionWithForecasts) {
+    const config =
+      aiSuggestions.find((s) => s.question.id === q.id)?.config ??
+      DEFAULT_LINK_CONFIG;
+    setIsOutgoing(config.isOutgoing);
+    setDirection(config.direction);
+    setStrength(config.strength);
     setSelected(q);
     setSubmitError(false);
     setStep("configure");
@@ -266,13 +296,20 @@ const AddCoherenceLinkModal: FC<Props> = ({ post, isOpen, onClose }) => {
           />
           {!search.trim() && (
             <div className="text-xs font-medium uppercase tracking-wide text-gray-600 dark:text-gray-600-dark">
-              {suggestedIsAi ? t("suggestedQuestions") : t("similarQuestions")}
+              {isLoadingSuggestions || suggestedIsAi
+                ? t("suggestedQuestions")
+                : t("similarQuestions")}
             </div>
           )}
           <div className="flex min-h-[240px] flex-1 flex-col gap-2 overflow-y-auto">
             {isLoading ? (
-              <div className="flex flex-1 items-center justify-center py-8">
+              <div className="flex flex-1 flex-col items-center justify-center gap-3 py-8">
                 <LoadingIndicator />
+                {!search.trim() && (
+                  <p className="text-sm text-gray-600 dark:text-gray-600-dark">
+                    {t("findingQuestionLinks")}
+                  </p>
+                )}
               </div>
             ) : displayedQuestions.length === 0 ? (
               <div className="flex flex-1 items-center justify-center py-8 text-sm text-gray-600 dark:text-gray-600-dark">
@@ -388,7 +425,10 @@ const AddCoherenceLinkModal: FC<Props> = ({ post, isOpen, onClose }) => {
               <div className="mb-1 text-xs font-medium uppercase tracking-wide text-gray-600 dark:text-gray-600-dark">
                 {t("strength")}
               </div>
-              <LinkStrengthSelectorComponent onSelect={setStrength} />
+              <LinkStrengthSelectorComponent
+                value={strength}
+                onSelect={setStrength}
+              />
             </div>
 
             {submitError && (

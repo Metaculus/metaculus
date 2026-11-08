@@ -1580,6 +1580,7 @@
   "configureRelationship": "配置關係",
   "coherenceSearchPlaceholder": "按關鍵字或問題 ID 搜尋…",
   "suggestedQuestions": "建議的問題",
+  "findingQuestionLinks": "正在尋找問題連結...可能需要幾秒鐘。",
   "noSuggestions": "沒有可用的建議",
   "swapCausality": "交換因果關係",
   "linkCreateGenericError": "無法建立連結。請再試一次。",
