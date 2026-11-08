@@ -8,7 +8,6 @@ from django.conf import settings
 from django.core.management.base import BaseCommand
 from django_dramatiq.tasks import delete_old_tasks
 
-from coherence.jobs import job_run_daily_suggestion_batch
 from comments.tasks import (
     update_current_top_comments_of_week,
     job_archive_bot_comment_texts,
@@ -290,17 +289,6 @@ class Command(BaseCommand):
             close_old_connections(warm_cache_site_stats.send),
             trigger=CronTrigger.from_crontab("30 */12 * * *"),  # Every 12 hours
             id="warm_cache_site_stats",
-            max_instances=1,
-            replace_existing=True,
-        )
-
-        #
-        # AI question-link suggestions: daily batch, at US off-peak hours
-        #
-        scheduler.add_job(
-            close_old_connections(job_run_daily_suggestion_batch.send),
-            trigger=CronTrigger.from_crontab("0 9 * * *"),
-            id="coherence_suggestion_batch",
             max_instances=1,
             replace_existing=True,
         )

@@ -2,7 +2,6 @@
 Tests for AI-suggested coherence links.
 
 Covered (no real API calls):
-  - staleness threshold formula
   - read returns empty when SUGGESTIONS_AI_ENABLED is False
   - read aggregates methods into a score (= count of active methods)
   - retired method names in the JSON are ignored at read time
@@ -23,7 +22,6 @@ from coherence.services.suggestions import pipeline
 from coherence.services.suggestions import read as read_mod
 from coherence.services.suggestions.llm import LlmResult
 from coherence.services.suggestions.read import get_suggestions_for_question
-from coherence.services.suggestions.scheduler import staleness_days_threshold
 from questions.models import Question
 from tests.unit.test_questions.conftest import *  # noqa
 from tests.unit.test_questions.factories import create_question
@@ -32,21 +30,6 @@ from tests.unit.test_questions.factories import create_question
 pytestmark = pytest.mark.django_db
 
 Method = CoherenceLinkSuggestion.Method
-
-
-# ---------- staleness ----------
-
-
-def test_staleness_threshold_extremes():
-    # most popular: ~7 days. Just inside top 10%: ~17 days. Bottom: ~107 days.
-    assert staleness_days_threshold(100.0) == pytest.approx(7.0)
-    assert staleness_days_threshold(90.0) == pytest.approx(17.0)
-    assert staleness_days_threshold(0.0) == pytest.approx(107.0)
-
-
-def test_staleness_threshold_clamps():
-    assert staleness_days_threshold(150.0) == pytest.approx(7.0)
-    assert staleness_days_threshold(-10.0) == pytest.approx(107.0)
 
 
 # ---------- replace_votes ----------

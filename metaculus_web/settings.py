@@ -474,9 +474,6 @@ OPENAI_API_KEY_QUESTION_LINKS = os.environ.get("OPENAI_API_KEY_QUESTION_LINKS", 
 SUGGESTIONS_AI_ENABLED = (
     os.environ.get("SUGGESTIONS_AI_ENABLED", "false").lower() == "true"
 )
-# Daily ceiling/budget in USD for how much to spend on finding question links.
-# Expect the entire budget to be spent every day.
-SUGGESTIONS_LIMIT_USD_DAILY = float(os.environ.get("SUGGESTIONS_LIMIT_USD_DAILY", "5"))
 
 # Serper Google API key
 SERPER_API_KEY = os.environ.get("SERPER_API_KEY")
