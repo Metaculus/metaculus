@@ -15,7 +15,7 @@ from utils.models import TimeStampedModel
 
 if TYPE_CHECKING:
     from comments.models import Comment
-    from misc.models import UserDataAccess
+    from misc.models import UserApiAccess, UserDataAccess
     from posts.models import Post
 
 
@@ -34,6 +34,7 @@ class User(TimeStampedModel, AbstractUser):
     comment_set: QuerySet["Comment"]
     posts: QuerySet["Post"]
     data_accesses: QuerySet["UserDataAccess"]
+    api_accesses: QuerySet["UserApiAccess"]
 
     # Profile data
     bio = models.TextField(default="", blank=True)
@@ -133,6 +134,10 @@ class User(TimeStampedModel, AbstractUser):
         choices=settings.LANGUAGES,
     )
 
+    # Deprecated, and no longer read: API access levels live in
+    # misc.models.UserApiAccess. TEMPORARY - retained only so this branch can be
+    # exercised against the API gateway. The RemoveField migration must land
+    # before this merges.
     api_access_tier = models.CharField(
         max_length=32,
         choices=ApiAccessTier.choices,
