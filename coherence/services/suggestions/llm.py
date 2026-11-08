@@ -1,195 +1,190 @@
 """
-OpenAI transport for the paid suggestion methods: one completion request in,
-a validated list of candidate ids out, with the call's USD cost attached.
-
-The API reports token counts but not cost, so USD is computed locally from
-the pricing constants below.
+OpenRouter calls behind AI question-link suggestions: the decision-model scan
+and the rerank (see docs/llm-usage.md).
 """
 
+import asyncio
 import logging
-import time
-from dataclasses import dataclass, field
+import math
+import random
+import re
+from itertools import batched
 
 import openai
-from django.conf import settings
+from django.core.cache import cache
+from openai import AsyncOpenAI
 
 from coherence.services.suggestions import prompts
-from utils.openai import get_openai_client
+from questions.models import Question
+from utils.llm import LLMFeature, llm_options
 
 logger = logging.getLogger(__name__)
 
-# One call can be a large share of an org's per-minute token allowance, so
-# 429s between consecutive calls are normal and just need patience — the
-# caller is a batch job with nowhere urgent to be. The SDK's own retry
-# layer is disabled (see _parse_with_retries): its hidden resubmissions
-# of a huge request burn rate-limit budget before our loop sees the failure.
-_RETRYABLE_ERRORS = (
-    openai.RateLimitError,
-    openai.InternalServerError,
-    openai.APITimeoutError,
-    openai.APIConnectionError,
-)
-_RETRY_WAITS_SECONDS = (60, 120, 240)
+# OpenRouter's decisions endpoint is in alpha and lives outside /api/v1.
+DECISIONS_URL = "https://openrouter.ai/api/alpha/decisions"
+SCAN_MODEL = "openai/gpt-6-luna-decisions"
+SCAN_CHUNK_SIZE = 200  # the most questions OpenRouter accepts per request
+SCAN_TIMEOUT_SECONDS = 8  # requests usually take ~1 s
+
+RERANK_MODEL = "openai/gpt-6.1-sol"
+RERANK_FALLBACK_MODEL = "openai/gpt-6-luna"
+RERANK_GROUP_SIZE = 10
+RERANK_TIMEOUT_SECONDS = 12  # calls usually take 3-5 s on the fast tier
+RERANK_MAX_TOKENS = 3000  # outputs are ~1k; keeps OpenRouter's in-flight hold small
+
+_REFUSED_QUESTION = re.compile(r"refused to answer question \W*c(\d+)")
 
 
-# ----- gpt-5.6-luna pricing (USD per 1M tokens, as of 2026-08) -------------
-#
-# Verify against https://openai.com/api/pricing/ before deploys and on a
-# quarterly cadence — if pricing changes and these don't, recorded spend
-# drifts from real billing.
-PRICE_IN_PER_1M = 0.20
-PRICE_CACHED_PER_1M = 0.02
-PRICE_OUT_PER_1M = 1.20
-
-
-@dataclass
-class LlmResult:
-    """Outcome of one voting call. `error` is set instead of raising."""
-
-    candidate_ids: list[int] = field(default_factory=list)
-    cost_usd: float = 0.0
-    error: str | None = None
-
-
-def request_votes(
-    *,
-    instructions: str,
-    target: dict,
-    candidates: list[dict],
-    method_label: str,
-) -> LlmResult:
+def alert(kind: str, message: str, *args, exc_info=None) -> None:
     """
-    Ask the model which candidates relate to the target, per `instructions`.
-    Message layout keeps the shared pool prefix cacheable — see prompts.py.
+    Log at ERROR, which reaches Sentry, at most once an hour per `kind`, and
+    at WARNING otherwise, so an outage is noticed without flooding Sentry.
     """
-    if not candidates:
-        return LlmResult(error="empty_pool")
-    target_id = target["id"]
-
-    client = get_openai_client(settings.OPENAI_API_KEY_QUESTION_LINKS)
-    try:
-        response = _parse_with_retries(
-            client,
-            messages=[
-                {"role": "system", "content": prompts.SYSTEM_PROMPT},
-                {"role": "user", "content": prompts.candidate_pool_block(candidates)},
-                {
-                    "role": "user",
-                    "content": prompts.request_block(instructions, target),
-                },
-            ],
-            method_label=method_label,
-            target_id=target_id,
-        )
-    except openai.LengthFinishReasonError as exc:
-        # Output hit MAX_OUTPUT_TOKENS. Tokens were still billed, so record
-        # the spend even though the truncated response is discarded.
-        cost = _cost_usd(exc.completion.usage)
-        _log_usage(method_label, target_id, exc.completion.usage, cost)
-        return LlmResult(cost_usd=cost, error="truncated_output")
-    except Exception as exc:
-        logger.exception("OpenAI call failed for %s target=%s", method_label, target_id)
-        return LlmResult(error=f"api_error: {exc.__class__.__name__}")
-
-    cost = _cost_usd(response.usage)
-    _log_usage(method_label, target_id, response.usage, cost)
-
-    if not response.choices:
-        return LlmResult(cost_usd=cost, error="no_choices")
-    message = response.choices[0].message
-    if message.parsed is None:
-        logger.warning(
-            "%s target=%s: no parsed output (refusal=%s)",
-            method_label,
-            target_id,
-            message.refusal,
-        )
-        return LlmResult(cost_usd=cost, error="no_parsed_output")
-    valid_ids = {c["id"] for c in candidates}
-    return LlmResult(
-        candidate_ids=_filter_candidate_ids(message.parsed, valid_ids),
-        cost_usd=cost,
+    first = cache.add(f"question-link-suggestions:alert:{kind}", 1, timeout=3600)
+    logger.log(
+        logging.ERROR if first else logging.WARNING, message, *args, exc_info=exc_info
     )
 
 
-def _parse_with_retries(client, *, messages, method_label, target_id):
-    client = client.with_options(max_retries=0)
-    for wait_seconds in (*_RETRY_WAITS_SECONDS, None):
+async def scan(
+    client: AsyncOpenAI, target: Question, candidates: list[Question]
+) -> tuple[dict[int, float], list[BaseException]]:
+    """Score in [0, 1] per candidate id, plus the errors of failed requests."""
+    results = await asyncio.gather(
+        *(
+            _scan_chunk(client, target, chunk)
+            for chunk in batched(candidates, SCAN_CHUNK_SIZE)
+        ),
+        return_exceptions=True,
+    )
+    scores: dict[int, float] = {}
+    errors = []
+    for result in results:
+        if isinstance(result, BaseException):
+            errors.append(result)
+        else:
+            scores.update(result)
+    return scores, errors
+
+
+async def _scan_chunk(
+    client: AsyncOpenAI, target: Question, chunk: tuple[Question, ...]
+) -> dict[int, float]:
+    pending = {c.id: c for c in chunk}
+    max_level = len(prompts.SCAN_LEVELS) - 1
+    # client.post() takes a raw body, so llm_options' tag and routing go in it.
+    options = llm_options(LLMFeature.QUESTION_LINKS)
+    routing = {"user": options["user"], **options["extra_body"]}
+    # OpenRouter fails the whole request when the model refuses one question,
+    # naming it in the error: drop that question and retry the rest.
+    for _ in range(3):
+        if not pending:
+            return {}
         try:
-            return client.chat.completions.parse(
-                model=prompts.MODEL_NAME,
-                messages=messages,
-                response_format=prompts.MethodResponse,
-                prompt_cache_key=prompts.PROMPT_CACHE_KEY,
-                max_completion_tokens=prompts.MAX_OUTPUT_TOKENS,
+            response = await client.post(
+                DECISIONS_URL,
+                cast_to=object,
+                body={
+                    "model": SCAN_MODEL,
+                    "state": prompts.scan_state(target),
+                    "questions": {
+                        f"c{c.id}": prompts.scan_question(c) for c in pending.values()
+                    },
+                    **routing,
+                },
+                options={"timeout": SCAN_TIMEOUT_SECONDS},
             )
-        except _RETRYABLE_ERRORS as exc:
-            if wait_seconds is None:
+        except openai.APIStatusError as exc:
+            refused = _REFUSED_QUESTION.search(str(exc))
+            if not refused or int(refused[1]) not in pending:
                 raise
-            wait_seconds = max(wait_seconds, _suggested_wait(exc))
-            logger.warning(
-                "%s target=%s: %s, retrying in %ds",
-                method_label,
-                target_id,
-                exc.__class__.__name__,
-                wait_seconds,
-            )
-            time.sleep(wait_seconds)
+            del pending[int(refused[1])]
+            continue
+        answers = response.get("answers") or {}
+        return {
+            cid: answer["score"] / max_level
+            for cid in pending
+            if (answer := answers.get(f"c{cid}")) and answer.get("score") is not None
+        }
+    raise RuntimeError(f"decision model refused 3 questions for target {target.id}")
 
 
-def _suggested_wait(exc) -> int:
-    """The server's retry-after hint, when it sent one."""
+async def rerank(
+    client: AsyncOpenAI, target: Question, shortlist: list[Question]
+) -> tuple[dict[int, prompts.CandidateGrade], set[str], list[BaseException]]:
+    """
+    Grades per candidate id, the models that produced them, and the errors of
+    calls that failed with both models.
+    """
+    n_groups = math.ceil(len(shortlist) / RERANK_GROUP_SIZE)
+    # Round-robin, so every call sees both near and far candidates.
+    groups = [shortlist[i::n_groups] for i in range(n_groups)]
+    results = await asyncio.gather(
+        *(_rerank_group(client, target, group) for group in groups),
+        return_exceptions=True,
+    )
+    grades: dict[int, prompts.CandidateGrade] = {}
+    models: set[str] = set()
+    errors = []
+    for result in results:
+        if isinstance(result, BaseException):
+            errors.append(result)
+        else:
+            group_grades, model = result
+            grades.update(group_grades)
+            models.add(model)
+    return grades, models, errors
+
+
+async def _rerank_group(
+    client: AsyncOpenAI, target: Question, group: list[Question]
+) -> tuple[dict[int, prompts.CandidateGrade], str]:
+    # Shuffled so the shortlist's ranking doesn't leak into the grades;
+    # seeded so recomputing a target is reproducible.
+    shuffled = group[:]
+    random.Random(target.id).shuffle(shuffled)
+    messages = [
+        {"role": "system", "content": prompts.RERANK_SYSTEM_PROMPT},
+        {"role": "user", "content": prompts.rerank_user_message(target, shuffled)},
+    ]
     try:
-        return int(float(exc.response.headers.get("retry-after", 0))) + 1
-    except (AttributeError, TypeError, ValueError):
-        return 0
-
-
-def _cost_usd(usage) -> float:
-    """USD spent on this call, from token counts + the cached-input discount."""
-    if usage is None:
-        return 0.0
-    prompt_tokens = getattr(usage, "prompt_tokens", 0) or 0
-    completion_tokens = getattr(usage, "completion_tokens", 0) or 0
-    fresh = max(0, prompt_tokens - _cached_tokens(usage))
+        return await _grade(client, RERANK_MODEL, messages, group), RERANK_MODEL
+    except Exception as exc:
+        alert(
+            "rerank-model",
+            "Question-link suggestions: %s failed, falling back to %s",
+            RERANK_MODEL,
+            RERANK_FALLBACK_MODEL,
+            exc_info=exc,
+        )
     return (
-        fresh * PRICE_IN_PER_1M / 1_000_000
-        + _cached_tokens(usage) * PRICE_CACHED_PER_1M / 1_000_000
-        + completion_tokens * PRICE_OUT_PER_1M / 1_000_000
+        await _grade(client, RERANK_FALLBACK_MODEL, messages, group),
+        RERANK_FALLBACK_MODEL,
     )
 
 
-def _cached_tokens(usage) -> int:
-    details = getattr(usage, "prompt_tokens_details", None) if usage else None
-    return (getattr(details, "cached_tokens", 0) or 0) if details else 0
-
-
-def _log_usage(method_label: str, target_id: int, usage, cost: float) -> None:
-    """One line per call so cache hit rate is visible in production logs."""
-    logger.info(
-        "%s target=%s prompt_tokens=%s cached=%s completion=%s cost=$%.4f",
-        method_label,
-        target_id,
-        getattr(usage, "prompt_tokens", 0) if usage else 0,
-        _cached_tokens(usage),
-        getattr(usage, "completion_tokens", 0) if usage else 0,
-        cost,
+async def _grade(
+    client: AsyncOpenAI, model: str, messages: list[dict], group: list[Question]
+) -> dict[int, prompts.CandidateGrade]:
+    options = llm_options(LLMFeature.QUESTION_LINKS)
+    # The user is waiting on this call; the fast tier roughly halves it.
+    extra_body = {**options.pop("extra_body"), "service_tier": "fast"}
+    response = await client.chat.completions.parse(
+        model=model,
+        messages=messages,
+        response_format=prompts.RerankResponse,
+        # The lowest effort gpt-6.1-sol supports; "none" is rejected.
+        reasoning_effort="low",
+        max_completion_tokens=RERANK_MAX_TOKENS,
+        timeout=RERANK_TIMEOUT_SECONDS,
+        extra_body=extra_body,
+        **options,
     )
-
-
-def _filter_candidate_ids(
-    parsed: prompts.MethodResponse, valid_ids: set[int]
-) -> list[int]:
-    """
-    Strict structured outputs guarantee the response shape, not the values:
-    the model can still emit ids outside the candidate pool, or repeats.
-    Hallucinated and duplicate ids are dropped, response order is preserved.
-    """
-    seen: set[int] = set()
-    out: list[int] = []
-    for candidate in parsed.candidates:
-        cid = candidate.candidate_id
-        if cid in valid_ids and cid not in seen:
-            seen.add(cid)
-            out.append(cid)
-    return out
+    parsed = response.choices[0].message.parsed if response.choices else None
+    if parsed is None:
+        raise ValueError(f"{model} returned no parsed grades")
+    ids = {c.id for c in group}
+    grades = {g.id: g for g in parsed.candidates if g.id in ids}
+    if not grades:
+        raise ValueError(f"{model} graded none of the {len(group)} candidates")
+    return grades

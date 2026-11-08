@@ -158,20 +158,17 @@ class AggregateCoherenceLinkAdmin(admin.ModelAdmin):
 
 @admin.register(CoherenceLinkSuggestion)
 class CoherenceLinkSuggestionAdmin(admin.ModelAdmin):
-    """One row per eligible target. Read-only: rows are written by the
-    daily batch (coherence.jobs) and go stale/refresh on their own."""
+    """Read-only: rows are written when someone opens the link modal. Deleting
+    a row makes the next open recompute it."""
 
     list_display = [
         "id",
         "target_question_link",
-        "paid_run_status",
-        "n_candidates",
-        "methods_succeeded_str",
-        "paid_run_cost_usd",
-        "paid_run_started_at",
-        "free_refreshed_at",
+        "n_suggestions",
+        "degraded",
+        "computed_at",
     ]
-    list_filter = ["paid_run_status"]
+    list_filter = ["degraded"]
     search_fields = [
         "id",
         "target_question__id",
@@ -179,21 +176,13 @@ class CoherenceLinkSuggestionAdmin(admin.ModelAdmin):
         "target_question__post__id",
         "target_question__post__title_original",
     ]
-    list_select_related = ["target_question", "target_question__post"]
-    ordering = ["-paid_run_started_at", "-free_refreshed_at"]
+    list_select_related = ["target_question"]
+    ordering = ["-computed_at"]
     readonly_fields = [
         "target_question",
-        "methods_by_candidate",
-        "paid_run_status",
-        "paid_run_started_at",
-        "paid_run_cost_usd",
-        "paid_run_methods_attempted",
-        "paid_run_methods_succeeded",
-        "paid_run_pool_hash",
-        "paid_run_pool_size",
-        "paid_run_elapsed_s",
-        "paid_run_error_message",
-        "free_refreshed_at",
+        "suggestions",
+        "degraded",
+        "computed_at",
         "created_at",
         "edited_at",
     ]
@@ -207,15 +196,10 @@ class CoherenceLinkSuggestionAdmin(admin.ModelAdmin):
 
     target_question_link.short_description = "Target"
 
-    def n_candidates(self, obj):
-        return len(obj.methods_by_candidate or {})
+    def n_suggestions(self, obj):
+        return len(obj.suggestions)
 
-    n_candidates.short_description = "# candidates"
-
-    def methods_succeeded_str(self, obj):
-        return ", ".join(obj.paid_run_methods_succeeded or [])
-
-    methods_succeeded_str.short_description = "Methods succeeded"
+    n_suggestions.short_description = "# suggestions"
 
 
 @admin.register(AggregateCoherenceLinkVote)

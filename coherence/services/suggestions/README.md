@@ -1,54 +1,52 @@
 # AI-suggested question links
 
-Suggests question links (coherence links) for the Add Question Link modal.
-Five methods vote on candidate questions; a candidate's score is how many
-methods voted for it:
+Suggests question links for the Add Question Link modal. The first time someone opens the
+modal on a question, its suggestions are computed (~6–10 s) and stored on a
+`CoherenceLinkSuggestion` row. Later opens reuse the row for 30 days, or 1 day when a model
+was unavailable and a fallback produced it.
 
-| method             | what it is                                        | cost |
-| ------------------ | ------------------------------------------------- | ---- |
-| `llm_broad`        | LLM over the full question pool, high recall      | paid |
-| `llm_strict`       | LLM over the full pool, causal influence only     | paid |
-| `llm_similar_only` | LLM (strict) over an embedding shortlist          | paid |
-| `similar`          | the existing Similar Questions signal             | free |
-| `community_link`   | an AggregateCoherenceLink exists for the pair     | free |
+## How suggestions are computed
 
-Votes live on one `CoherenceLinkSuggestion` row per eligible target
-question, updated in place — the table never grows and needs no cleanup.
-A daily cron batch (`coherence.jobs`) refreshes the free votes for every
-eligible question and runs the LLM methods on stale targets, most popular
-first, until the daily budget is exhausted. Staleness scales with
-popularity: the most popular questions refresh about weekly, the least
-popular about quarterly. The modal falls back to the plain
-similar-questions list whenever no suggestions are available.
+1. **Similarity:** cosine between the target's post embedding and every candidate's (the
+   vectors behind Similar Questions).
+2. **Scan:** OpenAI's decision model scores every candidate against the target on a 5-level
+   scale. That's 200 candidates per request, with all requests in parallel (~2 s).
+3. **Shortlist:** the best 30 by score + 2 × similarity, plus the best 20 of the rest by score
+   alone. The second group is the non-obvious candidates that similarity would bury.
+4. **Rerank:** `gpt-6.1-sol` grades each shortlisted candidate 0–4 and configures the link:
+   which question is the cause, the sign, and the strength. This runs as 5 parallel calls on
+   the fast tier (~3–5 s).
 
-## Module map
+The modal shows every candidate graded 3–4 (up to 12), topped up with grade-2 ones when fewer
+than 5 qualify. Candidates only ever come from `public_linkable_questions()`. A private target
+works, but only for users who can see it.
 
-| file           | responsibility                                          |
-| -------------- | ------------------------------------------------------- |
-| `pool.py`      | eligibility rules, candidate pool, popularity ranking   |
-| `prompts.py`   | model choice, prompt text, context-window fitting       |
-| `llm.py`       | OpenAI transport: pricing, retries, structured outputs  |
-| `methods.py`   | the five voting methods (compute only)                  |
-| `pipeline.py`  | the two write paths (paid run / free refresh)           |
-| `budget.py`    | daily USD spend guard                                   |
-| `scheduler.py` | the daily batch                                         |
-| `stats.py`     | numbers for `manage.py suggestion_stats`                |
-| `read.py`      | modal read path (aggregate votes, permission filtering) |
+One computation costs ~$0.16 with today's ~4k eligible questions and ~$0.23 at 7k.
 
-## Deployment
+## When things fail
 
-1. Migrations: `coherence.0005` creates the table.
-2. Environment:
-   - `SUGGESTIONS_AI_ENABLED` — master switch, off by default. While off,
-     the cron job no-ops and the API returns empty lists; nothing is
-     computed and nothing is spent.
-   - `OPENAI_API_KEY_QUESTION_LINKS` — dedicated key so spend is
-     attributable on the OpenAI dashboard. Required; there is no fallback
-     to `OPENAI_API_KEY`.
-   - `SUGGESTIONS_LIMIT_USD_DAILY` (default 5) — daily LLM spend ceiling.
-3. Flip `SUGGESTIONS_AI_ENABLED=true`. Coverage builds from the most
-   popular questions down, and at production volumes the daily budget is
-   the binding constraint — expect the full budget to be spent every day,
-   with `SUGGESTIONS_LIMIT_USD_DAILY` deciding how deep into the
-   popularity ranking coverage reaches. `manage.py suggestion_stats`
-   shows coverage and spend.
+| what fails | what happens |
+| --- | --- |
+| some decision requests | those candidates rank by similarity alone |
+| `gpt-6.1-sol` on a call | that call is retried with `gpt-6-luna` |
+| every rerank call, or the 18 s deadline | the endpoint returns the previous suggestions if it has any; otherwise none, and the modal shows Similar Questions |
+
+Results from a fallback are marked `degraded` and recomputed after a day. Each kind of failure
+logs at ERROR (Sentry) at most once an hour, and at WARNING otherwise.
+
+## Settings
+
+- `QUESTION_LINK_SUGGESTIONS_ENABLED`: master switch, off by default. While off, nothing is
+  computed, served or spent.
+- `OPENROUTER_API_KEY`: required; without it the endpoint returns no suggestions.
+
+Spend shows up under the `question-links` tag in OpenRouter's Activity. There's no
+feature-level cap: the organisation-wide OpenRouter budget covers every feature.
+
+## Modules
+
+| file | responsibility |
+| --- | --- |
+| `service.py` | eligibility, caching, the pipeline, what's shown |
+| `llm.py` | OpenRouter calls: scan, rerank, fallbacks, alerts |
+| `prompts.py` | prompt text and the rerank's response schema |

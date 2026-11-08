@@ -466,13 +466,10 @@ def _llm_model(model: str) -> str:
 GENERAL_LLM_MODEL = _llm_model("openai/gpt-6-luna")
 # Stored Post/ITNArticle embedding vectors depend on it; changing requires re-embedding
 LLM_EMBEDDING_MODEL = _llm_model("openai/text-embedding-3-large")
-# use a default value, otherwise openai lib will use the value from the default OPENAI_API_KEY variable
-OPENAI_API_KEY_QUESTION_LINKS = os.environ.get("OPENAI_API_KEY_QUESTION_LINKS", "nokey")
 
-# --- Question Links (aka Coherence) ---------------------------------------
-# When disabled, no suggestions are computed or served and nothing is spent.
-SUGGESTIONS_AI_ENABLED = (
-    os.environ.get("SUGGESTIONS_AI_ENABLED", "false").lower() == "true"
+# AI question-link suggestions; they also need OPENROUTER_API_KEY
+QUESTION_LINK_SUGGESTIONS_ENABLED = (
+    os.environ.get("QUESTION_LINK_SUGGESTIONS_ENABLED", "false").lower() == "true"
 )
 
 # Serper Google API key

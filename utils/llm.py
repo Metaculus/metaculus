@@ -95,6 +95,7 @@ class LLMFeature(StrEnum):
     QUESTION_UNITS = "question-units"
     EMBEDDINGS_SEARCH = "embeddings-search"
     EMBEDDINGS_ITN = "embeddings-itn"
+    QUESTION_LINKS = "question-links"
 
 
 def _client_options() -> dict:

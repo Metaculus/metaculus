@@ -8,6 +8,7 @@ from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from rest_framework.request import Request
 from rest_framework.response import Response
 
+
 from coherence.models import (
     CoherenceLink,
     AggregateCoherenceLink,
@@ -26,8 +27,9 @@ from coherence.services import (
     update_coherence_link,
     aggregate_coherence_link_vote,
 )
-from coherence.services.suggestions.read import get_suggestions_for_question
+from coherence.services.suggestions.service import get_suggestions_for_question
 from coherence.utils import get_aggregation_results, get_aggregations_links
+from posts.models import Post
 from posts.serializers import serialize_post_many
 from posts.services.common import get_post_permission_for_user
 from projects.models import Project
@@ -252,41 +254,38 @@ class CoherenceBotForecastSerializer(serializers.Serializer):
 
 
 @api_view(["GET"])
-@permission_classes([AllowAny])
+@permission_classes([IsAuthenticated])
 def get_suggested_links_for_question_api_view(request: Request, pk: int):
     """
-    Return AI-driven link suggestions for a question.
+    AI-suggested links for a question, best first, computed on first request.
 
     Response shape:
         {"data": [{"post": {...}, "suggested_question_id": <int>,
-                   "score": <int>}, ...]}
+                   "target_is_cause": <bool>, "direction": <1|-1>,
+                   "strength": <1|2|5>}, ...]}
 
     The frontend uses `suggested_question_id` to pick the subquestion to
-    display from group posts.
+    display from group posts, and the rest to pre-fill the link.
     """
     target = get_object_or_404(Question, pk=pk)
-    # Private questions can be suggestion targets; their suggestions must
-    # only be visible to users who can see the question itself.
+    # The target may be private: only users who can see it get its
+    # suggestions, which never include private questions themselves.
     target_permission = get_post_permission_for_user(target.post, user=request.user)
     ObjectPermission.can_view(target_permission, raise_exception=True)
+    # Bots can't open the modal, and each computation costs money.
+    if request.user.is_bot:
+        return Response({"data": []})
 
-    suggestions = get_suggestions_for_question(
-        target_question=target,
-        user=request.user if request.user.is_authenticated else None,
-        limit=20,
-    )
+    suggestions = get_suggestions_for_question(target)
     if not suggestions:
         return Response({"data": []})
 
-    # Batch-serialise the posts using the same path the existing
-    # similar-posts endpoint uses, so frontend types are unchanged.
-    post_ids = list({s.question.post_id for s in suggestions if s.question.post_id})
+    # Public again here, in case a post went private since they were picked.
+    posts = Post.objects.filter_public().filter(
+        pk__in={s.question.post_id for s in suggestions}
+    )
     serialized_posts = serialize_post_many(
-        post_ids,
-        with_cp=True,
-        include_cp_history=True,
-        current_user=request.user if request.user.is_authenticated else None,
-        group_cutoff=1,
+        posts, with_cp=True, current_user=request.user
     )
     by_post_id = {p["id"]: p for p in serialized_posts}
 
@@ -294,7 +293,9 @@ def get_suggested_links_for_question_api_view(request: Request, pk: int):
         {
             "post": by_post_id[s.question.post_id],
             "suggested_question_id": s.question.id,
-            "score": s.score,
+            "target_is_cause": s.target_is_cause,
+            "direction": s.direction,
+            "strength": s.strength,
         }
         for s in suggestions
         if s.question.post_id in by_post_id

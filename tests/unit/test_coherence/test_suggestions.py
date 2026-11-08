@@ -1,247 +1,335 @@
 """
-Tests for AI-suggested coherence links.
-
-Covered (no real API calls):
-  - read returns empty when SUGGESTIONS_AI_ENABLED is False
-  - read aggregates methods into a score (= count of active methods)
-  - retired method names in the JSON are ignored at read time
-  - non-symmetric read: a vote on target A→B never surfaces when reading B
-  - replace_votes preserves the other method group and drops self-votes
-  - a target deleted while its run is in flight is discarded quietly
-
-Read-aggregation tests monkeypatch `_filter_visible` so they don't depend on
-the test fixtures producing posts that pass `filter_active()`.
+Computing, storing and showing AI link suggestions. No real API calls: the two
+model stages (llm.scan, llm.rerank) are faked, except in the llm tests at the
+bottom, which fake the OpenAI client instead.
 """
 
+import asyncio
+import logging
+from datetime import timedelta
 from unittest import mock
 
+import httpx
+import openai
 import pytest
+from django.core.cache import cache
+from django.utils import timezone
 
 from coherence.models import CoherenceLinkSuggestion
-from coherence.services.suggestions import pipeline
-from coherence.services.suggestions import read as read_mod
-from coherence.services.suggestions.llm import LlmResult
-from coherence.services.suggestions.read import get_suggestions_for_question
-from questions.models import Question
-from tests.unit.test_questions.conftest import *  # noqa
-from tests.unit.test_questions.factories import create_question
+from coherence.services.suggestions import llm, service
+from coherence.services.suggestions.prompts import CandidateGrade, RerankResponse
+from tests.unit.test_coherence.factories import make_question, store_suggestions
 
 
-pytestmark = pytest.mark.django_db
+@pytest.fixture(autouse=True)
+def enabled(settings):
+    settings.QUESTION_LINK_SUGGESTIONS_ENABLED = True
+    settings.OPENROUTER_API_KEY = "test-key"
+    for kind in ("scan", "rerank-model", "unavailable"):
+        cache.delete(f"question-link-suggestions:alert:{kind}")
 
-Method = CoherenceLinkSuggestion.Method
 
-
-# ---------- replace_votes ----------
-
-
-def test_replace_votes_preserves_other_group(question_binary, question_numeric):
-    row = CoherenceLinkSuggestion.objects.create(
-        target_question=question_binary,
-        methods_by_candidate={
-            str(question_numeric.id): [Method.LLM_BROAD, Method.SIMILAR],
-        },
+def grade(question, value, cause="candidate", sign="positive", strength="mid"):
+    return CandidateGrade(
+        id=question.id, grade=value, cause=cause, sign=sign, strength=strength
     )
 
-    # Replacing FREE votes with nothing keeps the paid vote.
-    row.replace_votes(Method.FREE, {})
-    assert row.methods_by_candidate == {str(question_numeric.id): [Method.LLM_BROAD]}
 
-    # Replacing PAID votes with a new set keeps nothing else.
-    row.replace_votes(Method.PAID, {question_numeric.id: [Method.LLM_STRICT]})
-    assert row.methods_by_candidate == {str(question_numeric.id): [Method.LLM_STRICT]}
+def fake_models(scores=None, grades=(), models=None, scan_errors=(), rerank_errors=()):
+    """Patch both model stages; returns the mocks to inspect their calls."""
 
+    async def scan(client, target, candidates):
+        return dict(scores or {}), list(scan_errors)
 
-def test_replace_votes_ignores_foreign_methods_and_self_votes(
-    question_binary, question_numeric
-):
-    row = CoherenceLinkSuggestion.objects.create(target_question=question_binary)
-
-    row.replace_votes(
-        Method.FREE,
-        {
-            question_numeric.id: [Method.SIMILAR, Method.LLM_BROAD],  # paid ignored
-            question_binary.id: [Method.SIMILAR],  # self-vote ignored
-        },
-    )
-    assert row.methods_by_candidate == {str(question_numeric.id): [Method.SIMILAR]}
-
-
-# ---------- failed runs keep previous votes ----------
-
-
-def _run_with_methods(target, candidates, method_results):
-    """Run the paid pipeline with each method mocked to a fixed LlmResult."""
-    with mock.patch.dict(
-        pipeline.methods.PAID_METHODS,
-        {name: (lambda t, c, r=result: r) for name, result in method_results.items()},
-    ):
-        return pipeline.run_paid_methods_for_target(
-            target.id, [target.id] + candidates, "hash"
+    async def rerank(client, target, shortlist):
+        return (
+            {g.id: g for g in grades},
+            {llm.RERANK_MODEL} if models is None else models,
+            list(rerank_errors),
         )
 
-
-def test_fully_failed_run_keeps_previous_votes(question_binary, question_numeric):
-    CoherenceLinkSuggestion.objects.create(
-        target_question=question_binary,
-        methods_by_candidate={str(question_numeric.id): [Method.LLM_BROAD]},
+    scan_mock = mock.AsyncMock(side_effect=scan)
+    rerank_mock = mock.AsyncMock(side_effect=rerank)
+    return (
+        mock.patch.object(llm, "scan", scan_mock),
+        mock.patch.object(llm, "rerank", rerank_mock),
+        scan_mock,
+        rerank_mock,
     )
-    row = _run_with_methods(
-        question_binary,
-        [question_numeric.id],
-        {name: LlmResult(error="api_error") for name in pipeline.PAID_METHOD_ORDER},
-    )
-    assert row.paid_run_status == CoherenceLinkSuggestion.PaidRunStatus.ERROR
-    assert row.methods_by_candidate == {str(question_numeric.id): [Method.LLM_BROAD]}
 
 
-def test_partially_failed_run_keeps_failed_methods_votes(
-    question_binary, question_numeric
-):
-    other = create_question(question_type=Question.QuestionType.BINARY)
-    CoherenceLinkSuggestion.objects.create(
-        target_question=question_binary,
-        methods_by_candidate={
-            str(question_numeric.id): [Method.LLM_BROAD, Method.LLM_STRICT]
-        },
+def run(target, **fakes):
+    scan_patch, rerank_patch, scan_mock, rerank_mock = fake_models(**fakes)
+    with scan_patch, rerank_patch:
+        shown = service.get_suggestions_for_question(target)
+    return shown, scan_mock, rerank_mock
+
+
+def set_embedding(question, vector):
+    question.post.embedding_vector = vector
+    question.post.save(update_fields=["embedding_vector"])
+
+
+def test_first_request_computes_ranks_and_stores():
+    target = make_question()
+    strong, clear, weak, junk = (make_question() for _ in range(4))
+
+    shown, _, _ = run(
+        target,
+        grades=[
+            grade(clear, 3),
+            grade(junk, 1),
+            grade(strong, 4, cause="target", sign="negative", strength="a_lot"),
+            grade(weak, 2),
+        ],
     )
-    row = _run_with_methods(
-        question_binary,
-        [question_numeric.id, other.id],
-        {
-            Method.LLM_BROAD: LlmResult(error="api_error"),
-            Method.LLM_STRICT: LlmResult(candidate_ids=[other.id]),
-            Method.LLM_SIMILAR_ONLY: LlmResult(error="api_error"),
-        },
-    )
-    # broad's old vote survives its failure; strict's votes are replaced.
-    assert row.methods_by_candidate == {
-        str(question_numeric.id): [Method.LLM_BROAD],
-        str(other.id): [Method.LLM_STRICT],
+
+    row = CoherenceLinkSuggestion.objects.get(target_question=target)
+    assert not row.degraded
+    # Best grade first; grades below 2 aren't stored at all.
+    assert [s["question_id"] for s in row.suggestions] == [strong.id, clear.id, weak.id]
+    assert row.suggestions[0] == {
+        "question_id": strong.id,
+        "grade": 4,
+        "target_is_cause": True,
+        "direction": -1,
+        "strength": 5,
     }
-    assert row.paid_run_status == CoherenceLinkSuggestion.PaidRunStatus.DONE
+    assert [s.question for s in shown] == [strong, clear, weak]
 
 
-# ---------- deletion mid-run ----------
+def test_shortlist_is_best_blend_plus_best_scores(monkeypatch):
+    monkeypatch.setattr(service, "SHORTLIST_NEAR", 1)
+    monkeypatch.setattr(service, "SHORTLIST_FAR", 1)
+    target = make_question()
+    similar, high_score, neither = make_question(), make_question(), make_question()
+    set_embedding(target, [1.0, 0.0, 0.0])
+    set_embedding(similar, [1.0, 0.0, 0.0])  # similarity 1
+    set_embedding(high_score, [0.0, 1.0, 0.0])  # similarity 0
+    set_embedding(neither, [0.0, 0.0, 1.0])  # similarity 0
+
+    _, _, rerank_mock = run(
+        target,
+        scores={similar.id: 0.1, high_score.id: 0.9, neither.id: 0.2},
+        grades=[grade(similar, 3)],
+    )
+
+    shortlist = rerank_mock.call_args.args[2]
+    # 0.1 + 2 * 1 beats 0.9 + 2 * 0 on the blend; 0.9 is the best score left.
+    assert shortlist == [similar, high_score]
 
 
-def test_target_deleted_while_llm_calls_in_flight(question_binary, question_numeric):
-    """Deleting the target mid-run discards the results without raising."""
+def test_empty_pool_stores_an_empty_row_without_alerting(caplog):
+    target = make_question()
+    with caplog.at_level(logging.WARNING):
+        shown, scan_mock, _ = run(target)
+    assert shown == []
+    scan_mock.assert_not_called()
+    assert CoherenceLinkSuggestion.objects.get(target_question=target).suggestions == []
+    assert not caplog.records
 
-    def delete_target_then_vote(target, candidates):
-        Question.objects.filter(id=question_binary.id).delete()
-        return LlmResult(candidate_ids=[question_numeric.id])
 
-    with mock.patch.dict(
-        pipeline.methods.PAID_METHODS,
-        {name: delete_target_then_vote for name in pipeline.PAID_METHOD_ORDER},
-    ):
-        result = pipeline.run_paid_methods_for_target(
-            question_binary.id, [question_binary.id, question_numeric.id], "hash"
+def test_shows_grades_3_and_4_up_to_the_cap(monkeypatch):
+    monkeypatch.setattr(service, "MAX_SHOWN", 2)
+    monkeypatch.setattr(service, "MIN_SHOWN", 1)
+    target = make_question()
+    candidates = [make_question() for _ in range(3)]
+    store_suggestions(target, *candidates, grade=3)
+
+    shown = service.get_suggestions_for_question(target)
+
+    assert [s.question for s in shown] == candidates[:2]
+
+
+def test_tops_up_with_grade_2_when_too_few_are_good():
+    target = make_question()
+    good, weak1, weak2 = make_question(), make_question(), make_question()
+    row = store_suggestions(target, good, weak1, weak2, grade=2)
+    row.suggestions[0]["grade"] = 3
+    row.save()
+
+    shown = service.get_suggestions_for_question(target)
+
+    assert [s.question for s in shown] == [good, weak1, weak2]
+
+
+def test_candidates_that_resolved_since_are_dropped():
+    target = make_question()
+    still_open, resolved = make_question(), make_question()
+    store_suggestions(target, resolved, still_open)
+    resolved.actual_resolve_time = timezone.now()
+    resolved.save()
+
+    shown = service.get_suggestions_for_question(target)
+
+    assert [s.question for s in shown] == [still_open]
+
+
+def test_fresh_row_is_reused():
+    target = make_question()
+    store_suggestions(target, make_question())
+    _, scan_mock, _ = run(target)
+    scan_mock.assert_not_called()
+
+
+def test_stale_row_is_recomputed():
+    target, candidate = make_question(), make_question()
+    row = store_suggestions(target, candidate)
+    row.computed_at = timezone.now() - service.STALE_AFTER - timedelta(hours=1)
+    row.save()
+
+    _, scan_mock, _ = run(target, grades=[grade(candidate, 4)])
+
+    scan_mock.assert_called_once()
+    row.refresh_from_db()
+    assert row.suggestions[0]["grade"] == 4
+
+
+def test_degraded_row_is_recomputed_after_a_day():
+    target = make_question()
+    row = store_suggestions(target, make_question())
+    row.degraded = True
+    row.computed_at = timezone.now() - service.DEGRADED_STALE_AFTER - timedelta(hours=1)
+    row.save()
+    _, scan_mock, _ = run(target)
+    scan_mock.assert_called_once()
+
+
+def test_failed_scan_falls_back_to_similarity_and_marks_degraded(caplog):
+    target, candidate = make_question(), make_question()
+    with caplog.at_level(logging.ERROR):
+        shown, _, rerank_mock = run(
+            target, scan_errors=[RuntimeError("down")], grades=[grade(candidate, 3)]
         )
-
-    assert result is None
-    assert not CoherenceLinkSuggestion.objects.filter(
-        target_question_id=question_binary.id
-    ).exists()
-
-
-def test_free_refresh_of_deleted_target_is_quiet(question_binary):
-    from django.db import connection
-
-    stale_instance = Question.objects.get(id=question_binary.id)
-    Question.objects.filter(id=question_binary.id).delete()
-    # FK checks are INITIALLY DEFERRED on Postgres; make them fire inside
-    # this test (as they would at commit in production) rather than at
-    # pytest's teardown.
-    with connection.cursor() as cursor:
-        cursor.execute("SET CONSTRAINTS ALL IMMEDIATE")
-    # Must not raise even though the instance references a vanished row.
-    pipeline.refresh_free_votes_for_target(stale_instance, set())
+    assert rerank_mock.call_args.args[2] == [candidate]
+    assert [s.question for s in shown] == [candidate]
+    assert CoherenceLinkSuggestion.objects.get(target_question=target).degraded
+    assert "decision requests failed" in caplog.text
 
 
-# ---------- read aggregation ----------
+def test_fallback_rerank_model_marks_degraded():
+    target, candidate = make_question(), make_question()
+    run(target, grades=[grade(candidate, 3)], models={llm.RERANK_FALLBACK_MODEL})
+    assert CoherenceLinkSuggestion.objects.get(target_question=target).degraded
 
 
-def _store(target, methods_by_candidate):
-    return CoherenceLinkSuggestion.objects.create(
-        target_question=target,
-        methods_by_candidate={
-            str(cid): names for cid, names in methods_by_candidate.items()
-        },
+def test_when_every_rerank_call_fails_nothing_is_stored(caplog):
+    target = make_question()
+    make_question()
+    with caplog.at_level(logging.ERROR):
+        shown, _, _ = run(target, rerank_errors=[RuntimeError("down")])
+    assert shown == []
+    assert not CoherenceLinkSuggestion.objects.filter(target_question=target).exists()
+    assert "unavailable" in caplog.text
+
+
+def test_when_every_rerank_call_fails_the_stale_row_is_served():
+    target, candidate = make_question(), make_question()
+    row = store_suggestions(target, candidate)
+    row.computed_at = timezone.now() - service.STALE_AFTER - timedelta(hours=1)
+    row.save()
+    shown, _, _ = run(target, rerank_errors=[RuntimeError("down")])
+    assert [s.question for s in shown] == [candidate]
+
+
+def test_deadline_gives_up_and_stores_nothing(monkeypatch):
+    monkeypatch.setattr(service, "DEADLINE_SECONDS", 0.05)
+    target = make_question()
+    make_question()
+
+    async def slow_scan(client, target_, candidates):
+        await asyncio.sleep(1)
+
+    with mock.patch.object(llm, "scan", slow_scan):
+        assert service.get_suggestions_for_question(target) == []
+    assert not CoherenceLinkSuggestion.objects.filter(target_question=target).exists()
+
+
+def test_alerts_reach_sentry_once_an_hour_per_kind(caplog):
+    with caplog.at_level(logging.WARNING, logger=llm.logger.name):
+        llm.alert("scan", "first")
+        llm.alert("scan", "second")
+        llm.alert("rerank-model", "other kind")
+    assert [(r.levelno, r.getMessage()) for r in caplog.records] == [
+        (logging.ERROR, "first"),
+        (logging.WARNING, "second"),
+        (logging.ERROR, "other kind"),
+    ]
+
+
+def refusal(question_id):
+    request = httpx.Request("POST", llm.DECISIONS_URL)
+    return openai.APIStatusError(
+        f"The model refused to answer question c{question_id}",
+        response=httpx.Response(502, request=request),
+        body=None,
     )
 
 
-@pytest.fixture
-def bypass_visibility(monkeypatch):
-    """Skip filter_active so tests don't depend on fixture-induced post state."""
-
-    def _stub(candidate_ids, _user):
-        return list(Question.objects.filter(id__in=candidate_ids))
-
-    monkeypatch.setattr(read_mod, "_filter_visible", _stub)
-
-
-def test_read_returns_empty_when_flag_off(question_binary, question_numeric, settings):
-    settings.SUGGESTIONS_AI_ENABLED = False
-    _store(question_binary, {question_numeric.id: [Method.LLM_BROAD]})
-    assert get_suggestions_for_question(question_binary, user=None) == []
-
-
-def test_read_aggregates_methods_into_score(
-    question_binary, question_numeric, settings, bypass_visibility
-):
-    settings.SUGGESTIONS_AI_ENABLED = True
-    _store(
-        question_binary,
-        {question_numeric.id: [Method.LLM_BROAD, Method.LLM_STRICT, Method.SIMILAR]},
+def test_scan_drops_a_refused_question_and_normalises_scores():
+    target, refused, answered = make_question(), make_question(), make_question()
+    client = mock.Mock()
+    client.post = mock.AsyncMock(
+        side_effect=[
+            refusal(refused.id),
+            {"answers": {f"c{answered.id}": {"type": "score", "score": 3.0}}},
+        ]
     )
-    suggestions = get_suggestions_for_question(question_binary, user=None)
-    assert len(suggestions) == 1
-    s = suggestions[0]
-    assert s.question.id == question_numeric.id
-    assert s.score == 3
-    assert s.methods == sorted([Method.LLM_BROAD, Method.LLM_STRICT, Method.SIMILAR])
+
+    scores, errors = asyncio.run(llm.scan(client, target, [refused, answered]))
+
+    assert scores == {answered.id: 0.75}
+    assert errors == []
+    retried_questions = client.post.call_args_list[1].kwargs["body"]["questions"]
+    assert list(retried_questions) == [f"c{answered.id}"]
 
 
-def test_read_ignores_retired_methods(
-    question_binary, question_numeric, settings, bypass_visibility
-):
-    settings.SUGGESTIONS_AI_ENABLED = True
-    _store(
-        question_binary,
-        {question_numeric.id: [Method.SIMILAR, "wildcard_sonnet_v0"]},
+def parsed(*grades):
+    message = mock.Mock(parsed=RerankResponse(candidates=list(grades)))
+    return mock.Mock(choices=[mock.Mock(message=message)])
+
+
+def test_rerank_falls_back_to_the_second_model(caplog):
+    target, candidate = make_question(), make_question()
+    client = mock.Mock()
+    client.chat.completions.parse = mock.AsyncMock(
+        side_effect=[RuntimeError("sol is down"), parsed(grade(candidate, 3))]
     )
-    suggestions = get_suggestions_for_question(question_binary, user=None)
-    assert len(suggestions) == 1
-    # Score reflects only the active method.
-    assert suggestions[0].score == 1
-    assert suggestions[0].methods == [Method.SIMILAR]
+
+    with caplog.at_level(logging.ERROR):
+        grades, models, errors = asyncio.run(llm.rerank(client, target, [candidate]))
+
+    assert grades[candidate.id].grade == 3
+    assert models == {llm.RERANK_FALLBACK_MODEL}
+    assert errors == []
+    used = [c.kwargs["model"] for c in client.chat.completions.parse.call_args_list]
+    assert used == [llm.RERANK_MODEL, llm.RERANK_FALLBACK_MODEL]
+    assert "falling back" in caplog.text
 
 
-def test_read_orders_by_score_descending(question_binary, settings, bypass_visibility):
-    settings.SUGGESTIONS_AI_ENABLED = True
-    cand_high = create_question(question_type=Question.QuestionType.BINARY)
-    cand_low = create_question(question_type=Question.QuestionType.BINARY)
-    _store(
-        question_binary,
-        {
-            cand_high.id: [Method.LLM_BROAD, Method.LLM_STRICT],
-            cand_low.id: [Method.SIMILAR],
-        },
+def test_rerank_falls_back_when_the_first_model_grades_nothing():
+    target, candidate = make_question(), make_question()
+    client = mock.Mock()
+    client.chat.completions.parse = mock.AsyncMock(
+        side_effect=[parsed(), parsed(grade(candidate, 3))]
     )
-    suggestions = get_suggestions_for_question(question_binary, user=None)
-    assert len(suggestions) == 2
-    assert suggestions[0].question.id == cand_high.id
-    assert suggestions[0].score == 2
-    assert suggestions[1].question.id == cand_low.id
-    assert suggestions[1].score == 1
+
+    grades, models, errors = asyncio.run(llm.rerank(client, target, [candidate]))
+
+    assert grades[candidate.id].grade == 3
+    assert models == {llm.RERANK_FALLBACK_MODEL}
+    assert errors == []
 
 
-def test_read_no_symmetric_lookup(
-    question_binary, question_numeric, settings, bypass_visibility
-):
-    """target A→B vote does NOT surface for target B (no mirroring)."""
-    settings.SUGGESTIONS_AI_ENABLED = True
-    _store(question_binary, {question_numeric.id: [Method.LLM_BROAD]})
-    assert get_suggestions_for_question(question_numeric, user=None) == []
+def test_rerank_asks_for_the_fast_tier_and_ignores_unknown_ids():
+    target, candidate, stranger = make_question(), make_question(), make_question()
+    client = mock.Mock()
+    client.chat.completions.parse = mock.AsyncMock(
+        return_value=parsed(grade(candidate, 3), grade(stranger, 4))
+    )
+
+    grades, _, _ = asyncio.run(llm.rerank(client, target, [candidate]))
+
+    assert list(grades) == [candidate.id]
+    extra_body = client.chat.completions.parse.call_args.kwargs["extra_body"]
+    assert extra_body["service_tier"] == "fast"
