@@ -536,6 +536,33 @@ const FutureEvalProsVsBotsDiffChart: FC<{
                   }}
                 />
 
+                <VictoryLabel
+                  text="↑ Pros ahead"
+                  x={paddingLeft + 4}
+                  y={paddingTop + 4}
+                  textAnchor="start"
+                  verticalAnchor="start"
+                  style={{
+                    fill: axisLabelColor,
+                    fontSize: tickFontSize,
+                    pointerEvents: "none",
+                  }}
+                />
+                {yBottom < 0 && (
+                  <VictoryLabel
+                    text="↓ Bots ahead"
+                    x={paddingLeft + 4}
+                    y={chartH - paddingBottom - 4}
+                    textAnchor="start"
+                    verticalAnchor="end"
+                    style={{
+                      fill: axisLabelColor,
+                      fontSize: tickFontSize,
+                      pointerEvents: "none",
+                    }}
+                  />
+                )}
+
                 {s1Bars.length > 0 && s1?.colorToken && (
                   <VictoryBar
                     data={s1Bars}
