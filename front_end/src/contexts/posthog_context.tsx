@@ -17,7 +17,7 @@ import {
 import { safeDocumentCookie } from "@/utils/core/storage";
 import { PostHogIdentity } from "@/utils/posthog_identity";
 
-// Survey popovers cover our embeds on this partner's pages
+// Survey popovers cover our embeds on these pages
 const SURVEY_BLOCKED_REFERRER_DOMAIN = "verity.news";
 
 function isSurveyBlockedReferrer(): boolean {
