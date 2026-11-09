@@ -217,14 +217,7 @@ class NotificationTypeBase:
         mailing_tag: MailingTags = None,
         **kwargs,
     ):
-        """
-        Schedules a notification to be sent using a cron job.
-
-        Convention: this is the single choke point for all cron-scheduled
-        notification types. Inactive users and users without an email are
-        skipped here rather than in each subclass' callers. Non-scheduled
-        email senders rely on their callers to filter recipient querysets.
-        """
+        """Single choke point for cron notifications; filter recipients here."""
 
         if not recipient.is_active or not recipient.email:
             return

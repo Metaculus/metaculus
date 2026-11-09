@@ -475,7 +475,7 @@ def test_delete_scheduled_question_resolution_notifications(
     )
 
     sent = NotificationPredictedQuestionResolved.schedule(user1, params)
-    sent.mark_as_sent()
+    sent.email_sent = True
     sent.save()
 
     pending = NotificationPredictedQuestionResolved.schedule(user1, params)
