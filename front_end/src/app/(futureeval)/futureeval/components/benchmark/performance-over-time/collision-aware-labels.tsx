@@ -341,11 +341,6 @@ export function computeLabelLayout(
   const labeledPoints = points
     .filter((p) => isAlwaysLabeled(p.datum))
     .sort((a, b) => a.y - b.y);
-  // A hovered point's label is placed last, so showing it never moves or
-  // hides the labels already on screen.
-  const hoveredPoints = points.filter(
-    (p) => p.datum.isHoveredPoint && !isAlwaysLabeled(p.datum)
-  );
   const plotRight = scaleX(xDomain[1]);
 
   const obstacles: Obstacles = {
@@ -367,6 +362,7 @@ export function computeLabelLayout(
   };
 
   const placedLabels: PlacedLabel[] = [];
+  const placedPoints = new Set<(typeof points)[number]>();
   const place = (p: (typeof points)[number], allowLabelOverlap: boolean) => {
     const placement = findPlacement(
       p,
@@ -378,6 +374,7 @@ export function computeLabelLayout(
       allowLabelOverlap
     );
     if (!placement) return;
+    placedPoints.add(p);
     obstacles.labels.push(placement.rect);
     obstacles.leaders.push(placement.leader);
     placedLabels.push({
@@ -388,6 +385,11 @@ export function computeLabelLayout(
   };
 
   for (const p of labeledPoints) place(p, false);
+  // A hovered point's label (including one hidden for lack of space) is
+  // placed last, so showing it never moves or hides the labels on screen.
+  const hoveredPoints = points.filter(
+    (p) => p.datum.isHoveredPoint && !placedPoints.has(p)
+  );
   for (const p of hoveredPoints) {
     obstacles.markers.push(p.marker);
     place(p, true);
