@@ -1,5 +1,4 @@
 "use client";
-import { usePathname } from "next/navigation";
 import posthog, { type PostHogInterface } from "posthog-js";
 import { PostHogProvider } from "posthog-js/react";
 import { ReactNode, useEffect } from "react";
@@ -18,9 +17,20 @@ import {
 import { safeDocumentCookie } from "@/utils/core/storage";
 import { PostHogIdentity } from "@/utils/posthog_identity";
 
-// Embeds render inside third-party iframes, where survey popovers cover the
-// embedded content
-const EMBED_PATH_PATTERN = /^\/(questions|experiments)\/embed\//;
+// Survey popovers cover our embeds on this partner's pages
+const SURVEY_BLOCKED_REFERRER_DOMAIN = "verity.news";
+
+function isSurveyBlockedReferrer(): boolean {
+  try {
+    const { hostname } = new URL(document.referrer);
+    return (
+      hostname === SURVEY_BLOCKED_REFERRER_DOMAIN ||
+      hostname.endsWith(`.${SURVEY_BLOCKED_REFERRER_DOMAIN}`)
+    );
+  } catch {
+    return false;
+  }
+}
 
 // Experiment assignments are pinned in first-party cookies by the
 // middleware (proxy.ts) when an eligible visitor is enrolled
@@ -47,8 +57,6 @@ function CSPostHogProvider({
   // The logged-in user, or null when logged out
   identity: PostHogIdentity | null;
 }) {
-  const pathname = usePathname();
-
   useEffect(() => {
     const PUBLIC_POSTHOG_KEY = getPublicSetting("PUBLIC_POSTHOG_KEY");
     const PUBLIC_POSTHOG_BASE_URL = getPublicSetting("PUBLIC_POSTHOG_BASE_URL");
@@ -71,7 +79,7 @@ function CSPostHogProvider({
         person_profiles: "always",
         // Disable automatic pageview capture, as we capture manually
         capture_pageview: false,
-        disable_surveys: EMBED_PATH_PATTERN.test(window.location.pathname),
+        disable_surveys: isSurveyBlockedReferrer(),
         persistence:
           getAnalyticsCookieConsentGiven() === "yes"
             ? "localStorage+cookie"
@@ -125,15 +133,6 @@ function CSPostHogProvider({
     // AuthProvider's identify()/reset()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  // Client-side navigation into or out of an embed route (e.g. the press
-  // page link) happens after init; surveys re-check this config before display
-  useEffect(() => {
-    const isEmbed = EMBED_PATH_PATTERN.test(pathname);
-    if (!posthog.__loaded || posthog.config.disable_surveys === isEmbed) return;
-
-    posthog.set_config({ disable_surveys: isEmbed });
-  }, [pathname]);
 
   return (
     <PostHogProvider client={posthog}>
