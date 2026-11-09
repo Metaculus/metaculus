@@ -46,10 +46,17 @@ export type ProsVsBotsDiffSeries = {
 
 const SINGLE_WIDTH = 57.5;
 const GROUP_WIDTH = 57.5;
-const GROUP_OFFSET = 0.18;
 const MOBILE_BAR_W = 22;
 const ERR_CAP = 21;
 const ERR_CAP_DOUBLE = 13.8;
+const ERR_CAP_TO_BAR_RATIO = 0.4;
+const PAIRED_BAR_GAP = 8;
+const MOBILE_PAIRED_BAR_GAP = 4;
+const MAX_GROUP_CELL_FRACTION = 0.75;
+// Rough average glyph width for the tick font, used to decide when category
+// labels no longer fit on one line.
+const AVG_CHAR_WIDTH_EM = 0.62;
+const MIN_TICK_LABEL_GAP = 12;
 
 type HitDatum = { _x: number; cat: string; y: number };
 type VictoryScale = { x: (v: number) => number; y: (v: number) => number };
@@ -123,14 +130,6 @@ const FutureEvalProsVsBotsDiffChart: FC<{
   const factor1 = mdUp ? (lgUp ? 1 : 0.8) : 0.55;
   const factor2 = mdUp ? (lgUp ? 1 : 0.6) : 0.4;
 
-  const widthFor =
-    (otherHas: Set<string>): VictoryNumberCallback =>
-    ({ datum }) => {
-      if (!smUp) return MOBILE_BAR_W;
-      const cat = (datum as { cat?: string } | undefined)?.cat ?? "";
-      return otherHas.has(cat) ? GROUP_WIDTH * factor2 : SINGLE_WIDTH * factor1;
-    };
-
   const safe = (d?: DiffDatum[]) =>
     (d ?? []).filter(
       (p) =>
@@ -172,10 +171,46 @@ const FutureEvalProsVsBotsDiffChart: FC<{
   const s1X = useMemo(() => new Set(s1Data.map((d) => d.x)), [s1Data]);
   const s2X = useMemo(() => new Set(s2Data.map((d) => d.x)), [s2Data]);
 
-  const s1OffsetFor = (x: string) =>
-    s2X.has(x) ? (smUp ? GROUP_OFFSET : GROUP_OFFSET * 1.5) : 0;
-  const s2OffsetFor = (x: string) =>
-    s1X.has(x) ? -(smUp ? GROUP_OFFSET : GROUP_OFFSET * 1.5) : 0;
+  const paddingLeft = smUp ? 64 : 50;
+  const paddingRight = 0;
+  const paddingTop = 16;
+  const paddingBottom = smUp ? 56 : 48;
+  const chartH = (smUp ? 308 : 156) + paddingTop + paddingBottom;
+  const domainPaddingX = smUp ? 24 : 0;
+
+  const plotW = Math.max(0, width - paddingLeft - paddingRight);
+  const domainSpan = xDomain[1] - xDomain[0];
+  const pxPerX =
+    domainSpan > 0 ? Math.max(0, plotW - 2 * domainPaddingX) / domainSpan : 0;
+  const pairedBarGap = smUp ? PAIRED_BAR_GAP : MOBILE_PAIRED_BAR_GAP;
+  const maxGroupWidth = pxPerX * MAX_GROUP_CELL_FRACTION;
+  const singleBarWidth = Math.min(
+    smUp ? SINGLE_WIDTH * factor1 : MOBILE_BAR_W,
+    maxGroupWidth
+  );
+  const pairedBarWidth = Math.max(
+    0,
+    Math.min(
+      smUp ? GROUP_WIDTH * factor2 : MOBILE_BAR_W,
+      (maxGroupWidth - pairedBarGap) / 2
+    )
+  );
+  const pairOffset =
+    pxPerX > 0 ? (pairedBarWidth + pairedBarGap) / 2 / pxPerX : 0;
+  const s1OffsetFor = (x: string) => (s2X.has(x) ? pairOffset : 0);
+  const s2OffsetFor = (x: string) => (s1X.has(x) ? -pairOffset : 0);
+
+  const barWidthPx = (cat: string, otherHas: Set<string>) =>
+    otherHas.has(cat) ? pairedBarWidth : singleBarWidth;
+  const widthFor =
+    (otherHas: Set<string>): VictoryNumberCallback =>
+    ({ datum }) =>
+      barWidthPx((datum as { cat?: string } | undefined)?.cat ?? "", otherHas);
+  const capWidthFor = (cat: string, otherHas: Set<string>) =>
+    Math.min(
+      lgUp ? ERR_CAP : ERR_CAP_DOUBLE,
+      barWidthPx(cat, otherHas) * ERR_CAP_TO_BAR_RATIO
+    );
 
   const s1Bars = s1Data.map((d) => ({
     cat: d.x,
@@ -191,7 +226,7 @@ const FutureEvalProsVsBotsDiffChart: FC<{
         number,
         number,
       ],
-      capW: !lgUp ? ERR_CAP_DOUBLE : ERR_CAP,
+      capW: capWidthFor(d.x, s2X),
     };
   });
   const s2Bars = s2Data.map((d) => ({
@@ -208,22 +243,27 @@ const FutureEvalProsVsBotsDiffChart: FC<{
         number,
         number,
       ],
-      capW: !lgUp ? ERR_CAP_DOUBLE : ERR_CAP,
+      capW: capWidthFor(d.x, s1X),
     };
   });
 
-  const yAbsMax = useMemo(() => {
-    let m = 0;
+  const { yDataMin, yDataMax } = useMemo(() => {
+    let min = 0;
+    let max = 0;
     for (const d of [...s1Data, ...s2Data]) {
-      if (Number.isFinite(d.hi)) m = Math.max(m, d.hi);
-      if (Number.isFinite(d.mean)) m = Math.max(m, d.mean);
+      min = Math.min(min, d.lo, d.mean);
+      max = Math.max(max, d.hi, d.mean);
     }
-    return m;
+    return { yDataMin: min, yDataMax: max };
   }, [s1Data, s2Data]);
 
-  const { max: yTop, ticks: yTicks } = useMemo(
-    () => fixedFiveScale(yAbsMax, 5, 2),
-    [yAbsMax]
+  const {
+    min: yBottom,
+    max: yTop,
+    ticks: yTicks,
+  } = useMemo(
+    () => fixedFiveScale(yDataMin, yDataMax, 5, 2),
+    [yDataMin, yDataMax]
   );
   const yTicksNoZero = useMemo(() => yTicks.filter((t) => t !== 0), [yTicks]);
 
@@ -232,43 +272,15 @@ const FutureEvalProsVsBotsDiffChart: FC<{
   const tickLabelColor = getThemeColor(METAC_COLORS.gray[500]);
   const show = categories.length > 0 && (hasS1 || hasS2);
 
-  const paddingLeft = smUp ? 64 : 50;
-  const paddingRight = 0;
-  const paddingTop = 16;
-  const paddingBottom = smUp ? 56 : 48;
-  const chartH = (smUp ? 308 : 156) + paddingTop + paddingBottom;
-
-  const plotW = Math.max(0, width - paddingLeft - paddingRight);
-  const domainSpan = xDomain[1] - xDomain[0];
-  const pxPerX = domainSpan > 0 ? plotW / domainSpan : 0;
-
-  const groupOffsetPx =
-    pxPerX * (2 * (smUp ? GROUP_OFFSET : GROUP_OFFSET * 1.5));
-  const barWidthPxFor = (otherHas: Set<string>) => (cat: string) => {
-    if (!smUp) return MOBILE_BAR_W;
-    return otherHas.has(cat) ? GROUP_WIDTH * factor2 : SINGLE_WIDTH * factor1;
-  };
-  const cellWidth = categories.length > 0 ? plotW / categories.length : 0;
-
-  const hitWidthPxFor = (cat: string) => {
-    const w1 = barWidthPxFor(s2X)(cat);
-    const w2 = barWidthPxFor(s1X)(cat);
-    const both = s1X.has(cat) && s2X.has(cat);
-
-    const largestCap = Math.max(
-      ...[...s1Errs, ...s2Errs]
-        .filter((e) => e.cat === cat)
-        .map((e) => e.capW ?? ERR_CAP),
-      ERR_CAP
-    );
-    const capMargin = largestCap + 6;
-
-    const core = both ? Math.max(w1, w2) * 2 + groupOffsetPx : Math.max(w1, w2);
-    return Math.max(core + capMargin, Math.max(0, cellWidth - 2));
-  };
+  const tickFontSize = smUp ? 12 : 10;
+  const longestCategoryChars = Math.max(0, ...categories.map((c) => c.length));
+  const wrapCategoryLabels =
+    longestCategoryChars * tickFontSize * AVG_CHAR_WIDTH_EM +
+      MIN_TICK_LABEL_GAP >
+    pxPerX;
 
   const catCenterX = (i: number) =>
-    paddingLeft + ((i + 0.5) / Math.max(1, categories.length)) * plotW;
+    paddingLeft + domainPaddingX + (i - xDomain[0]) * pxPerX;
 
   const getPointerClientY = (evt: React.SyntheticEvent) => {
     const ne = evt.nativeEvent as unknown;
@@ -440,8 +452,8 @@ const FutureEvalProsVsBotsDiffChart: FC<{
                 theme={chartTheme}
                 width={width}
                 height={chartH}
-                domain={{ x: xDomain, y: [0, yTop] }}
-                domainPadding={{ x: smUp ? 24 : 0 }}
+                domain={{ x: xDomain, y: [yBottom, yTop] }}
+                domainPadding={{ x: domainPaddingX }}
                 padding={{
                   top: paddingTop,
                   bottom: paddingBottom,
@@ -501,10 +513,16 @@ const FutureEvalProsVsBotsDiffChart: FC<{
                   }}
                 />
                 <VictoryAxis
+                  offsetY={paddingBottom}
                   tickValues={categories.map((_, i) => i)}
-                  tickFormat={(i: number) => categories[i] ?? ""}
+                  tickFormat={(i: number) => {
+                    const label = categories[i] ?? "";
+                    return wrapCategoryLabels
+                      ? label.replace(" ", "\n")
+                      : label;
+                  }}
                   tickLabelComponent={
-                    <VictoryLabel dy={24} textAnchor="middle" />
+                    <VictoryLabel dy={12} textAnchor="middle" />
                   }
                   style={{
                     grid: { stroke: "transparent" },
@@ -512,7 +530,7 @@ const FutureEvalProsVsBotsDiffChart: FC<{
                     ticks: { stroke: "transparent" },
                     tickLabels: {
                       fill: tickLabelColor,
-                      fontSize: smUp ? 12 : 10,
+                      fontSize: tickFontSize,
                       fontWeight: 400,
                     },
                   }}
@@ -624,7 +642,7 @@ const FutureEvalProsVsBotsDiffChart: FC<{
                     <FullHeightCell
                       plotTop={paddingTop}
                       plotBottom={chartH - paddingBottom}
-                      getWidth={(cat: string) => hitWidthPxFor(cat)}
+                      cellWidth={Math.max(0, pxPerX - 2)}
                     />
                   }
                   style={{ data: { pointerEvents: "all" } }}
@@ -711,14 +729,18 @@ const CapWidthErrorBar: React.FC<ErrorBarProps> = (props) => {
   return <ErrorBar {...props} borderWidth={capW} />;
 };
 
-const fixedFiveScale = (max: number, step = 5, pad = 2) => {
-  if (!Number.isFinite(max) || max <= 0) return { max: step, ticks: [0, step] };
-  const top = Math.ceil((max + pad) / step) * step;
+const fixedFiveScale = (min: number, max: number, step = 5, pad = 2) => {
+  const top =
+    Number.isFinite(max) && max > 0
+      ? Math.ceil((max + pad) / step) * step
+      : step;
+  const bottom =
+    Number.isFinite(min) && min < 0 ? -Math.ceil((pad - min) / step) * step : 0;
   const ticks = Array.from(
-    { length: Math.floor(top / step) + 1 },
-    (_, i) => i * step
+    { length: Math.round((top - bottom) / step) + 1 },
+    (_, i) => bottom + i * step
   );
-  return { max: top, ticks };
+  return { min: bottom, max: top, ticks };
 };
 
 const NonInteractiveErrorBar: React.FC<ErrorBarProps> = (props) => (
@@ -730,22 +752,21 @@ const NonInteractiveErrorBar: React.FC<ErrorBarProps> = (props) => (
 type FullCellProps = InjectedByVictory & {
   plotTop: number;
   plotBottom: number;
-  getWidth: (cat: string) => number;
+  cellWidth: number;
 };
 
 const FullHeightCell: React.FC<FullCellProps> = (props) => {
-  const { datum, scale, plotTop, plotBottom, getWidth, style, events } = props;
+  const { datum, scale, plotTop, plotBottom, cellWidth, style, events } = props;
   if (!datum || !scale) return null;
 
   const xCenter = scale.x(datum._x);
-  const w = getWidth(datum.cat);
   const h = Math.max(0, plotBottom - plotTop);
 
   return (
     <rect
-      x={xCenter - w / 2}
+      x={xCenter - cellWidth / 2}
       y={plotTop}
-      width={w}
+      width={cellWidth}
       height={h}
       fill="#000"
       fillOpacity={0.001}
