@@ -57,25 +57,6 @@ const linkedinPixelInstall = (partnerID) => {
   };
 };
 
-const redditPixelInstall = () => {
-  if (window.rdt) return;
-
-  !(function (w, d) {
-    if (!w.rdt) {
-      var p = (w.rdt = function () {
-        p.sendEvent
-          ? p.sendEvent.apply(p, arguments)
-          : p.callQueue.push(arguments);
-      });
-      p.callQueue = [];
-      var t = d.createElement("script");
-      (t.src = "https://www.redditstatic.com/ads/pixel.js"), (t.async = !0);
-      var s = d.getElementsByTagName("script")[0];
-      s.parentNode.insertBefore(t, s);
-    }
-  })(window, document);
-};
-
 const googleTagInstall = (tagID) => {
   if (!tagID) return;
   if (window.gtag && document.getElementById("google-gtag-src")) return;
@@ -150,19 +131,6 @@ export const linkedinPixelTrack = (conversion_id) => {
   }
 };
 
-// Reddit Pixel API
-export const redditPixelInit = (pixelId) => {
-  if (window.rdt) {
-    window.rdt("init", pixelId);
-  }
-};
-
-export const redditPixelTrack = (eventName = "PageVisit") => {
-  if (window.rdt) {
-    window.rdt("track", eventName);
-  }
-};
-
 export const bwInitAndTrackRegistrationIfConsent = () => {
   // Save to the local storage that the user has registered to this campaign
   safeLocalStorage.setItem("bw_registration_campaign", "true");
@@ -194,13 +162,6 @@ export const bwInitAndTrackRegistrationIfConsent = () => {
     linkedinPixelInit(PIXEL_CONSTANTS.LINKEDIN);
     linkedinPixelTrack(PIXEL_CONSTANTS.LINKEDIN_REGISTRATION_CONVERSION_ID);
   }
-
-  // Ensure Reddit Pixel bootstrap script is present
-  if (PIXEL_CONSTANTS.REDDIT) {
-    redditPixelInstall();
-    redditPixelInit(PIXEL_CONSTANTS.REDDIT);
-    redditPixelTrack("SignUp");
-  }
 };
 
 export const bwTrackPredictionIfConsent = () => {
@@ -215,5 +176,4 @@ export const bwTrackPredictionIfConsent = () => {
   fbPixelTrackEvent("SubmitApplication");
   googleTrackConversion(PIXEL_CONSTANTS.GOOGLE_PREDICTION_CONVERSION_ID);
   linkedinPixelTrack(PIXEL_CONSTANTS.LINKEDIN_PREDICTION_CONVERSION_ID);
-  redditPixelTrack("Lead");
 };

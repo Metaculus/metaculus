@@ -5,7 +5,7 @@ import { getTranslations } from "next-intl/server";
 import { ServiceType } from "@/constants/services";
 import { TournamentPreview } from "@/types/projects";
 
-import Button from "../../components/button";
+import ContactUsButton from "../../components/contact_us_button";
 import StepCard from "../../components/step_card";
 import OtherTournaments from "../../tournaments/components/other_tournaments";
 import TournamentSpotlight from "../../tournaments/components/tournament_spotlight";
@@ -58,9 +58,9 @@ const TournamentsPageTemplate: React.FC<Props> = async ({
             </div>
           </div>
 
-          <Button href="#contact-us" className="mx-auto mt-8 block">
+          <ContactUsButton className="mx-auto mt-8 block">
             {t("contactUs")}
-          </Button>
+          </ContactUsButton>
         </div>
 
         <div className="mt-10 text-blue-700 dark:text-blue-700-dark sm:mt-16 lg:mt-[120px]">
