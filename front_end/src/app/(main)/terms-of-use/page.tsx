@@ -11,7 +11,7 @@ export default function TermsOfUse() {
     <PageWrapper>
       <h1 className="mb-6 text-3xl font-bold">Terms of Use</h1>
 
-      <p className="mb-4">Last Modified: September 21, 2026</p>
+      <p className="mb-4">Last Modified: October 28, 2026</p>
 
       <p className="mb-4 font-bold">Welcome to Metaculus!</p>
 
@@ -25,8 +25,8 @@ export default function TermsOfUse() {
         expressly incorporate by reference (collectively, &quot;Terms of
         Use&quot;) apply to the Metaculus.com website and its subdomains,
         including any content, functionality, and services offered on or through
-        them, and the Metaculus API, MCP servers, Radiant, and any other
-        Metaculus product or feature made available through third-party
+        them, and the Metaculus API, MCP servers, Radiant, Autocast, and any
+        other Metaculus product or feature made available through third-party
         platforms, applications, or AI assistants, in each case wherever and
         however accessed (the &quot;Service&quot; or &quot;Services&quot; or
         &quot;Site&quot; or &quot;Website&quot;), whether as a guest or
@@ -190,11 +190,11 @@ export default function TermsOfUse() {
         other data mining technology or processes to frame, mask, extract data
         or other materials from the Metaculus Content, except as may be a result
         of standard search engine or Internet browser usage or through and
-        subject to the terms of an API provided by Metaculus (including the
-        Radiant API and MCP server, which Metaculus may choose to provide from
-        time to time), or unless formally authorized by Metaculus under separate
-        written agreement. No materials from the Service may be copied,
-        reproduced, modified, republished, downloaded, uploaded, posted,
+        subject to the terms of an API provided by Metaculus (including the APIs
+        and MCP servers for Radiant and Autocast, which Metaculus may choose to
+        provide from time to time), or unless formally authorized by Metaculus
+        under separate written agreement. No materials from the Service may be
+        copied, reproduced, modified, republished, downloaded, uploaded, posted,
         transmitted, or distributed in any form or by any means without
         Metaculus&apos;s prior written permission or as expressly provided in
         these Terms of Use or in any license granted by Metaculus. You may not
@@ -384,8 +384,9 @@ export default function TermsOfUse() {
         of Metaculus regarding such matters.
       </p>
       <p className="mb-4">
-        Content you submit to Radiant, and content Radiant generates for you,
-        are governed by the Metaculus AI Products Terms Supplement at{" "}
+        Content you submit to Radiant or Autocast, and content those products
+        generate for you, are governed by the Metaculus AI Products Terms
+        Supplement at{" "}
         <a
           href="https://www.metaculus.com/ai-products-terms/"
           className="text-blue-600 hover:underline"
@@ -628,7 +629,7 @@ export default function TermsOfUse() {
         Service also may include third party content that we do not control,
         maintain or endorse. This section also applies to third-party AI
         assistants, agents, and platforms through which Metaculus features,
-        including Radiant, may be accessed.
+        including Radiant and Autocast, may be accessed.
       </p>
       <p className="mb-4">
         Functionality on the Service may also permit interactions between the
