@@ -56,6 +56,7 @@ type Props = {
   scrubbing: boolean;
   onYearChange: (year: number, settleAfterMs?: number) => void;
   onScrubChange: (scrubbing: boolean) => void;
+  hideArrowsOnPhones?: boolean;
 };
 
 const valueClassName = (scrubbing: boolean) =>
@@ -90,6 +91,7 @@ const HeroYearControl: FC<Props> = ({
   scrubbing,
   onYearChange,
   onScrubChange,
+  hideArrowsOnPhones = false,
 }) => {
   const t = useTranslations();
   const valueRef = useRef<HTMLSpanElement>(null);
@@ -263,7 +265,12 @@ const HeroYearControl: FC<Props> = ({
           {t("worldByYearDragHint")}
         </span>
       </span>
-      <span className="ml-[.06em] inline-flex translate-y-[.04em] items-center">
+      <span
+        className={cn(
+          "ml-[.06em] inline-flex translate-y-[.04em] items-center",
+          hideArrowsOnPhones && "max-[720px]:hidden"
+        )}
+      >
         {([-1, 1] as const).map((delta) => (
           <button
             key={delta}

@@ -39,7 +39,7 @@ const erf = (value: number) => {
   );
 };
 
-const probabilityBy = (t: number, question: WorldQuestion) => {
+export const probabilityBy = (t: number, question: WorldQuestion) => {
   const x = t - BASE;
   if (x <= 0) return 0;
   return (
@@ -51,6 +51,17 @@ const probabilityBy = (t: number, question: WorldQuestion) => {
           Math.SQRT2
       ))
   );
+};
+
+export const quantile = (question: WorldQuestion, p: number) => {
+  let lo = BASE;
+  let hi = T1 + 40;
+  for (let i = 0; i < 40; i++) {
+    const mid = (lo + hi) / 2;
+    if (probabilityBy(mid, question) < p) lo = mid;
+    else hi = mid;
+  }
+  return (lo + hi) / 2;
 };
 
 export const isLikelyByEndOf = (year: number, question: WorldQuestion) =>
