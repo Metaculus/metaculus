@@ -40,7 +40,7 @@ def _get_notification_schedules() -> dict[str, Q]:
 
 
 # Each retry emails whatever is pending at that moment, splitting the digest.
-@dramatiq.actor(max_retries=1, time_limit=3_600_000)
+@dramatiq.actor(max_retries=1, time_limit=1_800_000)
 def job_send_notification_groups():
     """
     Aggregates and sends grouped notifications to the recipients.
