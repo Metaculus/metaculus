@@ -17,6 +17,26 @@ import {
 import { safeDocumentCookie } from "@/utils/core/storage";
 import { PostHogIdentity } from "@/utils/posthog_identity";
 
+// verity.news embeds Metaculus questions in iframes, where survey popovers
+// would cover the embedded content. Surveys stay enabled everywhere else
+const SURVEY_SUPPRESSED_REFERRER_HOST = "verity.news";
+
+// Inside an iframe, document.referrer is the embedding page's URL (origin
+// only under the default referrer policy), so the hostname is still available
+function isReferredFromSuppressedHost(): boolean {
+  if (!document.referrer) return false;
+
+  try {
+    const hostname = new URL(document.referrer).hostname.toLowerCase();
+    return (
+      hostname === SURVEY_SUPPRESSED_REFERRER_HOST ||
+      hostname.endsWith(`.${SURVEY_SUPPRESSED_REFERRER_HOST}`)
+    );
+  } catch {
+    return false;
+  }
+}
+
 // Experiment assignments are pinned in first-party cookies by the
 // middleware (proxy.ts) when an eligible visitor is enrolled
 function getAssignmentCookie(cookieName: string): ExperimentAssignment | null {
@@ -64,6 +84,7 @@ function CSPostHogProvider({
         person_profiles: "always",
         // Disable automatic pageview capture, as we capture manually
         capture_pageview: false,
+        disable_surveys: isReferredFromSuppressedHost(),
         persistence:
           getAnalyticsCookieConsentGiven() === "yes"
             ? "localStorage+cookie"
