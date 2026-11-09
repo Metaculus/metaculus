@@ -39,7 +39,7 @@ def _get_notification_schedules() -> dict[str, Q]:
     return {"default": default_q, **custom}
 
 
-@dramatiq.actor
+@dramatiq.actor(max_retries=1, time_limit=1_800_000)
 def job_send_notification_groups():
     """
     Aggregates and sends grouped notifications to the recipients.
@@ -53,7 +53,7 @@ def job_send_notification_groups():
     _send_grouped_notifications(qs)
 
 
-@dramatiq.actor
+@dramatiq.actor(max_retries=1)
 def job_send_open_status_notifications():
     """
     Sends only post_status_change notifications with event in (published, open).
@@ -71,7 +71,7 @@ def _send_grouped_notifications(qs):
     # { user: { notification_type: [notifications] } }
     grouped_notifications = defaultdict(lambda: defaultdict(list))
 
-    for notification in qs:
+    for notification in qs.select_related("recipient"):
         grouped_notifications[notification.recipient][notification.type].append(
             notification
         )
@@ -85,9 +85,8 @@ def _send_grouped_notifications(qs):
             try:
                 handler_cls.send_email_group(notifications)
 
-                # Mark as sent
-                for notification in notifications:
-                    notification.mark_as_sent()
-                    notification.save()
+                Notification.objects.filter(
+                    pk__in=[notification.pk for notification in notifications]
+                ).mark_as_sent()
             except Exception:
                 logger.exception("Error while processing notification")
