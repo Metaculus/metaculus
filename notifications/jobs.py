@@ -39,7 +39,8 @@ def _get_notification_schedules() -> dict[str, Q]:
     return {"default": default_q, **custom}
 
 
-@dramatiq.actor
+# Each retry emails whatever is pending at that moment, splitting the digest.
+@dramatiq.actor(max_retries=1, time_limit=3_600_000)
 def job_send_notification_groups():
     """
     Aggregates and sends grouped notifications to the recipients.
@@ -53,7 +54,7 @@ def job_send_notification_groups():
     _send_grouped_notifications(qs)
 
 
-@dramatiq.actor
+@dramatiq.actor(max_retries=1)
 def job_send_open_status_notifications():
     """
     Sends only post_status_change notifications with event in (published, open).
