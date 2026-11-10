@@ -31,15 +31,44 @@ const ProjectContributions: FC<Props> = async ({ project, userId }) => {
       contribution.question_weight && contribution.question_weight !== 1.0
   );
 
-  const liveCoveragePercent =
-    (
-      (contributions.reduce(
+  const formatPercent = (value: number | null | undefined) =>
+    value == null ? "-" : `${(value * 100).toFixed(1)}%`;
+
+  // Questions for which the maximum attainable coverage is known (i.e. the
+  // question has resolved successfully). These are the questions that count
+  // towards the tournament's coverage.
+  const resolvedContributions = contributions.filter(
+    (contribution) => !isNil(contribution.attainable_coverage)
+  );
+
+  const totalCoverage = resolvedContributions.length
+    ? resolvedContributions.reduce(
         (acc, contribution) => acc + (contribution.coverage || 0),
         0
-      ) /
-        contributions.length) *
-      100
-    ).toFixed(1) + "%";
+      ) / resolvedContributions.length
+    : null;
+  const totalAttainableCoverage = resolvedContributions.length
+    ? resolvedContributions.reduce(
+        (acc, contribution) => acc + (contribution.attainable_coverage || 0),
+        0
+      ) / resolvedContributions.length
+    : null;
+  const coverageWeightedSum = resolvedContributions.reduce(
+    (acc, contribution) =>
+      acc + (contribution.coverage || 0) * (contribution.question_weight ?? 1),
+    0
+  );
+  const attainableWeightedSum = resolvedContributions.reduce(
+    (acc, contribution) =>
+      acc +
+      (contribution.attainable_coverage || 0) *
+        (contribution.question_weight ?? 1),
+    0
+  );
+  const effectiveCoverage = attainableWeightedSum
+    ? coverageWeightedSum / attainableWeightedSum
+    : null;
+
   const predictedQuestions = contributions.filter(
     (contribution) => contribution.coverage
   ).length;
@@ -55,7 +84,7 @@ const ProjectContributions: FC<Props> = async ({ project, userId }) => {
                   {t("Question")}
                 </th>
                 <th className="px-4 py-2.5 text-right text-sm font-bold">
-                  {t("coverage")}
+                  {t("coverageMax")}
                 </th>
                 <th className="px-4 py-2.5 text-right text-sm font-bold">
                   {t("score")}
@@ -82,9 +111,13 @@ const ProjectContributions: FC<Props> = async ({ project, userId }) => {
                     </Link>
                   </td>
                   <th className="px-4 py-2.5 text-right text-sm font-bold">
-                    {contribution.coverage
-                      ? `${(contribution.coverage * 100).toFixed(1)}%`
-                      : "-"}
+                    {!isNil(contribution.attainable_coverage)
+                      ? `${formatPercent(contribution.coverage || 0)} (${formatPercent(
+                          contribution.attainable_coverage
+                        )})`
+                      : contribution.coverage
+                        ? formatPercent(contribution.coverage)
+                        : "-"}
                   </th>
                   <td className="px-4 py-2.5 text-right text-sm font-bold text-orange-800 dark:text-orange-800-dark">
                     {contribution.score ? contribution.score.toFixed(3) : "-"}
@@ -111,10 +144,26 @@ const ProjectContributions: FC<Props> = async ({ project, userId }) => {
               </tr>
               <tr>
                 <th className="px-2 py-1 text-right text-sm">
-                  {t("totalLiveCoverage")}
+                  {t("totalCoverage")}
                 </th>
                 <td className="px-2 py-1 text-right text-sm font-bold text-orange-800 dark:text-orange-800-dark">
-                  {liveCoveragePercent}
+                  {formatPercent(totalCoverage)}
+                </td>
+              </tr>
+              <tr>
+                <th className="px-2 py-1 text-right text-sm">
+                  {t("totalAttainableCoverage")}
+                </th>
+                <td className="px-2 py-1 text-right text-sm font-bold text-orange-800 dark:text-orange-800-dark">
+                  {formatPercent(totalAttainableCoverage)}
+                </td>
+              </tr>
+              <tr>
+                <th className="px-2 py-1 text-right text-sm">
+                  {t("effectiveCoverage")}
+                </th>
+                <td className="px-2 py-1 text-right text-sm font-bold text-orange-800 dark:text-orange-800-dark">
+                  {formatPercent(effectiveCoverage)}
                 </td>
               </tr>
               <tr>
@@ -151,10 +200,10 @@ const ProjectContributions: FC<Props> = async ({ project, userId }) => {
               <dl className="m-0">
                 <div className="m-2 flex text-sm">
                   <dt className="mr-2 w-20 flex-none font-bold">
-                    {t("coverage")}
+                    {t("coverageMax")}
                   </dt>
                   <dd>
-                    {t.rich("coverageInfo", {
+                    {t.rich("coverageMaxInfo", {
                       link: (chunks) => (
                         <Link href={"/help/scores-faq/#coverage"}>
                           {chunks}
@@ -225,9 +274,21 @@ const ProjectContributions: FC<Props> = async ({ project, userId }) => {
                 </div>
                 <div className="m-2 flex text-sm">
                   <dt className="mr-2 w-20 flex-none font-bold">
-                    {t("totalLiveCoverage")}
+                    {t("totalCoverage")}
                   </dt>
-                  <dd>{t("totalLiveCoverageInfo")}</dd>
+                  <dd>{t("totalCoverageInfo")}</dd>
+                </div>
+                <div className="m-2 flex text-sm">
+                  <dt className="mr-2 w-20 flex-none font-bold">
+                    {t("totalAttainableCoverage")}
+                  </dt>
+                  <dd>{t("totalAttainableCoverageInfo")}</dd>
+                </div>
+                <div className="m-2 flex text-sm">
+                  <dt className="mr-2 w-20 flex-none font-bold">
+                    {t("effectiveCoverage")}
+                  </dt>
+                  <dd>{t("effectiveCoverageInfo")}</dd>
                 </div>
                 <div className="m-2 flex text-sm">
                   <dt className="mr-2 w-20 flex-none font-bold">
