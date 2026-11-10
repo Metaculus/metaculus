@@ -144,4 +144,67 @@ export const AREA_SECTIONS: Partial<Record<WorldArea, AreaSectionCopy>> = {
       },
     },
   },
+  work: {
+    introKey: "worldByYearAreaIntroWork",
+    questions: {
+      w1: {
+        titleKey: "worldByYearQuestionW1",
+        laneKey: "worldByYearLaneW1",
+        nowKey: "worldByYearNowW1",
+        gapKey: "worldByYearGapW1",
+      },
+      w2: {
+        titleKey: "worldByYearQuestionW2",
+        laneKey: "worldByYearLaneW2",
+        nowKey: "worldByYearNowW2",
+      },
+      w7: {
+        titleKey: "worldByYearQuestionW7",
+        laneKey: "worldByYearLaneW7",
+        nowKey: "worldByYearNowW7",
+      },
+      w3: {
+        titleKey: "worldByYearQuestionW3",
+        laneKey: "worldByYearLaneW3",
+        nowKey: "worldByYearNowW3",
+      },
+      w4: {
+        titleKey: "worldByYearQuestionW4",
+        laneKey: "worldByYearLaneW4",
+        nowKey: "worldByYearNowW4",
+      },
+      l3: {
+        titleKey: "worldByYearQuestionL3",
+        laneKey: "worldByYearLaneL3",
+        nowKey: "worldByYearNowL3",
+        gapKey: "worldByYearGapL3",
+      },
+      l4: {
+        titleKey: "worldByYearQuestionL4",
+        laneKey: "worldByYearLaneL4",
+        nowKey: "worldByYearNowL4",
+      },
+      l5: {
+        titleKey: "worldByYearQuestionL5",
+        laneKey: "worldByYearLaneL5",
+        nowKey: "worldByYearNowL5",
+      },
+      c1: {
+        titleKey: "worldByYearQuestionC1",
+        laneKey: "worldByYearLaneC1",
+        nowKey: "worldByYearNowC1",
+        gapKey: "worldByYearGapC1",
+      },
+      c2: {
+        titleKey: "worldByYearQuestionC2",
+        laneKey: "worldByYearLaneC2",
+        nowKey: "worldByYearNowC2",
+      },
+      mq19356: {
+        titleKey: "worldByYearQuestionMq19356",
+        laneKey: "worldByYearLaneMq19356",
+        nowKey: "worldByYearNowMq19356",
+      },
+    },
+  },
 };
