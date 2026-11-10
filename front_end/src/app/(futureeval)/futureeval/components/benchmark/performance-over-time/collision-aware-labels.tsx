@@ -215,6 +215,15 @@ function findPlacement(
   let leastConflict: { placement: Placement; conflicts: number } | null = null;
   const countHits = (list: Rect[], hit: (obstacle: Rect) => boolean) =>
     list.filter(hit).length;
+  // A label sits right next to its own point, so only its text (not the
+  // padded box) must stay off the drawn symbol; stars are one size larger.
+  const ownSymbolRadius = DOT_RADIUS + 1;
+  const ownSymbol: Rect = {
+    x: point.x - ownSymbolRadius,
+    y: point.y - ownSymbolRadius,
+    width: 2 * ownSymbolRadius,
+    height: 2 * ownSymbolRadius,
+  };
 
   for (const [index, position] of CANDIDATE_POSITIONS.entries()) {
     const placement = placeAt(
@@ -226,10 +235,20 @@ function findPlacement(
     );
     const { rect, leader } = placement;
     if (!isWithinBounds(rect, safeBounds)) continue;
+    const textBox: Rect = {
+      x: rect.x + LABEL_RECT_PADDING,
+      y: rect.y + LABEL_RECT_PADDING,
+      width: textWidth,
+      height: textHeight,
+    };
 
     const conflicts =
       countHits(obstacles.labels, (r) => rectsOverlap(rect, r)) +
-      countHits(obstacles.markers, (r) => rectsOverlap(rect, r));
+      countHits(
+        obstacles.markers,
+        (r) => r !== ownMarker && rectsOverlap(rect, r)
+      ) +
+      (rectsOverlap(textBox, ownSymbol, 0) ? 1 : 0);
     const crossings =
       countHits(obstacles.labels, (r) => segmentIntersectsRect(leader, r)) +
       countHits(
