@@ -21,6 +21,7 @@ export default function WorldByYearPage() {
         <AreaSection area="sci" />
         <AreaSection area="prog" />
         <AreaSection area="work" />
+        <AreaSection area="robo" />
       </WorldYearProvider>
     </main>
   );

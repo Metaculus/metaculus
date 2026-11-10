@@ -207,4 +207,66 @@ export const AREA_SECTIONS: Partial<Record<WorldArea, AreaSectionCopy>> = {
       },
     },
   },
+  robo: {
+    introKey: "worldByYearAreaIntroRobotics",
+    questions: {
+      mq16625: {
+        titleKey: "worldByYearQuestionMq16625",
+        laneKey: "worldByYearLaneMq16625",
+        nowKey: "worldByYearNowMq16625",
+        gapKey: "worldByYearGapMq16625",
+      },
+      h4: {
+        titleKey: "worldByYearQuestionH4",
+        laneKey: "worldByYearLaneH4",
+        nowKey: "worldByYearNowH4",
+      },
+      h5: {
+        titleKey: "worldByYearQuestionH5",
+        laneKey: "worldByYearLaneH5",
+        nowKey: "worldByYearNowH5",
+      },
+      m1: {
+        titleKey: "worldByYearQuestionM1",
+        laneKey: "worldByYearLaneM1",
+        nowKey: "worldByYearNowM1",
+        gapKey: "worldByYearGapM1",
+      },
+      m2: {
+        titleKey: "worldByYearQuestionM2",
+        laneKey: "worldByYearLaneM2",
+        nowKey: "worldByYearNowM2",
+      },
+      m3: {
+        titleKey: "worldByYearQuestionM3",
+        laneKey: "worldByYearLaneM3",
+        nowKey: "worldByYearNowM3",
+      },
+      m4: {
+        titleKey: "worldByYearQuestionM4",
+        laneKey: "worldByYearLaneM4",
+        nowKey: "worldByYearNowM4",
+      },
+      m5: {
+        titleKey: "worldByYearQuestionM5",
+        laneKey: "worldByYearLaneM5",
+        nowKey: "worldByYearNowM5",
+      },
+      m6: {
+        titleKey: "worldByYearQuestionM6",
+        laneKey: "worldByYearLaneM6",
+        nowKey: "worldByYearNowM6",
+      },
+      mq43262: {
+        titleKey: "worldByYearQuestionMq43262",
+        laneKey: "worldByYearLaneMq43262",
+        nowKey: "worldByYearNowMq43262",
+      },
+      mq43263: {
+        titleKey: "worldByYearQuestionMq43263",
+        laneKey: "worldByYearLaneMq43263",
+        nowKey: "worldByYearNowMq43263",
+      },
+    },
+  },
 };
