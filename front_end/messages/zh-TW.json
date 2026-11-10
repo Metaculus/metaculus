@@ -2825,6 +2825,7 @@
   "worldByYearChangeMq10955": "登上串流榜首的 AI 電影",
   "worldByYearChangeMq11679": "AI 撰寫的暢銷書",
   "worldByYearAreaHeading": "<year></year> 年的<label>{area}</label>",
+  "worldByYearAreaIntroSciences": "在實驗室裡，AI 已是判讀資料與提出實驗構想的常用工具。但對病患來說，診所和藥局的運作方式與 2020 年代中期大致相同。",
   "worldByYearMedianDate": "中位日期",
   "worldByYearByYear": "到 {year} 年",
   "worldByYearForecasters": "預測者",
@@ -2855,5 +2856,16 @@
   "worldByYearLaneHe4": "藥局販售由 AI 發現的藥物",
   "worldByYearLaneHe7": "美國預期壽命超過 81 歲",
   "worldByYearLaneL6": "AI 做出這十年最重大的…",
-  "worldByYearLaneMq10411": "AI 獲得諾貝爾獎"
+  "worldByYearLaneMq10411": "AI 獲得諾貝爾獎",
+  "worldByYearNowHe1": "AI 判讀篩檢影像的準確度已超越專科醫師。在正面比較的試驗中，它漏掉的早期腫瘤更少、誤報也更少，醫院已開始把 AI 第二次判讀視為標準流程。",
+  "worldByYearGapHe1": "在試驗中，AI 判讀篩檢影像的準確度已超越專科醫師，但主管機關仍要求每份報告由放射科醫師簽名。這類軟體在多數影像科的背景運作，默默標記可疑病例，而正式結論仍由人來做。",
+  "worldByYearNowHe2": "常規乳房攝影和胸部 X 光先由經核准的 AI 系統判讀。放射科醫師複核被標記的病例，當天就能拿到結果。過去長達數週的候診名單已幾乎消失。",
+  "worldByYearNowHe5": "AI 診斷常見疾病的能力已與家庭醫師相當。根據症狀史和基本生命徵象，它能得出與家醫科醫師相同的結論，而且凌晨三點也做得到。",
+  "worldByYearGapHe5": "AI 診斷常見疾病的能力已與家庭醫師相當，但沒有醫師簽名就不能開藥。診所把它當作檢傷分類的一環：AI 判斷最可能的問題，再由醫師確認並開立處方。",
+  "worldByYearNowHe3": "看診從一次 AI 問診開始：它詢問你的病史、查看你的病歷，並把你轉介給合適的人。許多小毛病不必見到任何人就能解決。",
+  "worldByYearNowHe6": "在幾個州，AI 無需醫師簽名即可續開並開立常規藥物。降血壓藥、吸入劑和避孕藥由一款應用程式處理，它會核對你的病歷並把訂單送到藥局，只有特殊情況才需要醫師介入。",
+  "worldByYearNowHe4": "你能拿到的處方藥中，至少有一種是由 AI 系統發現的，其他藥物在試驗中的進展也比十年前更快。首批核准的藥物針對罕見疾病，而傳統研發流程從未認為這些疾病值得投入。",
+  "worldByYearNowHe7": "今年出生的美國人平均預期壽命將超過 81 歲。更早的檢測、更便宜的藥物和持續監測各自增加了幾個月，合起來讓預期壽命突破了 2010 年代的停滯。",
+  "worldByYearNowL6": "AI 系統至少做出了一項被科學家列為這十年最重要發現之一的成果。這項成果來自 AI 自行提出並檢驗假設，人類只負責審查而非主導，也改變了大型實驗室組織研究的方式。",
+  "worldByYearNowMq10411": "一個 AI 系統因其大部分獨立完成的工作而獲得諾貝爾獎。"
 }

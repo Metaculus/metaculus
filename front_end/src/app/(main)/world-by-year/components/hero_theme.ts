@@ -2,22 +2,22 @@ import cn from "@/utils/core/cn";
 
 export const HERO_THEME_CLASSNAME = cn(
   "[--wby-pad:clamp(16px,4vw,40px)]",
-  "[--wby-bg:#fbfaf7] [--wby-card:#ffffff] [--wby-ink:44,73,105] [--wby-fg:#2c4969] [--wby-fg2:#34506e] [--wby-fg3:#2c4969]",
+  "[--wby-bg:#fbfaf7] [--wby-card:#ffffff] [--wby-ink:44,73,105] [--wby-fg:#2c4969] [--wby-fg2:#34506e] [--wby-fg3:#2c4969] [--wby-fg4:#34506e]",
   "[--wby-t1:#3e5873] [--wby-t2:#4d657e] [--wby-t3:#6b7d92] [--wby-muted:#7a899c] [--wby-dim:#8c99a9] [--wby-year:#161b21]",
   "[--wby-cap:#c9408f] [--wby-use:#0f8a65]",
   "[--wby-line:rgba(44,73,105,.16)] [--wby-line2:rgba(44,73,105,.32)] [--wby-tick:rgba(44,73,105,.42)]",
   "[--wby-glass:rgba(255,255,255,.55)] [--wby-glass-shadow:rgba(44,73,105,.08)] [--wby-pop-shadow:rgba(44,73,105,.18)]",
   "[--wby-frost:rgba(251,250,247,.55)] [--wby-frost-hover:rgba(251,250,247,.75)] [--wby-handle-dot:rgba(255,255,255,.9)]",
   "[--wby-veil-1:rgba(255,255,255,.62)] [--wby-veil-2:rgba(255,255,255,.74)] [--wby-veil-3:rgba(255,255,255,.82)]",
-  "[--wby-ring-1:rgba(255,255,255,.95)] [--wby-ring-2:rgba(44,73,105,.1)] [--wby-ring-3:rgba(44,73,105,.14)] [--wby-divider:rgba(44,73,105,.1)]",
-  "dark:[--wby-bg:#1c2127] dark:[--wby-card:#252b33] dark:[--wby-ink:255,255,255] dark:[--wby-fg:#f3f4f6] dark:[--wby-fg2:#eef0f3] dark:[--wby-fg3:#e8ebef]",
+  "[--wby-ring-1:rgba(255,255,255,.95)] [--wby-ring-2:rgba(44,73,105,.1)] [--wby-ring-3:rgba(44,73,105,.14)] [--wby-divider:rgba(44,73,105,.1)] [--wby-panel:rgba(255,255,255,.7)]",
+  "dark:[--wby-bg:#1c2127] dark:[--wby-card:#252b33] dark:[--wby-ink:255,255,255] dark:[--wby-fg:#f3f4f6] dark:[--wby-fg2:#eef0f3] dark:[--wby-fg3:#e8ebef] dark:[--wby-fg4:#e3e7ec]",
   "dark:[--wby-t1:#c3cad3] dark:[--wby-t2:#b3bbc6] dark:[--wby-t3:#9ba4b0] dark:[--wby-muted:#8791a0] dark:[--wby-dim:#77818e] dark:[--wby-year:#ffffff]",
   "dark:[--wby-cap:#f08cc4] dark:[--wby-use:#52cfa0]",
   "dark:[--wby-line:rgba(255,255,255,.13)] dark:[--wby-line2:rgba(255,255,255,.26)] dark:[--wby-tick:rgba(255,255,255,.36)]",
   "dark:[--wby-glass:rgba(37,43,51,.58)] dark:[--wby-glass-shadow:rgba(0,0,0,.18)] dark:[--wby-pop-shadow:rgba(0,0,0,.28)]",
   "dark:[--wby-frost:rgba(28,33,39,.55)] dark:[--wby-frost-hover:rgba(28,33,39,.75)] dark:[--wby-handle-dot:rgba(0,0,0,.5)]",
   "dark:[--wby-veil-1:rgba(28,33,39,.58)] dark:[--wby-veil-2:rgba(28,33,39,.72)] dark:[--wby-veil-3:rgba(28,33,39,.8)]",
-  "dark:[--wby-ring-1:rgba(255,255,255,.26)] dark:[--wby-ring-2:rgba(255,255,255,.1)] dark:[--wby-ring-3:rgba(255,255,255,.08)] dark:[--wby-divider:rgba(255,255,255,.09)]"
+  "dark:[--wby-ring-1:rgba(255,255,255,.26)] dark:[--wby-ring-2:rgba(255,255,255,.1)] dark:[--wby-ring-3:rgba(255,255,255,.08)] dark:[--wby-divider:rgba(255,255,255,.09)] dark:[--wby-panel:rgba(37,43,51,.7)]"
 );
 
 export const GRAIN_IMAGE = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .9 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`;

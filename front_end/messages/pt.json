@@ -2826,6 +2826,7 @@
   "worldByYearChangeMq10955": "um filme feito por IA em nº 1 no streaming",
   "worldByYearChangeMq11679": "um best-seller escrito por IA",
   "worldByYearAreaHeading": "<label>{area} em</label> <year></year>",
+  "worldByYearAreaIntroSciences": "Nos laboratórios, a IA já é uma ferramenta comum para analisar dados e propor experimentos. Para os pacientes, o consultório médico e a farmácia funcionam quase como em meados da década de 2020.",
   "worldByYearMedianDate": "Data mediana",
   "worldByYearByYear": "Até {year}",
   "worldByYearForecasters": "Previsores",
@@ -2856,5 +2857,16 @@
   "worldByYearLaneHe4": "Sua farmácia vende um remédio…",
   "worldByYearLaneHe7": "A expectativa de vida nos EUA passa de 81",
   "worldByYearLaneL6": "A IA faz uma das maiores…",
-  "worldByYearLaneMq10411": "A IA ganha um prêmio Nobel"
+  "worldByYearLaneMq10411": "A IA ganha um prêmio Nobel",
+  "worldByYearNowHe1": "A IA lê exames de rastreamento com mais precisão do que especialistas. Em comparações diretas, ela deixa passar menos tumores iniciais e gera menos alarmes falsos, e os hospitais começaram a tratar uma segunda leitura por IA como padrão.",
+  "worldByYearGapHe1": "Nos ensaios, a IA lê exames de rastreamento com mais precisão do que especialistas, mas os reguladores ainda exigem que um radiologista assine cada laudo. O software roda em segundo plano na maioria dos serviços de imagem, sinalizando casos discretamente, enquanto o veredito formal continua humano.",
+  "worldByYearNowHe2": "Mamografias e radiografias de tórax de rotina são lidas primeiro por um sistema de IA aprovado. Os radiologistas revisam os casos sinalizados, e os resultados saem no mesmo dia. As filas de espera que antes duravam semanas praticamente desapareceram.",
+  "worldByYearNowHe5": "A IA consegue diagnosticar doenças comuns tão bem quanto um médico de família. Com o histórico de sintomas e sinais vitais básicos, ela chega à mesma conclusão que um clínico geral, e faz isso às três da manhã.",
+  "worldByYearGapHe5": "A IA consegue diagnosticar doenças comuns tão bem quanto um médico de família, mas não pode prescrever sem a assinatura de um médico. As clínicas a usam como camada de triagem: a IA descobre o que provavelmente está errado, e um médico confirma e escreve a receita.",
+  "worldByYearNowHe3": "Uma ida ao médico começa com uma consulta com IA que levanta seu histórico, verifica seus registros e encaminha você para a pessoa certa. Muitas queixas leves são resolvidas sem ver ninguém.",
+  "worldByYearNowHe6": "Em vários estados, uma IA pode renovar e prescrever medicamentos de rotina sem a assinatura de um médico. Remédios para pressão, inaladores e anticoncepcionais são tratados por um app que verifica seu histórico e envia o pedido à farmácia, e os médicos só entram nos casos incomuns.",
+  "worldByYearNowHe4": "Pelo menos um remédio que pode ser receitado a você foi descoberto por um sistema de IA, e outros avançam nos ensaios mais rápido do que os medicamentos de uma década atrás. As primeiras aprovações foram para doenças raras em que o processo tradicional nunca achou que valesse a pena investigar.",
+  "worldByYearNowHe7": "Os americanos nascidos este ano podem esperar viver mais de 81 anos. Detecção mais precoce, remédios mais baratos e monitoramento contínuo acrescentaram alguns meses cada, e juntos levaram a expectativa de vida além da estagnação da década de 2010.",
+  "worldByYearNowL6": "Sistemas de IA fizeram pelo menos uma descoberta que os cientistas consideram uma das mais importantes da década. O resultado veio de uma IA que propôs e testou hipóteses por conta própria, com humanos revisando o trabalho em vez de dirigi-lo, e mudou a forma como os grandes laboratórios organizam a pesquisa.",
+  "worldByYearNowMq10411": "Um sistema de IA recebeu um prêmio Nobel por um trabalho que fez em grande parte sozinho."
 }

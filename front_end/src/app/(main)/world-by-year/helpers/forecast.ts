@@ -53,6 +53,16 @@ export const probabilityBy = (t: number, question: WorldQuestion) => {
   );
 };
 
+export const densityAt = (t: number, question: WorldQuestion) => {
+  const x = t - BASE;
+  if (x <= 0) return 0;
+  const mu = Math.log(question.median - BASE);
+  return (
+    Math.exp(-((Math.log(x) - mu) ** 2) / (2 * question.spread ** 2)) /
+    (x * question.spread)
+  );
+};
+
 export const quantile = (question: WorldQuestion, p: number) => {
   let lo = BASE;
   let hi = T1 + 40;

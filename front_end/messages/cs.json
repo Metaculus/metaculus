@@ -2828,6 +2828,7 @@
   "worldByYearChangeMq10955": "film vytvořený AI na prvním místě streamovací služby",
   "worldByYearChangeMq11679": "bestseller napsaný AI",
   "worldByYearAreaHeading": "<label>{area} v roce</label> <year></year>",
+  "worldByYearAreaIntroSciences": "V laboratořích je AI už běžným nástrojem pro čtení dat a navrhování experimentů. Pro pacienty ale ordinace i lékárna fungují zhruba stejně jako v polovině 20. let.",
   "worldByYearMedianDate": "Mediánové datum",
   "worldByYearByYear": "Do roku {year}",
   "worldByYearForecasters": "Prognostici",
@@ -2858,5 +2859,16 @@
   "worldByYearLaneHe4": "Vaše lékárna prodává lék…",
   "worldByYearLaneHe7": "Délka života v USA překročí 81 let",
   "worldByYearLaneL6": "AI učiní jeden z největších…",
-  "worldByYearLaneMq10411": "AI získá Nobelovu cenu"
+  "worldByYearLaneMq10411": "AI získá Nobelovu cenu",
+  "worldByYearNowHe1": "AI vyhodnocuje screeningové snímky přesněji než specialisté. Ve srovnávacích studiích přehlédne méně časných nádorů a vyvolá méně planých poplachů a nemocnice začínají brát druhé čtení pomocí AI jako standard.",
+  "worldByYearGapHe1": "Ve studiích AI vyhodnocuje screeningové snímky přesněji než specialisté, regulátoři ale stále vyžadují, aby každou zprávu podepsal radiolog. Software běží na pozadí většiny zobrazovacích oddělení a nenápadně označuje podezřelé případy, zatímco formální verdikt zůstává na lidech.",
+  "worldByYearNowHe2": "Běžné mamografy a rentgeny hrudníku jako první vyhodnocuje schválený systém AI. Radiologové kontrolují označené případy a výsledky jsou hotové ještě týž den. Čekací lhůty, které dřív trvaly týdny, téměř zmizely.",
+  "worldByYearNowHe5": "AI dokáže diagnostikovat běžná onemocnění stejně dobře jako praktický lékař. Podle popsaných příznaků a základních životních funkcí dojde ke stejnému závěru jako praktik, a to i ve tři ráno.",
+  "worldByYearGapHe5": "AI dokáže diagnostikovat běžná onemocnění stejně dobře jako praktický lékař, ale bez podpisu lékaře nemůže nic předepsat. Kliniky ji používají jako první síto: AI odhadne, co pacientovi nejspíš je, a lékař to potvrdí a vypíše recept.",
+  "worldByYearNowHe3": "Návštěva u lékaře začíná konzultací s AI, která sepíše anamnézu, projde vaši dokumentaci a pošle vás ke správnému člověku. Mnoho drobných potíží se vyřeší, aniž byste kohokoli viděli.",
+  "worldByYearNowHe6": "V několika státech může AI obnovovat a předepisovat běžné léky bez podpisu lékaře. Léky na tlak, inhalátory a antikoncepci vyřizuje aplikace, která zkontroluje vaši dokumentaci a pošle objednávku do lékárny; lékaři zasahují jen v neobvyklých případech.",
+  "worldByYearNowHe4": "Nejméně jeden lék, který vám lékař může předepsat, objevil systém AI, a další procházejí klinickými studiemi rychleji než léky před deseti lety. První schválení se týkala vzácných onemocnění, kterými se dřívější vývoj nikdy nevyplatilo zabývat.",
+  "worldByYearNowHe7": "Američané narození v tomto roce se mohou dožít více než 81 let. Včasnější odhalování nemocí, levnější léky a nepřetržité sledování přidaly každé pár měsíců a dohromady posunuly délku života za stagnaci z 10. let.",
+  "worldByYearNowL6": "Systémy AI učinily nejméně jeden objev, který vědci řadí mezi nejdůležitější v desetiletí. Výsledek přišel od AI, která sama navrhovala a testovala hypotézy, zatímco lidé práci kontrolovali, místo aby ji řídili, a změnil to, jak velké laboratoře organizují výzkum.",
+  "worldByYearNowMq10411": "Systém AI získal Nobelovu cenu za práci, kterou z velké části odvedl sám."
 }

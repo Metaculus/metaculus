@@ -12,7 +12,9 @@ import {
 
 import cn from "@/utils/core/cn";
 
+import AreaNarrative from "../components/area_narrative";
 import AuroraCanvas from "../components/aurora_canvas";
+import ForecastCard from "../components/forecast_card";
 import { HERO_THEME_CLASSNAME } from "../components/hero_theme";
 import HeroYearControl from "../components/hero_year_control";
 import { LongArrowIcon } from "../components/icons";
@@ -25,7 +27,12 @@ import {
   AREA_SECTIONS,
 } from "../data/area_sections";
 import { AREA_TITLE_KEYS, WorldArea } from "../data/questions";
-import { defaultStatementIndex, statementsFor } from "../helpers/area_section";
+import {
+  closestQuestions,
+  defaultStatementIndex,
+  periodsFor,
+  statementsFor,
+} from "../helpers/area_section";
 import { sectionAurora } from "../helpers/aurora_effect";
 
 const GLASS_CELL_PX = 14;
@@ -58,6 +65,14 @@ export function AreaSection({ area }: { area: WorldArea }) {
   const firstSettleRef = useRef(true);
 
   const statements = useMemo(() => statementsFor(area), [area]);
+  const periods = useMemo(
+    () => (copy ? periodsFor(area, copy) : []),
+    [area, copy]
+  );
+  const cards = useMemo(
+    () => closestQuestions(area, settledYear),
+    [area, settledYear]
+  );
   const auroraConfig = useMemo(
     () => sectionAurora(palette, AREA_ORDER.indexOf(area)),
     [palette, area]
@@ -321,6 +336,33 @@ export function AreaSection({ area }: { area: WorldArea }) {
               >
                 <LongArrowIcon direction="right" className="size-[15px]" />
               </button>
+            </div>
+          </div>
+
+          <div
+            data-settle={area}
+            className={cn(
+              "relative z-[1] -mt-2 flex flex-wrap gap-x-14 gap-y-7 pb-12 pt-14",
+              dimClassName
+            )}
+          >
+            <AreaNarrative
+              periods={periods}
+              year={settledYear}
+              onYearChange={changeYear}
+            />
+            <div className="flex min-w-[min(280px,100%)] flex-[1_1_340px] flex-col gap-6">
+              {cards.map((question) => {
+                const questionCopy = copy.questions[question.id];
+                return questionCopy ? (
+                  <ForecastCard
+                    key={question.id}
+                    question={question}
+                    copy={questionCopy}
+                    year={settledYear}
+                  />
+                ) : null;
+              })}
             </div>
           </div>
         </div>

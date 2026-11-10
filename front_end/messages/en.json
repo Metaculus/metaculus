@@ -2817,6 +2817,7 @@
   "worldByYearChangeMq10955": "an AI-made film at #1 on streaming",
   "worldByYearChangeMq11679": "an AI-written bestseller",
   "worldByYearAreaHeading": "<label>{area} in</label> <year></year>",
+  "worldByYearAreaIntroSciences": "In labs, AI is already a standard tool for reading data and proposing experiments. For patients, the doctor’s office and the pharmacy work much as they did in the mid-2020s.",
   "worldByYearMedianDate": "Median date",
   "worldByYearByYear": "By {year}",
   "worldByYearForecasters": "Forecasters",
@@ -2847,5 +2848,16 @@
   "worldByYearLaneHe4": "Your pharmacy stocks a drug that…",
   "worldByYearLaneHe7": "US life expectancy passes 81 years",
   "worldByYearLaneL6": "AI makes one of the biggest…",
-  "worldByYearLaneMq10411": "AI wins a Nobel prize"
+  "worldByYearLaneMq10411": "AI wins a Nobel prize",
+  "worldByYearNowHe1": "AI reads screening scans more accurately than specialists. In head-to-head trials it misses fewer early tumours and flags fewer false alarms, and hospitals have started to treat a second AI read as standard.",
+  "worldByYearGapHe1": "AI reads screening scans more accurately than specialists in trials, but regulators still require a radiologist to sign every report. The software runs in the background of most imaging departments, quietly flagging cases, while the formal verdict stays human.",
+  "worldByYearNowHe2": "Routine mammograms and chest X-rays are read first by an approved AI system. Radiologists review the flagged cases, and results come back the same day. Waiting lists that once ran to weeks have mostly disappeared.",
+  "worldByYearNowHe5": "AI can diagnose common conditions as well as a family doctor. Given a symptom history and basic vitals it lands on the same answer a GP would, and it does so at three in the morning.",
+  "worldByYearGapHe5": "AI can diagnose common conditions as well as a family doctor, but it cannot prescribe without a physician signing off. Clinics use it as a triage layer: the AI works out what is probably wrong, a doctor confirms and writes the script.",
+  "worldByYearNowHe3": "A visit to the doctor starts with an AI consult that takes your history, checks your records and routes you to the right person. Many minor complaints are resolved without seeing anyone.",
+  "worldByYearNowHe6": "In several states an AI can renew and prescribe routine medications without a doctor’s signature. Blood-pressure pills, inhalers and contraception are handled by an app that checks your records and sends the order to the pharmacy, with doctors stepping in only for the unusual cases.",
+  "worldByYearNowHe4": "At least one medicine you can be prescribed was discovered by an AI system, and others are moving through trials faster than drugs did a decade earlier. The first approvals were for rare conditions where the old pipeline never found it worthwhile to look.",
+  "worldByYearNowHe7": "Americans born this year can expect to live past 81. Earlier detection, cheaper drugs and continuous monitoring have each added a few months, and together they have pushed life expectancy past the plateau of the 2010s.",
+  "worldByYearNowL6": "AI systems have made at least one discovery that scientists rank among the most important of the decade. The result came from an AI proposing and testing hypotheses on its own, with humans reviewing rather than directing the work, and it has changed how big labs organise research.",
+  "worldByYearNowMq10411": "An AI system has been awarded a Nobel prize for work it did largely on its own."
 }
