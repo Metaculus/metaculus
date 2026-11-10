@@ -65,10 +65,7 @@ export function AreaSection({ area }: { area: WorldArea }) {
   const firstSettleRef = useRef(true);
 
   const statements = useMemo(() => statementsFor(area), [area]);
-  const periods = useMemo(
-    () => (copy ? periodsFor(area, copy) : []),
-    [area, copy]
-  );
+  const periods = useMemo(() => periodsFor(area, copy), [area, copy]);
   const cards = useMemo(
     () => closestQuestions(area, settledYear),
     [area, settledYear]
@@ -174,8 +171,6 @@ export function AreaSection({ area }: { area: WorldArea }) {
         })
       );
   }, [settleCount, area]);
-
-  if (!copy) return null;
 
   const dimClassName = cn(
     "transition-opacity duration-[220ms] ease-[ease]",

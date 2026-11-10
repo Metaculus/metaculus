@@ -49,7 +49,7 @@ export type AreaSectionCopy = {
   questions: Record<string, QuestionCopy>;
 };
 
-export const AREA_SECTIONS: Partial<Record<WorldArea, AreaSectionCopy>> = {
+export const AREA_SECTIONS: Record<WorldArea, AreaSectionCopy> = {
   sci: {
     introKey: "worldByYearAreaIntroSciences",
     questions: {
@@ -266,6 +266,52 @@ export const AREA_SECTIONS: Partial<Record<WorldArea, AreaSectionCopy>> = {
         titleKey: "worldByYearQuestionMq43263",
         laneKey: "worldByYearLaneMq43263",
         nowKey: "worldByYearNowMq43263",
+      },
+    },
+  },
+  media: {
+    introKey: "worldByYearAreaIntroMedia",
+    questions: {
+      h6: {
+        titleKey: "worldByYearQuestionH6",
+        laneKey: "worldByYearLaneH6",
+        nowKey: "worldByYearNowH6",
+      },
+      mq17401: {
+        titleKey: "worldByYearQuestionMq17401",
+        laneKey: "worldByYearLaneMq17401",
+        nowKey: "worldByYearNowMq17401",
+        gapKey: "worldByYearGapMq17401",
+      },
+      c4: {
+        titleKey: "worldByYearQuestionC4",
+        laneKey: "worldByYearLaneC4",
+        nowKey: "worldByYearNowC4",
+      },
+      c5: {
+        titleKey: "worldByYearQuestionC5",
+        laneKey: "worldByYearLaneC5",
+        nowKey: "worldByYearNowC5",
+      },
+      md2: {
+        titleKey: "worldByYearQuestionMd2",
+        laneKey: "worldByYearLaneMd2",
+        nowKey: "worldByYearNowMd2",
+      },
+      md1: {
+        titleKey: "worldByYearQuestionMd1",
+        laneKey: "worldByYearLaneMd1",
+        nowKey: "worldByYearNowMd1",
+      },
+      mq10955: {
+        titleKey: "worldByYearQuestionMq10955",
+        laneKey: "worldByYearLaneMq10955",
+        nowKey: "worldByYearNowMq10955",
+      },
+      mq11679: {
+        titleKey: "worldByYearQuestionMq11679",
+        laneKey: "worldByYearLaneMq11679",
+        nowKey: "worldByYearNowMq11679",
       },
     },
   },

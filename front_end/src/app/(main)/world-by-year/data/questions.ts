@@ -25,8 +25,11 @@ export const AREA_TITLE_KEYS: Record<WorldArea, keyof Messages> = {
   media: "worldByYearAreaMedia",
 };
 
+export const FORECASTS_READ_AT = new Date(Date.UTC(2026, 8, 26));
+
 // Medians and spreads fit a log-normal to each question; ids prefixed "mq" are
-// live Metaculus questions (read 26 Sep 2026), the rest are illustrative.
+// live Metaculus questions (read on FORECASTS_READ_AT), the rest are
+// illustrative.
 export const WORLD_QUESTIONS: WorldQuestion[] = [
   {
     id: "he1",
