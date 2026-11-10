@@ -26,6 +26,9 @@ export const SETTLE_AFTER_ARROW_MS = 600;
 export const SETTLE_AFTER_KEY_MS = 650;
 export const SETTLE_AFTER_EDGE_KEY_MS = 400;
 
+// "hero" drags follow the year live in the timeline, so nothing waits on them.
+export type PendingSource = "drag" | "key" | "hero";
+
 type WorldYearContextValue = {
   // Follows every control live; the hero timeline and charts read it.
   year: number;
@@ -34,10 +37,11 @@ type WorldYearContextValue = {
   settledYear: number;
   settleCount: number;
   scrubbing: boolean;
+  pendingSource: PendingSource;
   playing: boolean;
   holdRef: RefObject<boolean>;
   changeYear: (year: number, settleAfterMs?: number) => void;
-  changeScrubbing: (scrubbing: boolean) => void;
+  changeScrubbing: (scrubbing: boolean, source?: PendingSource) => void;
   togglePlay: () => void;
 };
 
@@ -48,6 +52,7 @@ export const WorldYearProvider: FC<PropsWithChildren> = ({ children }) => {
   const [settledYear, setSettledYear] = useState(INITIAL_YEAR);
   const [settleCount, setSettleCount] = useState(0);
   const [scrubbing, setScrubbing] = useState(false);
+  const [pendingSource, setPendingSource] = useState<PendingSource>("key");
   const [playing, setPlaying] = useState(false);
   const holdRef = useRef(false);
   const yearRef = useRef(INITIAL_YEAR);
@@ -86,6 +91,7 @@ export const WorldYearProvider: FC<PropsWithChildren> = ({ children }) => {
         settle();
         return;
       }
+      setPendingSource("key");
       setPending(true);
       settleTimerRef.current = setTimeout(settle, settleAfterMs);
     },
@@ -93,13 +99,14 @@ export const WorldYearProvider: FC<PropsWithChildren> = ({ children }) => {
   );
 
   const changeScrubbing = useCallback(
-    (value: boolean) => {
+    (value: boolean, source: PendingSource = "drag") => {
       draggingRef.current = value;
       if (!value) {
         settle();
         return;
       }
       clearTimeout(settleTimerRef.current);
+      setPendingSource(source);
       setPending(true);
     },
     [settle, setPending]
@@ -135,6 +142,7 @@ export const WorldYearProvider: FC<PropsWithChildren> = ({ children }) => {
       settledYear,
       settleCount,
       scrubbing,
+      pendingSource,
       playing,
       holdRef,
       changeYear,
@@ -146,6 +154,7 @@ export const WorldYearProvider: FC<PropsWithChildren> = ({ children }) => {
       settledYear,
       settleCount,
       scrubbing,
+      pendingSource,
       playing,
       changeYear,
       changeScrubbing,

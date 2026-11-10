@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useRef } from "react";
+import { useCallback, useRef } from "react";
 
 import cn from "@/utils/core/cn";
 
@@ -28,6 +28,10 @@ export function HeroSection() {
     changeScrubbing,
     togglePlay,
   } = useWorldYear();
+  const changeTrackScrubbing = useCallback(
+    (value: boolean) => changeScrubbing(value, "hero"),
+    [changeScrubbing]
+  );
 
   return (
     <section
@@ -85,7 +89,7 @@ export function HeroSection() {
         heroRef={heroRef}
         headRef={headRef}
         onYearChange={changeYear}
-        onScrubChange={changeScrubbing}
+        onScrubChange={changeTrackScrubbing}
       />
       <div
         aria-hidden

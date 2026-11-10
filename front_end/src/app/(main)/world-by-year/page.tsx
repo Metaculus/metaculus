@@ -3,6 +3,7 @@ import { getTranslations } from "next-intl/server";
 
 import "./world_by_year.css";
 import { WorldYearProvider } from "./components/world_year_provider";
+import YearToast from "./components/year_toast";
 import { AreaSection } from "./sections/area";
 import { FooterSection } from "./sections/footer";
 import { HeroSection } from "./sections/hero";
@@ -25,6 +26,7 @@ export default function WorldByYearPage() {
         <AreaSection area="robo" />
         <AreaSection area="media" />
         <FooterSection />
+        <YearToast />
       </WorldYearProvider>
     </main>
   );

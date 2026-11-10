@@ -2991,5 +2991,7 @@
   "worldByYearQuestionMq11679": "第一本 AI 生成的書何時會登上《紐約時報》暢銷書榜？",
   "worldByYearLaneMq11679": "AI 寫的書登上《紐約時報》…",
   "worldByYearNowMq11679": "一本由 AI 生成的書登上了《紐約時報》暢銷書榜。",
-  "worldByYearFooterNote": "標有 Metaculus 的問題是社群的即時預測（讀取於 {readDate}，分布依社群預測中間 50% 的區間擬合）；其餘為示意樣本。若某項變化到所選年份年底的機率至少為 50%，即視為已經發生。能力類問題問的是 AI 何時能做到某件事；普及類問題問的是它何時成為日常生活的一部分。"
+  "worldByYearFooterNote": "標有 Metaculus 的問題是社群的即時預測（讀取於 {readDate}，分布依社群預測中間 50% 的區間擬合）；其餘為示意樣本。若某項變化到所選年份年底的機率至少為 50%，即視為已經發生。能力類問題問的是 AI 何時能做到某件事；普及類問題問的是它何時成為日常生活的一部分。",
+  "worldByYearToastRelease": "放開即顯示 <b>{year}</b>",
+  "worldByYearToastShowing": "目前顯示 <b>{year}</b>"
 }

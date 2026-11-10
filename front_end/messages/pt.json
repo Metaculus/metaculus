@@ -2992,5 +2992,7 @@
   "worldByYearQuestionMq11679": "Quando o primeiro livro gerado por IA entrará na lista de mais vendidos do New York Times?",
   "worldByYearLaneMq11679": "Livro escrito por IA entra na lista…",
   "worldByYearNowMq11679": "Um livro gerado por IA apareceu na lista de mais vendidos do New York Times.",
-  "worldByYearFooterNote": "As perguntas marcadas como Metaculus são previsões ao vivo da comunidade (lidas em {readDate}, com a dispersão ajustada aos 50% centrais da comunidade); as demais são exemplos ilustrativos. Uma mudança conta como ocorrida quando sua probabilidade até o fim do ano selecionado é de pelo menos 50%. As perguntas de capacidade perguntam quando a IA conseguirá fazer algo; as de adoção, quando isso passará a fazer parte do dia a dia."
+  "worldByYearFooterNote": "As perguntas marcadas como Metaculus são previsões ao vivo da comunidade (lidas em {readDate}, com a dispersão ajustada aos 50% centrais da comunidade); as demais são exemplos ilustrativos. Uma mudança conta como ocorrida quando sua probabilidade até o fim do ano selecionado é de pelo menos 50%. As perguntas de capacidade perguntam quando a IA conseguirá fazer algo; as de adoção, quando isso passará a fazer parte do dia a dia.",
+  "worldByYearToastRelease": "Solte para mostrar <b>{year}</b>",
+  "worldByYearToastShowing": "Mostrando <b>{year}</b>"
 }
