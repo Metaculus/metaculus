@@ -19,6 +19,7 @@ export default function WorldByYearPage() {
         <HeroSection />
         <OverviewSection />
         <AreaSection area="sci" />
+        <AreaSection area="prog" />
       </WorldYearProvider>
     </main>
   );

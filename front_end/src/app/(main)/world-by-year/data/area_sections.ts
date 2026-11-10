@@ -102,4 +102,46 @@ export const AREA_SECTIONS: Partial<Record<WorldArea, AreaSectionCopy>> = {
       },
     },
   },
+  prog: {
+    introKey: "worldByYearAreaIntroProgramming",
+    questions: {
+      w5: {
+        titleKey: "worldByYearQuestionW5",
+        laneKey: "worldByYearLaneW5",
+        nowKey: "worldByYearNowW5",
+        gapKey: "worldByYearGapW5",
+      },
+      w6: {
+        titleKey: "worldByYearQuestionW6",
+        laneKey: "worldByYearLaneW6",
+        nowKey: "worldByYearNowW6",
+      },
+      p3: {
+        titleKey: "worldByYearQuestionP3",
+        laneKey: "worldByYearLaneP3",
+        nowKey: "worldByYearNowP3",
+      },
+      p1: {
+        titleKey: "worldByYearQuestionP1",
+        laneKey: "worldByYearLaneP1",
+        nowKey: "worldByYearNowP1",
+        gapKey: "worldByYearGapP1",
+      },
+      p2: {
+        titleKey: "worldByYearQuestionP2",
+        laneKey: "worldByYearLaneP2",
+        nowKey: "worldByYearNowP2",
+      },
+      mq38391: {
+        titleKey: "worldByYearQuestionMq38391",
+        laneKey: "worldByYearLaneMq38391",
+        nowKey: "worldByYearNowMq38391",
+      },
+      mq406: {
+        titleKey: "worldByYearQuestionMq406",
+        laneKey: "worldByYearLaneMq406",
+        nowKey: "worldByYearNowMq406",
+      },
+    },
+  },
 };
