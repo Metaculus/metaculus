@@ -1,8 +1,10 @@
 import logging
 from collections import defaultdict
+from datetime import timedelta
 
 import dramatiq
 from django.db.models import Q
+from django.utils import timezone
 
 from notifications.models import Notification
 from notifications.services import (
@@ -12,6 +14,9 @@ from notifications.services import (
 from posts.models import Post
 
 logger = logging.getLogger(__name__)
+
+# Sent notifications older than this are deleted
+SENT_NOTIFICATION_RETENTION_DAYS = 90
 
 
 def _get_notification_schedules() -> dict[str, Q]:
@@ -39,7 +44,7 @@ def _get_notification_schedules() -> dict[str, Q]:
     return {"default": default_q, **custom}
 
 
-@dramatiq.actor
+@dramatiq.actor(max_retries=1, time_limit=1_800_000)
 def job_send_notification_groups():
     """
     Aggregates and sends grouped notifications to the recipients.
@@ -53,7 +58,7 @@ def job_send_notification_groups():
     _send_grouped_notifications(qs)
 
 
-@dramatiq.actor
+@dramatiq.actor(max_retries=1)
 def job_send_open_status_notifications():
     """
     Sends only post_status_change notifications with event in (published, open).
@@ -71,7 +76,7 @@ def _send_grouped_notifications(qs):
     # { user: { notification_type: [notifications] } }
     grouped_notifications = defaultdict(lambda: defaultdict(list))
 
-    for notification in qs:
+    for notification in qs.select_related("recipient"):
         grouped_notifications[notification.recipient][notification.type].append(
             notification
         )
@@ -85,9 +90,24 @@ def _send_grouped_notifications(qs):
             try:
                 handler_cls.send_email_group(notifications)
 
-                # Mark as sent
-                for notification in notifications:
-                    notification.mark_as_sent()
-                    notification.save()
+                Notification.objects.filter(
+                    pk__in=[notification.pk for notification in notifications]
+                ).mark_as_sent()
             except Exception:
                 logger.exception("Error while processing notification")
+
+
+@dramatiq.actor(max_retries=1, time_limit=1_800_000)
+def job_delete_old_sent_notifications():
+    """
+    Deletes notifications whose email went out more than
+    `SENT_NOTIFICATION_RETENTION_DAYS` ago. Notifications only feed the email
+    queue, so nothing reads a row back once it has been sent.
+    """
+
+    cutoff = timezone.now() - timedelta(days=SENT_NOTIFICATION_RETENTION_DAYS)
+    deleted, _ = Notification.objects.filter(
+        created_at__lt=cutoff, email_sent=True
+    ).delete()
+
+    logger.info(f"Deleted {deleted} sent notification(s) older than {cutoff}")

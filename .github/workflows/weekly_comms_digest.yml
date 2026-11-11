@@ -30,7 +30,7 @@ jobs:
       - name: Run digest script
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
           SLACK_WEBHOOK_URL: ${{ secrets.COMMSDIGEST_SLACK_WEBHOOK_URL }}
         run: |
           if [ "${{ inputs.dry_run }}" = "true" ]; then

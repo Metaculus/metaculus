@@ -14,7 +14,7 @@ from posts.models import Post
 from users.models import User, UserSpamActivity
 from users.serializers import UserUpdateProfileSerializer
 from utils.email import send_notification_email_with_template
-from utils.openai import generate_text_async, run_spam_analysis
+from utils.llm import LLMFeature, generate_text_async, run_spam_analysis
 
 logger = logging.getLogger(__name__)
 CONFIDENCE_THRESHOLD = 0.9
@@ -182,7 +182,7 @@ def check_profile_update_for_spam(
 
 
 async def ask_gpt_to_check_profile_for_spam(bio_plus_websites: str) -> tuple[bool, str]:
-    if not settings.OPENAI_API_KEY:
+    if not settings.OPENROUTER_API_KEY and not settings.OPENAI_API_KEY:
         return False, "No API key set, so not checking for spam"
 
     system_prompt = textwrap.dedent(
@@ -212,7 +212,8 @@ async def ask_gpt_to_check_profile_for_spam(bio_plus_websites: str) -> tuple[boo
     )
     try:
         gpt_response = await generate_text_async(
-            model="gpt-6-luna",
+            model=settings.GENERAL_LLM_MODEL,
+            feature=LLMFeature.SPAM_BIO,
             system_prompt=system_prompt,
             prompt=prompt,
             timeout=10,
@@ -242,6 +243,22 @@ def send_deactivation_email(user_email: str) -> None:
         ),
         from_email=settings.EMAIL_HOST_USER,
         recipient_list=[user_email],
+    )
+
+
+def send_bot_deactivation_email(owner_email: str, bot_username: str) -> None:
+    send_email_async.send(
+        subject=f'Your Metaculus bot "{bot_username}" was deactivated',
+        message=textwrap.dedent(
+            f"""\
+            Your bot "{bot_username}" was deactivated by an automated system because its profile bio or website looked like spam. Your own account is not affected.
+
+            Just for reference, we set our links so that Google doesn't pick them up for SEO. Adding spam to the site does nothing to help your rankings.
+
+            If you believe your bot was marked as spam in error, please contact support@metaculus.com"""
+        ),
+        from_email=settings.EMAIL_HOST_USER,
+        recipient_list=[owner_email],
     )
 
 

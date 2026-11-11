@@ -1,5 +1,6 @@
 import { AggregationExtraQuestion } from "@/app/(main)/aggregation-explorer/types";
 import { ApiService } from "@/services/api/api_service";
+import { FetchOptions } from "@/types/fetch";
 import { encodeQueryParams } from "@/utils/navigation";
 
 type AggregationExplorerParams = {
@@ -13,7 +14,10 @@ type AggregationExplorerParams = {
 };
 
 class AggregationExplorerApi extends ApiService {
-  async getAggregations(params: AggregationExplorerParams) {
+  async getAggregations(
+    params: AggregationExplorerParams,
+    options?: FetchOptions
+  ) {
     const queryParams = encodeQueryParams({
       post_id: params.postId?.toString() || "",
       question_id: params.questionId?.toString() || "",
@@ -25,7 +29,8 @@ class AggregationExplorerApi extends ApiService {
     });
 
     return await this.get<AggregationExtraQuestion>(
-      `/aggregation_explorer/${queryParams}`
+      `/aggregation_explorer/${queryParams}`,
+      options
     );
   }
 }

@@ -1,5 +1,7 @@
 from admin_auto_filters.filters import AutocompleteFilterFactory
+from django import forms
 from django.contrib import admin, messages
+from django.core.exceptions import ValidationError
 from django.db.models import QuerySet
 from django.http import HttpResponse
 from django.shortcuts import redirect
@@ -14,14 +16,30 @@ from posts.tasks import run_post_generate_history_snapshot
 from projects.models import Project
 from projects.services.subscriptions import notify_post_added_to_project
 from questions.models import Question
-from questions.services.forecasts import build_question_forecasts
+from questions.services.forecasts import rebuild_question_aggregations
 from utils.csv_utils import export_all_data_for_questions
 from utils.models import CustomTranslationAdmin
 from utils.translation import automatic_translations_enabled
 
 
+class PostAdminForm(forms.ModelForm):
+    class Meta:
+        model = Post
+        fields = "__all__"
+
+    def _post_clean(self):
+        super()._post_clean()
+
+        # self.instance holds the submitted values only after _post_clean
+        try:
+            self.instance.validate_approved_questions_dates()
+        except ValidationError as e:
+            self.add_error(None, e)
+
+
 @admin.register(Post)
 class PostAdmin(CustomTranslationAdmin):
+    form = PostAdminForm
     list_display = [
         "title",
         "author",
@@ -179,7 +197,7 @@ class PostAdmin(CustomTranslationAdmin):
     def rebuild_aggregation_history(self, request, queryset: QuerySet[Post]):
         for post in queryset:
             for question in post.get_questions():
-                build_question_forecasts(question)
+                rebuild_question_aggregations(question)
 
     def mark_as_deleted(self, request, queryset: QuerySet[Post]):
         updated = 0
@@ -229,6 +247,7 @@ class PostAdmin(CustomTranslationAdmin):
             old_default_project_id = form.initial.get("default_project")
 
         super().save_model(request, obj, form, change)
+        obj.sync_question_post_fk()
 
         if (
             old_default_project_id is not None

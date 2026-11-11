@@ -18,7 +18,6 @@ from comments.services.text_archive import (
     archive_bot_comment_texts,
     build_key,
     get_archivable_comments,
-    upload_text,
 )
 from posts.models import Post
 from projects.permissions import ObjectPermission
@@ -130,13 +129,18 @@ class TestArchivableCommentsQueryset:
 
         assert not get_archivable_comments().exists()
 
-    def test_excludes_public_comments(self, bot, post):
-        factory_archivable_comment(bot, post, is_private=False)
+    def test_includes_long_old_public_bot_comments(self, bot, post):
+        comment = factory_archivable_comment(bot, post, is_private=False)
 
-        assert not get_archivable_comments().exists()
+        assert list(get_archivable_comments()) == [comment]
 
     def test_excludes_human_comments(self, user1, post):
         factory_archivable_comment(user1, post)
+
+        assert not get_archivable_comments().exists()
+
+    def test_excludes_public_human_comments(self, user1, post):
+        factory_archivable_comment(user1, post, is_private=False)
 
         assert not get_archivable_comments().exists()
 
@@ -362,23 +366,15 @@ class TestCommentDetailApiView:
         assert response.data["text"] == LONG_TEXT
 
     def test_anonymous_reads_archived_public_text(
-        self, user1, post, s3_stub, anon_client
+        self, bot, post, s3_stub, anon_client
     ):
         """
-        Only private bot comments are archived today. This covers the case the
-        open endpoint exists for: a public comment archived on age alone, whose
-        row holds a stub a logged-out reader has to be able to open.
+        Public bot comments are archived on age alone, so their row holds a
+        stub a logged-out reader has to be able to open.
         """
 
-        comment = factory_comment(
-            author=user1, on_post=post, text=LONG_TEXT, text_original=LONG_TEXT
-        )
-        upload_text(comment.pk, LONG_TEXT, comment.on_post_id, comment.author_id)
-        Comment.objects.rewrite(False).filter(pk=comment.pk).update(
-            text="",
-            text_original=LONG_TEXT[:ARCHIVE_STUB_LENGTH],
-            is_text_archived=True,
-        )
+        comment = factory_archivable_comment(bot, post, is_private=False)
+        archive_bot_comment_texts()
 
         response = anon_client.get(reverse("comment-detail", kwargs={"pk": comment.pk}))
 

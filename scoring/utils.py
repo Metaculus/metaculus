@@ -7,6 +7,7 @@ from decimal import Decimal
 from io import StringIO
 
 import numpy as np
+from django.conf import settings
 from django.db import transaction
 from django.db.models import (
     QuerySet,
@@ -36,7 +37,7 @@ from projects.permissions import ObjectPermission
 from questions.cache import invalidate_average_coverage_cache
 from questions.constants import UnsuccessfulResolutionType
 from questions.models import Question, Forecast
-from questions.types import AggregationMethod
+from questions.types import AggregationMethod, SHADOW_AGGREGATION_METHODS
 from scoring.constants import ScoreTypes, LeaderboardScoreTypes
 from scoring.models import (
     ArchivedScore,
@@ -77,6 +78,8 @@ def get_question_scores(
             AggregationMethod.RECENCY_WEIGHTED,
             AggregationMethod.UNWEIGHTED,
         ]
+        if settings.SHADOW_AGGREGATIONS_ENABLED:
+            aggregation_methods += SHADOW_AGGREGATION_METHODS
     if not spot_scoring_time:
         spot_scoring_time = question.get_spot_scoring_time()
     score_types = score_types or [s for s in ScoreTypes if s != ScoreTypes.MANUAL]
@@ -293,30 +296,30 @@ def generate_comment_insight_leaderboard_entries(
             )
         )
         .filter(annotated_vote_score__gt=0)
-        .select_related("author")
     )
 
     user_list = leaderboard.user_list.all()
     if user_list:
         comments = comments.filter(author__in=user_list)
 
-    scores_for_author: dict[User, list[int]] = defaultdict(list)
-    for comment in comments:
-        scores_for_author[comment.author].append(comment.annotated_vote_score)
+    scores_for_author: dict[int, list[int]] = defaultdict(list)
+    for author_id, vote_score in comments.values_list(
+        "author_id", "annotated_vote_score"
+    ).iterator():
+        scores_for_author[author_id].append(vote_score)
 
-    user_entries: dict[User, LeaderboardEntry] = {}
-    for user, scores in scores_for_author.items():
-        if user not in user_entries:
-            user_entries[user] = LeaderboardEntry(
-                user_id=user.id,
-                score=0,
-                contribution_count=0,
-                calculated_on=now,
-            )
+    results = []
+    for author_id, scores in scores_for_author.items():
         score = decimal_h_index(scores)
-        user_entries[user].score = score
-        user_entries[user].contribution_count = len(scores)
-    results = [entry for entry in user_entries.values() if entry.score > 0]
+        if score > 0:
+            results.append(
+                LeaderboardEntry(
+                    user_id=author_id,
+                    score=score,
+                    contribution_count=len(scores),
+                    calculated_on=now,
+                )
+            )
 
     return sorted(results, key=lambda entry: entry.score, reverse=True)
 
@@ -332,22 +335,25 @@ def generate_question_writing_leaderboard_entries(
         )
     )
 
-    user_forecasts_map = generate_map_from_list(
+    forecaster_ids_for_question: dict[int, set[int]] = defaultdict(set)
+    for question_id, author_id in (
         Forecast.objects.filter(
             question__in=questions,
             start_time__gte=leaderboard.start_time or make_aware(datetime.min),
             start_time__lte=leaderboard.end_time or make_aware(datetime.max),
-        ).only("question_id", "author_id"),
-        key=lambda forecast: forecast.question_id,
-    )
+        )
+        .values_list("question_id", "author_id")
+        .distinct()
+        .iterator()
+    ):
+        forecaster_ids_for_question[question_id].add(author_id)
 
     forecaster_ids_for_post: dict[Post, set[int]] = defaultdict(set)
     for question in questions:
-        forecasts_during_period = user_forecasts_map.get(question.pk) or []
-        forecasters = set(forecast.author_id for forecast in forecasts_during_period)
-
         if question.post:
-            forecaster_ids_for_post[question.post].update(forecasters)
+            forecaster_ids_for_post[question.post].update(
+                forecaster_ids_for_question.get(question.pk, ())
+            )
 
     exclusions: QuerySet[MedalExclusionRecord] = (
         MedalExclusionRecord.objects.all().select_related("user")
@@ -499,6 +505,9 @@ def assign_exclusions_(
 
     for entry in entries:
         entry.exclusion_status = exclusion_statuses[entry.user_id]
+        # TODO: remove this exclusion once the RW aggregate is finalized
+        if entry.aggregation_method == AggregationMethod.REPUTATION_WEIGHTED:
+            entry.exclusion_status = ExclusionStatuses.EXCLUDE
 
 
 def assign_ranks_(

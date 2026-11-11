@@ -101,9 +101,11 @@ def upload_text(
     """
     Uploads the full original text of a comment to S3 and returns the key.
 
-    Only the original text is stored: bot/private comments are never
-    translated (see `trigger_update_comment_translations`), and storing
-    machine translations of an archived text would be pointless anyway.
+    Only the original text is stored. Machine translations are dropped rather
+    than archived: private comments are never translated (see
+    `trigger_update_comment_translations`), and the translations of an old
+    public comment are not worth keeping. Readers in other languages see the
+    original-language stub, and the full text is served in the original.
 
     `post_id` and `author_id` are duplicated into the object so that a survey
     of the bucket can group the texts without joining back to the database.
@@ -167,7 +169,8 @@ def get_full_text(comment: Comment) -> str | None:
 
 def get_archivable_comments() -> QuerySet[Comment]:
     """
-    Long private bot comments old enough to be archived.
+    Long bot comments, private or public, old enough to be archived. Human
+    comments are never archived.
 
     Soft-deleted comments are included: their text is not rendered anywhere,
     but it still occupies the row, and archiving keeps it recoverable.
@@ -184,7 +187,6 @@ def get_archivable_comments() -> QuerySet[Comment]:
         Comment.objects.rewrite(False)
         .filter(
             author__is_bot=True,
-            is_private=True,
             is_text_archived=False,
             created_at__lt=cutoff,
         )
@@ -237,7 +239,7 @@ def archive_bot_comment_texts(
     on_progress: Callable[[ArchiveStats], None] | None = None,
 ) -> ArchiveStats:
     """
-    Moves the full text of long, private, old bot comments to S3, leaving a
+    Moves the full text of long, old bot comments to S3, leaving a
     truncated stub in the database.
 
     `on_progress` is called with the running stats after every batch.
@@ -274,7 +276,7 @@ def archive_bot_comment_texts(
 
     # The eligibility query is the expensive half of this command: it joins
     # users, cannot use an index for the text-length test, and walks every
-    # private bot comment. Running it once and keeping the ids is what stops
+    # bot comment. Running it once and keeping the ids is what stops
     # the run from re-issuing that scan on every batch — hundreds of heavy
     # queries spread over the hours the uploads take, which is enough sustained
     # load to matter to everything else using the database. Ids are all that is

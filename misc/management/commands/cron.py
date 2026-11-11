@@ -12,10 +12,12 @@ from comments.tasks import (
     update_current_top_comments_of_week,
     job_archive_bot_comment_texts,
     job_finalize_and_send_weekly_top_comments,
+    job_send_futureeval_comment_reminders,
 )
 from misc.jobs import sync_itn_articles
 from misc.tasks import warm_cache_site_stats
 from notifications.jobs import (
+    job_delete_old_sent_notifications,
     job_send_notification_groups,
     job_send_open_status_notifications,
 )
@@ -166,6 +168,13 @@ class Command(BaseCommand):
             max_instances=1,
             replace_existing=True,
         )
+        scheduler.add_job(
+            close_old_connections(job_delete_old_sent_notifications.send),
+            trigger=CronTrigger.from_crontab("0 5 * * *"),  # Daily at 05:00 UTC
+            id="notifications_job_delete_old_sent_notifications",
+            max_instances=1,
+            replace_existing=True,
+        )
 
         #
         # ITN Sync Job
@@ -250,6 +259,14 @@ class Command(BaseCommand):
             max_instances=1,
             replace_existing=True,
         )
+        if settings.FUTUREEVAL_COMMENT_REMINDERS_SEND_EMAILS:
+            scheduler.add_job(
+                close_old_connections(job_send_futureeval_comment_reminders.send),
+                trigger=CronTrigger.from_crontab("0 14 * * mon"),  # Mondays 14:00 UTC
+                id="comments_send_futureeval_comment_reminders",
+                max_instances=1,
+                replace_existing=True,
+            )
 
         #
         # Cache warm-up jobs

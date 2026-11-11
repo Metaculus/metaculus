@@ -23,9 +23,7 @@ import { logError } from "@/utils/core/errors";
 
 const contactUsSchema = z.object({
   email: z.string().min(1, { message: "Email is required" }),
-  subject: z.nativeEnum(ContactSubject, {
-    errorMap: () => ({ message: "Subject is required" }),
-  }),
+  subject: z.nativeEnum(ContactSubject, { error: "Subject is required" }),
   message: z.string().min(1, { message: "Message is required" }),
 });
 type ContactUsSchema = z.infer<typeof contactUsSchema>;

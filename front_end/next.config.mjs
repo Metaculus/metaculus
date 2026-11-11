@@ -71,6 +71,16 @@ const nextConfig = {
         permanent: true,
       },
       {
+        source: "/aib/minibench/",
+        destination: "/futureeval/minibench/",
+        permanent: true,
+      },
+      {
+        source: "/aib/contest-rules/",
+        destination: "/notebooks/28751/futureeval-competition-rules/",
+        permanent: true,
+      },
+      {
         source: "/pro-forecasters",
         destination: "/services/pro-forecasters/",
         permanent: true,

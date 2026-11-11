@@ -16,6 +16,9 @@ forbidden_usernames = [
     "curators",
 ]
 
+# Reserved for Metaculus-run benchmark bots, which staff create via admin/shell.
+reserved_username_prefixes = ["metac-"]
+
 
 class ApiAccessTier(models.TextChoices):
     RESTRICTED = "restricted"

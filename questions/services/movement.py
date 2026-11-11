@@ -26,7 +26,7 @@ def compute_question_movement(question: Question) -> float | None:
         question,
         now,
         [question.default_aggregation_method],
-        include_bots=question.include_bots_in_aggregates,
+        include_bots=None,
     ).get(question.default_aggregation_method)
 
     if not cp_now:
@@ -42,7 +42,7 @@ def compute_question_movement(question: Question) -> float | None:
         question,
         now - get_question_movement_period(question),
         [question.default_aggregation_method],
-        include_bots=question.include_bots_in_aggregates,
+        include_bots=None,
     ).get(question.default_aggregation_method)
 
     if not cp_previous:

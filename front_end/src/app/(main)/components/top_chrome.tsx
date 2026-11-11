@@ -5,6 +5,7 @@ import Bulletins from "./bulletins";
 import ContentTranslatedBanner from "./content_translated_banner";
 import EmailConfirmBanner from "./email_confirm_banner";
 import { ImpersonationBanner } from "./impersonation_banner_server";
+import { ShadowAggregationsBanner } from "./shadow_aggregations_banner_server";
 import { TopChromeClient } from "./top_chrome_client";
 import {
   TopChromeFallbackHeader,
@@ -42,6 +43,17 @@ const SafeImpersonationBanner = async () => {
   }
 };
 
+const SafeShadowAggregationsBanner = async () => {
+  try {
+    return await ShadowAggregationsBanner();
+  } catch (error) {
+    logError(error, {
+      message: "Failed to render top chrome shadow aggregations banner",
+    });
+    return null;
+  }
+};
+
 const SafeApiForecastingBanner = async () => {
   try {
     return await ApiForecastingBanner();
@@ -62,6 +74,9 @@ export const TopChrome = ({
 }: Props) => {
   return (
     <TopChromeClient>
+      <TopChromePartErrorBoundary name="shadow aggregations banner">
+        <SafeShadowAggregationsBanner />
+      </TopChromePartErrorBoundary>
       {!hideBulletins && (
         <TopChromePartErrorBoundary name="bulletins">
           <SafeBulletins />

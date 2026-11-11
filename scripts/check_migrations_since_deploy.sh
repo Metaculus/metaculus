@@ -54,7 +54,9 @@ safe_default() {
   exit 0
 }
 
-# Get the last successful deployment info using GraphQL
+# Get the last successful deployment info using GraphQL.
+# Pick the first match inside jq rather than piping to `head -n 1`: with
+# pipefail, head closing the pipe early kills gh with SIGPIPE (exit 141).
 DEPLOYMENT_INFO=$(gh api graphql -f query='
   query($owner: String!, $repo: String!, $env: String!) {
     repository(owner: $owner, name: $repo) {
@@ -72,8 +74,8 @@ DEPLOYMENT_INFO=$(gh api graphql -f query='
     }
   }
 ' -f owner="$OWNER" -f repo="$REPO" -f env="$ENVIRONMENT" \
-  --jq '.data.repository.deployments.nodes[] | select(.latestStatus.state == "SUCCESS") | "\(.commit.oid) \(.commit.committedDate)"' \
-  2>/dev/null | head -n 1) || safe_default "Failed to fetch deployment history"
+  --jq 'first(.data.repository.deployments.nodes[] | select(.latestStatus.state == "SUCCESS") | "\(.commit.oid) \(.commit.committedDate)")' \
+  2>/dev/null) || safe_default "Failed to fetch deployment history"
 
 # Parse commit OID and date from response
 LAST_DEPLOYED=$(echo "$DEPLOYMENT_INFO" | awk '{print $1}')

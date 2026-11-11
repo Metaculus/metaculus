@@ -11,6 +11,7 @@ import {
   Control,
   FieldErrors,
   FieldValues,
+  Resolver,
   useForm,
   UseFormReturn,
 } from "react-hook-form";
@@ -473,7 +474,9 @@ const QuestionForm: FC<Props> = ({
   // TODO: refactor validation schema setup to properly populate useForm generic
   const form = useForm<FormSchemaType>({
     mode: "all",
-    resolver: zodResolver(getFormSchema(questionType)),
+    resolver: zodResolver(
+      getFormSchema(questionType)
+    ) as Resolver<FormSchemaType>,
     defaultValues: {
       open_time: isDuplicate ? undefined : post?.question?.open_time,
       published_at: isDuplicate ? undefined : post?.published_at,

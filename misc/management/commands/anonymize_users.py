@@ -1,10 +1,13 @@
+from django.contrib.sessions.models import Session
 from django.core.management.base import BaseCommand
+from django.db import connection
 from django.db.models import F, Value, CharField, TextField
 from django.db.models.functions import Concat
-from social_django.models import Partial, UserSocialAuth
+from social_django.models import Code, Partial, UserSocialAuth
 
+from authentication.models import ApiKey
 from notifications.constants import MailingTags
-from users.models import User
+from users.models import User, UserCampaignRegistration
 
 
 def anonymize_users(users):
@@ -91,6 +94,34 @@ class Command(BaseCommand):
 
         social_auth_count, _ = UserSocialAuth.objects.all().delete()
         print(f"Deleted {social_auth_count} entries from social_auth_usersocialauth")
+
+        api_key_count, _ = ApiKey.objects.all().delete()
+        print(f"Deleted {api_key_count} API keys")
+
+        session_count, _ = Session.objects.all().delete()
+        print(f"Deleted {session_count} sessions")
+
+        code_count, _ = Code.objects.all().delete()
+        print(f"Deleted {code_count} entries from social_auth_code")
+
+        # Staff included: real hashes can be cracked offline.
+        # A "!" prefix makes Django treat the password as unusable.
+        with connection.cursor() as cursor:
+            cursor.execute(
+                "UPDATE users_user "
+                "SET password = '!' || md5(random()::text), last_login = NULL"
+            )
+            print(f"Reset passwords and last_login for {cursor.rowcount} users")
+
+        with connection.cursor() as cursor:
+            cursor.execute(
+                f"UPDATE {UserCampaignRegistration._meta.db_table} "
+                "SET details = details - 'full_name' "
+                "WHERE jsonb_typeof(details) = 'object' AND details ? 'full_name' "
+                "AND user_id NOT IN "
+                "(SELECT id FROM users_user WHERE is_staff)"
+            )
+            print(f"Removed full_name from {cursor.rowcount} campaign registrations")
 
         anonymize_users(users)
         self.stdout.write(self.style.SUCCESS("Successfully anonymized all users."))

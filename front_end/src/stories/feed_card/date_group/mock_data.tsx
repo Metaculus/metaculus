@@ -522,7 +522,7 @@ export const getMockData = (isResolved: boolean, isFanChart?: boolean) => {
               score_data: {},
               movement: null,
             },
-            single_aggregation: {
+            reputation_weighted: {
               history: [],
               latest: null,
               score_data: {},
@@ -1000,7 +1000,7 @@ export const getMockData = (isResolved: boolean, isFanChart?: boolean) => {
               score_data: {},
               movement: null,
             },
-            single_aggregation: {
+            reputation_weighted: {
               history: [],
               latest: null,
               score_data: {},
@@ -1511,7 +1511,7 @@ export const getMockData = (isResolved: boolean, isFanChart?: boolean) => {
               score_data: {},
               movement: null,
             },
-            single_aggregation: {
+            reputation_weighted: {
               history: [],
               latest: null,
               score_data: {},

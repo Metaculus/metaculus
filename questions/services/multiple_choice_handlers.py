@@ -178,9 +178,9 @@ def multiple_choice_reorder_options(
         forecast.save()
 
     # trigger recalculation of aggregates
-    from questions.services.forecasts import build_question_forecasts
+    from questions.services.forecasts import rebuild_question_aggregations
 
-    build_question_forecasts(question)
+    rebuild_question_aggregations(question)
 
     return question
 
@@ -282,9 +282,9 @@ def multiple_choice_delete_options(
         Forecast.objects.bulk_create(forecasts_to_create)
 
     # trigger recalculation of aggregates
-    from questions.services.forecasts import build_question_forecasts
+    from questions.services.forecasts import rebuild_question_aggregations
 
-    build_question_forecasts(question)
+    rebuild_question_aggregations(question)
 
     # notify users that about the change
     from questions.tasks import multiple_choice_delete_option_notifications
@@ -357,9 +357,9 @@ def multiple_choice_add_options(
         )
 
     # trigger recalculation of aggregates
-    from questions.services.forecasts import build_question_forecasts
+    from questions.services.forecasts import rebuild_question_aggregations
 
-    build_question_forecasts(question)
+    rebuild_question_aggregations(question)
 
     # notify users that about the change
     from questions.tasks import multiple_choice_add_option_notifications

@@ -1,4 +1,5 @@
 import logging
+from contextvars import ContextVar
 
 from django.conf import settings
 from django.http import JsonResponse, HttpResponse, Http404
@@ -8,6 +9,23 @@ from rest_framework.request import Request as DRFRequest
 from rest_framework.settings import api_settings
 
 logger = logging.getLogger(__name__)
+
+# Whether the request asks to see shadow aggregations in place of the default one.
+# The frontend sends this for staff who turned it on; serializers only honor it
+# for staff users.
+shadow_aggregations_requested: ContextVar[bool] = ContextVar(
+    "shadow_aggregations_requested", default=False
+)
+
+
+def shows_shadow_aggregations(user) -> bool:
+    """Whether this request should see shadow aggregations: staff who asked"""
+    return bool(
+        user
+        and user.is_authenticated
+        and user.is_staff
+        and shadow_aggregations_requested.get()
+    )
 
 
 def authenticate_request(request):
@@ -122,3 +140,17 @@ class HealthCheckMiddleware(MiddlewareMixin):
     def process_request(self, request):
         if request.META["PATH_INFO"] == "/api/healthcheck/":
             return HttpResponse("ok")
+
+
+class ShadowAggregationsMiddleware:
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        token = shadow_aggregations_requested.set(
+            request.headers.get("X-Shadow-Aggregations") == "true"
+        )
+        try:
+            return self.get_response(request)
+        finally:
+            shadow_aggregations_requested.reset(token)

@@ -12,11 +12,17 @@ import ConsumerContinuousTile from "./consumer_continuous_tile";
 type Props = {
   question: QuestionWithForecasts;
   forFeedPage?: boolean;
+  // Replaces the "Current estimate" label of numeric, discrete and date questions.
+  cpLabel?: string;
 };
 
 const FEED_CHART_HEIGHT = 50;
 
-const ConsumerQuestionTile: FC<Props> = ({ question, forFeedPage = false }) => {
+const ConsumerQuestionTile: FC<Props> = ({
+  question,
+  forFeedPage = false,
+  cpLabel,
+}) => {
   const forecastAvailability = getQuestionForecastAvailability(question);
   // Defer the chart mount until idle on the feed; render immediately elsewhere
   // (question-page sidebar, homepage, comment previews).
@@ -47,6 +53,7 @@ const ConsumerQuestionTile: FC<Props> = ({ question, forFeedPage = false }) => {
           <ConsumerContinuousTile
             question={question}
             forecastAvailability={forecastAvailability}
+            cpLabel={cpLabel}
           />
           {!shouldHideChart &&
             (shouldRenderFeedChart ? (

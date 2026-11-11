@@ -18,7 +18,10 @@ from tests.unit.test_comments.factories import factory_comment
 from tests.unit.test_posts.factories import factory_post
 from tests.unit.test_projects.factories import factory_project
 from tests.unit.test_questions.conftest import *  # noqa
-from tests.unit.test_questions.factories import create_question
+from tests.unit.test_questions.factories import (
+    create_question,
+    factory_group_of_questions,
+)
 from users.models import User
 
 
@@ -396,6 +399,38 @@ class TestPostUpdate:
         assert set(post.projects.all()) == {category_updated, tournament}
         # Ensure default project
         assert post.default_project == get_site_main_project()
+
+    def test_approved_subquestion_without_dates(self, user_admin_client):
+        now = timezone.now()
+        dates = {
+            "open_time": now,
+            "cp_reveal_time": now,
+            "scheduled_close_time": now + timedelta(days=1),
+            "scheduled_resolve_time": now + timedelta(days=2),
+        }
+        question = create_question(question_type=Question.QuestionType.BINARY, **dates)
+        post = factory_post(
+            group_of_questions=factory_group_of_questions(questions=[question])
+        )
+        new_question = {"title": "New", "type": "binary", "label": "New", **dates}
+        new_question["open_time"] = None
+
+        response = user_admin_client.put(
+            reverse("post-update", kwargs={"pk": post.pk}),
+            {
+                "title": "Group",
+                "group_of_questions": {
+                    "questions": [{"id": question.id}, new_question]
+                },
+            },
+            format="json",
+        )
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert response.data["non_field_errors"] == [
+            'Approved question "New" is missing: open time'
+        ]
+        assert post.group_of_questions.questions.count() == 1
 
 
 def test_posts_list(anon_client):

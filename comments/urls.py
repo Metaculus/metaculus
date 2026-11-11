@@ -38,6 +38,11 @@ urlpatterns = [
         common.comments_of_week_view,
         name="comments-of-week",
     ),
+    path(
+        "comments/project/<int:project_id>/publish-bot-comments/",
+        common.publish_project_bot_comments_api_view,
+        name="comment-publish-project-bot-comments",
+    ),
     # Key Factors layer
     path(
         "key-factors/<int:pk>/vote/",

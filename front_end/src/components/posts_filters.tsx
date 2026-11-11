@@ -114,13 +114,13 @@ const PostsFilters: FC<Props> = ({
     useFeedQuery();
   defaultOrder = defaultOrder ?? QuestionOrder.ActivityDesc;
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const debouncedAnalyticsEvent = useCallback(
-    debounce(() => {
-      sendAnalyticsEvent("feedSearch", {
-        event_category: "fromPostsFilter",
-      });
-    }, 2000),
+  const debouncedAnalyticsEvent = useMemo(
+    () =>
+      debounce(() => {
+        sendAnalyticsEvent("feedSearch", {
+          event_category: "fromPostsFilter",
+        });
+      }, 2000),
     []
   );
 

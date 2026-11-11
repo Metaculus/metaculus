@@ -3,13 +3,7 @@
 import { Tab, TabGroup, TabList } from "@headlessui/react";
 import { debounce } from "lodash";
 import { useTranslations } from "next-intl";
-import React, {
-  FC,
-  Fragment,
-  PropsWithChildren,
-  useCallback,
-  useMemo,
-} from "react";
+import React, { FC, Fragment, PropsWithChildren, useMemo } from "react";
 
 import SearchInput from "@/components/search_input";
 import {
@@ -53,13 +47,13 @@ const NewsFilters: React.FC<Props> = ({ categories }) => {
 
   const t = useTranslations();
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const debouncedAnalyticsEvent = useCallback(
-    debounce(() => {
-      sendAnalyticsEvent("feedSearch", {
-        event_category: "fromNews",
-      });
-    }, 2000),
+  const debouncedAnalyticsEvent = useMemo(
+    () =>
+      debounce(() => {
+        sendAnalyticsEvent("feedSearch", {
+          event_category: "fromNews",
+        });
+      }, 2000),
     []
   );
 

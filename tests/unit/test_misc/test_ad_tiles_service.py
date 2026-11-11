@@ -14,6 +14,7 @@ from misc.services.ad_tiles import (
 from projects.models import Project
 from projects.services.common import get_feed_project_tiles
 from tests.unit.test_misc.factories import factory_ad_tile
+from tests.unit.test_posts.factories import factory_post
 from tests.unit.test_projects.factories import factory_project
 
 
@@ -49,6 +50,20 @@ def test_combined_tiles_serializes_ads_in_order(user1):
     get_feed_project_tiles.clear_cache()
 
 
+def test_get_active_ad_tiles_qs_shuffles_ties():
+    first = factory_ad_tile(order=0)
+    tied = {factory_ad_tile(order=1).id for _ in range(5)}
+
+    orderings = set()
+    for _ in range(30):
+        ids = list(get_active_ad_tiles_qs().values_list("id", flat=True))
+        assert ids[0] == first.id
+        assert set(ids[1:]) == tied
+        orderings.add(tuple(ids))
+
+    assert len(orderings) > 1
+
+
 @pytest.mark.parametrize("link", ["fk", "url"])
 def test_combined_tiles_dedup_promoted_project(user1, link):
     cache.clear()
@@ -70,6 +85,28 @@ def test_combined_tiles_dedup_promoted_project(user1, link):
 
     assert any(t["type"] == "ad" for t in tiles)
     assert not any(
+        t["type"] == "project" and t["project"]["id"] == project.id for t in tiles
+    )
+    get_feed_project_tiles.clear_cache()
+
+
+def test_combined_tiles_targeted_ad_does_not_dedup_project(user1):
+    cache.clear()
+    get_feed_project_tiles.clear_cache()
+    now = timezone.now()
+    project = factory_project(
+        type=Project.ProjectTypes.TOURNAMENT, slug="cup-2026", start_date=now
+    )
+    factory_ad_tile(
+        title="Promo",
+        project=project,
+        url="https://metaculus.com/tournament/cup-2026/",
+        target_post=factory_post(),
+    )
+
+    tiles = get_combined_feed_tiles(user1)
+
+    assert any(
         t["type"] == "project" and t["project"]["id"] == project.id for t in tiles
     )
     get_feed_project_tiles.clear_cache()
@@ -126,4 +163,28 @@ def test_combined_tiles_expose_ad_placements(user1):
     ad_tiles = [t for t in tiles if t["type"] == "ad"]
 
     assert ad_tiles[0]["ad"]["placements"] == ["news_feed"]
+    get_feed_project_tiles.clear_cache()
+
+
+def test_combined_tiles_expose_ad_targets(user1):
+    cache.clear()
+    get_feed_project_tiles.clear_cache()
+    post = factory_post()
+    project = factory_project()
+    factory_ad_tile(title="Untargeted", order=0)
+    factory_ad_tile(title="On post", order=1, target_post=post)
+    factory_ad_tile(title="On project", order=2, target_project=project)
+
+    tiles = get_combined_feed_tiles(user1)
+    targets = {
+        t["ad"]["title"]: (t["ad"]["target_post_id"], t["ad"]["target_project_id"])
+        for t in tiles
+        if t["type"] == "ad"
+    }
+
+    assert targets == {
+        "Untargeted": (None, None),
+        "On post": (post.id, None),
+        "On project": (None, project.id),
+    }
     get_feed_project_tiles.clear_cache()

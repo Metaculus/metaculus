@@ -11,6 +11,8 @@ type Props = {
   isClosed: boolean;
   forecastAvailability: ForecastAvailability;
   variant?: "feed" | "question";
+  // Replaces "Current estimate" / "Latest estimate", e.g. on pages showing a past forecast.
+  label?: string;
 };
 
 const ContinuousCPBar: FC<Props> = ({
@@ -18,6 +20,7 @@ const ContinuousCPBar: FC<Props> = ({
   isClosed,
   forecastAvailability,
   variant = "feed",
+  label,
 }) => {
   const t = useTranslations();
 
@@ -32,7 +35,7 @@ const ContinuousCPBar: FC<Props> = ({
           "text-sm md:text-base": variant === "question",
         })}
       >
-        {isClosed ? t("latestEstimate") : t("currentEstimate")}
+        {label ?? (isClosed ? t("latestEstimate") : t("currentEstimate"))}
       </div>
       <div
         className={cn("font-bold text-olive-900 dark:text-olive-900-dark", {

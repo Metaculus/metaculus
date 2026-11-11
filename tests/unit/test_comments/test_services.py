@@ -1,11 +1,16 @@
 import pytest  # noqa
+from django.utils.translation import override
 from freezegun import freeze_time
 from rest_framework.exceptions import ValidationError
 
 from comments.models import KeyFactorVote, KeyFactorDriver, KeyFactorBaseRate
 from rest_framework.exceptions import PermissionDenied
 
-from comments.services.common import create_comment, soft_delete_comment
+from comments.services.common import (
+    create_comment,
+    soft_delete_comment,
+    update_comment,
+)
 from comments.services.key_factors.common import (
     key_factor_vote,
     create_key_factors,
@@ -400,3 +405,37 @@ def test_bot_with_allow_public_comments_can_post_public(post):
         user=bot, on_post=post, text="Public comment", is_private=False
     )
     assert comment.is_private is False
+
+
+@pytest.mark.parametrize(
+    "is_bot, is_private",
+    [(True, False), (False, True)],
+    ids=["public_bot_comment", "private_human_comment"],
+)
+@pytest.mark.parametrize(
+    "create_language, edit_language",
+    [("en", "original"), ("original", "en")],
+)
+def test_update_comment__edit_shown_in_every_language(
+    post, is_bot, is_private, create_language, edit_language
+):
+    author = factory_user(is_bot=is_bot, allow_public_comments=True)
+    with override(create_language):
+        comment = create_comment(
+            user=author, on_post=post, text="Old text", is_private=is_private
+        )
+
+    with override(edit_language):
+        update_comment(comment, text="New text")
+
+    comment.refresh_from_db()
+    texts_by_language = {}
+    for language in ("original", "en", "es"):
+        with override(language):
+            texts_by_language[language] = comment.text
+
+    assert texts_by_language == {
+        "original": "New text",
+        "en": "New text",
+        "es": "New text",
+    }

@@ -1,10 +1,14 @@
 from datetime import datetime
 
 import pytest  # noqa
+from django.contrib import admin
+from django.core.exceptions import ValidationError
+from django.forms import model_to_dict
 from django.utils import timezone
 from django.utils.timezone import make_aware
 from freezegun import freeze_time
 
+from posts.admin import PostAdmin, PostAdminForm
 from posts.models import Post
 from projects.models import Project, ProjectUserPermission
 from projects.permissions import ObjectPermission
@@ -535,3 +539,48 @@ def test_annotate_has_active_forecast(
     )
 
     assert post.has_active_forecast == has_active_forecast
+
+
+class TestApprovedQuestionDates:
+    def test_question_clean(self, user1):
+        question = create_question(
+            question_type=Question.QuestionType.BINARY, label_original="Q1"
+        )
+        factory_post(author=user1, question=question)
+
+        with pytest.raises(ValidationError, match='"Q1" is missing: open time'):
+            question.clean()
+
+    def test_admin_approval(self, user1):
+        question = create_question(
+            question_type=Question.QuestionType.BINARY, label_original="Q1"
+        )
+        post = factory_post(
+            author=user1, question=question, curation_status=Post.CurationStatus.PENDING
+        )
+        data = {
+            k: v
+            for k, v in model_to_dict(post).items()
+            if v is not None and k != "embedding_vector"
+        }
+        data["curation_status"] = Post.CurationStatus.APPROVED
+
+        form = PostAdminForm(data=data, instance=post)
+
+        assert not form.is_valid()
+        assert '"Q1" is missing: open time' in form.non_field_errors()[0]
+
+    def test_admin_relink_syncs_question_post(self, user1, mocker):
+        mocker.patch("posts.admin.run_post_generate_history_snapshot.send")
+        post = factory_post(
+            author=user1,
+            question=create_question(question_type=Question.QuestionType.BINARY),
+        )
+        post.question = create_question(question_type=Question.QuestionType.BINARY)
+
+        PostAdmin(Post, admin.site).save_model(
+            mocker.Mock(user=user1), post, mocker.Mock(changed_data=[]), change=True
+        )
+
+        post.question.refresh_from_db()
+        assert post.question.post_id == post.id

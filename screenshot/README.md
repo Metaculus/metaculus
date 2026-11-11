@@ -28,3 +28,11 @@ SCREENSHOT_SERVICE_API_URL = "http://localhost:9000/api/screenshot"
 SCREENSHOT_SERVICE_API_KEY = "your-key"
 
 ```
+
+### Dashboard PDFs
+
+Labor Hub and the Global Health Monitor export PDFs through `front_end/src/utils/hub_pdf.server.ts`. It asks this service to print `PUBLIC_APP_URL` plus the page path, so the service must be able to load that URL as an anonymous visitor:
+
+- **Production** works as is.
+- **PR previews** (`*.mtcl.cc`) sit behind Cloudflare Access, so the service prints the Access sign-in page instead of the dashboard. Previews need either an Access bypass for this service (its egress IPs, or the `MetaculusScreenshotBot` user agent) or a Cloudflare Access service token that the service sends as `CF-Access-Client-Id` / `CF-Access-Client-Secret`, only on requests to the target host.
+- **Local** exports need `PUBLIC_APP_URL` to be reachable from wherever the service runs (for example a tunnel); `localhost` only works if the service runs on the same machine.

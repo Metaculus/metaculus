@@ -10,6 +10,7 @@ from rest_framework.test import APIClient
 from rest_framework.response import Response
 from django.utils import timezone
 from users.models import User
+from users.services.bots_management import create_bot
 from users.services.spam_detection import ask_gpt_to_check_profile_for_spam
 
 logger = logging.getLogger(__name__)
@@ -21,7 +22,12 @@ class TestUserProfileUpdate:
     spam_free_pass_threshold = 7
 
     def test_update_bio_with_spam(
-        self, user1_client: APIClient, mocker: Mock, user1: User
+        self,
+        user1_client: APIClient,
+        anon_client: APIClient,
+        mocker: Mock,
+        user1: User,
+        django_capture_on_commit_callbacks,
     ) -> None:
         mock_gpt_spam_check, mock_send_mail = mock_spam_detection_and_email(
             mocker, True
@@ -29,18 +35,97 @@ class TestUserProfileUpdate:
 
         days_since_joining = self.spam_free_pass_threshold - 1
         self.set_up_user(user1, days_since_joining)
-        original_bio = user1.bio
         new_bio = "This is spam content"
 
-        response = user1_client.patch(self.url, {"bio": new_bio}, format="json")
+        with django_capture_on_commit_callbacks(execute=True):
+            response = user1_client.patch(self.url, {"bio": new_bio}, format="json")
 
         assert isinstance(response, Response)
         user1.refresh_from_db()
         mock_gpt_spam_check.assert_called_once()
 
         self.assert_response_is_403_with_proper_error_code(response)
-        self.assert_user_is_deactivated_and_unchanged(user1, original_bio, new_bio)
+        self.assert_deactivated_with_rejected_bio_kept(user1, new_bio, anon_client)
         self.assert_notification_email_sent(mock_send_mail, self.user_email)
+
+    def test_rejected_website_is_kept(
+        self, user1_client: APIClient, mocker: Mock, user1: User
+    ) -> None:
+        mock_spam_detection_and_email(mocker, True)
+        self.set_up_user(user1, self.spam_free_pass_threshold - 1)
+        new_website = "https://spam-casino.example"
+
+        response = user1_client.patch(self.url, {"website": new_website}, format="json")
+
+        self.assert_response_is_403_with_proper_error_code(response)
+        user1.refresh_from_db()
+        assert not user1.is_active and user1.is_spam
+        assert user1.website == new_website
+
+    def test_rejected_bot_profile_deactivates_only_the_bot(
+        self,
+        user1_client: APIClient,
+        anon_client: APIClient,
+        mocker: Mock,
+        user1: User,
+        django_capture_on_commit_callbacks,
+    ) -> None:
+        _, mock_send_mail = mock_spam_detection_and_email(mocker, True)
+        self.set_up_user(user1, 30)
+        bot = create_bot(bot_owner=user1, username="user1-bot")
+        new_bio = "This is spam content"
+
+        with django_capture_on_commit_callbacks(execute=True):
+            response = user1_client.patch(
+                reverse("update-bot", args=[bot.id]), {"bio": new_bio}, format="json"
+            )
+
+        self.assert_response_is_403_with_proper_error_code(response)
+        user1.refresh_from_db()
+        bot.refresh_from_db()
+        assert user1.is_active and not user1.is_spam
+        self.assert_deactivated_with_rejected_bio_kept(bot, new_bio, anon_client)
+        self.assert_bot_deactivation_email_sent_to_owner(mock_send_mail, bot)
+
+    def test_owner_cannot_overwrite_rejected_bio_on_deactivated_bot(
+        self, user1_client: APIClient, mocker: Mock, user1: User
+    ) -> None:
+        mock_spam_detection_and_email(mocker, True)
+        self.set_up_user(user1, 30)
+        bot = create_bot(bot_owner=user1, username="user1-bot")
+        update_bot_url = reverse("update-bot", args=[bot.id])
+        user1_client.patch(update_bot_url, {"bio": "This is spam content"})
+
+        mock_spam_detection_and_email(mocker, False)
+        response = user1_client.patch(update_bot_url, {"bio": "A clean bio"})
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+        bot.refresh_from_db()
+        assert bot.bio == "This is spam content"
+
+    def test_rejected_profile_while_logged_in_as_bot_deactivates_only_the_bot(
+        self,
+        anon_client: APIClient,
+        mocker: Mock,
+        user1: User,
+        django_capture_on_commit_callbacks,
+    ) -> None:
+        _, mock_send_mail = mock_spam_detection_and_email(mocker, True)
+        self.set_up_user(user1, 30)
+        bot = create_bot(bot_owner=user1, username="user1-bot")
+        bot_client = APIClient()
+        bot_client.force_authenticate(user=bot)
+        new_bio = "This is spam content"
+
+        with django_capture_on_commit_callbacks(execute=True):
+            response = bot_client.patch(self.url, {"bio": new_bio}, format="json")
+
+        self.assert_response_is_403_with_proper_error_code(response)
+        user1.refresh_from_db()
+        bot.refresh_from_db()
+        assert user1.is_active and not user1.is_spam
+        self.assert_deactivated_with_rejected_bio_kept(bot, new_bio, anon_client)
+        self.assert_bot_deactivation_email_sent_to_owner(mock_send_mail, bot)
 
     def test_update_bio_without_spam(
         self, user1_client: APIClient, mocker: Mock, user1: User
@@ -207,12 +292,16 @@ class TestUserProfileUpdate:
             "There needs to be an error code"
         )
 
-    def assert_user_is_deactivated_and_unchanged(
-        self, user: User, original_bio: str, new_bio: str
+    def assert_deactivated_with_rejected_bio_kept(
+        self, user: User, new_bio: str, anon_client: APIClient
     ) -> None:
         assert not user.is_active, "The user should be soft deleted"
-        assert user.bio != new_bio, "The bio should not be updated"
-        assert user.bio == original_bio, "The bio should not be changed"
+        assert user.is_spam, "The user should be marked as spam"
+        assert user.bio == new_bio, "The rejected bio should be kept for staff review"
+        public_profile = anon_client.get(reverse("user-profile", args=[user.id]))
+        assert public_profile.status_code == status.HTTP_404_NOT_FOUND, (
+            "The rejected bio should not be public"
+        )
 
     def assert_notification_email_sent(
         self, mock_send_mail: Mock, recipient_email: str
@@ -225,6 +314,14 @@ class TestUserProfileUpdate:
         assert "support@metaculus.com" in call_kwargs["message"], (
             "Message should mention support email"
         )
+
+    def assert_bot_deactivation_email_sent_to_owner(
+        self, mock_send_mail: Mock, bot: User
+    ) -> None:
+        self.assert_notification_email_sent(mock_send_mail, self.user_email)
+        message = mock_send_mail.call_args[1]["message"]
+        assert bot.username in message, "Email should name the deactivated bot"
+        assert "Your own account is not affected" in message
 
 
 def mock_spam_detection_and_email(

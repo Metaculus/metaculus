@@ -1,6 +1,9 @@
 [install]
-# Only install package versions published at least 3 days ago
-minimumReleaseAge = 259200 # seconds
+# Only install package versions published at least 6 hours ago
+minimumReleaseAge = 21600 # seconds
 
 # Exclude trusted packages from the age gate
-minimumReleaseAgeExcludes = ["sanitize-html", "launder"]
+minimumReleaseAgeExcludes = []
+
+[install.security]
+scanner = "@socketsecurity/bun-security-scanner"

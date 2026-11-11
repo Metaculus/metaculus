@@ -2,6 +2,8 @@ from django import forms
 from django.contrib import admin
 from django.core.exceptions import ValidationError
 
+from posts.models import Post
+
 from .models import (
     AdTile,
     Bulletin,
@@ -30,7 +32,28 @@ class AdTileAdminForm(forms.ModelForm):
         project = cleaned_data.get("project")
         publish_at = cleaned_data.get("publish_at")
         expires_at = cleaned_data.get("expires_at")
+        target_post = cleaned_data.get("target_post")
+        target_project = cleaned_data.get("target_project")
+        placements = cleaned_data.get("placements") or []
 
+        if target_post and target_project:
+            raise ValidationError("Set at most one of Target post or Target project.")
+        if (target_post or target_project) and placements != [
+            AdTile.Placements.QUESTION_SIDEBAR.value
+        ]:
+            raise ValidationError(
+                "Targeted tiles can only use the question sidebar placement."
+            )
+        # Targeting is filtered client-side, so every visitor receives targeted tiles.
+        if target_post and (
+            target_post.is_private()
+            or target_post.curation_status != Post.CurationStatus.APPROVED
+        ):
+            self.add_error(
+                "target_post", "Only public, published questions can be targeted."
+            )
+        if target_project and target_project.default_permission is None:
+            self.add_error("target_project", "Only public projects can be targeted.")
         if not title and not project:
             raise ValidationError(
                 "Title is required unless a Project is selected (its name is used)."
@@ -56,11 +79,13 @@ class AdTileAdmin(admin.ModelAdmin):
         "publish_at",
         "expires_at",
         "project",
+        "target_post",
+        "target_project",
     ]
     list_filter = ["is_active"]
     search_fields = ["title", "url"]
     ordering = ["order"]
-    autocomplete_fields = ["project"]
+    autocomplete_fields = ["project", "target_post", "target_project"]
 
     @admin.display(description="Title")
     def display_title(self, obj):

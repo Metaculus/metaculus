@@ -6,9 +6,9 @@ import { ServiceType } from "@/constants/services";
 
 import CaseStudyCard from "../../pro-forecasters/components/case_study_card";
 import ProForecastersBlock from "../../pro-forecasters/components/pro_forecasters_block";
-import Button from "../button";
 import { ServiceOption } from "../contact_section/contact_form";
 import ContactSection from "../contact_section/contact_section";
+import ContactUsButton from "../contact_us_button";
 import StepCard from "../step_card";
 
 type Props = {
@@ -67,9 +67,9 @@ const ProForecastersPageTemplate: React.FC<Props> = async ({
             </div>
           </div>
 
-          <Button href="#contact-us" className="mx-auto mt-8 block">
+          <ContactUsButton className="mx-auto mt-8 block">
             {t("contactUs")}
-          </Button>
+          </ContactUsButton>
         </div>
 
         <div className="mt-10 text-blue-700 dark:text-blue-700-dark sm:mt-16 lg:mt-[120px]">

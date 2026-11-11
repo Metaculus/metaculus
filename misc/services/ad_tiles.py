@@ -32,7 +32,8 @@ def get_active_ad_tiles_qs() -> QuerySet[AdTile]:
         .filter(Q(publish_at__isnull=True) | Q(publish_at__lte=now))
         .filter(Q(expires_at__isnull=True) | Q(expires_at__gt=now))
         .select_related("project")
-        .order_by("order", "-created_at")
+        # Ads sharing the same `order` are shuffled on every request.
+        .order_by("order", "?")
     )
 
 
@@ -68,8 +69,12 @@ def get_combined_feed_tiles(user: User | None = None) -> list[dict]:
     ads = list(get_active_ad_tiles_qs())
 
     # De-dup: any project an ad points at (via FK or parsed URL) suppresses its auto tile.
-    ad_project_ids = {ad.project_id for ad in ads if ad.project_id}
-    ad_project_ids |= project_ids_from_urls([ad.url for ad in ads if ad.url])
+    # Targeted ads only show on some question sidebars, so they can't replace it globally.
+    global_ads = [
+        ad for ad in ads if not ad.target_post_id and not ad.target_project_id
+    ]
+    ad_project_ids = {ad.project_id for ad in global_ads if ad.project_id}
+    ad_project_ids |= project_ids_from_urls([ad.url for ad in global_ads if ad.url])
     project_tiles = [
         t for t in get_feed_project_tiles() if t["project_id"] not in ad_project_ids
     ]

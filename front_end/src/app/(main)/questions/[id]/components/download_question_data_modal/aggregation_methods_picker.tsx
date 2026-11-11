@@ -89,8 +89,8 @@ const useAggregationMethodOptions = () => {
 
     if (user?.is_staff) {
       options.push({
-        value: DownloadAggregationMethod.single_aggregation,
-        label: t("singleAggregation"),
+        value: DownloadAggregationMethod.reputation_weighted,
+        label: t("reputationWeighted"),
       });
       options.push({
         value: DownloadAggregationMethod.metaculus_prediction,

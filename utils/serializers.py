@@ -185,7 +185,7 @@ class DataGetRequestSerializer(serializers.Serializer):
                 aggregation_methods = [
                     method
                     for method in aggregation_methods
-                    if method != AggregationMethod.SINGLE_AGGREGATION
+                    if method != AggregationMethod.REPUTATION_WEIGHTED
                 ]
             attrs["aggregation_methods"] = aggregation_methods
 

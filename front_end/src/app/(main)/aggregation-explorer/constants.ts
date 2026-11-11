@@ -21,8 +21,8 @@ export const AGGREGATION_EXPLORER_OPTIONS: readonly AggregationOption[] = [
     supportsUserIds: true,
   },
   {
-    id: AggregationMethod.single_aggregation,
-    labelKey: "singleAggregationLabel",
+    id: AggregationMethod.reputation_weighted,
+    labelKey: "reputationWeightedLabel",
     isStaffOnly: true,
     supportsBotToggle: true,
     supportsUserIds: true,

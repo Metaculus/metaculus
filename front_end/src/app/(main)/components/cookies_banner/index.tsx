@@ -48,6 +48,7 @@ const CookiesBanner: FC = () => {
     const consentValue: ConsentGiven = analyticsConsent ? "yes" : "no";
     safeLocalStorage.setItem(STORAGE_KEY, consentValue);
     setConsentGiven(consentValue);
+    window.dispatchEvent(new Event("analytics-consent-changed"));
     router.refresh();
   };
 

@@ -14,6 +14,7 @@ type Props = {
   forecastAvailability: ForecastAvailability;
   variant?: "feed" | "question";
   overrideCenter?: number | null;
+  cpLabel?: string;
 };
 
 const ConsumerContinuousTile: FC<Props> = ({
@@ -21,6 +22,7 @@ const ConsumerContinuousTile: FC<Props> = ({
   forecastAvailability,
   variant = "feed",
   overrideCenter,
+  cpLabel,
 }) => {
   const locale = useLocale();
   const t = useTranslations();
@@ -74,6 +76,7 @@ const ConsumerContinuousTile: FC<Props> = ({
         isClosed={question.status === QuestionStatus.CLOSED}
         forecastAvailability={forecastAvailability}
         variant={variant}
+        label={cpLabel}
       />
     </div>
   );
