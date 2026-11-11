@@ -14,6 +14,7 @@ from comments.serializers.key_factors import (
     KeyFactorWriteSerializer,
     serialize_key_factor_votes,
 )
+from comments.services.common import get_comment_permission_for_user
 from comments.services.key_factors.common import (
     create_key_factors,
     key_factor_vote,
@@ -21,6 +22,7 @@ from comments.services.key_factors.common import (
     get_key_factor_vote_type_and_choices,
 )
 from comments.services.key_factors.suggestions import generate_key_factors_for_comment
+from comments.services.text_archive import get_full_text
 from notifications.services import send_key_factor_report_notification_to_staff
 from posts.services.common import get_post_permission_for_user
 from projects.permissions import ObjectPermission
@@ -92,6 +94,13 @@ def comment_suggested_key_factors_view(request: Request, pk: int):
     permission = get_post_permission_for_user(comment.on_post, user=request.user)
     ObjectPermission.can_view(permission, raise_exception=True)
 
+    if not (request.user.is_staff or request.user.is_superuser):
+        permission = get_comment_permission_for_user(comment, user=request.user)
+        ObjectPermission.can_view(permission, raise_exception=True)
+
+        if comment.is_soft_deleted:
+            raise PermissionDenied("This comment has been deleted.")
+
     existing_keyfactors = (
         KeyFactor.objects.for_posts([comment.on_post])
         .filter_active()
@@ -99,7 +108,7 @@ def comment_suggested_key_factors_view(request: Request, pk: int):
     )
 
     suggested_key_factors = generate_key_factors_for_comment(
-        comment.text, existing_keyfactors, comment.on_post
+        get_full_text(comment) or comment.text, existing_keyfactors, comment.on_post
     )
 
     # TODO: check N+1 query
