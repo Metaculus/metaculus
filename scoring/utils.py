@@ -8,6 +8,7 @@ from io import StringIO
 
 import numpy as np
 from django.conf import settings
+from django.core.cache import cache
 from django.db import transaction
 from django.db.models import (
     QuerySet,
@@ -72,6 +73,7 @@ def get_question_scores(
     score_types: list[str] | None = None,
     aggregation_methods: list[AggregationMethod] | None = None,
     only_include_user_ids: list[int] | None = None,
+    forecast_horizon_start: datetime | None = None,
 ) -> list[Score]:
     if aggregation_methods is None:
         aggregation_methods = [
@@ -91,6 +93,7 @@ def get_question_scores(
         spot_forecast_time=spot_scoring_time,
         aggregation_methods=aggregation_methods,
         only_include_user_ids=only_include_user_ids,
+        forecast_horizon_start=forecast_horizon_start,
     )
     return new_scores
 
@@ -140,6 +143,216 @@ def score_question(
         Score.objects.bulk_create(new_scores, batch_size=500)
 
     invalidate_average_coverage_cache([question])
+    invalidate_clipped_scores_cache(question)
+
+
+# Score types whose value and coverage depend on the forecast horizon's start.
+# Spot scores are evaluated at a single point in time and are unaffected.
+HORIZON_DEPENDENT_SCORE_TYPES = (
+    ScoreTypes.PEER,
+    ScoreTypes.BASELINE,
+    ScoreTypes.RELATIVE_LEGACY,
+)
+CLIPPED_SCORES_CACHE_TIMEOUT = 60 * 60 * 24 * 7
+# Leaderboards that concluded (finalize_time, or the project's close_date)
+# before this date keep scoring every question over its full lifetime, so past
+# results, medals and prizes do not change - even on a forced recalculation.
+# Set to the date the tournament-start horizon was released. The help text and
+# FAQ deliberately don't repeat the date, so only this constant needs changing.
+HORIZON_CLIPPING_CUTOFF = make_aware(datetime(2026, 11, 6))
+
+
+def _clipped_scores_version_key(question_id: int) -> str:
+    return f"clipped_scores_version:{question_id}"
+
+
+def invalidate_clipped_scores_cache(question: Question) -> None:
+    # Bumping the version orphans every cached clipped score for this question,
+    # whatever horizon start it was computed with.
+    cache.set(
+        _clipped_scores_version_key(question.id), timezone.now().timestamp(), None
+    )
+
+
+def get_leaderboard_horizon_start(leaderboard: Leaderboard) -> datetime | None:
+    """
+    The time from which a project leaderboard scores its questions.
+
+    A tournament can include questions that opened before the tournament started.
+    Scoring those over their full lifetime would make full coverage impossible for
+    anyone who joined with the tournament, and would reward forecasts made before
+    it began. Such questions are therefore scored on the leaderboard as if they
+    opened at the leaderboard's start_time (or the project's start_date). The
+    question's own stored scores are unchanged.
+
+    Only tournaments and question series are clipped, since their start date
+    marks the start of the competition. Returns None when no clipping applies:
+    other project types (global leaderboards, communities, ...), leaderboards
+    without a start date, spot-scored leaderboards, leaderboards that concluded
+    before HORIZON_CLIPPING_CUTOFF, and leaderboards with no finalize_time or
+    close_date that were created before it.
+    """
+    project = leaderboard.project
+    if project is None or project.type not in (
+        Project.ProjectTypes.TOURNAMENT,
+        Project.ProjectTypes.QUESTION_SERIES,
+    ):
+        return None
+    concluded_at = leaderboard.finalize_time or project.close_date
+    if concluded_at and concluded_at < HORIZON_CLIPPING_CUTOFF:
+        return None
+    if (
+        concluded_at is None
+        and leaderboard.created_at
+        and leaderboard.created_at < HORIZON_CLIPPING_CUTOFF
+    ):
+        # Without a finalize_time or close_date there is no conclusion date to
+        # compare, so decide by when the leaderboard was created. This never
+        # changes, so a leaderboard that is force-finalized later keeps the
+        # same scoring rule for its final results, breakdowns and force updates.
+        return None
+    if leaderboard.score_type in (
+        LeaderboardScoreTypes.COMMENT_INSIGHT,
+        LeaderboardScoreTypes.QUESTION_WRITING,
+        LeaderboardScoreTypes.MANUAL,
+        LeaderboardScoreTypes.SPOT_PEER_TOURNAMENT,
+        LeaderboardScoreTypes.SPOT_BASELINE_TOURNAMENT,
+    ):
+        return None
+    return leaderboard.start_time or project.start_date
+
+
+def question_needs_clipping(question: Question, horizon_start: datetime | None) -> bool:
+    """
+    True if the question opened before `horizon_start` and was still open then.
+    Questions that closed (early or on schedule) before the start keep their
+    full-lifetime scores rather than scoring zero for everyone.
+    """
+    if not (horizon_start and question.open_time and question.scheduled_close_time):
+        return False
+    question_end = min(
+        question.scheduled_close_time,
+        question.actual_close_time or question.scheduled_close_time,
+    )
+    return question.open_time < horizon_start < question_end
+
+
+def get_clipped_question_scores(
+    question: Question,
+    score_type: str,
+    horizon_start: datetime,
+    aggregation_methods: list[AggregationMethod],
+) -> list[Score]:
+    """
+    Unsaved Scores for `question`'s users and the given `aggregation_methods`,
+    evaluated with its forecast horizon starting at `horizon_start`. Cached
+    until the question is rescored.
+    """
+    aggregation_methods = sorted(set(aggregation_methods))
+    version = cache.get(_clipped_scores_version_key(question.id), 0)
+    key = (
+        f"clipped_scores:{question.id}:{version}:{score_type}:"
+        f"{','.join(aggregation_methods)}:"
+        f"{horizon_start.timestamp()}:{question.resolution}:"
+        f"{question.resolution_set_time.timestamp() if question.resolution_set_time else ''}"
+    )
+    rows = cache.get(key)
+    if rows is None:
+        scores = get_question_scores(
+            question=question,
+            resolution=question.resolution,
+            score_types=[score_type],
+            aggregation_methods=aggregation_methods,
+            forecast_horizon_start=horizon_start,
+        )
+        rows = [(s.user_id, s.aggregation_method, s.score, s.coverage) for s in scores]
+        cache.set(key, rows, CLIPPED_SCORES_CACHE_TIMEOUT)
+    return [
+        Score(
+            question=question,
+            user_id=user_id,
+            aggregation_method=aggregation_method,
+            score=score,
+            coverage=coverage,
+            score_type=score_type,
+            edited_at=question.resolution_set_time,
+        )
+        for user_id, aggregation_method, score, coverage in rows
+    ]
+
+
+def get_archived_question_score_types(
+    question_score_types: dict[int, str],
+) -> set[tuple[int, str]]:
+    """
+    Returns the (question_id, score_type) pairs, out of those given, that have
+    any ArchivedScore. Such questions are never clipped.
+    """
+    if not question_score_types:
+        return set()
+    pairs = set(
+        ArchivedScore.objects.filter(
+            question_id__in=question_score_types.keys(),
+            score_type__in=set(question_score_types.values()),
+        ).values_list("question_id", "score_type")
+    )
+    return {
+        (question_id, score_type)
+        for question_id, score_type in pairs
+        if question_score_types[question_id] == score_type
+    }
+
+
+def apply_leaderboard_horizon(
+    scores: list[Score | ArchivedScore],
+    leaderboard: Leaderboard,
+    user_ids: set[int] | None = None,
+) -> list[Score | ArchivedScore]:
+    """
+    Replaces the stored Scores of questions that opened before the leaderboard's
+    start with Scores computed from that start (see get_leaderboard_horizon_start).
+    Only the aggregation methods present in `scores` are recomputed. If
+    `user_ids` is given, only those users' recomputed scores are kept.
+
+    Questions with any ArchivedScore of the score type are never clipped. This
+    is checked against the database rather than `scores`, so the leaderboard and
+    a single user's contributions make the same decision.
+    """
+    horizon_start = get_leaderboard_horizon_start(leaderboard)
+    if not horizon_start:
+        return scores
+    to_rescore: dict[int, tuple[Question, str]] = {}
+    methods: dict[int, set[AggregationMethod]] = defaultdict(set)
+    for score in scores:
+        if isinstance(score, ArchivedScore):
+            continue
+        if score.score_type not in HORIZON_DEPENDENT_SCORE_TYPES:
+            continue
+        if question_needs_clipping(score.question, horizon_start):
+            to_rescore[score.question_id] = (score.question, score.score_type)
+            if score.aggregation_method:
+                methods[score.question_id].add(score.aggregation_method)
+    if not to_rescore:
+        return scores
+    archived = get_archived_question_score_types(
+        {question_id: score_type for question_id, (_, score_type) in to_rescore.items()}
+    )
+    to_rescore = {
+        question_id: (question, score_type)
+        for question_id, (question, score_type) in to_rescore.items()
+        if (question_id, score_type) not in archived
+    }
+    if not to_rescore:
+        return scores
+
+    new_scores = [s for s in scores if s.question_id not in to_rescore]
+    for question_id, (question, score_type) in to_rescore.items():
+        for score in get_clipped_question_scores(
+            question, score_type, horizon_start, list(methods[question_id])
+        ):
+            if user_ids is None or score.user_id in user_ids:
+                new_scores.append(score)
+    return new_scores
 
 
 def retrieve_question_scores(
@@ -187,6 +400,11 @@ def retrieve_question_scores(
     ).filter(archived_exists=False)
 
     scores = list(archived_scores) + list(calculated_scores)
+    scores = apply_leaderboard_horizon(
+        scores,
+        leaderboard,
+        user_ids=set(user_list.values_list("id", flat=True)) if user_list else None,
+    )
     scores = sorted(scores, key=lambda x: x.user_id or x.score)
 
     return scores
@@ -1243,6 +1461,7 @@ def get_contributions(
     for score in calculated_scores:
         if (score.question_id, score.aggregation_method) not in archived_pairs:
             scores.append(score)
+    scores = apply_leaderboard_horizon(scores, leaderboard, user_ids={user.id})
     if "global" in leaderboard.score_type:
         # There are so many questions in global leaderboards that we don't
         # need to make unpopulated contributions for questions that have not
@@ -1263,6 +1482,24 @@ def get_contributions(
     ]
     # add unpopulated contributions for other questions
     scored_question = {score.question for score in scores}
+    horizon_start = get_leaderboard_horizon_start(leaderboard)
+    base_score_type = LeaderboardScoreTypes.get_base_score(leaderboard.score_type)
+    live_clipped_ids: set[int] = set()
+    if with_live_coverage and horizon_start:
+        # Same rule as apply_leaderboard_horizon: no clipping for questions
+        # with archived scores of the score type.
+        clip_candidates = {
+            question.id: base_score_type or question.default_score_type
+            for question in questions
+            if question not in scored_question
+            and question_needs_clipping(question, horizon_start)
+        }
+        archived = get_archived_question_score_types(clip_candidates)
+        live_clipped_ids = {
+            question_id
+            for question_id, score_type in clip_candidates.items()
+            if (question_id, score_type) not in archived
+        }
     if leaderboard.score_type in [
         LeaderboardScoreTypes.PEER_TOURNAMENT,
         LeaderboardScoreTypes.DEFAULT,
@@ -1277,6 +1514,8 @@ def get_contributions(
                 if with_live_coverage:
                     # coverage is added for questions that the user has predicted
                     forecast_horizon_start = question.open_time.timestamp()
+                    if question.id in live_clipped_ids:
+                        forecast_horizon_start = horizon_start.timestamp()
                     forecast_horizon_end = question.scheduled_close_time.timestamp()
                     now = timezone.now().timestamp()
                     covered = 0
