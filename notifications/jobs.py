@@ -3,7 +3,7 @@ from collections import defaultdict
 from datetime import timedelta
 
 import dramatiq
-from django.db.models import Max, Q
+from django.db.models import Q
 from django.utils import timezone
 
 from notifications.models import Notification
@@ -17,7 +17,6 @@ logger = logging.getLogger(__name__)
 
 # Sent notifications older than this are deleted
 SENT_NOTIFICATION_RETENTION_DAYS = 90
-DELETE_BATCH_SIZE = 10_000
 
 
 def _get_notification_schedules() -> dict[str, Q]:
@@ -104,27 +103,11 @@ def job_delete_old_sent_notifications():
     Deletes notifications whose email went out more than
     `SENT_NOTIFICATION_RETENTION_DAYS` ago. Notifications only feed the email
     queue, so nothing reads a row back once it has been sent.
-
-    There is no index on `created_at`, so the cutoff is translated once into
-    an id and the rows are then deleted in primary-key batches.
     """
 
     cutoff = timezone.now() - timedelta(days=SENT_NOTIFICATION_RETENTION_DAYS)
-    cutoff_id = Notification.objects.filter(created_at__lt=cutoff).aggregate(
-        max_id=Max("id")
-    )["max_id"]
-
-    if cutoff_id is None:
-        return
-
-    qs = Notification.objects.filter(
-        id__lte=cutoff_id, created_at__lt=cutoff, email_sent=True
-    )
-    deleted = 0
-
-    while ids := list(
-        qs.order_by("id").values_list("id", flat=True)[:DELETE_BATCH_SIZE]
-    ):
-        deleted += Notification.objects.filter(id__in=ids).delete()[0]
+    deleted, _ = Notification.objects.filter(
+        created_at__lt=cutoff, email_sent=True
+    ).delete()
 
     logger.info(f"Deleted {deleted} sent notification(s) older than {cutoff}")
