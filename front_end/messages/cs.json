@@ -2998,5 +2998,9 @@
   "worldByYearNowMq11679": "Kniha vytvořená AI se objevila na seznamu bestsellerů New York Times.",
   "worldByYearFooterNote": "Otázky označené Metaculus jsou živé předpovědi komunity (načtené {readDate}, rozptyl je přizpůsoben prostředním 50 % předpovědí komunity); ostatní jsou ilustrativní ukázky. Změna se počítá jako uskutečněná, když její pravděpodobnost do konce zvoleného roku dosáhne alespoň 50 %. Otázky na schopnosti se ptají, kdy AI něco dokáže; otázky na rozšíření se ptají, kdy se to stane součástí každodenního života.",
   "worldByYearToastRelease": "Pusťte a zobrazí se <b>{year}</b>",
-  "worldByYearToastShowing": "Zobrazeno <b>{year}</b>"
+  "worldByYearToastShowing": "Zobrazeno <b>{year}</b>",
+  "worldByYearTopBarTitle": "<title></title> v roce <year></year>",
+  "worldByYearTopBarHero": "Náš svět s AI",
+  "worldByYearTopBarOverview": "Náš svět",
+  "worldByYearMiniTimelineValue": "{year}, {count, plural, one {# předpověď překročí} few {# předpovědi překročí} many {# předpovědi překročí} other {# předpovědí překročí}} 50 %"
 }

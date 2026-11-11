@@ -183,6 +183,7 @@ export function AreaSection({ area }: { area: WorldArea }) {
 
   return (
     <section
+      data-wby-section={area}
       className={cn(
         HERO_THEME_CLASSNAME,
         "overflow-x-clip bg-[var(--wby-bg)] font-sans text-[14px] text-[var(--wby-fg3)]"

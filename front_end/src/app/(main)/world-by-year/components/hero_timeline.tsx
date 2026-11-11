@@ -444,6 +444,7 @@ const HeroTimeline: FC<Props> = ({
         {renderZone("above")}
         <div
           ref={trackRef}
+          data-wby-track
           role="slider"
           tabIndex={0}
           aria-label={t("worldByYearYear")}

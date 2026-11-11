@@ -21,3 +21,53 @@
     opacity: 0.35;
   }
 }
+
+/* Top bar: the title and its tile roll like a drum when the section in view
+   changes. */
+.wby-roll {
+  display: inline-grid;
+  vertical-align: baseline;
+  overflow: clip;
+  overflow-clip-margin: 0.25em 0;
+  perspective: 320px;
+  justify-items: start;
+  transition: width 0.46s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.wby-roll > span {
+  grid-area: 1 / 1;
+  white-space: nowrap;
+  transform-origin: 50% 50%;
+  backface-visibility: hidden;
+  transition:
+    transform 0.42s cubic-bezier(0.23, 1, 0.32, 1),
+    opacity 0.3s ease;
+}
+
+.wby-roll > .wby-roll-in,
+.wby-roll > .wby-roll-out {
+  transform: translateY(var(--dy)) rotateX(var(--rx));
+  opacity: 0;
+}
+
+.wby-tile > span {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transform: translateY(var(--ty, 0%));
+  transition:
+    transform 0.42s cubic-bezier(0.23, 1, 0.32, 1),
+    opacity 0.3s ease;
+}
+
+.wby-tile > .wby-tile-on {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wby-roll,
+  .wby-roll > span,
+  .wby-tile > span {
+    transition: none !important;
+  }
+}

@@ -73,6 +73,7 @@ export function OverviewSection() {
 
   return (
     <section
+      data-wby-section="overview"
       className={cn(
         HERO_THEME_CLASSNAME,
         "bg-[var(--wby-bg)] font-sans text-[14px] text-[var(--wby-fg3)]"

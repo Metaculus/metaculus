@@ -36,6 +36,7 @@ export function HeroSection() {
   return (
     <section
       ref={heroRef}
+      data-wby-section="hero"
       className={cn(
         HERO_THEME_CLASSNAME,
         "relative flex min-h-[calc(100svh-var(--top-chrome-height,3rem))] flex-col overflow-hidden bg-[var(--wby-bg)] font-sans text-[14px] text-[var(--wby-fg3)]"
