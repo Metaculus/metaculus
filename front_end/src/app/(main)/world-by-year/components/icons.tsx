@@ -102,6 +102,26 @@ export const LongArrowIcon: FC<IconProps & { direction: "left" | "right" }> = ({
   </svg>
 );
 
+export const OpenIcon: FC<IconProps> = ({ className }) => (
+  <svg
+    viewBox="0 0 256 256"
+    aria-hidden
+    className={cn("fill-current", className)}
+  >
+    <path d="M200,64V168a8,8,0,0,1-16,0V83.31L69.66,197.66a8,8,0,0,1-11.32-11.32L172.69,72H88a8,8,0,0,1,0-16H192A8,8,0,0,1,200,64Z" />
+  </svg>
+);
+
+export const CloseIcon: FC<IconProps> = ({ className }) => (
+  <svg
+    viewBox="0 0 256 256"
+    aria-hidden
+    className={cn("fill-current", className)}
+  >
+    <path d="M205.66,194.34a8,8,0,0,1-11.32,11.32L128,139.31,61.66,205.66a8,8,0,0,1-11.32-11.32L116.69,128,50.34,61.66A8,8,0,0,1,61.66,50.34L128,116.69l66.34-66.35a8,8,0,0,1,11.32,11.32L139.31,128Z" />
+  </svg>
+);
+
 export const PlayPauseIcon: FC<IconProps & { playing: boolean }> = ({
   playing,
   className,

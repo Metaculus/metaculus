@@ -6,7 +6,8 @@ import { FC } from "react";
 import cn from "@/utils/core/cn";
 
 import ForecastMeta from "./forecast_meta";
-import { KIND_COLOR } from "./milestone_card";
+import { OpenIcon } from "./icons";
+import KindChip from "./kind_chip";
 import { WorldQuestion } from "../data/questions";
 
 type Props = {
@@ -16,6 +17,7 @@ type Props = {
   areaTitle: string;
   dimClassName: string;
   settleGroup?: string;
+  onOpen: (questionId: string) => void;
 };
 
 const StatementDeck: FC<Props> = ({
@@ -25,6 +27,7 @@ const StatementDeck: FC<Props> = ({
   areaTitle,
   dimClassName,
   settleGroup,
+  onOpen,
 }) => {
   const t = useTranslations();
 
@@ -56,24 +59,25 @@ const StatementDeck: FC<Props> = ({
                     !active && "opacity-0"
                   )}
                 >
-                  <span className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border border-[rgba(var(--wby-ink),.1)] bg-[rgba(var(--wby-ink),.07)] py-[3px] pl-[7px] pr-[9px]">
-                    <i
-                      className="size-[7px] shrink-0 rounded-[2px]"
-                      style={{ background: KIND_COLOR[question.kind] }}
-                    />
-                    <span style={{ color: KIND_COLOR[question.kind] }}>
-                      {t(
-                        question.kind === "cap"
-                          ? "worldByYearCapability"
-                          : "worldByYearAdoption"
-                      )}
-                    </span>
-                  </span>
+                  <KindChip kind={question.kind} />
                   {question.metaculusId && (
                     <span className="min-w-0 truncate text-[rgba(var(--wby-ink),.5)]">
                       {t("worldByYearSourceMetaculus")}
                     </span>
                   )}
+                  <button
+                    type="button"
+                    onClick={() => onOpen(question.id)}
+                    aria-label={t("worldByYearOpenForecastNamed", {
+                      title: t(question.headlineKey),
+                    })}
+                    className={cn(
+                      "ml-auto grid size-6 flex-none cursor-pointer place-items-center rounded-full border-0 bg-[rgba(var(--wby-ink),.16)] p-0 text-[var(--wby-fg)] outline-none transition-[background-color,transform] duration-150 ease-[cubic-bezier(.23,1,.32,1)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--wby-year)] [@media(hover:hover)_and_(pointer:fine)]:hover:-translate-y-px [@media(hover:hover)_and_(pointer:fine)]:hover:translate-x-px [@media(hover:hover)_and_(pointer:fine)]:hover:bg-[rgba(var(--wby-ink),.26)]",
+                      !active && "invisible"
+                    )}
+                  >
+                    <OpenIcon className="size-3" />
+                  </button>
                 </div>
                 <p
                   className={cn(
@@ -85,7 +89,16 @@ const StatementDeck: FC<Props> = ({
                       (i < activeIndex ? "-translate-y-5" : "translate-y-5")
                   )}
                 >
-                  {t(question.headlineKey)}
+                  <button
+                    type="button"
+                    onClick={() => onOpen(question.id)}
+                    aria-label={t("worldByYearOpenForecastNamed", {
+                      title: t(question.headlineKey),
+                    })}
+                    className="cursor-pointer appearance-none rounded border-0 bg-transparent p-0 text-left text-inherit underline decoration-transparent decoration-1 underline-offset-[.18em] outline-none transition-[text-decoration-color] duration-200 [font:inherit] hover:decoration-[rgba(var(--wby-ink),.45)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--wby-year)]"
+                  >
+                    {t(question.headlineKey)}
+                  </button>
                 </p>
                 <ForecastMeta
                   question={question}

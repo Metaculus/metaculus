@@ -3000,5 +3000,15 @@
   "worldByYearTopBarTitle": "<title></title> em <year></year>",
   "worldByYearTopBarHero": "Nosso mundo com IA",
   "worldByYearTopBarOverview": "Nosso mundo",
-  "worldByYearMiniTimelineValue": "{year}, {count, plural, one {# previsão passa} other {# previsões passam}} de 50%"
+  "worldByYearMiniTimelineValue": "{year}, {count, plural, one {# previsão passa} other {# previsões passam}} de 50%",
+  "worldByYearOpenForecastNamed": "Abrir a previsão: {title}",
+  "worldByYearDiveDeeper": "Aprofundar",
+  "worldByYearDiveDeeperAll": "Aprofundar · {count, plural, one {a # pergunta de {area}} other {todas as # perguntas de {area}}}",
+  "worldByYearDeepYearLabel": "Ano exibido nesta visualização. Arraste para os lados ou use as setas",
+  "worldByYearDeepCount": "{index} / {total} previsões · {source}",
+  "worldByYearDeepSourceMetaculus": "Metaculus #{id}",
+  "worldByYearDeepSourceSample": "exemplo ilustrativo",
+  "worldByYearDeepSortHeading": "Por data prevista",
+  "worldByYearPreviousForecast": "Previsão anterior",
+  "worldByYearNextForecast": "Próxima previsão"
 }

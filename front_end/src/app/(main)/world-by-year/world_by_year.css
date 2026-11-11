@@ -71,3 +71,72 @@
     transition: none !important;
   }
 }
+
+/* Dive deeper: the forecast in the middle, the list in a full-height column
+   on the right. Narrower, the list docks under the forecast; on phones the
+   arrows move into a row of their own. */
+.wby-deep {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr) 64px 360px;
+  grid-template-rows: auto minmax(0, 1fr);
+  grid-template-areas:
+    "head head head list"
+    "prev stage next list";
+}
+
+.wby-deep-head {
+  grid-area: head;
+}
+
+.wby-deep-prev {
+  grid-area: prev;
+}
+
+.wby-deep-next {
+  grid-area: next;
+}
+
+.wby-deep-stage {
+  grid-area: stage;
+}
+
+.wby-deep-list {
+  grid-area: list;
+}
+
+@media (max-width: 960px) {
+  .wby-deep {
+    grid-template-columns: 44px minmax(0, 1fr) 44px;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    grid-template-areas:
+      "head head head"
+      "prev stage next"
+      "list list list";
+  }
+}
+
+@media (max-width: 720px) {
+  .wby-deep {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-rows: auto minmax(0, 1fr) auto auto;
+    grid-template-areas:
+      "head head head"
+      "stage stage stage"
+      "prev . next"
+      "list list list";
+  }
+}
+
+@keyframes wby-deep-in {
+  from {
+    opacity: 0;
+    transform: translateX(28px);
+  }
+}
+
+@keyframes wby-deep-in-back {
+  from {
+    opacity: 0;
+    transform: translateX(-28px);
+  }
+}

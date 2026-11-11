@@ -2991,5 +2991,15 @@
   "worldByYearTopBarTitle": "<title></title> in <year></year>",
   "worldByYearTopBarHero": "Our world with AI",
   "worldByYearTopBarOverview": "Our world",
-  "worldByYearMiniTimelineValue": "{year}, {count, plural, one {# forecast crosses} other {# forecasts cross}} 50%"
+  "worldByYearMiniTimelineValue": "{year}, {count, plural, one {# forecast crosses} other {# forecasts cross}} 50%",
+  "worldByYearOpenForecastNamed": "Open the forecast: {title}",
+  "worldByYearDiveDeeper": "Dive deeper",
+  "worldByYearDiveDeeperAll": "Dive deeper · all {count, plural, one {# {area} question} other {# {area} questions}}",
+  "worldByYearDeepYearLabel": "Year shown in this view. Drag sideways or use the arrow keys",
+  "worldByYearDeepCount": "{index} / {total} forecasts · {source}",
+  "worldByYearDeepSourceMetaculus": "Metaculus #{id}",
+  "worldByYearDeepSourceSample": "illustrative sample",
+  "worldByYearDeepSortHeading": "By expected date",
+  "worldByYearPreviousForecast": "Previous forecast",
+  "worldByYearNextForecast": "Next forecast"
 }

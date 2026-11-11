@@ -2,6 +2,7 @@ import { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 
 import "./world_by_year.css";
+import { DiveDeeperProvider } from "./components/dive_deeper";
 import TopBar from "./components/top_bar";
 import { WorldYearProvider } from "./components/world_year_provider";
 import YearToast from "./components/year_toast";
@@ -19,16 +20,18 @@ export default function WorldByYearPage() {
   return (
     <main>
       <WorldYearProvider>
-        <HeroSection />
-        <OverviewSection />
-        <AreaSection area="sci" />
-        <AreaSection area="prog" />
-        <AreaSection area="work" />
-        <AreaSection area="robo" />
-        <AreaSection area="media" />
-        <FooterSection />
-        <TopBar />
-        <YearToast />
+        <DiveDeeperProvider>
+          <HeroSection />
+          <OverviewSection />
+          <AreaSection area="sci" />
+          <AreaSection area="prog" />
+          <AreaSection area="work" />
+          <AreaSection area="robo" />
+          <AreaSection area="media" />
+          <FooterSection />
+          <TopBar />
+          <YearToast />
+        </DiveDeeperProvider>
       </WorldYearProvider>
     </main>
   );

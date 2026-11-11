@@ -3002,5 +3002,15 @@
   "worldByYearTopBarTitle": "<title></title> v roce <year></year>",
   "worldByYearTopBarHero": "Náš svět s AI",
   "worldByYearTopBarOverview": "Náš svět",
-  "worldByYearMiniTimelineValue": "{year}, {count, plural, one {# předpověď překročí} few {# předpovědi překročí} many {# předpovědi překročí} other {# předpovědí překročí}} 50 %"
+  "worldByYearMiniTimelineValue": "{year}, {count, plural, one {# předpověď překročí} few {# předpovědi překročí} many {# předpovědi překročí} other {# předpovědí překročí}} 50 %",
+  "worldByYearOpenForecastNamed": "Otevřít předpověď: {title}",
+  "worldByYearDiveDeeper": "Více do hloubky",
+  "worldByYearDiveDeeperAll": "Více do hloubky · {count, plural, one {# otázka z oblasti {area}} few {všechny # otázky z oblasti {area}} many {všech # otázky z oblasti {area}} other {všech # otázek z oblasti {area}}}",
+  "worldByYearDeepYearLabel": "Rok zobrazený v tomto pohledu. Táhněte do stran nebo použijte šipky",
+  "worldByYearDeepCount": "{index} / {total} předpovědí · {source}",
+  "worldByYearDeepSourceMetaculus": "Metaculus #{id}",
+  "worldByYearDeepSourceSample": "ilustrativní ukázka",
+  "worldByYearDeepSortHeading": "Podle očekávaného data",
+  "worldByYearPreviousForecast": "Předchozí předpověď",
+  "worldByYearNextForecast": "Další předpověď"
 }

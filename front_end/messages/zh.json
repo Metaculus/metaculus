@@ -3004,5 +3004,15 @@
   "worldByYearTopBarTitle": "<year></year> 年的<title></title>",
   "worldByYearTopBarHero": "我们与 AI 的世界",
   "worldByYearTopBarOverview": "世界",
-  "worldByYearMiniTimelineValue": "{year} 年，{count} 个预测超过 50%"
+  "worldByYearMiniTimelineValue": "{year} 年，{count} 个预测超过 50%",
+  "worldByYearOpenForecastNamed": "打开预测：{title}",
+  "worldByYearDiveDeeper": "深入了解",
+  "worldByYearDiveDeeperAll": "深入了解 · 全部 {count} 个{area}问题",
+  "worldByYearDeepYearLabel": "此视图显示的年份。左右拖动或使用方向键",
+  "worldByYearDeepCount": "第 {index} / {total} 个预测 · {source}",
+  "worldByYearDeepSourceMetaculus": "Metaculus #{id}",
+  "worldByYearDeepSourceSample": "示意样本",
+  "worldByYearDeepSortHeading": "按预期日期",
+  "worldByYearPreviousForecast": "上一个预测",
+  "worldByYearNextForecast": "下一个预测"
 }

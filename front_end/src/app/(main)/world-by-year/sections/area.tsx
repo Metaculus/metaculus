@@ -1,6 +1,6 @@
 "use client";
 
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import {
   CSSProperties,
   useCallback,
@@ -14,6 +14,7 @@ import cn from "@/utils/core/cn";
 
 import AreaNarrative from "../components/area_narrative";
 import AuroraCanvas from "../components/aurora_canvas";
+import { useDiveDeeper } from "../components/dive_deeper";
 import ForecastCard from "../components/forecast_card";
 import { HERO_THEME_CLASSNAME } from "../components/hero_theme";
 import HeroYearControl from "../components/hero_year_control";
@@ -44,6 +45,8 @@ const arrowClassName =
 
 export function AreaSection({ area }: { area: WorldArea }) {
   const t = useTranslations();
+  const locale = useLocale();
+  const openDiveDeeper = useDiveDeeper();
   const {
     year,
     settledYear,
@@ -176,6 +179,12 @@ export function AreaSection({ area }: { area: WorldArea }) {
     "transition-opacity duration-[220ms] ease-[ease]",
     scrubbing && "pointer-events-none opacity-30"
   );
+  const diveDeeperAll = t("worldByYearDiveDeeperAll", {
+    count: statements.length,
+    area: title.toLocaleLowerCase(locale),
+  });
+  const openQuestion = (questionId: string) =>
+    openDiveDeeper({ area, questionId });
   const laneLabels = statements.map((q) => {
     const questionCopy = copy.questions[q.id];
     return questionCopy ? t(questionCopy.laneKey) : "";
@@ -229,6 +238,23 @@ export function AreaSection({ area }: { area: WorldArea }) {
                   ),
                 })}
               </h2>
+              <div
+                data-settle={area}
+                className={cn(
+                  "hidden flex-none max-[720px]:flex",
+                  dimClassName
+                )}
+              >
+                <button
+                  type="button"
+                  aria-label={diveDeeperAll}
+                  onClick={() => openDiveDeeper({ area })}
+                  className="inline-flex cursor-pointer items-center gap-[3px] whitespace-nowrap rounded-full border border-[rgba(var(--wby-ink),.22)] bg-transparent px-[9px] py-[5px] text-[12px] font-medium text-[var(--wby-t1)] outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--wby-year)]"
+                >
+                  {t("worldByYearDiveDeeper")}
+                  <LongArrowIcon direction="right" className="ml-0.5 size-3" />
+                </button>
+              </div>
             </div>
 
             <div
@@ -263,6 +289,7 @@ export function AreaSection({ area }: { area: WorldArea }) {
                 areaTitle={title}
                 dimClassName={dimClassName}
                 settleGroup={area}
+                onOpen={openQuestion}
               />
               <SwimlaneChart
                 areaTitle={title}
@@ -356,9 +383,18 @@ export function AreaSection({ area }: { area: WorldArea }) {
                     question={question}
                     copy={questionCopy}
                     year={settledYear}
+                    onOpen={() => openQuestion(question.id)}
                   />
                 ) : null;
               })}
+              <button
+                type="button"
+                onClick={() => openDiveDeeper({ area })}
+                className="mt-1 inline-flex cursor-pointer items-center gap-1 self-start whitespace-nowrap rounded-full border border-[var(--wby-line2)] bg-transparent px-3 py-[7px] text-[13px] font-medium text-[var(--wby-t1)] outline-none transition-colors duration-150 hover:bg-[var(--wby-card)] hover:text-[var(--wby-fg)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--wby-year)]"
+              >
+                {diveDeeperAll}
+                <LongArrowIcon direction="right" className="size-[13px]" />
+              </button>
             </div>
           </div>
         </div>

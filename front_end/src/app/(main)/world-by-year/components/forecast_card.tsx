@@ -1,113 +1,60 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { FC, useId } from "react";
+import { FC } from "react";
 
+import DensityChart from "./density_chart";
 import ForecastMeta from "./forecast_meta";
-import { KIND_COLOR } from "./milestone_card";
+import { OpenIcon } from "./icons";
+import KindChip from "./kind_chip";
 import { QuestionCopy } from "../data/area_sections";
 import { WorldQuestion } from "../data/questions";
-import {
-  DENSITY_HEIGHT,
-  DENSITY_WIDTH,
-  densityPaths,
-} from "../helpers/area_section";
-import { linearPosition } from "../helpers/forecast";
-
-const AXIS_YEARS = [2026, 2040, 2050];
 
 type Props = {
   question: WorldQuestion;
   copy: QuestionCopy;
   year: number;
+  onOpen: () => void;
 };
 
-const ForecastCard: FC<Props> = ({ question, copy, year }) => {
+const ForecastCard: FC<Props> = ({ question, copy, year, onOpen }) => {
   const t = useTranslations();
-  const fadeId = useId();
-  const color = KIND_COLOR[question.kind];
-  const yearX = linearPosition(year + 1) * DENSITY_WIDTH;
-  const medianX = linearPosition(question.median) * DENSITY_WIDTH;
-  const paths = densityPaths(question, yearX);
+  const title = t(copy.titleKey);
 
   return (
-    <article className="relative flex min-w-0 flex-col gap-2.5 rounded-2xl border border-[rgba(var(--wby-ink),.12)] bg-[var(--wby-panel)] p-5">
-      <div className="flex items-center gap-[7px] text-[11px] font-medium leading-[1.3] tracking-[.01em]">
-        <span className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border border-[rgba(var(--wby-ink),.1)] bg-[rgba(var(--wby-ink),.07)] py-[3px] pl-[7px] pr-[9px]">
-          <i
-            className="size-[7px] shrink-0 rounded-[2px]"
-            style={{ background: color }}
-          />
-          <span style={{ color }}>
-            {t(
-              question.kind === "cap"
-                ? "worldByYearCapability"
-                : "worldByYearAdoption"
-            )}
-          </span>
-        </span>
+    <article className="group/card relative flex min-w-0 flex-col gap-2.5 rounded-2xl border border-[rgba(var(--wby-ink),.12)] bg-[var(--wby-panel)] p-5 transition-[border-color] duration-200 [@media(hover:hover)_and_(pointer:fine)]:hover:border-[rgba(var(--wby-ink),.32)]">
+      <div className="flex items-center gap-[7px] pr-[18px] text-[11px] font-medium leading-[1.3] tracking-[.01em]">
+        <KindChip kind={question.kind} />
         {question.metaculusId && (
           <span className="min-w-0 truncate text-[var(--wby-muted)]">
             {t("worldByYearSourceMetaculus")}
           </span>
         )}
       </div>
+      <span
+        aria-hidden
+        className="pointer-events-none absolute right-3 top-3 grid size-6 place-items-center rounded-full bg-[color-mix(in_srgb,var(--wby-fg)_16%,var(--wby-card))] text-[var(--wby-fg)] transition-[background-color,transform] duration-200 ease-[cubic-bezier(.23,1,.32,1)] [@media(hover:hover)_and_(pointer:fine)]:group-hover/card:-translate-y-px [@media(hover:hover)_and_(pointer:fine)]:group-hover/card:translate-x-px [@media(hover:hover)_and_(pointer:fine)]:group-hover/card:bg-[color-mix(in_srgb,var(--wby-fg)_26%,var(--wby-card))]"
+      >
+        <OpenIcon className="size-3" />
+      </span>
       <h3 className="m-0 text-[20px] font-normal leading-[1.2] tracking-[-0.005em] text-[var(--wby-fg)] [text-wrap:balance]">
-        {t(copy.titleKey)}
-      </h3>
-      <div className="mt-auto pt-2">
-        <svg
-          viewBox={`0 0 ${DENSITY_WIDTH} ${DENSITY_HEIGHT}`}
-          preserveAspectRatio="none"
-          aria-hidden
-          className="block h-14 w-full"
+        {/* The whole card opens the forecast; the forecasters link sits
+            above this overlay. */}
+        <button
+          type="button"
+          onClick={onOpen}
+          aria-label={t("worldByYearOpenForecastNamed", { title })}
+          className="cursor-pointer appearance-none border-0 bg-transparent p-0 text-left text-inherit outline-none [font:inherit] after:absolute after:inset-0 after:z-0 after:rounded-[inherit] after:content-[''] focus-visible:after:outline focus-visible:after:outline-2 focus-visible:after:outline-offset-2 focus-visible:after:outline-[var(--wby-year)]"
         >
-          <defs>
-            <linearGradient id={fadeId} x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0" stopColor={color} stopOpacity={0.42} />
-              <stop offset="1" stopColor={color} stopOpacity={0} />
-            </linearGradient>
-          </defs>
-          <path
-            d={paths.area}
-            fill={`color-mix(in oklch, ${color} 6%, transparent)`}
-          />
-          {paths.areaToYear && (
-            <path d={paths.areaToYear} fill={`url(#${fadeId})`} />
-          )}
-          <path
-            d={paths.line}
-            fill="none"
-            stroke={color}
-            strokeWidth={1.25}
-            vectorEffect="non-scaling-stroke"
-          />
-          <line
-            x1={medianX}
-            x2={medianX}
-            y1={0}
-            y2={DENSITY_HEIGHT}
-            stroke="var(--wby-fg)"
-            strokeWidth={1.5}
-            strokeDasharray="3 3"
-            vectorEffect="non-scaling-stroke"
-          />
-          <line
-            x1={yearX}
-            x2={yearX}
-            y1={0}
-            y2={DENSITY_HEIGHT}
-            stroke="var(--wby-year)"
-            strokeWidth={2}
-            vectorEffect="non-scaling-stroke"
-          />
-        </svg>
-        <div className="mt-[5px] flex justify-between text-[11px] tabular-nums text-[var(--wby-dim)]">
-          {AXIS_YEARS.map((axisYear) => (
-            <span key={axisYear}>{axisYear}</span>
-          ))}
-        </div>
-      </div>
+          {title}
+        </button>
+      </h3>
+      <DensityChart
+        question={question}
+        year={year}
+        className="mt-auto pt-2"
+        svgClassName="h-14"
+      />
       <ForecastMeta
         question={question}
         year={year}

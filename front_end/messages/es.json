@@ -3002,5 +3002,15 @@
   "worldByYearTopBarTitle": "<title></title> en <year></year>",
   "worldByYearTopBarHero": "Nuestro mundo con IA",
   "worldByYearTopBarOverview": "Nuestro mundo",
-  "worldByYearMiniTimelineValue": "{year}, {count, plural, one {# pronóstico supera} other {# pronósticos superan}} el 50 %"
+  "worldByYearMiniTimelineValue": "{year}, {count, plural, one {# pronóstico supera} other {# pronósticos superan}} el 50 %",
+  "worldByYearOpenForecastNamed": "Abrir el pronóstico: {title}",
+  "worldByYearDiveDeeper": "Profundizar",
+  "worldByYearDiveDeeperAll": "Profundizar · {count, plural, one {la # pregunta de {area}} other {las # preguntas de {area}}}",
+  "worldByYearDeepYearLabel": "Año mostrado en esta vista. Arrastra hacia los lados o usa las flechas",
+  "worldByYearDeepCount": "{index} / {total} pronósticos · {source}",
+  "worldByYearDeepSourceMetaculus": "Metaculus #{id}",
+  "worldByYearDeepSourceSample": "ejemplo ilustrativo",
+  "worldByYearDeepSortHeading": "Por fecha prevista",
+  "worldByYearPreviousForecast": "Pronóstico anterior",
+  "worldByYearNextForecast": "Pronóstico siguiente"
 }

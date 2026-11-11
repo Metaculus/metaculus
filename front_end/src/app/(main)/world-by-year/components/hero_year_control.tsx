@@ -20,7 +20,7 @@ import {
   SETTLE_AFTER_ARROW_MS,
   SETTLE_AFTER_KEY_MS,
 } from "./world_year_provider";
-import { YEAR_JUMPS } from "../helpers/forecast";
+import { YEAR_JUMPS, YEAR_MAX, YEAR_MIN } from "../helpers/forecast";
 
 const DRAG_START_PX = 6;
 const DRAG_CANCEL_PX = 10;
@@ -57,6 +57,10 @@ type Props = {
   onYearChange: (year: number, settleAfterMs?: number) => void;
   onScrubChange: (scrubbing: boolean) => void;
   hideArrowsOnPhones?: boolean;
+  // Without the year list a press does nothing and the arrows stop at the
+  // ends of the range; the Dive deeper view uses this for its own year.
+  withList?: boolean;
+  ariaLabel?: string;
 };
 
 const valueClassName = (scrubbing: boolean) =>
@@ -92,6 +96,8 @@ const HeroYearControl: FC<Props> = ({
   onYearChange,
   onScrubChange,
   hideArrowsOnPhones = false,
+  withList = true,
+  ariaLabel,
 }) => {
   const t = useTranslations();
   const valueRef = useRef<HTMLSpanElement>(null);
@@ -199,7 +205,7 @@ const HeroYearControl: FC<Props> = ({
       if (drag.moved) {
         setDragging(false);
         onScrubChange(false);
-      } else if (!drag.cancelled && event.type === "pointerup") {
+      } else if (withList && !drag.cancelled && event.type === "pointerup") {
         setOpen(!openRef.current);
       }
     };
@@ -211,7 +217,7 @@ const HeroYearControl: FC<Props> = ({
       window.removeEventListener("pointerup", onUp);
       window.removeEventListener("pointercancel", onUp);
     };
-  }, [onYearChange, onScrubChange]);
+  }, [onYearChange, onScrubChange, withList]);
 
   const onPointerDown = (event: ReactPointerEvent<HTMLSpanElement>) => {
     if (event.button) return;
@@ -231,21 +237,32 @@ const HeroYearControl: FC<Props> = ({
     if (step != null) {
       event.preventDefault();
       onYearChange(year + step, SETTLE_AFTER_KEY_MS);
-    } else if (event.key === "Enter" || event.key === " ") {
+    } else if (withList && (event.key === "Enter" || event.key === " ")) {
       event.preventDefault();
       setOpen(true);
     }
   };
 
+  const valueRole = withList
+    ? {
+        role: "button",
+        "aria-haspopup": "listbox" as const,
+        "aria-expanded": open,
+      }
+    : {
+        role: "slider",
+        "aria-valuemin": YEAR_MIN,
+        "aria-valuemax": YEAR_MAX,
+        "aria-valuenow": year,
+      };
+
   return (
     <span className={rootClassName}>
       <span
         ref={valueRef}
-        role="button"
+        {...valueRole}
         tabIndex={0}
-        aria-haspopup="listbox"
-        aria-expanded={open}
-        aria-label={t("worldByYearYearControlLabel")}
+        aria-label={ariaLabel ?? t("worldByYearYearControlLabel")}
         onPointerDown={onPointerDown}
         onKeyDown={onKeyDown}
         className={cn(
@@ -256,6 +273,7 @@ const HeroYearControl: FC<Props> = ({
       >
         {year}
         <span
+          hidden={!withList}
           className={cn(
             "pointer-events-none absolute left-1/2 top-[calc(100%+.3em)] z-[5] -translate-x-1/2 -translate-y-1 whitespace-nowrap rounded-full bg-[rgba(var(--wby-ink),.12)] px-[9px] py-[5px] font-sans text-[11px] font-medium leading-none tracking-[.02em] text-[var(--wby-fg)] opacity-0 backdrop-blur-[10px] transition-[opacity,transform] delay-[250ms] duration-200 max-[720px]:hidden",
             "[@media(hover:hover)_and_(pointer:fine)]:group-hover/year:translate-y-0 [@media(hover:hover)_and_(pointer:fine)]:group-hover/year:opacity-100",
@@ -278,10 +296,13 @@ const HeroYearControl: FC<Props> = ({
             aria-label={t(
               delta < 0 ? "worldByYearPreviousYear" : "worldByYearNextYear"
             )}
+            disabled={
+              !withList && (delta < 0 ? year <= YEAR_MIN : year >= YEAR_MAX)
+            }
             onClick={() => onYearChange(year + delta, SETTLE_AFTER_ARROW_MS)}
             className={cn(
               arrowClassName,
-              "cursor-pointer hover:bg-[rgba(var(--wby-ink),.08)] hover:opacity-100 focus-visible:bg-[rgba(var(--wby-ink),.08)] focus-visible:opacity-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[var(--wby-year)] active:scale-[.92]"
+              "cursor-pointer hover:bg-[rgba(var(--wby-ink),.08)] hover:opacity-100 focus-visible:bg-[rgba(var(--wby-ink),.08)] focus-visible:opacity-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[var(--wby-year)] active:scale-[.92] disabled:pointer-events-none disabled:opacity-[.15]"
             )}
           >
             <ArrowIcon
