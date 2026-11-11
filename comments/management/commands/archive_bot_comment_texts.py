@@ -74,7 +74,7 @@ class ProgressWriter:
 
 class Command(BaseCommand):
     help = (
-        "Moves the full text of private bot comments older than "
+        "Moves the full text of bot comments older than "
         f"{ARCHIVE_AGE_DAYS} days and longer than {ARCHIVE_MIN_TEXT_LENGTH} "
         f"characters to S3, leaving a {ARCHIVE_STUB_LENGTH}-character stub in "
         "the database. Runs daily as a cron job; the full text stays "
