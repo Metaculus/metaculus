@@ -17,6 +17,7 @@ from comments.tasks import (
 from misc.jobs import sync_itn_articles
 from misc.tasks import warm_cache_site_stats
 from notifications.jobs import (
+    job_delete_old_sent_notifications,
     job_send_notification_groups,
     job_send_open_status_notifications,
 )
@@ -164,6 +165,13 @@ class Command(BaseCommand):
             close_old_connections(job_send_open_status_notifications.send),
             trigger=CronTrigger.from_crontab("*/30 * * * *"),  # Every 30 minutes
             id="notifications_job_send_open_status_notifications",
+            max_instances=1,
+            replace_existing=True,
+        )
+        scheduler.add_job(
+            close_old_connections(job_delete_old_sent_notifications.send),
+            trigger=CronTrigger.from_crontab("0 5 * * *"),  # Daily at 05:00 UTC
+            id="notifications_job_delete_old_sent_notifications",
             max_instances=1,
             replace_existing=True,
         )
