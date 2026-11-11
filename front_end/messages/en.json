@@ -2677,6 +2677,8 @@
   "initiativeAINuclearLandscapeName": "Forecasting the AI and Nuclear Landscape",
   "initiativeAINuclearLandscapeDescription": "In partnership with the Institute for Security and Technology, a report assessing the risks of US-China escalation, including integrating AI into nuclear command, control, and communications.",
   "worldByYearMetaTitle": "Our world with AI | Metaculus",
+  "worldByYearNavTitle": "Our world with AI",
+  "initiativeWorldByYearDescription": "Explore how AI could change science, programming, work, robotics, and media, year by year.",
   "worldByYearHeadline": "Our world with AI<br></br>in <year></year>",
   "worldByYearPlay": "Play",
   "worldByYearPause": "Pause",

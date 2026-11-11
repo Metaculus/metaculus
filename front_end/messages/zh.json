@@ -2690,6 +2690,8 @@
   "initiativeAINuclearLandscapeName": "人工智能与核安全格局预测",
   "initiativeAINuclearLandscapeDescription": "与 Institute for Security and Technology 合作的报告，评估美中局势升级的风险，包括将人工智能纳入核指挥、控制和通信系统。",
   "worldByYearMetaTitle": "我们与 AI 的世界 | Metaculus",
+  "worldByYearNavTitle": "我们与 AI 的世界",
+  "initiativeWorldByYearDescription": "逐年探索 AI 可能如何改变科学、编程、工作、机器人技术和媒体。",
   "worldByYearHeadline": "我们与 AI 的世界<br></br>展望 <year></year>",
   "worldByYearPlay": "播放",
   "worldByYearPause": "暂停",

@@ -183,6 +183,16 @@ const initiativesPageData = {
         ],
       },
     },
+    {
+      id: "world-by-year",
+      nameKey: "worldByYearNavTitle",
+      inventoryDescriptionKey: "initiativeWorldByYearDescription",
+      url: "/world-by-year/",
+      categoryId: "ai",
+      order: 6,
+      inventoryOrder: 3,
+      placements: ["inventory"],
+    },
 
     {
       id: "global-health-monitor",

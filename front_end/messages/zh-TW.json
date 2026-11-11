@@ -2685,6 +2685,8 @@
   "initiativeAINuclearLandscapeName": "人工智慧與核安全局勢預測",
   "initiativeAINuclearLandscapeDescription": "與 Institute for Security and Technology 合作的報告，評估美中局勢升級的風險，包括將人工智慧納入核指揮、控制與通訊系統。",
   "worldByYearMetaTitle": "我們與 AI 的世界 | Metaculus",
+  "worldByYearNavTitle": "我們與 AI 的世界",
+  "initiativeWorldByYearDescription": "逐年探索 AI 可能如何改變科學、程式設計、工作、機器人技術和媒體。",
   "worldByYearHeadline": "我們與 AI 的世界<br></br>展望 <year></year>",
   "worldByYearPlay": "播放",
   "worldByYearPause": "暫停",
