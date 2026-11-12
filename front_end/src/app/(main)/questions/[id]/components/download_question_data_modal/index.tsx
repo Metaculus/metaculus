@@ -1,4 +1,9 @@
 "use client";
+import {
+  faArrowUpRightFromSquare,
+  faDatabase,
+} from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { saveAs } from "file-saver";
 import { isNil } from "lodash";
@@ -232,9 +237,11 @@ const DataRequestModal: FC<Props> = ({
           <h2 className="m-0 text-lg font-bold leading-tight">
             {t("downloadQuestionData")}
           </h2>
-          <p className="m-0 text-sm text-gray-600 dark:text-gray-600-dark">
-            {t("exportSubtitle")}
-          </p>
+          {isLoggedOut && (
+            <p className="m-0 text-sm text-gray-600 dark:text-gray-600-dark">
+              {t("loggedOutOptionsDisabled")}
+            </p>
+          )}
         </div>
 
         <Tabs defaultValue="download-data" className="!bg-transparent">
@@ -263,12 +270,7 @@ const DataRequestModal: FC<Props> = ({
                   )}
                 />
               </Section>
-              <Section
-                title={t("configuration")}
-                subtitle={
-                  isLoggedOut ? t("loginConfigurationMessage") : undefined
-                }
-              >
+              <Section title={t("configuration")}>
                 <CheckboxField
                   control={control}
                   name="minimize"
@@ -353,7 +355,37 @@ const DataRequestModal: FC<Props> = ({
                 )}
               </Section>
 
-              <div className="flex gap-2 pt-2">
+              <div className="flex flex-col gap-3 rounded-lg border border-blue-400 bg-blue-100 p-4 dark:border-blue-400-dark dark:bg-blue-100-dark">
+                <h3 className="m-0 flex items-center gap-2 text-base font-bold text-blue-900 dark:text-blue-900-dark">
+                  <FontAwesomeIcon icon={faDatabase} />
+                  {t("downloadDataCtaTitle")}
+                </h3>
+                <p className="m-0 text-sm text-gray-800 dark:text-gray-800-dark">
+                  {t.rich("downloadDataCtaBody", {
+                    terms: (chunks) => (
+                      <Link
+                        href="/terms-of-use/#license"
+                        target="_blank"
+                        className="font-medium text-blue-800 underline dark:text-blue-800-dark"
+                      >
+                        {chunks}
+                      </Link>
+                    ),
+                  })}
+                </p>
+                <Button
+                  variant="primary"
+                  href={DATA_REQUEST_FORM_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="self-start"
+                >
+                  {t("downloadDataCtaButton")}
+                  <FontAwesomeIcon icon={faArrowUpRightFromSquare} />
+                </Button>
+              </div>
+
+              <div className="flex gap-2">
                 <Button
                   className="flex-1"
                   disabled={isDownloadDisabled || isPending}
@@ -379,29 +411,6 @@ const DataRequestModal: FC<Props> = ({
                   {t("emailData")}
                 </Button>
               </div>
-              <p className="m-0 -mt-2 text-xs text-gray-600 dark:text-gray-600-dark">
-                {t.rich("downloadDataTermsNotice", {
-                  terms: (chunks) => (
-                    <Link
-                      href="/terms-of-use/#license"
-                      target="_blank"
-                      className="underline"
-                    >
-                      {chunks}
-                    </Link>
-                  ),
-                  form: (chunks) => (
-                    <a
-                      href={DATA_REQUEST_FORM_URL}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="underline"
-                    >
-                      {chunks}
-                    </a>
-                  ),
-                })}
-              </p>
             </div>
           </TabsSection>
 
@@ -441,18 +450,12 @@ const SegmentedTabBar: FC<{
   );
 };
 
-const Section: FC<PropsWithChildren<{ title: string; subtitle?: string }>> = ({
+const Section: FC<PropsWithChildren<{ title: string }>> = ({
   title,
-  subtitle,
   children,
 }) => (
   <div>
     <h3 className="m-0 mb-3 text-sm font-semibold">{title}</h3>
-    {!!subtitle && (
-      <p className="m-0 -mt-2 mb-3 text-xs italic text-gray-700 dark:text-gray-700-dark">
-        {subtitle}
-      </p>
-    )}
     <div className="flex flex-col gap-3">{children}</div>
   </div>
 );
