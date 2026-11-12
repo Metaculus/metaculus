@@ -1516,7 +1516,7 @@
   "includeUserData": "Include user data",
   "includeMyForecasts": "Include my forecasts",
   "downloadDataCtaTitle": "Downloaded data is for personal, non-commercial use",
-  "downloadDataCtaBody": "See our <terms>Terms of Use</terms>. Redistributing it or using it to train AI requires our written permission.",
+  "downloadDataCtaBody": "See our <terms>Terms of Use</terms>. Redistributing it or using it to train AI requires our written permission. Need bulk data or broader access?",
   "downloadDataCtaButton": "Submit a data request",
   "loggedOutOptionsDisabled": "Some options disabled because you're logged out",
   "aggregationMethods": "Aggregation methods",

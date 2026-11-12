@@ -1258,7 +1258,7 @@
   "includeUserData": "Incluir datos del usuario",
   "includeMyForecasts": "Incluir mis predicciones",
   "downloadDataCtaTitle": "Los datos descargados son para uso personal y no comercial",
-  "downloadDataCtaBody": "Consulta nuestros <terms>Términos de Uso</terms>. Redistribuirlos o usarlos para entrenar IA requiere nuestro permiso por escrito.",
+  "downloadDataCtaBody": "Consulta nuestros <terms>Términos de Uso</terms>. Redistribuirlos o usarlos para entrenar IA requiere nuestro permiso por escrito. ¿Necesitas datos masivos o más acceso?",
   "downloadDataCtaButton": "Enviar una solicitud de datos",
   "loggedOutOptionsDisabled": "Algunas opciones están desactivadas porque no has iniciado sesión",
   "aggregationMethods": "Métodos de agregación",

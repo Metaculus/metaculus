@@ -1259,7 +1259,7 @@
   "includeUserData": "Zahrnout uživatelská data",
   "includeMyForecasts": "Zahrnout mé předpovědi",
   "downloadDataCtaTitle": "Stažená data jsou určena pro osobní, nekomerční použití",
-  "downloadDataCtaBody": "Viz naše <terms>podmínky použití</terms>. Jejich další šíření nebo použití k trénování AI vyžaduje naše písemné svolení.",
+  "downloadDataCtaBody": "Viz naše <terms>podmínky použití</terms>. Jejich další šíření nebo použití k trénování AI vyžaduje naše písemné svolení. Potřebujete hromadná data nebo širší přístup?",
   "downloadDataCtaButton": "Odeslat žádost o data",
   "loggedOutOptionsDisabled": "Některé možnosti jsou nedostupné, protože nejste přihlášeni",
   "aggregationMethods": "Metody agregace",
