@@ -1,7 +1,8 @@
 import cn from "@/utils/core/cn";
 
+// wby-root marks every root that carries the page theme, including portals.
 export const HERO_THEME_CLASSNAME = cn(
-  "[--wby-pad:clamp(16px,4vw,40px)]",
+  "wby-root [--wby-pad:clamp(16px,4vw,40px)]",
   "[--wby-bg:#fbfaf7] [--wby-card:#ffffff] [--wby-ink:44,73,105] [--wby-fg:#2c4969] [--wby-fg2:#34506e] [--wby-fg3:#2c4969] [--wby-fg4:#34506e]",
   "[--wby-t1:#3e5873] [--wby-t2:#4d657e] [--wby-t3:#6b7d92] [--wby-muted:#7a899c] [--wby-dim:#8c99a9] [--wby-year:#161b21]",
   "[--wby-cap:#c9408f] [--wby-use:#0f8a65]",

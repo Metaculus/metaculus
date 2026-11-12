@@ -2835,7 +2835,7 @@
   "worldByYearByYear": "Para {year}",
   "worldByYearForecasters": "Pronosticadores",
   "worldByYearSourceMetaculus": "Metaculus",
-  "worldByYearOpenMetaculusQuestion": "{count} pronosticadores, abrir la pregunta {id} de Metaculus",
+  "worldByYearOpenMetaculusQuestion": "{count} pronosticadores, abrir la pregunta {id} de Metaculus en una pestaña nueva",
   "worldByYearLaneReadout": "{kind} · Fecha mediana {date} · Percentil 10–90 {range} · {percent} para {year}",
   "worldByYearToday": "Hoy",
   "worldByYearLanesLabel": "Afirmaciones de {area} en una línea temporal de {from} a {to}: {lanes}.",

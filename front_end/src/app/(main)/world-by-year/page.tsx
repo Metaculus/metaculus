@@ -3,6 +3,7 @@ import { getTranslations } from "next-intl/server";
 
 import "./world_by_year.css";
 import { DiveDeeperProvider } from "./components/dive_deeper";
+import PointerFocusMode from "./components/pointer_focus_mode";
 import TopBar from "./components/top_bar";
 import { WorldYearProvider } from "./components/world_year_provider";
 import YearToast from "./components/year_toast";
@@ -31,6 +32,7 @@ export default function WorldByYearPage() {
           <FooterSection />
           <TopBar />
           <YearToast />
+          <PointerFocusMode />
         </DiveDeeperProvider>
       </WorldYearProvider>
     </main>

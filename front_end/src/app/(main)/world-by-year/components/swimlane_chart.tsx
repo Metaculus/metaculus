@@ -7,6 +7,7 @@ import {
   UIEvent,
   useCallback,
   useEffect,
+  useId,
   useLayoutEffect,
   useMemo,
   useRef,
@@ -54,6 +55,10 @@ type Props = {
 };
 
 const AXIS_Y = 14;
+const DOT_GAP_RANGE_PX = 20;
+const DOT_GAP_RADIUS = 7.5;
+const HOVERED_DOT_GAP_RADIUS = 9.75;
+const DOT_MASK_HALF = 24;
 const DRAG_START_PX = 4;
 const EDGE_GAP = 16;
 
@@ -111,6 +116,7 @@ const SwimlaneChart: FC<Props> = ({
     moved: boolean;
   } | null>(null);
   const [hovered, setHovered] = useState<number | null>(null);
+  const maskPrefix = useId();
   const [lanesTop, setLanesTop] = useState(0);
   const [grabbing, setGrabbing] = useState(false);
   const [today] = useState(todayAsYear);
@@ -380,6 +386,25 @@ const SwimlaneChart: FC<Props> = ({
     const previous = xs[xs.length - 1];
     return [...xs, previous != null && x - previous < 6 ? previous + 6 : x];
   }, []);
+  // Dots stand in for lanes scrolled out of the window.
+  const dotVisible = centers.map(
+    (center) => center < lanesTop + 6 || center > lanesTop + windowHeight - 6
+  );
+  // The dot in front (the earlier lane, or the hovered one) cuts a gap ring
+  // out of the overlapping dots behind it, so they read as separate.
+  const dotRank = (j: number) => (j === hovered ? Infinity : -j);
+  const dotCutters = axisDotXs.map((x, j) =>
+    dotVisible[j]
+      ? axisDotXs.flatMap((otherX, k) =>
+          k !== j &&
+          dotVisible[k] &&
+          dotRank(k) > dotRank(j) &&
+          Math.abs(otherX - x) < DOT_GAP_RANGE_PX
+            ? [k]
+            : []
+        )
+      : []
+  );
 
   const lanesLabel = t("worldByYearLanesLabel", {
     area: areaTitle,
@@ -655,13 +680,48 @@ const SwimlaneChart: FC<Props> = ({
                   {year}
                 </text>
               </g>
+              <defs>
+                {dotCutters.map((cutters, j) => {
+                  if (!cutters.length) return null;
+                  const x = axisDotXs[j] as number;
+                  return (
+                    <mask
+                      key={j}
+                      id={`${maskPrefix}-${j}`}
+                      maskUnits="userSpaceOnUse"
+                      x={x - DOT_MASK_HALF}
+                      y={AXIS_Y - DOT_MASK_HALF}
+                      width={DOT_MASK_HALF * 2}
+                      height={DOT_MASK_HALF * 2}
+                    >
+                      <rect
+                        x={x - DOT_MASK_HALF}
+                        y={AXIS_Y - DOT_MASK_HALF}
+                        width={DOT_MASK_HALF * 2}
+                        height={DOT_MASK_HALF * 2}
+                        fill="#fff"
+                      />
+                      {cutters.map((k) => (
+                        <circle
+                          key={k}
+                          cx={axisDotXs[k]}
+                          cy={AXIS_Y}
+                          r={
+                            k === hovered
+                              ? HOVERED_DOT_GAP_RADIUS
+                              : DOT_GAP_RADIUS
+                          }
+                          fill="#000"
+                        />
+                      ))}
+                    </mask>
+                  );
+                })}
+              </defs>
               <g className={dimClassName}>
                 {statements
                   .map((question, j) => {
-                    const center = centers[j] as number;
-                    const visible =
-                      center < lanesTop + 6 ||
-                      center > lanesTop + windowHeight - 6;
+                    const visible = dotVisible[j];
                     const x = axisDotXs[j] as number;
                     const color = KIND_COLOR[question.kind];
                     return (
@@ -687,6 +747,11 @@ const SwimlaneChart: FC<Props> = ({
                           }
                           stroke={color}
                           strokeWidth={1.75}
+                          mask={
+                            dotCutters[j]?.length
+                              ? `url(#${maskPrefix}-${j})`
+                              : undefined
+                          }
                           className="origin-center transition-transform duration-[180ms] [transform-box:fill-box] group-hover/dot:scale-[1.45]"
                         />
                       </g>

@@ -2833,7 +2833,7 @@
   "worldByYearByYear": "Até {year}",
   "worldByYearForecasters": "Previsores",
   "worldByYearSourceMetaculus": "Metaculus",
-  "worldByYearOpenMetaculusQuestion": "{count} previsores, abrir a pergunta {id} do Metaculus",
+  "worldByYearOpenMetaculusQuestion": "{count} previsores, abrir a pergunta {id} do Metaculus em uma nova aba",
   "worldByYearLaneReadout": "{kind} · Data mediana {date} · Percentil 10–90 {range} · {percent} até {year}",
   "worldByYearToday": "Hoje",
   "worldByYearLanesLabel": "Afirmações de {area} em uma linha do tempo de {from} a {to}: {lanes}.",

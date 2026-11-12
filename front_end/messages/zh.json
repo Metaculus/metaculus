@@ -2837,7 +2837,7 @@
   "worldByYearByYear": "到 {year} 年",
   "worldByYearForecasters": "预测者",
   "worldByYearSourceMetaculus": "Metaculus",
-  "worldByYearOpenMetaculusQuestion": "{count} 位预测者，打开 Metaculus 问题 {id}",
+  "worldByYearOpenMetaculusQuestion": "{count} 位预测者，在新标签页中打开 Metaculus 问题 {id}",
   "worldByYearLaneReadout": "{kind} · 中位日期 {date} · 第 10–90 百分位 {range} · 到 {year} 年 {percent}",
   "worldByYearToday": "今天",
   "worldByYearLanesLabel": "{area}领域的陈述，时间轴从 {from} 到 {to}：{lanes}。",

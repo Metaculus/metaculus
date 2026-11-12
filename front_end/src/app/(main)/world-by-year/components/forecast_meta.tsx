@@ -50,6 +50,8 @@ const ForecastMeta: FC<Props> = ({
       value: question.metaculusId ? (
         <Link
           href={`/questions/${question.metaculusId}/`}
+          target="_blank"
+          rel="noopener"
           aria-label={t("worldByYearOpenMetaculusQuestion", {
             count: forecasters,
             id: String(question.metaculusId),

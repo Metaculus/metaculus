@@ -22,6 +22,12 @@
   }
 }
 
+.wby-pointer-mode .wby-root:focus-visible,
+.wby-pointer-mode .wby-root :focus-visible,
+.wby-pointer-mode .wby-root :focus-visible::after {
+  outline: none !important;
+}
+
 /* Top bar: the title and its tile roll like a drum when the section in view
    changes. */
 .wby-roll {

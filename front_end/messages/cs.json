@@ -2835,7 +2835,7 @@
   "worldByYearByYear": "Do roku {year}",
   "worldByYearForecasters": "Prognostici",
   "worldByYearSourceMetaculus": "Metaculus",
-  "worldByYearOpenMetaculusQuestion": "{count} prognostiků, otevřít otázku {id} na Metaculusu",
+  "worldByYearOpenMetaculusQuestion": "{count} prognostiků, otevřít otázku {id} na Metaculusu na nové kartě",
   "worldByYearLaneReadout": "{kind} · Mediánové datum {date} · 10.–90. percentil {range} · {percent} do roku {year}",
   "worldByYearToday": "Dnes",
   "worldByYearLanesLabel": "Tvrzení z oblasti {area} na časové ose od {from} do {to}: {lanes}.",
