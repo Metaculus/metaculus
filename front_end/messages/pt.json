@@ -1254,6 +1254,7 @@
   "scoreData": "Dados de pontuação",
   "keyFactorData": "Dados de fatores-chave",
   "includeUserData": "Incluir dados do usuário",
+  "includeMyForecasts": "Incluir minhas previsões",
   "aggregationMethods": "Métodos de agregação",
   "configuration": "Configuração",
   "loginConfigurationMessage": "Faça login para selecionar opções diferentes",

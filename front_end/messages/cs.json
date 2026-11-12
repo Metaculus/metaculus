@@ -1257,6 +1257,7 @@
   "scoreData": "Data o skóre",
   "keyFactorData": "Data o klíčových faktorech",
   "includeUserData": "Zahrnout uživatelská data",
+  "includeMyForecasts": "Zahrnout mé předpovědi",
   "aggregationMethods": "Metody agregace",
   "configuration": "Konfigurace",
   "loginConfigurationMessage": "Přihlaste se pro výběr jiných možností",

@@ -142,6 +142,8 @@ const DataRequestModal: FC<Props> = ({
   });
 
   const { minimize, include_bots, include_user_data } = watch();
+  const canDownloadAllUsersData =
+    !!user?.is_staff || dataAccessStatus.has_data_access;
   const isDownloadDisabled =
     !minimize || (!isNil(include_bots) && include_bots !== "default");
 
@@ -288,7 +290,11 @@ const DataRequestModal: FC<Props> = ({
                 <CheckboxField
                   control={control}
                   name="include_user_data"
-                  label={t("includeUserData")}
+                  label={
+                    canDownloadAllUsersData
+                      ? t("includeUserData")
+                      : t("includeMyForecasts")
+                  }
                   errors={errors.include_user_data}
                 />
                 {!!include_user_data ? (

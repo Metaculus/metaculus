@@ -1258,6 +1258,7 @@
   "scoreData": "评分数据",
   "keyFactorData": "关键因素数据",
   "includeUserData": "包含用户数据",
+  "includeMyForecasts": "包含我的预测",
   "aggregationMethods": "汇总方法",
   "configuration": "配置",
   "loginConfigurationMessage": "登录以选择不同的选项",
