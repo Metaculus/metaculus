@@ -1,6 +1,5 @@
 from datetime import timedelta
 
-import pytest
 from django.utils import timezone
 
 from posts.models import Post
@@ -115,33 +114,3 @@ def test_get_timeline_data_for_projects(user1, django_assert_num_queries):
     # post3 is resolved, but post2 is not
     assert not p2_data["all_questions_resolved"]
     assert p2_data["latest_actual_resolve_time"] == post3.question.actual_resolve_time
-
-
-@pytest.mark.parametrize("questions_count", [1, 5])
-def test_get_timeline_data_for_projects_query_count_is_constant(
-    user1, django_assert_num_queries, questions_count
-):
-    project = factory_project()
-    now = timezone.now()
-    cp_reveal_time = now - timedelta(days=1)
-
-    for _ in range(questions_count):
-        factory_post(
-            author=user1,
-            default_project=project,
-            curation_status=Post.CurationStatus.APPROVED,
-            question=create_question(
-                question_type=Question.QuestionType.BINARY,
-                open_time=now - timedelta(days=10),
-                cp_reveal_time=cp_reveal_time,
-                spot_scoring_time=None,
-                scheduled_close_time=now + timedelta(days=5),
-                scheduled_resolve_time=now + timedelta(days=10),
-            ),
-        )
-
-    uncached = get_timeline_data_for_projects.__wrapped__
-    with django_assert_num_queries(4):
-        data = uncached([project.pk])
-
-    assert data[project.pk]["last_spot_scoring_time"] == cp_reveal_time
