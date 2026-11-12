@@ -20,7 +20,7 @@ import cn from "@/utils/core/cn";
 
 import { GLASS_CARD_CLASSNAME, STAGE_FADE_IMAGE } from "./hero_theme";
 import { YEAR_STEP_KEYS } from "./hero_year_control";
-import { AreaIcon } from "./icons";
+import { AreaIcon, LongArrowIcon } from "./icons";
 import MilestoneCard, { KIND_COLOR } from "./milestone_card";
 import {
   SETTLE_AFTER_EDGE_KEY_MS,
@@ -32,8 +32,10 @@ import {
   WorldQuestion,
 } from "../data/questions";
 import {
+  clampYear,
   isDimmedIn,
   isLikelyByEndOf,
+  firstLikelyYear,
   medianDate,
   MILESTONE_GROUPS,
   MilestoneGroup,
@@ -69,6 +71,7 @@ type Props = {
   headRef: RefObject<HTMLElement | null>;
   onYearChange: (year: number, settleAfterMs?: number) => void;
   onScrubChange: (scrubbing: boolean) => void;
+  onJump: (question: WorldQuestion) => void;
 };
 
 const HeroTimeline: FC<Props> = ({
@@ -78,6 +81,7 @@ const HeroTimeline: FC<Props> = ({
   headRef,
   onYearChange,
   onScrubChange,
+  onJump,
 }) => {
   const t = useTranslations();
   const locale = useLocale();
@@ -177,6 +181,10 @@ const HeroTimeline: FC<Props> = ({
     keepPeek();
     peekTimerRef.current = setTimeout(() => setPeek(null), PEEK_HIDE_DELAY_MS);
   };
+  const jump = (question: WorldQuestion) => {
+    setPeek(null);
+    onJump(question);
+  };
   const showPeek = (id: string) => {
     const question = QUESTIONS_BY_ID[id];
     if (!question || !trackWidth) return;
@@ -231,6 +239,7 @@ const HeroTimeline: FC<Props> = ({
     onScrubChange(false);
   };
   const onTrackKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (event.target !== event.currentTarget) return;
     const step = YEAR_STEP_KEYS[event.key];
     if (step != null) {
       event.preventDefault();
@@ -241,6 +250,17 @@ const HeroTimeline: FC<Props> = ({
         event.key === "Home" ? YEAR_MIN : YEAR_MAX,
         SETTLE_AFTER_EDGE_KEY_MS
       );
+    } else if (event.key === "Enter") {
+      event.preventDefault();
+      const nearest = WORLD_QUESTIONS.reduce((best, question) =>
+        Math.abs(question.median - (year + 0.5)) <
+        Math.abs(best.median - (year + 0.5))
+          ? question
+          : best
+      );
+      showPeek(nearest.id);
+    } else if (event.key === "Escape") {
+      setPeek(null);
     }
   };
 
@@ -368,6 +388,7 @@ const HeroTimeline: FC<Props> = ({
                 hidden={hidden}
                 formatDate={formatDate}
                 onPage={(delta) => page(index, delta)}
+                onJump={jump}
                 onHoverChange={(value) =>
                   setHoveredGroup((prev) =>
                     value ? index : prev === index ? null : prev
@@ -442,78 +463,116 @@ const HeroTimeline: FC<Props> = ({
         className={cn("relative @container", !measured && "@[860px]:invisible")}
       >
         {renderZone("above")}
-        <div
-          ref={trackRef}
-          data-wby-track
-          role="slider"
-          tabIndex={0}
-          aria-label={t("worldByYearYear")}
-          aria-valuemin={YEAR_MIN}
-          aria-valuemax={YEAR_MAX}
-          aria-valuenow={year}
-          onPointerDown={onTrackPointerDown}
-          onPointerMove={onTrackPointerMove}
-          onPointerUp={onTrackPointerEnd}
-          onPointerCancel={onTrackPointerEnd}
-          onLostPointerCapture={onTrackPointerEnd}
-          onKeyDown={onTrackKeyDown}
-          className="relative z-[3] mt-[18px] h-[52px] cursor-ew-resize touch-pan-y [@media(pointer:coarse)]:touch-none"
-        >
-          <div className="absolute inset-x-0 top-[24.5px] h-[3px] rounded-sm bg-[rgba(var(--wby-ink),.14)]" />
+        <div className="relative z-[3] mt-[18px]">
           <div
-            className={cn(
-              "absolute left-0 top-[24.5px] h-[3px] rounded-sm bg-[rgba(var(--wby-ink),.7)] will-change-[width]",
-              playTransition
-            )}
-            style={{ width: fill }}
-          />
-          <div
-            onPointerOver={(event) => {
-              const tick = (event.target as Element).closest<HTMLElement>(
-                "[data-question-tick]"
-              );
-              if (!tick?.dataset.questionTick) return;
-              keepPeek();
-              showPeek(tick.dataset.questionTick);
-            }}
-            onPointerOut={(event) => {
-              if (
-                event.pointerType === "mouse" &&
-                (event.target as Element).closest("[data-question-tick]")
-              ) {
-                hidePeekLater();
-              }
-            }}
-          >
-            {WORLD_QUESTIONS.map((question) => {
-              const lit = isLikelyByEndOf(year, question);
-              const hot = peek?.id === question.id;
-              return (
-                <div
-                  key={question.id}
-                  data-question-tick={question.id}
-                  className={cn(
-                    "absolute -ml-[5px] h-5 w-2.5",
-                    question.kind === "cap" ? "top-0.5" : "top-[30px]"
-                  )}
-                  style={{ left: percent(timelinePosition(question.median)) }}
-                >
-                  <i
-                    className={cn(
-                      "absolute left-1 h-[14px] w-0.5 rounded-[1px] bg-[rgba(var(--wby-ink),.3)] opacity-[.55] [transition:background_.35s_ease,height_.35s_ease,opacity_.35s_ease]",
-                      question.kind === "cap" ? "bottom-0" : "top-0",
-                      lit && "h-4 opacity-100",
-                      hot && "left-[3px] h-[18px] w-1"
-                    )}
-                    style={
-                      lit
-                        ? { background: KIND_COLOR[question.kind] }
-                        : undefined
-                    }
-                  />
-                </div>
-              );
+            ref={trackRef}
+            data-wby-track
+            role="slider"
+            tabIndex={0}
+            aria-label={t("worldByYearHeroTrackLabel")}
+            aria-valuemin={YEAR_MIN}
+            aria-valuemax={YEAR_MAX}
+            aria-valuenow={year}
+            aria-valuetext={t("worldByYearSelectedYearValue", {
+              year: String(year),
             })}
+            onPointerDown={onTrackPointerDown}
+            onPointerMove={onTrackPointerMove}
+            onPointerUp={onTrackPointerEnd}
+            onPointerCancel={onTrackPointerEnd}
+            onLostPointerCapture={onTrackPointerEnd}
+            onKeyDown={onTrackKeyDown}
+            className="relative z-[3] h-[52px] cursor-ew-resize touch-pan-y [@media(pointer:coarse)]:touch-none"
+          >
+            <div className="absolute inset-x-0 top-[24.5px] h-[3px] rounded-sm bg-[rgba(var(--wby-ink),.14)]" />
+            <div
+              className={cn(
+                "absolute left-0 top-[24.5px] h-[3px] rounded-sm bg-[rgba(var(--wby-ink),.7)] will-change-[width]",
+                playTransition
+              )}
+              style={{ width: fill }}
+            />
+            <div
+              onPointerOver={(event) => {
+                const tick = (event.target as Element).closest<HTMLElement>(
+                  "[data-question-tick]"
+                );
+                if (!tick?.dataset.questionTick) return;
+                keepPeek();
+                showPeek(tick.dataset.questionTick);
+              }}
+              onPointerOut={(event) => {
+                if (
+                  event.pointerType === "mouse" &&
+                  (event.target as Element).closest("[data-question-tick]")
+                ) {
+                  hidePeekLater();
+                }
+              }}
+            >
+              {WORLD_QUESTIONS.map((question) => {
+                const lit = isLikelyByEndOf(year, question);
+                const hot = peek?.id === question.id;
+                return (
+                  <div
+                    key={question.id}
+                    data-question-tick={question.id}
+                    className={cn(
+                      "absolute -ml-[5px] h-5 w-2.5",
+                      question.kind === "cap" ? "top-0.5" : "top-[30px]"
+                    )}
+                    style={{ left: percent(timelinePosition(question.median)) }}
+                  >
+                    <i
+                      className={cn(
+                        "absolute left-1 h-[14px] w-0.5 rounded-[1px] bg-[rgba(var(--wby-ink),.3)] opacity-[.55] [transition:background_.35s_ease,height_.35s_ease,opacity_.35s_ease]",
+                        question.kind === "cap" ? "bottom-0" : "top-0",
+                        lit && "h-4 opacity-100",
+                        hot && "left-[3px] h-[18px] w-1"
+                      )}
+                      style={
+                        lit
+                          ? { background: KIND_COLOR[question.kind] }
+                          : undefined
+                      }
+                    />
+                  </div>
+                );
+              })}
+            </div>
+            {!stacked &&
+              MILESTONE_GROUPS.map((group, index) => {
+                const milestone = currentMilestone(index);
+                const hovered = hoveredGroup === index;
+                return (
+                  <i
+                    key={index}
+                    className={cn(
+                      "absolute top-[24.5px] z-[5] -ml-[3.5px] -mt-0.5 size-[7px] rounded-full shadow-[0_0_0_2px_var(--wby-bg)] [transition:left_.3s_ease,opacity_.5s_ease,transform_.25s_ease,background_.3s_ease]",
+                      hovered && "scale-150"
+                    )}
+                    style={{
+                      left: percent(timelinePosition(milestone.median)),
+                      background: KIND_COLOR[group.kind],
+                      opacity: isHidden(index)
+                        ? 0
+                        : peek
+                          ? 0.15
+                          : hoveredGroup != null && !hovered
+                            ? 0.3
+                            : 1,
+                    }}
+                  />
+                );
+              })}
+            <div
+              className={cn(
+                "absolute top-[17px] z-[6] -ml-[14px] h-[18px] w-7 rounded-full bg-[var(--wby-year)] will-change-[left]",
+                "after:absolute after:inset-0 after:m-auto after:size-2.5 after:bg-[radial-gradient(circle,var(--wby-handle-dot)_0.7px,transparent_1px)] after:bg-[length:5px_3.5px] after:content-['']",
+                playTransition
+              )}
+              style={{ left: fill }}
+            />
           </div>
           {peek && peekQuestion && (
             <div
@@ -549,41 +608,22 @@ const HeroTimeline: FC<Props> = ({
                   {formatDate(peekQuestion.median)}
                 </span>
               </div>
+              <button
+                type="button"
+                onClick={() => jump(peekQuestion)}
+                className="relative z-[1] mt-2 flex w-full cursor-pointer items-center gap-1 border-0 border-t border-solid border-[var(--wby-line)] bg-transparent px-0 pb-0 pt-2 text-left font-sans text-[11px] font-medium text-[var(--wby-t1)] hover:text-[var(--wby-fg)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--wby-year)]"
+              >
+                {t("worldByYearGoToAreaInYear", {
+                  area: t(AREA_TITLE_KEYS[peekQuestion.area]),
+                  year: String(
+                    firstLikelyYear(peekQuestion) ??
+                      clampYear(Math.floor(peekQuestion.median))
+                  ),
+                })}
+                <LongArrowIcon direction="right" className="size-3" />
+              </button>
             </div>
           )}
-          {!stacked &&
-            MILESTONE_GROUPS.map((group, index) => {
-              const milestone = currentMilestone(index);
-              const hovered = hoveredGroup === index;
-              return (
-                <i
-                  key={index}
-                  className={cn(
-                    "absolute top-[24.5px] z-[5] -ml-[3.5px] -mt-0.5 size-[7px] rounded-full shadow-[0_0_0_2px_var(--wby-bg)] [transition:left_.3s_ease,opacity_.5s_ease,transform_.25s_ease,background_.3s_ease]",
-                    hovered && "scale-150"
-                  )}
-                  style={{
-                    left: percent(timelinePosition(milestone.median)),
-                    background: KIND_COLOR[group.kind],
-                    opacity: isHidden(index)
-                      ? 0
-                      : peek
-                        ? 0.15
-                        : hoveredGroup != null && !hovered
-                          ? 0.3
-                          : 1,
-                  }}
-                />
-              );
-            })}
-          <div
-            className={cn(
-              "absolute top-[17px] z-[6] -ml-[14px] h-[18px] w-7 rounded-full bg-[var(--wby-year)] will-change-[left]",
-              "after:absolute after:inset-0 after:m-auto after:size-2.5 after:bg-[radial-gradient(circle,var(--wby-handle-dot)_0.7px,transparent_1px)] after:bg-[length:5px_3.5px] after:content-['']",
-              playTransition
-            )}
-            style={{ left: fill }}
-          />
         </div>
         <div className="relative mb-[18px] mt-0.5 h-[14px] font-sans text-[11px] text-[var(--wby-muted)]">
           {YEAR_LABELS.map((label, i) => (

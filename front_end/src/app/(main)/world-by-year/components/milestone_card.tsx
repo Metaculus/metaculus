@@ -15,7 +15,7 @@ export const KIND_COLOR = {
 } as const;
 
 const pagerButtonClassName =
-  "grid size-5 place-items-center rounded text-[var(--wby-t1)] hover:bg-[var(--wby-line)]";
+  "relative grid size-5 place-items-center rounded text-[var(--wby-t1)] before:absolute before:-inset-1.5 before:content-[''] hover:bg-[var(--wby-line)] disabled:pointer-events-none disabled:opacity-30";
 
 type Props = {
   ref?: Ref<HTMLDivElement>;
@@ -27,6 +27,7 @@ type Props = {
   style?: CSSProperties;
   formatDate: (median: number) => string;
   onPage: (delta: number) => void;
+  onJump: (question: WorldQuestion) => void;
   onHoverChange: (hovered: boolean) => void;
 };
 
@@ -40,6 +41,7 @@ const MilestoneCard: FC<Props> = ({
   style,
   formatDate,
   onPage,
+  onJump,
   onHoverChange,
 }) => {
   const t = useTranslations();
@@ -65,15 +67,11 @@ const MilestoneCard: FC<Props> = ({
         hidden && stacked && "hidden"
       )}
     >
-      <div
-        className={cn(
-          "absolute right-[9px] top-[9px] z-[2] flex items-center gap-[3px] font-sans text-[10px] text-[var(--wby-muted)]",
-          solo && "[&_button]:pointer-events-none [&_button]:opacity-30"
-        )}
-      >
+      <div className="absolute right-[9px] top-[9px] z-[2] flex items-center gap-[3px] font-sans text-[10px] text-[var(--wby-muted)]">
         <button
           type="button"
           aria-label={t("worldByYearPreviousMilestone")}
+          disabled={solo}
           onClick={() => onPage(-1)}
           className={pagerButtonClassName}
         >
@@ -85,6 +83,7 @@ const MilestoneCard: FC<Props> = ({
         <button
           type="button"
           aria-label={t("worldByYearNextMilestone")}
+          disabled={solo}
           onClick={() => onPage(1)}
           className={pagerButtonClassName}
         >
@@ -98,6 +97,7 @@ const MilestoneCard: FC<Props> = ({
             <div
               key={active ? `active-${milestone.id}` : milestone.id}
               aria-hidden={!active}
+              inert={!active}
               className={cn(
                 "flex flex-col [grid-area:1/1]",
                 active
@@ -111,9 +111,13 @@ const MilestoneCard: FC<Props> = ({
                   <span>{t(AREA_TITLE_KEYS[milestone.area])}</span>
                 </span>
               </div>
-              <div className="mt-4 font-sans text-[15px] font-medium leading-[1.4] text-[var(--wby-fg)] [text-wrap:pretty]">
+              <button
+                type="button"
+                onClick={() => onJump(milestone)}
+                className="mt-4 cursor-pointer border-0 bg-transparent p-0 text-left font-sans text-[15px] font-medium leading-[1.4] text-[var(--wby-fg)] [text-wrap:pretty] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--wby-year)]"
+              >
                 {t(milestone.headlineKey)}
-              </div>
+              </button>
               <div className="mt-auto flex flex-wrap justify-between gap-2 pt-2.5 font-sans text-[11px] text-[var(--wby-muted)]">
                 <span style={{ color: KIND_COLOR[milestone.kind] }}>
                   {formatDate(milestone.median)}

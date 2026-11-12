@@ -36,6 +36,7 @@ const AreaNarrative: FC<Props> = ({ periods, year, onYearChange }) => {
           >
             <button
               type="button"
+              aria-current={current ? "step" : undefined}
               onClick={(event) => {
                 event.stopPropagation();
                 onYearChange(period.from);

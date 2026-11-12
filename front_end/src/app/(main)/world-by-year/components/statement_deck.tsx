@@ -67,12 +67,11 @@ const StatementDeck: FC<Props> = ({
                   )}
                   <button
                     type="button"
+                    aria-hidden="true"
+                    tabIndex={-1}
                     onClick={() => onOpen(question.id)}
-                    aria-label={t("worldByYearOpenForecastNamed", {
-                      title: t(question.headlineKey),
-                    })}
                     className={cn(
-                      "ml-auto grid size-6 flex-none cursor-pointer place-items-center rounded-full border-0 bg-[rgba(var(--wby-ink),.16)] p-0 text-[var(--wby-fg)] outline-none transition-[background-color,transform] duration-150 ease-[cubic-bezier(.23,1,.32,1)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--wby-year)] [@media(hover:hover)_and_(pointer:fine)]:hover:-translate-y-px [@media(hover:hover)_and_(pointer:fine)]:hover:translate-x-px [@media(hover:hover)_and_(pointer:fine)]:hover:bg-[rgba(var(--wby-ink),.26)]",
+                      "ml-auto grid size-6 flex-none cursor-pointer place-items-center rounded-full border-0 bg-[rgba(var(--wby-ink),.16)] p-0 text-[var(--wby-fg)] outline-none transition-[background-color,transform] duration-150 ease-[cubic-bezier(.23,1,.32,1)] [@media(hover:hover)_and_(pointer:fine)]:hover:-translate-y-px [@media(hover:hover)_and_(pointer:fine)]:hover:translate-x-px [@media(hover:hover)_and_(pointer:fine)]:hover:bg-[rgba(var(--wby-ink),.26)]",
                       !active && "invisible"
                     )}
                   >

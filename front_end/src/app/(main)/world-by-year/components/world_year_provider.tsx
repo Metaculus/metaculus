@@ -13,8 +13,10 @@ import {
   useState,
 } from "react";
 
+import { WorldArea, WorldQuestion } from "../data/questions";
 import {
   clampYear,
+  firstLikelyYear,
   INITIAL_YEAR,
   PLAY_END_YEAR,
   YEAR_MIN,
@@ -28,6 +30,7 @@ export const SETTLE_AFTER_EDGE_KEY_MS = 400;
 
 // "hero" drags follow the year live in the timeline, so nothing waits on them.
 export type PendingSource = "drag" | "key" | "hero";
+export type JumpTarget = { area: WorldArea; questionId: string; year: number };
 
 type WorldYearContextValue = {
   // Follows every control live; the hero timeline and charts read it.
@@ -39,10 +42,12 @@ type WorldYearContextValue = {
   scrubbing: boolean;
   pendingSource: PendingSource;
   playing: boolean;
+  jumpTarget: JumpTarget | null;
   holdRef: RefObject<boolean>;
   changeYear: (year: number, settleAfterMs?: number) => void;
   changeScrubbing: (scrubbing: boolean, source?: PendingSource) => void;
   togglePlay: () => void;
+  jumpToQuestion: (question: WorldQuestion) => void;
 };
 
 const WorldYearContext = createContext<WorldYearContextValue | null>(null);
@@ -54,6 +59,7 @@ export const WorldYearProvider: FC<PropsWithChildren> = ({ children }) => {
   const [scrubbing, setScrubbing] = useState(false);
   const [pendingSource, setPendingSource] = useState<PendingSource>("key");
   const [playing, setPlaying] = useState(false);
+  const [jumpTarget, setJumpTarget] = useState<JumpTarget | null>(null);
   const holdRef = useRef(false);
   const yearRef = useRef(INITIAL_YEAR);
   const settledRef = useRef(INITIAL_YEAR);
@@ -136,6 +142,20 @@ export const WorldYearProvider: FC<PropsWithChildren> = ({ children }) => {
     setPlaying(next < PLAY_END_YEAR);
   }, [playing, applyYear, settle]);
 
+  const jumpToQuestion = useCallback(
+    (question: WorldQuestion) => {
+      const nextYear =
+        firstLikelyYear(question) ?? clampYear(Math.floor(question.median));
+      changeYear(nextYear);
+      setJumpTarget({
+        area: question.area,
+        questionId: question.id,
+        year: nextYear,
+      });
+    },
+    [changeYear]
+  );
+
   const value = useMemo(
     () => ({
       year,
@@ -144,10 +164,12 @@ export const WorldYearProvider: FC<PropsWithChildren> = ({ children }) => {
       scrubbing,
       pendingSource,
       playing,
+      jumpTarget,
       holdRef,
       changeYear,
       changeScrubbing,
       togglePlay,
+      jumpToQuestion,
     }),
     [
       year,
@@ -156,9 +178,11 @@ export const WorldYearProvider: FC<PropsWithChildren> = ({ children }) => {
       scrubbing,
       pendingSource,
       playing,
+      jumpTarget,
       changeYear,
       changeScrubbing,
       togglePlay,
+      jumpToQuestion,
     ]
   );
 

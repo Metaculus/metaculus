@@ -27,6 +27,7 @@ export function HeroSection() {
     changeYear,
     changeScrubbing,
     togglePlay,
+    jumpToQuestion,
   } = useWorldYear();
   const changeTrackScrubbing = useCallback(
     (value: boolean) => changeScrubbing(value, "hero"),
@@ -91,6 +92,7 @@ export function HeroSection() {
         headRef={headRef}
         onYearChange={changeYear}
         onScrubChange={changeTrackScrubbing}
+        onJump={jumpToQuestion}
       />
       <div
         aria-hidden

@@ -148,6 +148,9 @@ const OverviewChart: FC<Props> = ({ formatPercent, settlingClassName }) => {
         aria-valuemin={YEAR_MIN}
         aria-valuemax={YEAR_MAX}
         aria-valuenow={year}
+        aria-valuetext={t("worldByYearSelectedYearValue", {
+          year: String(year),
+        })}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerEnd}

@@ -55,12 +55,14 @@ export function AreaSection({ area }: { area: WorldArea }) {
     holdRef,
     changeYear,
     changeScrubbing,
+    jumpTarget,
   } = useWorldYear();
   const copy = AREA_SECTIONS[area];
   const title = t(AREA_TITLE_KEYS[area]);
   const palette = AREA_PALETTES[area];
 
   const headRef = useRef<HTMLHeadingElement>(null);
+  const sectionRef = useRef<HTMLElement>(null);
   const boxRef = useRef<HTMLDivElement>(null);
   const glassRef = useRef<HTMLCanvasElement>(null);
   const pauseRef = useRef(false);
@@ -110,6 +112,25 @@ export function AreaSection({ area }: { area: WorldArea }) {
       },
     });
   };
+
+  useEffect(() => {
+    if (jumpTarget?.area !== area) return;
+    const index = statements.findIndex((q) => q.id === jumpTarget.questionId);
+    if (index < 0) return;
+    focusIdRef.current += 1;
+    setSelection({
+      year: jumpTarget.year,
+      index,
+      focus: { index, smooth: true, fade: false, id: focusIdRef.current },
+    });
+    sectionRef.current?.scrollIntoView({
+      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
+        ? "auto"
+        : "smooth",
+      block: "start",
+    });
+    headRef.current?.focus({ preventScroll: true });
+  }, [area, jumpTarget, statements]);
 
   // The glass behind the statement box is the band itself: each band frame,
   // the patch behind the box is copied into a tiny canvas that the browser
@@ -192,10 +213,11 @@ export function AreaSection({ area }: { area: WorldArea }) {
 
   return (
     <section
+      ref={sectionRef}
       data-wby-section={area}
       className={cn(
         HERO_THEME_CLASSNAME,
-        "overflow-x-clip bg-[var(--wby-bg)] font-sans text-[14px] text-[var(--wby-fg3)]"
+        "scroll-mt-[calc(var(--top-chrome-height,3rem)+3rem)] overflow-x-clip bg-[var(--wby-bg)] font-sans text-[14px] text-[var(--wby-fg3)]"
       )}
     >
       <div className="mx-auto w-full max-w-[1280px] px-[var(--wby-pad)]">
@@ -218,6 +240,7 @@ export function AreaSection({ area }: { area: WorldArea }) {
             <div className="flex items-center gap-4 max-[720px]:flex-nowrap max-[720px]:justify-between max-[720px]:gap-2.5">
               <h2
                 ref={headRef}
+                tabIndex={-1}
                 className="m-0 text-[clamp(26px,2.6vw,34px)] font-normal leading-[1.1] tracking-[-0.005em] text-[var(--wby-fg)] [text-shadow:0_1px_3px_color-mix(in_srgb,var(--wby-bg)_28%,transparent)] max-[720px]:min-w-0 max-[720px]:whitespace-nowrap max-[720px]:text-[22px]"
               >
                 {t.rich("worldByYearAreaHeading", {
