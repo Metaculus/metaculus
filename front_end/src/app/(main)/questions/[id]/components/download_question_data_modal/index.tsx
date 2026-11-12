@@ -2,6 +2,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { saveAs } from "file-saver";
 import { isNil } from "lodash";
+import Link from "next/link";
 import { useTranslations } from "next-intl";
 import {
   FC,
@@ -34,6 +35,8 @@ import AggregationMethodsPicker from "./aggregation_methods_picker";
 import ExportChartsTab from "./export_charts/export_charts_tab";
 
 type SubmissionType = "download" | "email";
+
+const DATA_REQUEST_FORM_URL = "https://forms.gle/HUrXYmtWkKdUuBjk8";
 
 const schema = z.object({
   aggregation_methods: z
@@ -376,6 +379,29 @@ const DataRequestModal: FC<Props> = ({
                   {t("emailData")}
                 </Button>
               </div>
+              <p className="m-0 -mt-2 text-xs text-gray-600 dark:text-gray-600-dark">
+                {t.rich("downloadDataTermsNotice", {
+                  terms: (chunks) => (
+                    <Link
+                      href="/terms-of-use/#license"
+                      target="_blank"
+                      className="underline"
+                    >
+                      {chunks}
+                    </Link>
+                  ),
+                  form: (chunks) => (
+                    <a
+                      href={DATA_REQUEST_FORM_URL}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="underline"
+                    >
+                      {chunks}
+                    </a>
+                  ),
+                })}
+              </p>
             </div>
           </TabsSection>
 

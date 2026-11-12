@@ -1255,6 +1255,7 @@
   "keyFactorData": "Dados de fatores-chave",
   "includeUserData": "Incluir dados do usuário",
   "includeMyForecasts": "Incluir minhas previsões",
+  "downloadDataTermsNotice": "Os dados são para uso pessoal e não comercial, conforme nossos <terms>Termos de Uso</terms>; redistribuí-los ou usá-los para treinar IA requer nossa permissão por escrito. Precisa de dados em massa ou de mais acesso? <form>Envie uma solicitação de dados</form>.",
   "aggregationMethods": "Métodos de agregação",
   "configuration": "Configuração",
   "loginConfigurationMessage": "Faça login para selecionar opções diferentes",

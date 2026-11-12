@@ -1259,6 +1259,7 @@
   "keyFactorData": "关键因素数据",
   "includeUserData": "包含用户数据",
   "includeMyForecasts": "包含我的预测",
+  "downloadDataTermsNotice": "根据我们的<terms>使用条款</terms>，这些数据仅供个人非商业用途；再分发或用于训练 AI 须事先获得我们的书面许可。需要批量数据或更多访问权限？<form>提交数据申请</form>。",
   "aggregationMethods": "汇总方法",
   "configuration": "配置",
   "loginConfigurationMessage": "登录以选择不同的选项",

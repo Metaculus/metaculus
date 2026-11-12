@@ -1515,6 +1515,7 @@
   "keyFactorData": "Key factor data",
   "includeUserData": "Include user data",
   "includeMyForecasts": "Include my forecasts",
+  "downloadDataTermsNotice": "Data is for personal, non-commercial use under our <terms>Terms of Use</terms>; redistributing it or using it to train AI requires our written permission. Need bulk data or broader access? <form>Submit a data request</form>.",
   "aggregationMethods": "Aggregation methods",
   "configuration": "Configuration",
   "loginConfigurationMessage": "Log in to select different options",
