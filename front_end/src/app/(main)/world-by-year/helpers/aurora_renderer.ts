@@ -161,7 +161,9 @@ export const createAuroraRenderer = (
 
     ctx.clearRect(0, 0, width, height);
     ctx.save();
-    ctx.globalCompositeOperation = light ? "multiply" : "lighter";
+    // Cells never overlap on the cleared canvas, so multiply would look the
+    // same while stalling the GPU on every cell.
+    ctx.globalCompositeOperation = light ? "source-over" : "lighter";
     ctx.imageSmoothingEnabled = false;
     const tick = Math.floor(t * pixel.speed);
     for (let y = 0; y < gridRows; y++) {
