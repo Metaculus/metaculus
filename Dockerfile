@@ -1,4 +1,4 @@
-FROM node:24-bookworm-slim AS node
+FROM node:24.22.3-bookworm-slim AS node
 FROM oven/bun:1.3 AS bun
 
 FROM python:3.12-slim-bookworm AS base
