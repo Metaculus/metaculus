@@ -277,6 +277,7 @@ def get_timeline_data_for_projects(project_ids: list[int]) -> dict[int, dict]:
     question_qs = Question.objects.only(
         "id",
         "post_id",
+        "open_time",  # read by Question.get_spot_scoring_time()
         "cp_reveal_time",
         "spot_scoring_time",
         "actual_resolve_time",
