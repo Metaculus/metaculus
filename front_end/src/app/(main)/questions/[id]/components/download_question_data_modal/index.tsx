@@ -356,8 +356,8 @@ const DataRequestModal: FC<Props> = ({
               </Section>
 
               <div className="flex flex-col gap-3 rounded-lg border border-blue-400 bg-blue-100 p-4 dark:border-blue-400-dark dark:bg-blue-100-dark">
-                <h3 className="m-0 flex items-center gap-2 text-base font-bold text-blue-900 dark:text-blue-900-dark">
-                  <FontAwesomeIcon icon={faDatabase} />
+                <h3 className="m-0 flex items-start gap-2 text-base font-bold leading-snug text-blue-900 dark:text-blue-900-dark">
+                  <FontAwesomeIcon icon={faDatabase} className="mt-1" />
                   {t("downloadDataCtaTitle")}
                 </h3>
                 <p className="m-0 text-sm text-gray-800 dark:text-gray-800-dark">
