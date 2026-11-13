@@ -1,0 +1,148 @@
+@keyframes wby-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes wby-drop-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+
+@keyframes wby-settle-in {
+  from {
+    opacity: 0.35;
+  }
+}
+
+.wby-pointer-mode .wby-root:focus-visible,
+.wby-pointer-mode .wby-root :focus-visible,
+.wby-pointer-mode .wby-root :focus-visible::after {
+  outline: none !important;
+}
+
+/* Top bar: the title and its tile roll like a drum when the section in view
+   changes. */
+.wby-roll {
+  display: inline-grid;
+  vertical-align: baseline;
+  overflow: clip;
+  overflow-clip-margin: 0.25em 0;
+  perspective: 320px;
+  justify-items: start;
+  transition: width 0.46s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.wby-roll > span {
+  grid-area: 1 / 1;
+  white-space: nowrap;
+  transform-origin: 50% 50%;
+  backface-visibility: hidden;
+  transition:
+    transform 0.42s cubic-bezier(0.23, 1, 0.32, 1),
+    opacity 0.3s ease;
+}
+
+.wby-roll > .wby-roll-in,
+.wby-roll > .wby-roll-out {
+  transform: translateY(var(--dy)) rotateX(var(--rx));
+  opacity: 0;
+}
+
+.wby-tile > span {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transform: translateY(var(--ty, 0%));
+  transition:
+    transform 0.42s cubic-bezier(0.23, 1, 0.32, 1),
+    opacity 0.3s ease;
+}
+
+.wby-tile > .wby-tile-on {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wby-roll,
+  .wby-roll > span,
+  .wby-tile > span {
+    transition: none !important;
+  }
+}
+
+/* Dive deeper: the forecast in the middle, the list in a full-height column
+   on the right. Narrower, the list docks under the forecast; on phones the
+   arrows move into a row of their own. */
+.wby-deep {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr) 64px 360px;
+  grid-template-rows: auto minmax(0, 1fr);
+  grid-template-areas:
+    "head head head list"
+    "prev stage next list";
+}
+
+.wby-deep-head {
+  grid-area: head;
+}
+
+.wby-deep-prev {
+  grid-area: prev;
+}
+
+.wby-deep-next {
+  grid-area: next;
+}
+
+.wby-deep-stage {
+  grid-area: stage;
+}
+
+.wby-deep-list {
+  grid-area: list;
+}
+
+@media (max-width: 960px) {
+  .wby-deep {
+    grid-template-columns: 44px minmax(0, 1fr) 44px;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    grid-template-areas:
+      "head head head"
+      "prev stage next"
+      "list list list";
+  }
+}
+
+@media (max-width: 720px) {
+  .wby-deep {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-rows: auto minmax(0, 1fr) auto auto;
+    grid-template-areas:
+      "head head head"
+      "stage stage stage"
+      "prev . next"
+      "list list list";
+  }
+}
+
+@keyframes wby-deep-in {
+  from {
+    opacity: 0;
+    transform: translateX(28px);
+  }
+}
+
+@keyframes wby-deep-in-back {
+  from {
+    opacity: 0;
+    transform: translateX(-28px);
+  }
+}
