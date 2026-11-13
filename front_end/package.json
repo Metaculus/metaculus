@@ -119,7 +119,7 @@
     "tailwind-merge": "^2.6.1",
     "topojson-client": "^3.1.0",
     "ts-invariant": "^0.10.3",
-    "undici": "^7.30.0",
+    "undici": "^7.30.2",
     "victory": "^37.3.6",
     "whatwg-fetch": "^3.6.20",
     "yaml": "^2.8.3",

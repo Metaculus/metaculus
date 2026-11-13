@@ -127,7 +127,7 @@ cd front_end
 nvm install
 nvm use
 ```
-This will automatically use the version specified in `front_end/.nvmrc` (currently 24.12.0).
+This will automatically use the version specified in `front_end/.nvmrc` (currently 24.22.3).
 Then install Bun:
 ```bash
 curl -fsSL https://bun.com/install | bash
