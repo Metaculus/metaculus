@@ -1,8 +1,10 @@
+import CompactConditionalTile from "@/components/conditional_tile/compact_conditional_tile";
 import DetailedGroupCard from "@/components/detailed_question_card/detailed_group_card";
 import DetailedQuestionCard from "@/components/detailed_question_card/detailed_question_card";
 import { EmbedChartType, TimelineChartZoomOption } from "@/types/charts";
 import { PostWithForecasts } from "@/types/post";
 import {
+  isConditionalPost,
   isGroupOfQuestionsPost,
   isQuestionPost,
 } from "@/utils/questions/helpers";
@@ -31,6 +33,9 @@ const EmbedQuestionPlot: React.FC<Props> = ({
   const accent = getEmbedAccentColor(theme);
   return (
     <>
+      {isConditionalPost(post) && (
+        <CompactConditionalTile post={post} colorOverride={accent} />
+      )}
       {isQuestionPost(post) && (
         <DetailedQuestionCard
           post={post}
