@@ -72,6 +72,7 @@ export const useForecastDetailNavigation = ({
       card.style.opacity = "";
     };
     const onStart = (event: TouchEvent) => {
+      if (swipe?.horizontal) springBack();
       const touch = event.touches[0];
       const target = event.target as Element;
       swipe =

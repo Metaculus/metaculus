@@ -82,6 +82,7 @@ const HeroTimeline: FC<Props> = ({
   const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
   const trackDragRef = useRef(false);
   const trackRafRef = useRef<number | null>(null);
+  const trackPointerXRef = useRef<number | null>(null);
   const peekTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(
     undefined
   );
@@ -209,6 +210,7 @@ const HeroTimeline: FC<Props> = ({
   const onTrackPointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
     if ((event.target as Element).closest("[data-question-peek]")) return;
     trackDragRef.current = true;
+    trackPointerXRef.current = event.clientX;
     onScrubChange(true);
     try {
       event.currentTarget.setPointerCapture(event.pointerId);
@@ -218,16 +220,27 @@ const HeroTimeline: FC<Props> = ({
   const onTrackPointerMove = (event: ReactPointerEvent<HTMLDivElement>) => {
     if (!trackDragRef.current) return;
     event.preventDefault();
-    const clientX = event.clientX;
+    trackPointerXRef.current = event.clientX;
     if (trackRafRef.current != null) return;
     trackRafRef.current = requestAnimationFrame(() => {
       trackRafRef.current = null;
-      if (trackDragRef.current) onYearChange(yearFromPointer(clientX));
+      const clientX = trackPointerXRef.current;
+      if (trackDragRef.current && clientX != null) {
+        onYearChange(yearFromPointer(clientX));
+      }
     });
   };
-  const onTrackPointerEnd = () => {
+  const onTrackPointerEnd = (event: ReactPointerEvent<HTMLDivElement>) => {
     if (!trackDragRef.current) return;
+    if (trackRafRef.current != null) {
+      cancelAnimationFrame(trackRafRef.current);
+      trackRafRef.current = null;
+    }
+    const clientX =
+      event.type === "pointerup" ? event.clientX : trackPointerXRef.current;
+    trackPointerXRef.current = null;
     trackDragRef.current = false;
+    if (clientX != null) onYearChange(yearFromPointer(clientX));
     onScrubChange(false);
   };
   const onTrackKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {

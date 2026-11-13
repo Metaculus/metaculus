@@ -8,6 +8,7 @@ const CHART_END = 2051;
 export const quartileRange = (question: WorldQuestion) => {
   const from = Math.floor(question.p25);
   const to = Math.floor(question.p75);
+  if (from >= YEAR_MAX) return `${YEAR_MAX}+`;
   if (to > YEAR_MAX) return `${from}–${YEAR_MAX}+`;
   return from === to ? String(from) : `${from}–${String(to).slice(2)}`;
 };

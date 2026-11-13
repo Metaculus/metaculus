@@ -64,7 +64,10 @@ const MiniTimeline: FC<Props> = ({ year, onYearChange, onScrubChange }) => {
       touch: event.pointerType !== "mouse",
       moved: false,
     };
-    if (event.pointerType === "mouse") event.preventDefault();
+    if (event.pointerType === "mouse") {
+      event.preventDefault();
+      event.currentTarget.setPointerCapture(event.pointerId);
+    }
   };
 
   const onPointerMove = (event: ReactPointerEvent<HTMLDivElement>) => {
@@ -143,6 +146,7 @@ const MiniTimeline: FC<Props> = ({ year, onYearChange, onScrubChange }) => {
       onPointerMove={onPointerMove}
       onPointerUp={onPointerEnd}
       onPointerCancel={onPointerEnd}
+      onLostPointerCapture={onPointerEnd}
       onPointerLeave={(event) => {
         if (!dragRef.current && event.pointerType === "mouse") setHover(null);
       }}

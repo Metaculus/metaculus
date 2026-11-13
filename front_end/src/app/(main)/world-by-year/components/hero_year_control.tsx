@@ -99,13 +99,9 @@ const HeroYearControl: FC<Props> = ({
   const valueRef = useRef<HTMLSpanElement>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef<DragState | null>(null);
-  const openRef = useRef(false);
+  const suppressClickRef = useRef(false);
   const [open, setOpen] = useState(false);
   const [dragging, setDragging] = useState(false);
-
-  useEffect(() => {
-    openRef.current = open;
-  }, [open]);
 
   const close = (restoreFocus: boolean) => {
     setOpen(false);
@@ -194,15 +190,16 @@ const HeroYearControl: FC<Props> = ({
         onYearChange(drag.from + Math.round(dx / PX_PER_YEAR));
       }
     };
-    const onUp = (event: PointerEvent) => {
+    const onUp = () => {
       const drag = dragRef.current;
       if (!drag) return;
       dragRef.current = null;
       if (drag.moved) {
+        suppressClickRef.current = true;
         setDragging(false);
         onScrubChange(false);
-      } else if (withList && !drag.cancelled && event.type === "pointerup") {
-        setOpen(!openRef.current);
+      } else if (drag.cancelled) {
+        suppressClickRef.current = true;
       }
     };
     window.addEventListener("pointermove", onMove, { passive: false });
@@ -217,6 +214,7 @@ const HeroYearControl: FC<Props> = ({
 
   const onPointerDown = (event: ReactPointerEvent<HTMLSpanElement>) => {
     if (event.button) return;
+    suppressClickRef.current = false;
     dragRef.current = {
       x: event.clientX,
       y: event.clientY,
@@ -235,7 +233,7 @@ const HeroYearControl: FC<Props> = ({
       onYearChange(year + step, SETTLE_AFTER_KEY_MS);
     } else if (withList && (event.key === "Enter" || event.key === " ")) {
       event.preventDefault();
-      setOpen(true);
+      valueRef.current?.click();
     }
   };
 
@@ -261,6 +259,15 @@ const HeroYearControl: FC<Props> = ({
         aria-label={ariaLabel ?? t("worldByYearYearControlLabel")}
         onPointerDown={onPointerDown}
         onKeyDown={onKeyDown}
+        onClick={(event) => {
+          if (!withList) return;
+          if (suppressClickRef.current && event.detail > 0) {
+            suppressClickRef.current = false;
+            return;
+          }
+          suppressClickRef.current = false;
+          setOpen((value) => !value);
+        }}
         className={cn(
           valueClassName(scrubbing),
           "group/year cursor-ew-resize touch-pan-y select-none hover:bg-[length:100%_1px] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--wby-year)]",
