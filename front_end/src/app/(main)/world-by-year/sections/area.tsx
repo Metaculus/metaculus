@@ -16,11 +16,12 @@ import AreaNarrative from "../components/area_narrative";
 import AuroraCanvas from "../components/aurora_canvas";
 import { useDiveDeeper } from "../components/dive_deeper";
 import ForecastCard from "../components/forecast_card";
-import { HERO_THEME_CLASSNAME } from "../components/hero_theme";
 import HeroYearControl from "../components/hero_year_control";
 import { LongArrowIcon } from "../components/icons";
 import StatementDeck from "../components/statement_deck";
 import SwimlaneChart, { LaneFocus } from "../components/swimlane_chart";
+import { WORLD_BY_YEAR_THEME_CLASSNAME } from "../components/theme";
+import { useWorldData } from "../components/world_data_provider";
 import { useWorldYear } from "../components/world_year_provider";
 import {
   AREA_ORDER,
@@ -47,6 +48,7 @@ export function AreaSection({ area }: { area: WorldArea }) {
   const t = useTranslations();
   const locale = useLocale();
   const openDiveDeeper = useDiveDeeper();
+  const { questions } = useWorldData();
   const {
     year,
     settledYear,
@@ -69,11 +71,17 @@ export function AreaSection({ area }: { area: WorldArea }) {
   const focusIdRef = useRef(0);
   const firstSettleRef = useRef(true);
 
-  const statements = useMemo(() => statementsFor(area), [area]);
-  const periods = useMemo(() => periodsFor(area, copy), [area, copy]);
+  const statements = useMemo(
+    () => statementsFor(questions, area),
+    [questions, area]
+  );
+  const periods = useMemo(
+    () => periodsFor(questions, area, copy),
+    [questions, area, copy]
+  );
   const cards = useMemo(
-    () => closestQuestions(area, settledYear),
-    [area, settledYear]
+    () => closestQuestions(questions, area, settledYear),
+    [questions, area, settledYear]
   );
   const auroraConfig = useMemo(
     () => sectionAurora(palette, AREA_ORDER.indexOf(area)),
@@ -211,12 +219,14 @@ export function AreaSection({ area }: { area: WorldArea }) {
     return questionCopy ? t(questionCopy.laneKey) : "";
   });
 
+  if (!statements.length) return null;
+
   return (
     <section
       ref={sectionRef}
       data-wby-section={area}
       className={cn(
-        HERO_THEME_CLASSNAME,
+        WORLD_BY_YEAR_THEME_CLASSNAME,
         "scroll-mt-[calc(var(--top-chrome-height,3rem)+3rem)] overflow-x-clip bg-[var(--wby-bg)] font-sans text-[14px] text-[var(--wby-fg3)]"
       )}
     >

@@ -5,8 +5,9 @@ import { useMemo } from "react";
 
 import cn from "@/utils/core/cn";
 
-import { HERO_THEME_CLASSNAME } from "../components/hero_theme";
 import OverviewChart from "../components/overview_chart";
+import { WORLD_BY_YEAR_THEME_CLASSNAME } from "../components/theme";
+import { useWorldData } from "../components/world_data_provider";
 import { useWorldYear } from "../components/world_year_provider";
 import { medianDate } from "../helpers/forecast";
 import { summarizeYear } from "../helpers/overview";
@@ -15,7 +16,11 @@ export function OverviewSection() {
   const t = useTranslations();
   const locale = useLocale();
   const { settledYear, settleCount, scrubbing } = useWorldYear();
-  const summary = useMemo(() => summarizeYear(settledYear), [settledYear]);
+  const { questions } = useWorldData();
+  const summary = useMemo(
+    () => summarizeYear(questions, settledYear),
+    [questions, settledYear]
+  );
 
   const { formatDate, formatPercent } = useMemo(() => {
     const dateFormatter = new Intl.DateTimeFormat(locale, {
@@ -75,7 +80,7 @@ export function OverviewSection() {
     <section
       data-wby-section="overview"
       className={cn(
-        HERO_THEME_CLASSNAME,
+        WORLD_BY_YEAR_THEME_CLASSNAME,
         "bg-[var(--wby-bg)] font-sans text-[14px] text-[var(--wby-fg3)]"
       )}
     >

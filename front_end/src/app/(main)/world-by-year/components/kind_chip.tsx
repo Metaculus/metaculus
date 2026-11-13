@@ -3,7 +3,7 @@
 import { useTranslations } from "next-intl";
 import { FC } from "react";
 
-import { KIND_COLOR } from "./milestone_card";
+import { KIND_COLOR } from "./theme";
 import { QuestionKind } from "../data/questions";
 
 const KindChip: FC<{ kind: QuestionKind }> = ({ kind }) => {

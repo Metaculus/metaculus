@@ -1,4 +1,4 @@
-import { MILESTONE_GROUPS, MilestoneGroup } from "./forecast";
+import { MilestoneGroup } from "./forecast";
 
 export const STACK_BELOW_PX = 860;
 export const STEM_BASE = { above: 44, below: 60 };
@@ -12,23 +12,20 @@ export type Side = "above" | "below";
 type GroupEntry = { group: MilestoneGroup; index: number };
 type PlacedCard = GroupEntry & { left: number; width: number; offset: number };
 
-const ZONES: Record<Side, GroupEntry[]> = {
-  above: [],
-  below: [],
-};
-
-MILESTONE_GROUPS.forEach((group, index) => {
-  ZONES[group.kind === "cap" ? "above" : "below"].push({ group, index });
-});
-
 export const percent = (fraction: number) => `${(fraction * 100).toFixed(2)}%`;
 
+// Capabilities sit above the line and adoption below it.
 export const placeZone = (
+  groups: MilestoneGroup[],
   side: Side,
   trackWidth: number,
   step: number
 ): PlacedCard[] => {
-  const entries = ZONES[side];
+  const entries = groups.flatMap((group, index): GroupEntry[] =>
+    (group.kind === "cap" ? "above" : "below") === side
+      ? [{ group, index }]
+      : []
+  );
   const count = entries.length;
   const width = Math.min(
     CARD_MAX_WIDTH,

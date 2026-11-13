@@ -6,12 +6,15 @@ import { useCallback, useRef } from "react";
 import cn from "@/utils/core/cn";
 
 import HeroAurora from "../components/hero_aurora";
-import { GRAIN_IMAGE, HERO_THEME_CLASSNAME } from "../components/hero_theme";
 import HeroTimeline from "../components/hero_timeline";
 import HeroYearControl, {
   HeroYearControlTwin,
 } from "../components/hero_year_control";
 import { PlayPauseIcon } from "../components/icons";
+import {
+  GRAIN_IMAGE,
+  WORLD_BY_YEAR_THEME_CLASSNAME,
+} from "../components/theme";
 import { useWorldYear } from "../components/world_year_provider";
 
 export function HeroSection() {
@@ -39,7 +42,7 @@ export function HeroSection() {
       ref={heroRef}
       data-wby-section="hero"
       className={cn(
-        HERO_THEME_CLASSNAME,
+        WORLD_BY_YEAR_THEME_CLASSNAME,
         "relative flex min-h-[calc(100svh-var(--top-chrome-height,3rem))] flex-col overflow-hidden bg-[var(--wby-bg)] font-sans text-[14px] text-[var(--wby-fg3)]"
       )}
     >

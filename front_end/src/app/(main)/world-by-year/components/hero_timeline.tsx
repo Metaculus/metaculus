@@ -18,31 +18,26 @@ import {
 import useContainerSize from "@/hooks/use_container_size";
 import cn from "@/utils/core/cn";
 
-import { GLASS_CARD_CLASSNAME, STAGE_FADE_IMAGE } from "./hero_theme";
-import { YEAR_STEP_KEYS } from "./hero_year_control";
 import { AreaIcon, LongArrowIcon } from "./icons";
-import MilestoneCard, { KIND_COLOR } from "./milestone_card";
+import MilestoneCard from "./milestone_card";
+import { GLASS_CARD_CLASSNAME, KIND_COLOR, STAGE_FADE_IMAGE } from "./theme";
+import { useWorldData } from "./world_data_provider";
 import {
   SETTLE_AFTER_EDGE_KEY_MS,
   SETTLE_AFTER_KEY_MS,
 } from "./world_year_provider";
-import {
-  AREA_TITLE_KEYS,
-  WORLD_QUESTIONS,
-  WorldQuestion,
-} from "../data/questions";
+import { AREA_TITLE_KEYS, WorldQuestion } from "../data/questions";
 import {
   clampYear,
   isDimmedIn,
   isLikelyByEndOf,
-  firstLikelyYear,
   medianDate,
-  MILESTONE_GROUPS,
   MilestoneGroup,
   timelinePosition,
   YEAR_LABELS,
   YEAR_MAX,
   YEAR_MIN,
+  YEAR_STEP_KEYS,
   yearAtPosition,
   yearFillPosition,
 } from "../helpers/forecast";
@@ -57,10 +52,6 @@ import {
 } from "../helpers/timeline_layout";
 
 const PEEK_HIDE_DELAY_MS = 260;
-
-const QUESTIONS_BY_ID = Object.fromEntries(
-  WORLD_QUESTIONS.map((q) => [q.id, q])
-);
 
 type Peek = { id: string; left: number; arrow: number };
 
@@ -85,6 +76,7 @@ const HeroTimeline: FC<Props> = ({
 }) => {
   const t = useTranslations();
   const locale = useLocale();
+  const { questions, byId, milestoneGroups } = useWorldData();
   const { ref: trackRef, width: trackWidth } =
     useContainerSize<HTMLDivElement>();
   const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
@@ -94,7 +86,7 @@ const HeroTimeline: FC<Props> = ({
     undefined
   );
   const [activeIndexes, setActiveIndexes] = useState(() =>
-    MILESTONE_GROUPS.map(() => 0)
+    milestoneGroups.map(() => 0)
   );
   const [hoveredGroup, setHoveredGroup] = useState<number | null>(null);
   const [peek, setPeek] = useState<Peek | null>(null);
@@ -114,7 +106,7 @@ const HeroTimeline: FC<Props> = ({
   }, [locale]);
 
   const currentMilestone = (index: number) => {
-    const group = MILESTONE_GROUPS[index] as MilestoneGroup;
+    const group = milestoneGroups[index] as MilestoneGroup;
     return group.milestones[activeIndexes[index] ?? 0] as WorldQuestion;
   };
   const isHidden = (index: number) =>
@@ -171,7 +163,7 @@ const HeroTimeline: FC<Props> = ({
     setActiveIndexes((prev) =>
       prev.map((value, i) => {
         if (i !== index) return value;
-        const count = (MILESTONE_GROUPS[i] as MilestoneGroup).milestones.length;
+        const count = (milestoneGroups[i] as MilestoneGroup).milestones.length;
         return (value + delta + count) % count;
       })
     );
@@ -186,7 +178,7 @@ const HeroTimeline: FC<Props> = ({
     onJump(question);
   };
   const showPeek = (id: string) => {
-    const question = QUESTIONS_BY_ID[id];
+    const question = byId.get(id);
     if (!question || !trackWidth) return;
     const x = timelinePosition(question.median) * trackWidth;
     const width = Math.min(262, Math.max(190, window.innerWidth * 0.2));
@@ -250,9 +242,9 @@ const HeroTimeline: FC<Props> = ({
         event.key === "Home" ? YEAR_MIN : YEAR_MAX,
         SETTLE_AFTER_EDGE_KEY_MS
       );
-    } else if (event.key === "Enter") {
+    } else if (event.key === "Enter" && questions.length) {
       event.preventDefault();
-      const nearest = WORLD_QUESTIONS.reduce((best, question) =>
+      const nearest = questions.reduce((best, question) =>
         Math.abs(question.median - (year + 0.5)) <
         Math.abs(best.median - (year + 0.5))
           ? question
@@ -338,7 +330,7 @@ const HeroTimeline: FC<Props> = ({
     };
 
   const renderZone = (side: Side) => {
-    const placed = placeZone(side, trackWidth, metrics.step);
+    const placed = placeZone(milestoneGroups, side, trackWidth, metrics.step);
     const below = side === "below";
     const zoneHeight =
       metrics.cardHeight + (placed[placed.length - 1]?.offset ?? 0);
@@ -447,7 +439,7 @@ const HeroTimeline: FC<Props> = ({
     );
   };
 
-  const peekQuestion = peek ? QUESTIONS_BY_ID[peek.id] : undefined;
+  const peekQuestion = peek ? byId.get(peek.id) : undefined;
   const fill = percent(yearFillPosition(year));
   const playTransition =
     playing && "[transition:left_1s_linear,width_1s_linear]";
@@ -510,7 +502,7 @@ const HeroTimeline: FC<Props> = ({
                 }
               }}
             >
-              {WORLD_QUESTIONS.map((question) => {
+              {questions.map((question) => {
                 const lit = isLikelyByEndOf(year, question);
                 const hot = peek?.id === question.id;
                 return (
@@ -541,7 +533,7 @@ const HeroTimeline: FC<Props> = ({
               })}
             </div>
             {!stacked &&
-              MILESTONE_GROUPS.map((group, index) => {
+              milestoneGroups.map((group, index) => {
                 const milestone = currentMilestone(index);
                 const hovered = hoveredGroup === index;
                 return (
@@ -616,7 +608,7 @@ const HeroTimeline: FC<Props> = ({
                 {t("worldByYearGoToAreaInYear", {
                   area: t(AREA_TITLE_KEYS[peekQuestion.area]),
                   year: String(
-                    firstLikelyYear(peekQuestion) ??
+                    peekQuestion.firstLikelyYear ??
                       clampYear(Math.floor(peekQuestion.median))
                   ),
                 })}

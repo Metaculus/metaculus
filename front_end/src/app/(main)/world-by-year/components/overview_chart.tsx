@@ -11,8 +11,8 @@ import {
 
 import cn from "@/utils/core/cn";
 
-import { YEAR_STEP_KEYS } from "./hero_year_control";
-import { KIND_COLOR } from "./milestone_card";
+import { KIND_COLOR } from "./theme";
+import { useWorldData } from "./world_data_provider";
 import {
   SETTLE_AFTER_EDGE_KEY_MS,
   SETTLE_AFTER_KEY_MS,
@@ -22,9 +22,10 @@ import {
   linearPosition,
   YEAR_MAX,
   YEAR_MIN,
+  YEAR_STEP_KEYS,
   yearAtLinearPosition,
 } from "../helpers/forecast";
-import { CHART_HEIGHT, CHART_WIDTH, OVERVIEW_CHART } from "../helpers/overview";
+import { CHART_HEIGHT, CHART_WIDTH } from "../helpers/overview";
 
 const AXIS_LABELS = [
   { year: 2026, className: "left-0" },
@@ -39,6 +40,7 @@ type Props = {
 
 const OverviewChart: FC<Props> = ({ formatPercent, settlingClassName }) => {
   const t = useTranslations();
+  const { overviewChart } = useWorldData();
   const { year, settledYear, settleCount, changeYear, changeScrubbing } =
     useWorldYear();
   const id = useId();
@@ -47,8 +49,8 @@ const OverviewChart: FC<Props> = ({ formatPercent, settlingClassName }) => {
 
   const x = linearPosition(year + 1) * CHART_WIDTH;
   const left = `${((x / CHART_WIDTH) * 100).toFixed(2)}%`;
-  const capabilityShare = OVERVIEW_CHART.capabilityShare(year);
-  const adoptionShare = OVERVIEW_CHART.adoptionShare(year);
+  const capabilityShare = overviewChart.capabilityShare(year);
+  const adoptionShare = overviewChart.adoptionShare(year);
   const clipId = `${id}-past`;
   const bandId = `${id}-band`;
 
@@ -91,15 +93,15 @@ const OverviewChart: FC<Props> = ({ formatPercent, settlingClassName }) => {
 
   const steps = (className: string) => (
     <>
-      <path d={OVERVIEW_CHART.bandPath} fill={`url(#${bandId})`} />
+      <path d={overviewChart.bandPath} fill={`url(#${bandId})`} />
       <path
-        d={OVERVIEW_CHART.capabilityPath}
+        d={overviewChart.capabilityPath}
         className={cn("fill-none [stroke-linejoin:round]", className)}
         stroke={KIND_COLOR.cap}
         vectorEffect="non-scaling-stroke"
       />
       <path
-        d={OVERVIEW_CHART.adoptionPath}
+        d={overviewChart.adoptionPath}
         className={cn("fill-none [stroke-linejoin:round]", className)}
         stroke={KIND_COLOR.use}
         vectorEffect="non-scaling-stroke"
@@ -134,8 +136,8 @@ const OverviewChart: FC<Props> = ({ formatPercent, settlingClassName }) => {
             <span className="tabular-nums text-[var(--wby-fg)]">
               {formatPercent(
                 kind === "cap"
-                  ? OVERVIEW_CHART.capabilityShare(settledYear)
-                  : OVERVIEW_CHART.adoptionShare(settledYear)
+                  ? overviewChart.capabilityShare(settledYear)
+                  : overviewChart.adoptionShare(settledYear)
               )}
             </span>
           </div>

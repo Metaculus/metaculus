@@ -2700,6 +2700,7 @@
   "worldByYearNextYear": "Další rok",
   "worldByYearYear": "Rok",
   "worldByYearHeroTrackLabel": "Rok. Stisknutím klávesy Enter zobrazíte nejbližší předpověď",
+  "worldByYearNoForecasts": "Předpovědi jsou dočasně nedostupné.",
   "worldByYearSelectedYearValue": "Vybraný rok: {year}",
   "worldByYearGoToAreaInYear": "Přejít na téma {area} v roce {year}",
   "worldByYearYearListHeading": "Zobrazeno {year} · přejít na",

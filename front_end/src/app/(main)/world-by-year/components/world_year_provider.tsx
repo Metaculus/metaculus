@@ -16,7 +16,6 @@ import {
 import { WorldArea, WorldQuestion } from "../data/questions";
 import {
   clampYear,
-  firstLikelyYear,
   INITIAL_YEAR,
   PLAY_END_YEAR,
   YEAR_MIN,
@@ -145,7 +144,7 @@ export const WorldYearProvider: FC<PropsWithChildren> = ({ children }) => {
   const jumpToQuestion = useCallback(
     (question: WorldQuestion) => {
       const nextYear =
-        firstLikelyYear(question) ?? clampYear(Math.floor(question.median));
+        question.firstLikelyYear ?? clampYear(Math.floor(question.median));
       changeYear(nextYear);
       setJumpTarget({
         area: question.area,

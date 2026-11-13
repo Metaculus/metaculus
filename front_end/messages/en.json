@@ -2689,6 +2689,7 @@
   "worldByYearNextYear": "Next year",
   "worldByYearYear": "Year",
   "worldByYearHeroTrackLabel": "Year. Press Enter to preview the nearest forecast",
+  "worldByYearNoForecasts": "Forecasts are temporarily unavailable.",
   "worldByYearSelectedYearValue": "Selected year: {year}",
   "worldByYearGoToAreaInYear": "Go to {area} in {year}",
   "worldByYearYearListHeading": "Showing {year} · jump to",

@@ -2702,6 +2702,7 @@
   "worldByYearNextYear": "下一年",
   "worldByYearYear": "年份",
   "worldByYearHeroTrackLabel": "年份。按回车键预览最近的预测",
+  "worldByYearNoForecasts": "预测暂时不可用。",
   "worldByYearSelectedYearValue": "当前选择年份：{year}",
   "worldByYearGoToAreaInYear": "前往{year}年的{area}",
   "worldByYearYearListHeading": "当前显示 {year} · 跳转到",

@@ -1,7 +1,7 @@
 import cn from "@/utils/core/cn";
 
 // wby-root marks every root that carries the page theme, including portals.
-export const HERO_THEME_CLASSNAME = cn(
+export const WORLD_BY_YEAR_THEME_CLASSNAME = cn(
   "wby-root [--wby-pad:clamp(16px,4vw,40px)]",
   "[--wby-bg:#fbfaf7] [--wby-card:#ffffff] [--wby-ink:44,73,105] [--wby-fg:#2c4969] [--wby-fg2:#34506e] [--wby-fg3:#2c4969] [--wby-fg4:#34506e]",
   "[--wby-t1:#3e5873] [--wby-t2:#4d657e] [--wby-t3:#6b7d92] [--wby-muted:#7a899c] [--wby-dim:#8c99a9] [--wby-year:#161b21]",
@@ -20,6 +20,11 @@ export const HERO_THEME_CLASSNAME = cn(
   "dark:[--wby-veil-1:rgba(28,33,39,.58)] dark:[--wby-veil-2:rgba(28,33,39,.72)] dark:[--wby-veil-3:rgba(28,33,39,.8)]",
   "dark:[--wby-ring-1:rgba(255,255,255,.26)] dark:[--wby-ring-2:rgba(255,255,255,.1)] dark:[--wby-ring-3:rgba(255,255,255,.08)] dark:[--wby-divider:rgba(255,255,255,.09)] dark:[--wby-panel:rgba(37,43,51,.7)]"
 );
+
+export const KIND_COLOR = {
+  cap: "var(--wby-cap)",
+  use: "var(--wby-use)",
+} as const;
 
 export const GRAIN_IMAGE = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .9 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`;
 

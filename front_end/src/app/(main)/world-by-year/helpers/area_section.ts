@@ -1,54 +1,46 @@
 import type { Messages } from "next-intl";
 
-import {
-  densityAt,
-  firstLikelyYear,
-  linearPosition,
-  quantile,
-  YEAR_MAX,
-  YEAR_MIN,
-} from "./forecast";
+import { DENSITY_STEPS, linearPosition, YEAR_MAX, YEAR_MIN } from "./forecast";
 import { AreaSectionCopy } from "../data/area_sections";
-import { WORLD_QUESTIONS, WorldArea, WorldQuestion } from "../data/questions";
+import { WorldArea, WorldQuestion } from "../data/questions";
 
 type MessageKey = keyof Messages;
 
 const FORECAST_CARD_COUNT = 3;
-const QUESTIONS_BY_ID = new Map(WORLD_QUESTIONS.map((q) => [q.id, q]));
 
-const areaQuestions = (area: WorldArea) =>
-  WORLD_QUESTIONS.filter((q) => q.area === area);
+const areaQuestions = (questions: WorldQuestion[], area: WorldArea) =>
+  questions.filter((q) => q.area === area);
 
-export const statementsFor = (area: WorldArea) =>
-  [...areaQuestions(area)].sort((a, b) => a.median - b.median);
+export const statementsFor = (questions: WorldQuestion[], area: WorldArea) =>
+  areaQuestions(questions, area).sort((a, b) => a.median - b.median);
 
 // The first statement that has not yet crossed 50% by the year, else the last.
 export const defaultStatementIndex = (
   statements: WorldQuestion[],
   year: number
 ) => {
-  const index = statements.findIndex((q) => {
-    const crossed = firstLikelyYear(q);
-    return crossed == null || crossed > year;
-  });
+  const index = statements.findIndex(
+    (q) => q.firstLikelyYear == null || q.firstLikelyYear > year
+  );
   return index < 0 ? statements.length - 1 : index;
 };
 
 export type Period = { from: number; to: number; textKeys: MessageKey[] };
 
 export const periodsFor = (
+  questions: WorldQuestion[],
   area: WorldArea,
   copy: AreaSectionCopy
 ): Period[] => {
   const byYear = new Map<number, MessageKey[]>();
-  areaQuestions(area).forEach((question) => {
-    const year = firstLikelyYear(question);
+  areaQuestions(questions, area).forEach((question) => {
+    const year = question.firstLikelyYear;
     const text = copy.questions[question.id];
     if (year == null || !text) return;
     const pair = question.pairId
-      ? QUESTIONS_BY_ID.get(question.pairId)
+      ? questions.find((q) => q.id === question.pairId)
       : undefined;
-    const pairYear = pair ? firstLikelyYear(pair) : null;
+    const pairYear = pair ? pair.firstLikelyYear : null;
     const lagging =
       question.kind === "cap" &&
       !!pair &&
@@ -76,8 +68,12 @@ export const periodsFor = (
 export const periodLabel = ({ from, to }: Period) =>
   from === to ? String(from) : `${from}–${String(to).slice(2)}`;
 
-export const closestQuestions = (area: WorldArea, year: number) =>
-  [...areaQuestions(area)]
+export const closestQuestions = (
+  questions: WorldQuestion[],
+  area: WorldArea,
+  year: number
+) =>
+  areaQuestions(questions, area)
     .sort(
       (a, b) =>
         Math.abs(a.median - (year + 1)) - Math.abs(b.median - (year + 1))
@@ -89,7 +85,7 @@ export const LANE_END = 2056;
 
 // 10th and 90th percentiles of the forecast.
 export const quantileBounds = (question: WorldQuestion) =>
-  [quantile(question, 0.1), quantile(question, 0.9)] as const;
+  [question.p10, question.p90] as const;
 
 export const percentileRange = (question: WorldQuestion) => {
   const [low, high] = quantileBounds(question);
@@ -101,32 +97,24 @@ export const percentileRange = (question: WorldQuestion) => {
 
 export const DENSITY_WIDTH = 350;
 export const DENSITY_HEIGHT = 28;
-const DENSITY_STEPS = 180;
 
 type Point = [number, number];
 const toPath = (points: Point[]) =>
   "M" + points.map(([x, y]) => `${x.toFixed(1)} ${y.toFixed(1)}`).join(" L");
 
-const densityCache = new Map<string, Point[]>();
+const densityCache = new WeakMap<WorldQuestion, Point[]>();
 
 const densityPoints = (question: WorldQuestion) => {
-  const cached = densityCache.get(question.id);
+  const cached = densityCache.get(question);
   if (cached) return cached;
-  const times = Array.from(
-    { length: DENSITY_STEPS + 1 },
-    (_, i) => YEAR_MIN + ((YEAR_MAX + 1 - YEAR_MIN) * i) / DENSITY_STEPS
-  );
-  const values = times.map((t) => densityAt(t, question));
-  const peak = Math.max(...values);
-  const points = times.map(
-    (t, i): Point => [
-      linearPosition(t) * DENSITY_WIDTH,
-      DENSITY_HEIGHT -
-        1 -
-        ((values[i] as number) / peak) * (DENSITY_HEIGHT - 4),
-    ]
-  );
-  densityCache.set(question.id, points);
+  const points = question.density.map((value, i): Point => {
+    const year = YEAR_MIN + ((YEAR_MAX + 1 - YEAR_MIN) * i) / DENSITY_STEPS;
+    return [
+      linearPosition(year) * DENSITY_WIDTH,
+      DENSITY_HEIGHT - 1 - value * (DENSITY_HEIGHT - 4),
+    ];
+  });
+  densityCache.set(question, points);
   return points;
 };
 

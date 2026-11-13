@@ -279,7 +279,7 @@ export function getCdfAt(x: number, cdf: number[], scaling: Scaling) {
   const upperIndex = Math.ceil(floatIndex);
   const weight = floatIndex - lowerIndex;
   return (
-    (cdf[lowerIndex] || 0) * (1 - weight) + (cdf[upperIndex] || 1) * weight
+    (cdf[lowerIndex] ?? 0) * (1 - weight) + (cdf[upperIndex] ?? 1) * weight
   );
 }
 

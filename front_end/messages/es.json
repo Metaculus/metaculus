@@ -2700,6 +2700,7 @@
   "worldByYearNextYear": "Año siguiente",
   "worldByYearYear": "Año",
   "worldByYearHeroTrackLabel": "Año. Pulsa Intro para ver el pronóstico más cercano",
+  "worldByYearNoForecasts": "Los pronósticos no están disponibles temporalmente.",
   "worldByYearSelectedYearValue": "Año seleccionado: {year}",
   "worldByYearGoToAreaInYear": "Ir a {area} en {year}",
   "worldByYearYearListHeading": "Mostrando {year} · ir a",

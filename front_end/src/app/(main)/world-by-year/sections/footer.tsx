@@ -5,7 +5,7 @@ import { useMemo } from "react";
 
 import cn from "@/utils/core/cn";
 
-import { HERO_THEME_CLASSNAME } from "../components/hero_theme";
+import { WORLD_BY_YEAR_THEME_CLASSNAME } from "../components/theme";
 import { useWorldYear } from "../components/world_year_provider";
 import { FORECASTS_READ_AT } from "../data/questions";
 
@@ -26,7 +26,10 @@ export function FooterSection() {
 
   return (
     <footer
-      className={cn(HERO_THEME_CLASSNAME, "bg-[var(--wby-bg)] font-sans")}
+      className={cn(
+        WORLD_BY_YEAR_THEME_CLASSNAME,
+        "bg-[var(--wby-bg)] font-sans"
+      )}
     >
       <div className="mx-auto w-full max-w-[1280px] px-[var(--wby-pad)]">
         <p

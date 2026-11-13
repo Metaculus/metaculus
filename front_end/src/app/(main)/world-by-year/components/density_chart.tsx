@@ -2,7 +2,7 @@ import { FC, ReactNode, SVGProps, useId } from "react";
 
 import cn from "@/utils/core/cn";
 
-import { KIND_COLOR } from "./milestone_card";
+import { KIND_COLOR } from "./theme";
 import { WorldQuestion } from "../data/questions";
 import {
   DENSITY_HEIGHT,

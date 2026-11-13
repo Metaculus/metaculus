@@ -1,20 +1,46 @@
 import type { Messages } from "next-intl";
 
+import type { Scaling } from "@/types/question";
+
 export type WorldArea = "sci" | "prog" | "work" | "robo" | "media";
 export type QuestionKind = "cap" | "use";
 
-export type WorldQuestion = {
+// The part of a question that is curated here rather than fetched.
+export type CuratedQuestion = {
   id: string;
   area: WorldArea;
   kind: QuestionKind;
-  median: number;
-  spread: number;
-  forecasters: number;
   metaculusId?: number;
   headlineKey: keyof Messages;
   changeKey: keyof Messages;
   // The adoption question this capability unlocks.
   pairId?: string;
+};
+
+// A community forecast as the API returns it: the CDF at evenly spaced points
+// across the question's range, which for date questions is in Unix seconds.
+export type WorldForecast = {
+  cdf: number[];
+  scaling: Scaling;
+  forecasters: number;
+};
+
+// A curated question with what the page reads off its forecast. Dates are
+// fractional years.
+export type WorldQuestion = CuratedQuestion & {
+  forecasters: number;
+  median: number;
+  // Infinity when the forecast only reaches the percentile past the end of
+  // the question's range.
+  p10: number;
+  p25: number;
+  p75: number;
+  p90: number;
+  // Chance of having happened by the end of each year, YEAR_MIN to YEAR_MAX.
+  probabilityByYearEnd: number[];
+  firstLikelyYear: number | null;
+  // Density relative to its peak, at evenly spaced times across the chart.
+  density: number[];
 };
 
 export const AREA_TITLE_KEYS: Record<WorldArea, keyof Messages> = {
@@ -27,17 +53,13 @@ export const AREA_TITLE_KEYS: Record<WorldArea, keyof Messages> = {
 
 export const FORECASTS_READ_AT = new Date(Date.UTC(2026, 8, 26));
 
-// Medians and spreads fit a log-normal to each question; ids prefixed "mq" are
-// live Metaculus questions (read on FORECASTS_READ_AT), the rest are
-// illustrative.
-export const WORLD_QUESTIONS: WorldQuestion[] = [
+// Ids prefixed "mq" are live Metaculus questions (read on FORECASTS_READ_AT);
+// the rest are illustrative.
+export const CURATED_QUESTIONS: CuratedQuestion[] = [
   {
     id: "he1",
     area: "sci",
     kind: "cap",
-    median: 2027.9,
-    spread: 0.4,
-    forecasters: 921,
     headlineKey: "worldByYearMilestoneHe1",
     changeKey: "worldByYearChangeHe1",
     pairId: "he2",
@@ -46,9 +68,6 @@ export const WORLD_QUESTIONS: WorldQuestion[] = [
     id: "he2",
     area: "sci",
     kind: "use",
-    median: 2031.2,
-    spread: 0.45,
-    forecasters: 866,
     headlineKey: "worldByYearMilestoneHe2",
     changeKey: "worldByYearChangeHe2",
   },
@@ -56,9 +75,6 @@ export const WORLD_QUESTIONS: WorldQuestion[] = [
     id: "he5",
     area: "sci",
     kind: "cap",
-    median: 2029.0,
-    spread: 0.45,
-    forecasters: 1033,
     headlineKey: "worldByYearMilestoneHe5",
     changeKey: "worldByYearChangeHe5",
     pairId: "he6",
@@ -67,9 +83,6 @@ export const WORLD_QUESTIONS: WorldQuestion[] = [
     id: "he3",
     area: "sci",
     kind: "use",
-    median: 2032.4,
-    spread: 0.5,
-    forecasters: 691,
     headlineKey: "worldByYearMilestoneHe3",
     changeKey: "worldByYearChangeHe3",
   },
@@ -77,9 +90,6 @@ export const WORLD_QUESTIONS: WorldQuestion[] = [
     id: "he6",
     area: "sci",
     kind: "use",
-    median: 2036.0,
-    spread: 0.5,
-    forecasters: 604,
     headlineKey: "worldByYearMilestoneHe6",
     changeKey: "worldByYearChangeHe6",
   },
@@ -87,9 +97,6 @@ export const WORLD_QUESTIONS: WorldQuestion[] = [
     id: "he4",
     area: "sci",
     kind: "use",
-    median: 2031.1,
-    spread: 0.4,
-    forecasters: 1408,
     headlineKey: "worldByYearMilestoneHe4",
     changeKey: "worldByYearChangeHe4",
   },
@@ -97,9 +104,6 @@ export const WORLD_QUESTIONS: WorldQuestion[] = [
     id: "he7",
     area: "sci",
     kind: "use",
-    median: 2042.0,
-    spread: 0.6,
-    forecasters: 877,
     headlineKey: "worldByYearMilestoneHe7",
     changeKey: "worldByYearChangeHe7",
   },
@@ -107,9 +111,6 @@ export const WORLD_QUESTIONS: WorldQuestion[] = [
     id: "l6",
     area: "sci",
     kind: "cap",
-    median: 2032.0,
-    spread: 0.55,
-    forecasters: 2544,
     headlineKey: "worldByYearMilestoneL6",
     changeKey: "worldByYearChangeL6",
   },
@@ -117,9 +118,6 @@ export const WORLD_QUESTIONS: WorldQuestion[] = [
     id: "mq10411",
     area: "sci",
     kind: "cap",
-    median: 2039.87,
-    spread: 2.04,
-    forecasters: 72,
     metaculusId: 10411,
     headlineKey: "worldByYearMilestoneMq10411",
     changeKey: "worldByYearChangeMq10411",
@@ -128,9 +126,6 @@ export const WORLD_QUESTIONS: WorldQuestion[] = [
     id: "w5",
     area: "prog",
     kind: "cap",
-    median: 2027.8,
-    spread: 0.4,
-    forecasters: 2210,
     headlineKey: "worldByYearMilestoneW5",
     changeKey: "worldByYearChangeW5",
     pairId: "w6",
@@ -139,9 +134,6 @@ export const WORLD_QUESTIONS: WorldQuestion[] = [
     id: "w6",
     area: "prog",
     kind: "use",
-    median: 2036.0,
-    spread: 0.6,
-    forecasters: 1702,
     headlineKey: "worldByYearMilestoneW6",
     changeKey: "worldByYearChangeW6",
   },
@@ -149,9 +141,6 @@ export const WORLD_QUESTIONS: WorldQuestion[] = [
     id: "p3",
     area: "prog",
     kind: "use",
-    median: 2028.9,
-    spread: 0.4,
-    forecasters: 1840,
     headlineKey: "worldByYearMilestoneP3",
     changeKey: "worldByYearChangeP3",
   },
@@ -159,9 +148,6 @@ export const WORLD_QUESTIONS: WorldQuestion[] = [
     id: "p1",
     area: "prog",
     kind: "cap",
-    median: 2029.2,
-    spread: 0.45,
-    forecasters: 1320,
     headlineKey: "worldByYearMilestoneP1",
     changeKey: "worldByYearChangeP1",
     pairId: "p2",
@@ -170,9 +156,6 @@ export const WORLD_QUESTIONS: WorldQuestion[] = [
     id: "p2",
     area: "prog",
     kind: "use",
-    median: 2034.0,
-    spread: 0.5,
-    forecasters: 760,
     headlineKey: "worldByYearMilestoneP2",
     changeKey: "worldByYearChangeP2",
   },
@@ -180,9 +163,6 @@ export const WORLD_QUESTIONS: WorldQuestion[] = [
     id: "mq38391",
     area: "prog",
     kind: "cap",
-    median: 2027.47,
-    spread: 1.16,
-    forecasters: 66,
     metaculusId: 38391,
     headlineKey: "worldByYearMilestoneMq38391",
     changeKey: "worldByYearChangeMq38391",
@@ -191,9 +171,6 @@ export const WORLD_QUESTIONS: WorldQuestion[] = [
     id: "mq406",
     area: "prog",
     kind: "cap",
-    median: 2027.83,
-    spread: 1.72,
-    forecasters: 646,
     metaculusId: 406,
     headlineKey: "worldByYearMilestoneMq406",
     changeKey: "worldByYearChangeMq406",
@@ -202,9 +179,6 @@ export const WORLD_QUESTIONS: WorldQuestion[] = [
     id: "w1",
     area: "work",
     kind: "cap",
-    median: 2029.4,
-    spread: 0.55,
-    forecasters: 3190,
     headlineKey: "worldByYearMilestoneW1",
     changeKey: "worldByYearChangeW1",
     pairId: "w3",
@@ -213,9 +187,6 @@ export const WORLD_QUESTIONS: WorldQuestion[] = [
     id: "w2",
     area: "work",
     kind: "use",
-    median: 2029.1,
-    spread: 0.45,
-    forecasters: 1017,
     headlineKey: "worldByYearMilestoneW2",
     changeKey: "worldByYearChangeW2",
   },
@@ -223,9 +194,6 @@ export const WORLD_QUESTIONS: WorldQuestion[] = [
     id: "w7",
     area: "work",
     kind: "use",
-    median: 2029.8,
-    spread: 0.4,
-    forecasters: 655,
     headlineKey: "worldByYearMilestoneW7",
     changeKey: "worldByYearChangeW7",
   },
@@ -233,9 +201,6 @@ export const WORLD_QUESTIONS: WorldQuestion[] = [
     id: "w3",
     area: "work",
     kind: "use",
-    median: 2034.0,
-    spread: 0.5,
-    forecasters: 1480,
     headlineKey: "worldByYearMilestoneW3",
     changeKey: "worldByYearChangeW3",
   },
@@ -243,9 +208,6 @@ export const WORLD_QUESTIONS: WorldQuestion[] = [
     id: "w4",
     area: "work",
     kind: "use",
-    median: 2045.3,
-    spread: 0.6,
-    forecasters: 1344,
     headlineKey: "worldByYearMilestoneW4",
     changeKey: "worldByYearChangeW4",
   },
@@ -253,9 +215,6 @@ export const WORLD_QUESTIONS: WorldQuestion[] = [
     id: "l3",
     area: "work",
     kind: "cap",
-    median: 2027.7,
-    spread: 0.4,
-    forecasters: 1976,
     headlineKey: "worldByYearMilestoneL3",
     changeKey: "worldByYearChangeL3",
     pairId: "l4",
@@ -264,9 +223,6 @@ export const WORLD_QUESTIONS: WorldQuestion[] = [
     id: "l4",
     area: "work",
     kind: "use",
-    median: 2033.0,
-    spread: 0.5,
-    forecasters: 402,
     headlineKey: "worldByYearMilestoneL4",
     changeKey: "worldByYearChangeL4",
   },
@@ -274,9 +230,6 @@ export const WORLD_QUESTIONS: WorldQuestion[] = [
     id: "l5",
     area: "work",
     kind: "use",
-    median: 2037.0,
-    spread: 0.6,
-    forecasters: 611,
     headlineKey: "worldByYearMilestoneL5",
     changeKey: "worldByYearChangeL5",
   },
@@ -284,9 +237,6 @@ export const WORLD_QUESTIONS: WorldQuestion[] = [
     id: "c1",
     area: "work",
     kind: "cap",
-    median: 2028.4,
-    spread: 0.4,
-    forecasters: 488,
     headlineKey: "worldByYearMilestoneC1",
     changeKey: "worldByYearChangeC1",
     pairId: "c2",
@@ -295,9 +245,6 @@ export const WORLD_QUESTIONS: WorldQuestion[] = [
     id: "c2",
     area: "work",
     kind: "use",
-    median: 2033.3,
-    spread: 0.5,
-    forecasters: 612,
     headlineKey: "worldByYearMilestoneC2",
     changeKey: "worldByYearChangeC2",
   },
@@ -305,9 +252,6 @@ export const WORLD_QUESTIONS: WorldQuestion[] = [
     id: "mq19356",
     area: "work",
     kind: "use",
-    median: 2042.7,
-    spread: 1.78,
-    forecasters: 178,
     metaculusId: 19356,
     headlineKey: "worldByYearMilestoneMq19356",
     changeKey: "worldByYearChangeMq19356",
@@ -316,9 +260,6 @@ export const WORLD_QUESTIONS: WorldQuestion[] = [
     id: "mq16625",
     area: "robo",
     kind: "cap",
-    median: 2030.7,
-    spread: 0.87,
-    forecasters: 58,
     metaculusId: 16625,
     headlineKey: "worldByYearMilestoneMq16625",
     changeKey: "worldByYearChangeMq16625",
@@ -328,9 +269,6 @@ export const WORLD_QUESTIONS: WorldQuestion[] = [
     id: "h4",
     area: "robo",
     kind: "use",
-    median: 2034.2,
-    spread: 0.5,
-    forecasters: 2031,
     headlineKey: "worldByYearMilestoneH4",
     changeKey: "worldByYearChangeH4",
   },
@@ -338,9 +276,6 @@ export const WORLD_QUESTIONS: WorldQuestion[] = [
     id: "h5",
     area: "robo",
     kind: "use",
-    median: 2036.4,
-    spread: 0.55,
-    forecasters: 742,
     headlineKey: "worldByYearMilestoneH5",
     changeKey: "worldByYearChangeH5",
   },
@@ -348,9 +283,6 @@ export const WORLD_QUESTIONS: WorldQuestion[] = [
     id: "m1",
     area: "robo",
     kind: "cap",
-    median: 2030.4,
-    spread: 0.45,
-    forecasters: 1890,
     headlineKey: "worldByYearMilestoneM1",
     changeKey: "worldByYearChangeM1",
     pairId: "m3",
@@ -359,9 +291,6 @@ export const WORLD_QUESTIONS: WorldQuestion[] = [
     id: "m2",
     area: "robo",
     kind: "use",
-    median: 2031.3,
-    spread: 0.45,
-    forecasters: 2415,
     headlineKey: "worldByYearMilestoneM2",
     changeKey: "worldByYearChangeM2",
   },
@@ -369,9 +298,6 @@ export const WORLD_QUESTIONS: WorldQuestion[] = [
     id: "m3",
     area: "robo",
     kind: "use",
-    median: 2040.1,
-    spread: 0.45,
-    forecasters: 1122,
     headlineKey: "worldByYearMilestoneM3",
     changeKey: "worldByYearChangeM3",
   },
@@ -379,9 +305,6 @@ export const WORLD_QUESTIONS: WorldQuestion[] = [
     id: "m4",
     area: "robo",
     kind: "use",
-    median: 2035.5,
-    spread: 0.5,
-    forecasters: 812,
     headlineKey: "worldByYearMilestoneM4",
     changeKey: "worldByYearChangeM4",
   },
@@ -389,9 +312,6 @@ export const WORLD_QUESTIONS: WorldQuestion[] = [
     id: "m5",
     area: "robo",
     kind: "use",
-    median: 2041.0,
-    spread: 0.55,
-    forecasters: 944,
     headlineKey: "worldByYearMilestoneM5",
     changeKey: "worldByYearChangeM5",
   },
@@ -399,9 +319,6 @@ export const WORLD_QUESTIONS: WorldQuestion[] = [
     id: "m6",
     area: "robo",
     kind: "use",
-    median: 2046.0,
-    spread: 0.6,
-    forecasters: 530,
     headlineKey: "worldByYearMilestoneM6",
     changeKey: "worldByYearChangeM6",
   },
@@ -409,9 +326,6 @@ export const WORLD_QUESTIONS: WorldQuestion[] = [
     id: "mq43262",
     area: "robo",
     kind: "cap",
-    median: 2029.85,
-    spread: 0.64,
-    forecasters: 32,
     metaculusId: 43262,
     headlineKey: "worldByYearMilestoneMq43262",
     changeKey: "worldByYearChangeMq43262",
@@ -420,9 +334,6 @@ export const WORLD_QUESTIONS: WorldQuestion[] = [
     id: "mq43263",
     area: "robo",
     kind: "cap",
-    median: 2030.11,
-    spread: 0.78,
-    forecasters: 23,
     metaculusId: 43263,
     headlineKey: "worldByYearMilestoneMq43263",
     changeKey: "worldByYearChangeMq43263",
@@ -431,9 +342,6 @@ export const WORLD_QUESTIONS: WorldQuestion[] = [
     id: "h6",
     area: "media",
     kind: "use",
-    median: 2028.2,
-    spread: 0.4,
-    forecasters: 1560,
     headlineKey: "worldByYearMilestoneH6",
     changeKey: "worldByYearChangeH6",
   },
@@ -441,9 +349,6 @@ export const WORLD_QUESTIONS: WorldQuestion[] = [
     id: "mq17401",
     area: "media",
     kind: "cap",
-    median: 2030.94,
-    spread: 1.03,
-    forecasters: 115,
     metaculusId: 17401,
     headlineKey: "worldByYearMilestoneMq17401",
     changeKey: "worldByYearChangeMq17401",
@@ -453,9 +358,6 @@ export const WORLD_QUESTIONS: WorldQuestion[] = [
     id: "c4",
     area: "media",
     kind: "use",
-    median: 2031.8,
-    spread: 0.55,
-    forecasters: 1253,
     headlineKey: "worldByYearMilestoneC4",
     changeKey: "worldByYearChangeC4",
   },
@@ -463,9 +365,6 @@ export const WORLD_QUESTIONS: WorldQuestion[] = [
     id: "c5",
     area: "media",
     kind: "use",
-    median: 2034.0,
-    spread: 0.55,
-    forecasters: 1377,
     headlineKey: "worldByYearMilestoneC5",
     changeKey: "worldByYearChangeC5",
   },
@@ -473,9 +372,6 @@ export const WORLD_QUESTIONS: WorldQuestion[] = [
     id: "md2",
     area: "media",
     kind: "use",
-    median: 2030.5,
-    spread: 0.5,
-    forecasters: 870,
     headlineKey: "worldByYearMilestoneMd2",
     changeKey: "worldByYearChangeMd2",
   },
@@ -483,9 +379,6 @@ export const WORLD_QUESTIONS: WorldQuestion[] = [
     id: "md1",
     area: "media",
     kind: "use",
-    median: 2032.0,
-    spread: 0.5,
-    forecasters: 1105,
     headlineKey: "worldByYearMilestoneMd1",
     changeKey: "worldByYearChangeMd1",
   },
@@ -493,9 +386,6 @@ export const WORLD_QUESTIONS: WorldQuestion[] = [
     id: "mq10955",
     area: "media",
     kind: "use",
-    median: 2029.78,
-    spread: 1.68,
-    forecasters: 179,
     metaculusId: 10955,
     headlineKey: "worldByYearMilestoneMq10955",
     changeKey: "worldByYearChangeMq10955",
@@ -504,9 +394,6 @@ export const WORLD_QUESTIONS: WorldQuestion[] = [
     id: "mq11679",
     area: "media",
     kind: "use",
-    median: 2030.89,
-    spread: 1.81,
-    forecasters: 101,
     metaculusId: 11679,
     headlineKey: "worldByYearMilestoneMq11679",
     changeKey: "worldByYearChangeMq11679",

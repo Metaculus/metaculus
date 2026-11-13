@@ -14,10 +14,10 @@ import {
 
 import cn from "@/utils/core/cn";
 
-import { HERO_THEME_CLASSNAME } from "./hero_theme";
 import HeroYearControl, { HeroYearControlTwin } from "./hero_year_control";
 import MiniTimeline from "./mini_timeline";
 import SectionTile from "./section_tile";
+import { WORLD_BY_YEAR_THEME_CLASSNAME } from "./theme";
 import { useWorldYear } from "./world_year_provider";
 import { AREA_TITLE_KEYS } from "../data/questions";
 import { PAGE_SECTIONS, PageSection } from "../helpers/top_bar";
@@ -227,7 +227,7 @@ export default function TopBar() {
       ref={barRef}
       inert={!shown}
       className={cn(
-        HERO_THEME_CLASSNAME,
+        WORLD_BY_YEAR_THEME_CLASSNAME,
         "fixed inset-x-0 top-header z-40 border-b border-[var(--wby-line)] bg-[color-mix(in_srgb,var(--wby-bg)_80%,transparent)] font-sans backdrop-blur-[18px] backdrop-saturate-[1.15] transition-transform duration-[320ms] ease-[cubic-bezier(.23,1,.32,1)]",
         shown ? "translate-y-0" : "-translate-y-[105%]"
       )}

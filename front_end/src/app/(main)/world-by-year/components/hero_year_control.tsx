@@ -14,28 +14,24 @@ import { createPortal } from "react-dom";
 
 import cn from "@/utils/core/cn";
 
-import { HERO_THEME_CLASSNAME } from "./hero_theme";
 import { ArrowIcon } from "./icons";
+import { WORLD_BY_YEAR_THEME_CLASSNAME } from "./theme";
 import {
   SETTLE_AFTER_ARROW_MS,
   SETTLE_AFTER_KEY_MS,
 } from "./world_year_provider";
-import { YEAR_JUMPS, YEAR_MAX, YEAR_MIN } from "../helpers/forecast";
+import {
+  YEAR_JUMPS,
+  YEAR_MAX,
+  YEAR_MIN,
+  YEAR_STEP_KEYS,
+} from "../helpers/forecast";
 
 const DRAG_START_PX = 6;
 const DRAG_CANCEL_PX = 10;
 const PX_PER_YEAR = 16;
 const POPOVER_GAP = 10;
 const VIEWPORT_MARGIN = 8;
-
-export const YEAR_STEP_KEYS: Record<string, number> = {
-  ArrowLeft: -1,
-  ArrowDown: -1,
-  ArrowRight: 1,
-  ArrowUp: 1,
-  PageDown: -5,
-  PageUp: 5,
-};
 
 const arrowClassName =
   "inline-grid h-[max(30px,.62em)] w-[max(22px,.4em)] place-items-center rounded-lg text-current opacity-[.42] transition-[opacity,background-color] duration-150";
@@ -317,7 +313,7 @@ const HeroYearControl: FC<Props> = ({
           <div
             ref={popoverRef}
             className={cn(
-              HERO_THEME_CLASSNAME,
+              WORLD_BY_YEAR_THEME_CLASSNAME,
               "invisible fixed z-[60] w-[264px] animate-[wby-drop-in_.14s_cubic-bezier(.23,1,.32,1)] rounded-2xl border border-[var(--wby-line2)] bg-[var(--wby-card)] p-3 font-sans shadow-[0_18px_44px_var(--wby-pop-shadow)] motion-reduce:animate-none"
             )}
           >

@@ -9,7 +9,7 @@ import cn from "@/utils/core/cn";
 import { LongArrowIcon } from "./icons";
 import { useWorldFormatters } from "./use_world_formatters";
 import { WorldQuestion } from "../data/questions";
-import { probabilityBy } from "../helpers/forecast";
+import { probabilityByEndOf } from "../helpers/forecast";
 
 type Props = {
   question: WorldQuestion;
@@ -41,7 +41,7 @@ const ForecastMeta: FC<Props> = ({
       label: t("worldByYearByYear", { year: String(year) }),
       value: (
         <span className="font-medium text-[var(--wby-year)]">
-          {formatProbability(probabilityBy(year + 1, question))}
+          {formatProbability(probabilityByEndOf(year, question))}
         </span>
       ),
     },

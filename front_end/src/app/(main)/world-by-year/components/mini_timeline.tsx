@@ -11,13 +11,18 @@ import {
 
 import cn from "@/utils/core/cn";
 
-import { YEAR_STEP_KEYS } from "./hero_year_control";
+import { useWorldData } from "./world_data_provider";
 import {
   SETTLE_AFTER_EDGE_KEY_MS,
   SETTLE_AFTER_KEY_MS,
 } from "./world_year_provider";
-import { clampYear, YEAR_MAX, YEAR_MIN } from "../helpers/forecast";
-import { ARRIVALS_BY_YEAR, YEARS } from "../helpers/top_bar";
+import {
+  clampYear,
+  YEAR_MAX,
+  YEAR_MIN,
+  YEAR_STEP_KEYS,
+} from "../helpers/forecast";
+import { YEARS } from "../helpers/top_bar";
 
 const DRAG_START_PX = 6;
 const TAP_SLOP_PX = 12;
@@ -46,6 +51,7 @@ const yearAt = (event: ReactPointerEvent<HTMLElement>) => {
 
 const MiniTimeline: FC<Props> = ({ year, onYearChange, onScrubChange }) => {
   const t = useTranslations();
+  const { arrivalsByYear } = useWorldData();
   const [hover, setHover] = useState<number | null>(null);
   const dragRef = useRef<DragState | null>(null);
 
@@ -131,7 +137,7 @@ const MiniTimeline: FC<Props> = ({ year, onYearChange, onScrubChange }) => {
       aria-valuenow={year}
       aria-valuetext={t("worldByYearMiniTimelineValue", {
         year: String(year),
-        count: ARRIVALS_BY_YEAR.get(year) ?? 0,
+        count: arrivalsByYear.get(year) ?? 0,
       })}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
@@ -169,7 +175,7 @@ const MiniTimeline: FC<Props> = ({ year, onYearChange, onScrubChange }) => {
               <i
                 className={cn(
                   "h-2.5 w-0.5 self-center rounded-[1px] bg-[var(--wby-line2)]",
-                  ARRIVALS_BY_YEAR.has(option) &&
+                  arrivalsByYear.has(option) &&
                     "h-3 bg-[rgba(var(--wby-ink),.55)]",
                   selected && "w-[3px] bg-[var(--wby-year)]"
                 )}

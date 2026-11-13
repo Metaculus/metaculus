@@ -1,6 +1,6 @@
-import { firstLikelyYear, YEAR_MAX, YEAR_MIN } from "./forecast";
+import { YEAR_MAX, YEAR_MIN } from "./forecast";
 import { AREA_ORDER, AREA_PALETTES, Rgb } from "../data/area_sections";
-import { WORLD_QUESTIONS, WorldArea } from "../data/questions";
+import { WorldArea } from "../data/questions";
 
 export type PageSection = "hero" | "overview" | WorldArea;
 
@@ -10,12 +10,6 @@ export const YEARS = Array.from(
   { length: YEAR_MAX - YEAR_MIN + 1 },
   (_, i) => YEAR_MIN + i
 );
-
-export const ARRIVALS_BY_YEAR = WORLD_QUESTIONS.reduce((counts, question) => {
-  const year = firstLikelyYear(question);
-  if (year != null) counts.set(year, (counts.get(year) ?? 0) + 1);
-  return counts;
-}, new Map<number, number>());
 
 const PAGE_PALETTE: [Rgb, Rgb, Rgb] = [
   [82, 207, 160],

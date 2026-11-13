@@ -5,7 +5,6 @@ import { useTranslations } from "next-intl";
 import {
   createContext,
   FC,
-  KeyboardEvent,
   PointerEvent as ReactPointerEvent,
   PropsWithChildren,
   useCallback,
@@ -21,21 +20,19 @@ import cn from "@/utils/core/cn";
 
 import DensityChart, { yearLineFraction } from "./density_chart";
 import ForecastMeta from "./forecast_meta";
-import { HERO_THEME_CLASSNAME } from "./hero_theme";
 import HeroYearControl from "./hero_year_control";
 import { CloseIcon, LongArrowIcon } from "./icons";
 import KindChip from "./kind_chip";
-import { KIND_COLOR } from "./milestone_card";
 import SectionTile from "./section_tile";
+import { KIND_COLOR, WORLD_BY_YEAR_THEME_CLASSNAME } from "./theme";
+import { useForecastDetailNavigation } from "./use_forecast_detail_navigation";
 import { useWorldFormatters } from "./use_world_formatters";
+import { useWorldData } from "./world_data_provider";
 import { useWorldYear } from "./world_year_provider";
 import { AREA_SECTIONS } from "../data/area_sections";
 import { AREA_TITLE_KEYS, WorldArea, WorldQuestion } from "../data/questions";
-import {
-  diveDeeperQuestions,
-  quartileRange,
-  yearAtChartFraction,
-} from "../helpers/dive_deeper";
+import { statementsFor } from "../helpers/area_section";
+import { quartileRange, yearAtChartFraction } from "../helpers/dive_deeper";
 import { clampYear } from "../helpers/forecast";
 
 // At and below this width the list docks under the forecast, three items tall.
@@ -43,12 +40,6 @@ const DOCKED_LIST_MAX_PX = 960;
 const DOCKED_LIST_ITEMS = 3;
 const DOCKED_LIST_GAP_PX = 8;
 const DOCKED_LIST_EXTRA_PX = 12;
-const SWIPE_AXIS_LOCK_PX = 8;
-const SWIPE_STEP_PX = 64;
-const SWIPE_STEP_VELOCITY = 0.45;
-const SWIPE_EDGE_RESISTANCE = 0.28;
-const SWIPE_MAX_FADE = 0.45;
-const SWIPE_FADE_DISTANCE_PX = 700;
 const LIST_DRAG_START_PX = 4;
 
 export type DiveDeeperTarget = { area: WorldArea; questionId?: string };
@@ -58,8 +49,6 @@ const DiveDeeperContext = createContext<(target: DiveDeeperTarget) => void>(
 );
 
 export const useDiveDeeper = () => useContext(DiveDeeperContext);
-
-type Direction = -1 | 0 | 1;
 
 const navClassName =
   "grid size-8 cursor-pointer place-items-center self-center justify-self-center rounded-full border border-[rgba(var(--wby-ink),.18)] bg-[rgba(var(--wby-ink),.06)] text-[var(--wby-fg)] outline-none transition-[background-color,transform] duration-200 hover:scale-[1.06] hover:bg-[rgba(var(--wby-ink),.14)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--wby-year)] disabled:pointer-events-none disabled:opacity-25 max-[720px]:mx-4 max-[720px]:mb-3 max-[720px]:size-11";
@@ -107,21 +96,25 @@ const DiveDeeperView: FC<ViewProps> = ({ area, questionId, onClose }) => {
   const t = useTranslations();
   const { year: pageYear } = useWorldYear();
   const { formatDate } = useWorldFormatters();
-  const questions = useMemo(() => diveDeeperQuestions(area), [area]);
-  const [index, setIndex] = useState(() =>
-    Math.max(
-      0,
-      questions.findIndex((question) => question.id === questionId)
-    )
+  const { questions: allQuestions } = useWorldData();
+  const questions = useMemo(
+    () => statementsFor(allQuestions, area),
+    [allQuestions, area]
   );
-  const [direction, setDirection] = useState<Direction>(0);
+  const { index, direction, step, select, stageRef, cardRef, onKeyDown } =
+    useForecastDetailNavigation({
+      count: questions.length,
+      initialIndex: Math.max(
+        0,
+        questions.findIndex((question) => question.id === questionId)
+      ),
+      ignoreSwipeSelector: "[data-deep-drag]",
+    });
   const [year, setYear] = useState(pageYear);
   const [grabbing, setGrabbing] = useState(false);
-  const stageRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
   const chartDragRef = useRef(false);
-  const swipeRef = useRef({ index, count: questions.length });
 
   const question = questions[index] as WorldQuestion;
   const copy = AREA_SECTIONS[area].questions;
@@ -130,27 +123,11 @@ const DiveDeeperView: FC<ViewProps> = ({ area, questionId, onClose }) => {
     return titleKey ? t(titleKey) : "";
   };
 
-  const step = useCallback(
-    (delta: -1 | 1) => {
-      setIndex((current) =>
-        Math.max(0, Math.min(questions.length - 1, current + delta))
-      );
-      setDirection(delta);
-    },
-    [questions.length]
-  );
-  const stepRef = useRef(step);
-
   const changeYear = useCallback(
     (next: number) => setYear(clampYear(next)),
     []
   );
   const ignoreScrub = useCallback(() => {}, []);
-
-  useLayoutEffect(() => {
-    swipeRef.current = { index, count: questions.length };
-    stepRef.current = step;
-  });
 
   useLayoutEffect(() => {
     const list = listRef.current;
@@ -160,104 +137,6 @@ const DiveDeeperView: FC<ViewProps> = ({ area, questionId, onClose }) => {
     window.addEventListener("resize", fit);
     return () => window.removeEventListener("resize", fit);
   }, [index]);
-
-  // A horizontal touch swipe drags the forecast with the finger and steps to
-  // the next or previous one when it goes far or fast enough.
-  useEffect(() => {
-    const stage = stageRef.current;
-    if (!stage) return;
-    let swipe: {
-      x: number;
-      y: number;
-      dx: number;
-      startedAt: number;
-      horizontal: boolean | null;
-    } | null = null;
-    const card = () => stage.querySelector<HTMLElement>("[data-deep-card]");
-    const springBack = () => {
-      const el = card();
-      if (!el) return;
-      el.style.transition =
-        "transform .32s cubic-bezier(.23,1,.32,1),opacity .32s ease";
-      el.style.transform = "";
-      el.style.opacity = "";
-    };
-    const onStart = (event: TouchEvent) => {
-      const touch = event.touches[0];
-      const target = event.target as Element;
-      swipe =
-        event.touches.length === 1 &&
-        touch &&
-        !target.closest("[data-deep-drag]")
-          ? {
-              x: touch.clientX,
-              y: touch.clientY,
-              dx: 0,
-              startedAt: performance.now(),
-              horizontal: null,
-            }
-          : null;
-    };
-    const onMove = (event: TouchEvent) => {
-      const touch = event.touches[0];
-      if (!swipe || !touch) return;
-      let dx = touch.clientX - swipe.x;
-      const dy = touch.clientY - swipe.y;
-      if (
-        swipe.horizontal == null &&
-        (Math.abs(dx) > SWIPE_AXIS_LOCK_PX || Math.abs(dy) > SWIPE_AXIS_LOCK_PX)
-      ) {
-        swipe.horizontal = Math.abs(dx) > Math.abs(dy);
-      }
-      if (!swipe.horizontal) return;
-      event.preventDefault();
-      const { index: current, count } = swipeRef.current;
-      if ((dx > 0 && current === 0) || (dx < 0 && current >= count - 1)) {
-        dx *= SWIPE_EDGE_RESISTANCE;
-      }
-      swipe.dx = dx;
-      const el = card();
-      if (!el) return;
-      el.style.animation = "none";
-      el.style.transition = "none";
-      el.style.transform = `translateX(${dx}px)`;
-      el.style.opacity = String(
-        1 - Math.min(SWIPE_MAX_FADE, Math.abs(dx) / SWIPE_FADE_DISTANCE_PX)
-      );
-    };
-    const onEnd = () => {
-      const ended = swipe;
-      swipe = null;
-      if (!ended?.horizontal) return;
-      const delta = ended.dx < 0 ? 1 : -1;
-      const velocity =
-        Math.abs(ended.dx) / Math.max(1, performance.now() - ended.startedAt);
-      const { index: current, count } = swipeRef.current;
-      const canStep = delta > 0 ? current < count - 1 : current > 0;
-      if (
-        canStep &&
-        (Math.abs(ended.dx) > SWIPE_STEP_PX || velocity > SWIPE_STEP_VELOCITY)
-      ) {
-        stepRef.current(delta);
-      } else {
-        springBack();
-      }
-    };
-    const onCancel = () => {
-      if (swipe?.horizontal) springBack();
-      swipe = null;
-    };
-    stage.addEventListener("touchstart", onStart, { passive: true });
-    stage.addEventListener("touchmove", onMove, { passive: false });
-    stage.addEventListener("touchend", onEnd, { passive: true });
-    stage.addEventListener("touchcancel", onCancel, { passive: true });
-    return () => {
-      stage.removeEventListener("touchstart", onStart);
-      stage.removeEventListener("touchmove", onMove);
-      stage.removeEventListener("touchend", onEnd);
-      stage.removeEventListener("touchcancel", onCancel);
-    };
-  }, []);
 
   // The mouse can drag the list like a touch scroll; the click that ends a
   // drag is swallowed so it does not pick an item.
@@ -345,14 +224,6 @@ const DiveDeeperView: FC<ViewProps> = ({ area, questionId, onClose }) => {
     },
   };
 
-  const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
-    if (event.defaultPrevented) return;
-    if (event.key === "ArrowRight" || event.key === "ArrowLeft") {
-      event.preventDefault();
-      step(event.key === "ArrowRight" ? 1 : -1);
-    }
-  };
-
   const handleLeft = `${yearLineFraction(year) * 100}%`;
   const areaTitle = t(AREA_TITLE_KEYS[area]);
 
@@ -423,8 +294,8 @@ const DiveDeeperView: FC<ViewProps> = ({ area, questionId, onClose }) => {
         className="wby-deep-stage grid min-w-0 place-items-center self-stretch overflow-y-auto pb-2 max-[960px]:pb-5 max-[720px]:touch-pan-y max-[720px]:pb-1"
       >
         <article
+          ref={cardRef}
           key={index}
-          data-deep-card
           className={cn(
             "flex w-[min(880px,100%)] flex-col gap-2.5 rounded-2xl px-8 py-5 motion-reduce:animate-none",
             direction < 0
@@ -510,10 +381,7 @@ const DiveDeeperView: FC<ViewProps> = ({ area, questionId, onClose }) => {
               type="button"
               data-deep-item
               aria-current={active ? "true" : undefined}
-              onClick={() => {
-                setIndex(i);
-                setDirection(0);
-              }}
+              onClick={() => select(i)}
               className={cn(
                 "grid w-full flex-none cursor-pointer grid-cols-[10px_1fr] items-start gap-3 rounded-[10px] border border-transparent bg-transparent p-3 text-left text-[var(--wby-t1)] outline-none transition-[border-color,background-color,color] duration-200 hover:bg-[rgba(var(--wby-ink),.05)] hover:text-[var(--wby-fg)] focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[var(--wby-year)] max-[960px]:rounded-xl max-[960px]:bg-[rgba(var(--wby-ink),.04)] max-[960px]:px-3.5 max-[960px]:py-3 max-[720px]:rounded-[10px] max-[720px]:px-3 max-[720px]:py-2.5",
                 active &&
@@ -551,31 +419,45 @@ type Session = { id: number; target: DiveDeeperTarget; open: boolean };
 // the page behind stays put.
 export const DiveDeeperProvider: FC<PropsWithChildren> = ({ children }) => {
   const t = useTranslations();
+  const { byId, questions } = useWorldData();
   const [session, setSession] = useState<Session | null>(null);
-  const open = useCallback(
+  const hasTarget = useCallback(
     (target: DiveDeeperTarget) =>
+      target.questionId
+        ? byId.get(target.questionId)?.area === target.area
+        : questions.some((question) => question.area === target.area),
+    [byId, questions]
+  );
+  const open = useCallback(
+    (target: DiveDeeperTarget) => {
+      if (!hasTarget(target)) return;
       setSession((previous) => ({
         id: (previous?.id ?? 0) + 1,
         target,
         open: true,
-      })),
-    []
+      }));
+    },
+    [hasTarget]
   );
   const close = useCallback(
     () => setSession((previous) => previous && { ...previous, open: false }),
     []
   );
+  const validSession = session && hasTarget(session.target);
 
   return (
     <DiveDeeperContext.Provider value={open}>
       {children}
       <Dialog
-        open={session?.open ?? false}
+        open={!!session?.open && !!validSession}
         onClose={close}
         aria-label={
           session ? t(AREA_TITLE_KEYS[session.target.area]) : undefined
         }
-        className={cn(HERO_THEME_CLASSNAME, "relative z-modal font-sans")}
+        className={cn(
+          WORLD_BY_YEAR_THEME_CLASSNAME,
+          "relative z-modal font-sans"
+        )}
       >
         <DialogBackdrop
           transition
@@ -585,7 +467,7 @@ export const DiveDeeperProvider: FC<PropsWithChildren> = ({ children }) => {
           transition
           className="fixed inset-0 m-auto h-[min(990px,calc(100svh-48px))] w-[min(1560px,calc(100vw-48px))] origin-[50%_60%] overflow-hidden rounded-[22px] border border-[var(--wby-line2)] bg-[var(--wby-bg)] text-[var(--wby-fg3)] shadow-[0_30px_90px_rgba(44,73,105,.22)] [transition:opacity_.28s_ease,transform_.32s_cubic-bezier(.2,.8,.2,1)] data-[closed]:opacity-0 data-[closed]:[transform:scale(.98)_translateY(10px)] motion-reduce:data-[closed]:[transform:none] dark:shadow-[0_30px_90px_rgba(0,0,0,.45),0_0_0_1px_rgba(0,0,0,.08)] max-[960px]:h-dvh max-[960px]:w-auto max-[960px]:rounded-none max-[960px]:border-0 max-[960px]:!shadow-none"
         >
-          {session && (
+          {session && validSession && (
             <DiveDeeperView
               key={session.id}
               area={session.target.area}

@@ -2697,6 +2697,7 @@
   "worldByYearNextYear": "下一年",
   "worldByYearYear": "年份",
   "worldByYearHeroTrackLabel": "年份。按 Enter 預覽最近的預測",
+  "worldByYearNoForecasts": "預測暫時無法使用。",
   "worldByYearSelectedYearValue": "目前選取年份：{year}",
   "worldByYearGoToAreaInYear": "前往 {year} 年的{area}",
   "worldByYearYearListHeading": "目前顯示 {year} · 跳至",

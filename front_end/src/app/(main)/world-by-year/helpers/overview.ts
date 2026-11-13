@@ -1,16 +1,10 @@
 import type { Messages } from "next-intl";
 
-import { firstLikelyYear, isLikelyByEndOf, linearPosition } from "./forecast";
-import {
-  QuestionKind,
-  WORLD_QUESTIONS,
-  WorldArea,
-  WorldQuestion,
-} from "../data/questions";
+import { isLikelyByEndOf, linearPosition } from "./forecast";
+import { AREA_ORDER } from "../data/area_sections";
+import { QuestionKind, WorldArea, WorldQuestion } from "../data/questions";
 
 type MessageKey = keyof Messages;
-
-const AREA_ORDER: WorldArea[] = ["sci", "prog", "work", "robo", "media"];
 
 const OPENING_KEYS: MessageKey[] = [
   "worldByYearOverviewOpeningEarly",
@@ -55,28 +49,34 @@ export type YearSummary = {
   nextChanges: WorldQuestion[];
 };
 
-export const summarizeYear = (year: number): YearSummary => {
+export const summarizeYear = (
+  questions: WorldQuestion[],
+  year: number
+): YearSummary => {
   const likely = new Set(
-    WORLD_QUESTIONS.filter((q) => isLikelyByEndOf(year, q)).map((q) => q.id)
+    questions.filter((q) => isLikelyByEndOf(year, q)).map((q) => q.id)
   );
-  const share = likely.size / WORLD_QUESTIONS.length;
+  const share = questions.length ? likely.size / questions.length : 0;
   const openingIndex = share < 0.15 ? 0 : share < 0.4 ? 1 : share < 0.8 ? 2 : 3;
 
-  const briefKeys = AREA_ORDER.map((area) => {
-    const questions = WORLD_QUESTIONS.filter((q) => q.area === area);
+  // An area with no questions on the page has nothing to summarise.
+  const briefKeys = AREA_ORDER.flatMap((area) => {
+    const inArea = questions.filter((q) => q.area === area);
+    if (!inArea.length) return [];
     const areaShare =
-      questions.filter((q) => likely.has(q.id)).length / questions.length;
+      inArea.filter((q) => likely.has(q.id)).length / inArea.length;
     const tier = areaShare < 0.25 ? 0 : areaShare < 0.7 ? 1 : 2;
-    return AREA_BRIEF_KEYS[area][tier] as MessageKey;
+    return [AREA_BRIEF_KEYS[area][tier] as MessageKey];
   });
 
   return {
     openingKey: OPENING_KEYS[openingIndex] as MessageKey,
     briefKeys,
-    gapCount: WORLD_QUESTIONS.filter(
+    gapCount: questions.filter(
       (q) => likely.has(q.id) && q.pairId && !likely.has(q.pairId)
     ).length,
-    nextChanges: WORLD_QUESTIONS.filter((q) => !likely.has(q.id))
+    nextChanges: questions
+      .filter((q) => !likely.has(q.id))
       .sort((a, b) => a.median - b.median)
       .slice(0, 2),
   };
@@ -88,12 +88,14 @@ export const CHART_HEIGHT = 180;
 type Point = [number, number];
 
 // One step per forecast crossing 50%, placed mid-way through that year.
-const buildSteps = (kind: QuestionKind) => {
-  const questions = WORLD_QUESTIONS.filter((q) => q.kind === kind);
-  const crossings = questions
-    .map((question) => ({ question, year: firstLikelyYear(question) }))
-    .filter((entry): entry is { question: WorldQuestion; year: number } =>
-      Number.isFinite(entry.year)
+const buildSteps = (questions: WorldQuestion[], kind: QuestionKind) => {
+  const ofKind = questions.filter((q) => q.kind === kind);
+  const total = Math.max(1, ofKind.length);
+  const crossings = ofKind
+    .flatMap((question) =>
+      question.firstLikelyYear == null
+        ? []
+        : [{ question, year: question.firstLikelyYear }]
     )
     .sort((a, b) => a.year - b.year || a.question.median - b.question.median);
 
@@ -101,8 +103,8 @@ const buildSteps = (kind: QuestionKind) => {
   crossings.forEach(({ year }, i) => {
     const x = linearPosition(year + 0.5) * CHART_WIDTH;
     points.push(
-      [x, CHART_HEIGHT - (i / questions.length) * CHART_HEIGHT],
-      [x, CHART_HEIGHT - ((i + 1) / questions.length) * CHART_HEIGHT]
+      [x, CHART_HEIGHT - (i / total) * CHART_HEIGHT],
+      [x, CHART_HEIGHT - ((i + 1) / total) * CHART_HEIGHT]
     );
   });
   points.push([CHART_WIDTH, (points[points.length - 1] as Point)[1]]);
@@ -110,23 +112,26 @@ const buildSteps = (kind: QuestionKind) => {
   return {
     points,
     share: (year: number) =>
-      crossings.filter((entry) => entry.year <= year).length / questions.length,
+      crossings.filter((entry) => entry.year <= year).length / total,
   };
 };
 
 const toPath = (points: Point[]) =>
   "M" + points.map(([x, y]) => `${x.toFixed(1)} ${y.toFixed(1)}`).join(" L");
 
-const capabilitySteps = buildSteps("cap");
-const adoptionSteps = buildSteps("use");
+export type OverviewChartData = ReturnType<typeof buildOverviewChart>;
 
-export const OVERVIEW_CHART = {
-  capabilityPath: toPath(capabilitySteps.points),
-  adoptionPath: toPath(adoptionSteps.points),
-  bandPath: `${toPath(capabilitySteps.points)} L${[...adoptionSteps.points]
-    .reverse()
-    .map(([x, y]) => `${x.toFixed(1)} ${y.toFixed(1)}`)
-    .join(" L")} Z`,
-  capabilityShare: capabilitySteps.share,
-  adoptionShare: adoptionSteps.share,
+export const buildOverviewChart = (questions: WorldQuestion[]) => {
+  const capabilitySteps = buildSteps(questions, "cap");
+  const adoptionSteps = buildSteps(questions, "use");
+  return {
+    capabilityPath: toPath(capabilitySteps.points),
+    adoptionPath: toPath(adoptionSteps.points),
+    bandPath: `${toPath(capabilitySteps.points)} L${[...adoptionSteps.points]
+      .reverse()
+      .map(([x, y]) => `${x.toFixed(1)} ${y.toFixed(1)}`)
+      .join(" L")} Z`,
+    capabilityShare: capabilitySteps.share,
+    adoptionShare: adoptionSteps.share,
+  };
 };

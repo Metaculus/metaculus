@@ -18,7 +18,7 @@ import useContainerSize from "@/hooks/use_container_size";
 import useMediaQuery from "@/hooks/use_media_query";
 import cn from "@/utils/core/cn";
 
-import { KIND_COLOR } from "./milestone_card";
+import { KIND_COLOR } from "./theme";
 import { useWorldFormatters } from "./use_world_formatters";
 import { WorldQuestion } from "../data/questions";
 import {
@@ -32,7 +32,11 @@ import {
   quantileBounds,
   todayAsYear,
 } from "../helpers/area_section";
-import { isLikelyByEndOf, probabilityBy } from "../helpers/forecast";
+import {
+  interpolate,
+  isLikelyByEndOf,
+  probabilityByEndOf,
+} from "../helpers/forecast";
 
 export type LaneFocus = {
   index: number;
@@ -61,22 +65,6 @@ const HOVERED_DOT_GAP_RADIUS = 9.75;
 const DOT_MASK_HALF = 24;
 const DRAG_START_PX = 4;
 const EDGE_GAP = 16;
-
-// Linear interpolation through sorted breakpoints.
-const interpolate = (value: number, from: number[], to: number[]) => {
-  const n = from.length;
-  const first = from[0] as number;
-  const last = from[n - 1] as number;
-  if (value <= first) return to[0] as number;
-  if (value >= last) return to[n - 1] as number;
-  let i = 0;
-  while (i < n - 2 && (from[i + 1] as number) < value) i++;
-  const a = from[i] as number;
-  const b = from[i + 1] as number;
-  const ya = to[i] as number;
-  const yb = to[i + 1] as number;
-  return a === b ? ya : ya + ((yb - ya) * (value - a)) / (b - a);
-};
 
 const SwimlaneChart: FC<Props> = ({
   areaTitle,
@@ -449,7 +437,7 @@ const SwimlaneChart: FC<Props> = ({
                 date: formatDate(shown.median),
                 range: percentileRange(shown),
                 percent: formatProbability(
-                  probabilityBy(settledYear + 1, shown)
+                  probabilityByEndOf(settledYear, shown)
                 ),
                 year: String(settledYear),
               })}

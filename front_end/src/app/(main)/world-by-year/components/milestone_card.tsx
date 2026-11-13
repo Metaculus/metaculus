@@ -5,14 +5,9 @@ import { CSSProperties, FC, Ref } from "react";
 
 import cn from "@/utils/core/cn";
 
-import { GLASS_CARD_CLASSNAME } from "./hero_theme";
 import { AreaIcon, CaretIcon } from "./icons";
+import { GLASS_CARD_CLASSNAME, KIND_COLOR } from "./theme";
 import { AREA_TITLE_KEYS, WorldQuestion } from "../data/questions";
-
-export const KIND_COLOR = {
-  cap: "var(--wby-cap)",
-  use: "var(--wby-use)",
-} as const;
 
 const pagerButtonClassName =
   "relative grid size-5 place-items-center rounded text-[var(--wby-t1)] before:absolute before:-inset-1.5 before:content-[''] hover:bg-[var(--wby-line)] disabled:pointer-events-none disabled:opacity-30";
