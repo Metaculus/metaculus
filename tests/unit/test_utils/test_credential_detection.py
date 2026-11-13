@@ -66,6 +66,21 @@ def test_find_credential_providers__sees_through_markdown_escapes():
     assert find_credential_providers(f"Token: {escaped_key}") == ["Hugging Face"]
 
 
+@pytest.mark.parametrize(
+    "text, provider",
+    [
+        ("_sk-or-v1-" + HEX_64 + "_", "OpenRouter"),
+        ("_sk-" + HEX_64[:32] + "_", "DeepSeek"),
+        ("my_sk-or-v1-" + HEX_64, "OpenRouter"),
+    ],
+    ids=["emphasis", "emphasis_with_end_boundary", "after_identifier"],
+)
+def test_find_credential_providers__detects_keys_next_to_underscores(
+    text: str, provider: str
+):
+    assert find_credential_providers(text) == [provider]
+
+
 def test_find_credential_providers__lists_each_provider_once():
     text = (
         config_snippet("sk-or-v1-" + HEX_64)

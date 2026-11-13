@@ -3,8 +3,8 @@ from dataclasses import dataclass
 
 # Credentials are only recognised by a provider's fixed prefix plus a long random
 # body, so prose that merely mentions a prefix (e.g. "an sk-or- key") never matches.
-_NOT_AFTER_TOKEN_CHAR = r"(?<![A-Za-z0-9_\-])"
-_NOT_BEFORE_TOKEN_CHAR = r"(?![A-Za-z0-9_\-])"
+_NOT_AFTER_TOKEN_CHAR = r"(?<![A-Za-z0-9\-])"
+_NOT_BEFORE_TOKEN_CHAR = r"(?![A-Za-z0-9\-])"
 
 
 @dataclass(frozen=True)
