@@ -4,10 +4,10 @@ from collections import defaultdict
 import csv
 from pathlib import Path
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone as dt_timezone
 from django.conf import settings
 from django.core.management.base import BaseCommand
-from django.db.models import Count, Exists, F, OuterRef, Prefetch, QuerySet, Q
+from django.db.models import Count, Exists, F, OuterRef, QuerySet, Q
 from django.utils import timezone
 import numpy as np
 from scipy import sparse, stats
@@ -37,7 +37,8 @@ _YEAR_SUFFIX_RE = re.compile(r"^(?P<parent>.*) \(\d{4}\)$")
 
 def participation_parent_key(uid: int | str) -> int | str:
     """Map a year-split player id (e.g. "Community Aggregate (2025)") to its
-    parent ("Community Aggregate"). Non-split ids are returned unchanged.
+    parent ("Community Aggregate"). Year-split bots ("12345 (2025)") map back to
+    their int user id. Non-split ids are returned unchanged.
 
     Used so the min-participation threshold applies to a player's combined
     history across years rather than to each per-year slice independently.
@@ -45,7 +46,8 @@ def participation_parent_key(uid: int | str) -> int | str:
     if isinstance(uid, str):
         match = _YEAR_SUFFIX_RE.match(uid)
         if match:
-            return match.group("parent")
+            parent = match.group("parent")
+            return int(parent) if parent.isdigit() else parent
     return uid
 
 
@@ -61,8 +63,8 @@ def combine_year_split_players(
 ) -> tuple[
     SkillType, dict[int | str, float], dict[int | str, float], dict[int | str, list]
 ]:
-    """Collapse year-split players (e.g. "Community Aggregate (2025)" or
-    "SomeBot (2024)") into a single combined entry per parent, so the
+    """Collapse year-split players (e.g. "Community Aggregate (2025)" or a
+    third-party bot's "12345 (2024)") into a single combined entry per parent, so the
     leaderboard reports one number per model rather than one per year.
 
     - score: contribution-count-weighted mean of the per-year skills, with
@@ -131,14 +133,67 @@ def combine_year_split_players(
     return new_skills, new_ci_lower, new_ci_upper, new_player_stats
 
 
-AIB_PROJECT_IDS = [
-    3349,  # aib q3 2024
-    32506,  # aib q4 2024
-    32627,  # aib q1 2025
-    32721,  # aib q2 2025
-    32813,  # aib fall 2025
-    32916,  # aib Q1 2026
-]
+AIB_TO_PRO_PROJECT_ID: dict[int, int | None] = {
+    3349: 3345,  # aib q3 2024
+    32506: 3673,  # aib q4 2024
+    32627: 32631,  # aib q1 2025
+    32721: 32761,  # aib q2 2025
+    32813: None,  # aib fall 2025
+    32916: 32930,  # futureeval spring 2026
+    33022: 33025,  # futureeval summer 2026
+    33121: 33126,  # futureeval fall 2026
+}
+AIB_PROJECT_IDS = list(AIB_TO_PRO_PROJECT_ID)
+
+# True Pro twins share the AIB question's spot scoring time; same-title questions
+# further apart than this are different question instances.
+PRO_TWIN_MAX_SPOT_GAP = timedelta(days=1)
+
+
+def assert_bot_tournaments_mapped() -> None:
+    unmapped_slugs = list(
+        Project.objects.filter(
+            Q(slug__contains="aib") | Q(slug__contains="futureeval"),
+            type=Project.ProjectTypes.TOURNAMENT,
+            default_posts__questions__resolution__isnull=False,
+        )
+        .exclude(id__in=AIB_PROJECT_IDS)
+        .values_list("slug", flat=True)
+        .distinct()
+    )
+    if unmapped_slugs:
+        raise ValueError(
+            f"Bot tournaments with resolved questions are missing from "
+            f"AIB_TO_PRO_PROJECT_ID: {unmapped_slugs}. Without an entry their "
+            "questions are dropped by the min_human_forecasters filter."
+        )
+
+
+def find_pro_twin(
+    aib_question: Question, pro_candidates: list[Question]
+) -> Question | None:
+    aib_spot_time = aib_question.get_spot_scoring_time()
+    closest_pro = min(
+        pro_candidates,
+        key=lambda pro: abs(pro.get_spot_scoring_time() - aib_spot_time),
+        default=None,
+    )
+    if closest_pro is None:
+        return None
+    spot_gap = abs(closest_pro.get_spot_scoring_time() - aib_spot_time)
+    if spot_gap > PRO_TWIN_MAX_SPOT_GAP:
+        print(
+            f"Skipping Pro twin {closest_pro.id} for AIB question {aib_question.id}: "
+            f"spot scoring times are {spot_gap} apart"
+        )
+        return None
+    if closest_pro.resolution != aib_question.resolution:
+        print(
+            f"Skipping Pro twin {closest_pro.id} for AIB question {aib_question.id}: "
+            f"resolved {closest_pro.resolution!r} vs {aib_question.resolution!r}"
+        )
+        return None
+    return closest_pro
 
 
 def get_score_pair(
@@ -187,7 +242,7 @@ def get_score_pair(
         coverage = 0.0
         current_timestamp = actual_close_time
         for gm in geometric_means[::-1]:
-            if gm.timestamp <= spot_forecast_timestamp <= current_timestamp:
+            if gm.timestamp < spot_forecast_timestamp <= current_timestamp:
                 if gm.num_forecasters == 2:
                     # both have a forecast at spot scoring time
                     coverage = 1 / 3  # downweight spot score questions
@@ -271,34 +326,23 @@ def gather_data(
     question_ids = []
 
     # TODO: make authoritative mapping
-    print("creating AIB <> Pro AIB question mapping...", end="\r")
-    aib_projects = Project.objects.filter(id__in=AIB_PROJECT_IDS)
-    aib_to_pro_version = {
-        3349: 3345,
-        32506: 3673,
-        32627: 32631,
-        32721: 32761,
-        32813: None,
-        32916: 32930,
-    }
+    print("creating AIB <> Pro AIB question mapping...")
     aib_question_map: dict[Question, Question | None] = dict()
-    for aib in aib_projects:
-        pro_id = aib_to_pro_version[aib.id]
-        aib_questions = Question.objects.filter(post__default_project=aib)
-        pro_questions_by_title: dict[str, Question] = {
-            q.title: q
-            for q in (
-                []
-                if not pro_id
-                else Question.objects.filter(
-                    post__default_project=pro_id,
-                    resolution__isnull=False,
-                ).exclude(resolution__in=UnsuccessfulResolutionType)
-            )
-        }
+    for aib_project_id, pro_project_id in AIB_TO_PRO_PROJECT_ID.items():
+        aib_questions = Question.objects.filter(
+            post__default_project_id=aib_project_id,
+            resolution__isnull=False,
+        ).exclude(resolution__in=UnsuccessfulResolutionType)
+        pro_questions_by_title: dict[str, list[Question]] = defaultdict(list)
+        if pro_project_id:
+            for pro_question in Question.objects.filter(
+                post__default_project_id=pro_project_id,
+                resolution__isnull=False,
+            ).exclude(resolution__in=UnsuccessfulResolutionType):
+                pro_questions_by_title[pro_question.title].append(pro_question)
         for question in aib_questions:
-            aib_question_map[question] = pro_questions_by_title.get(
-                question.title, None
+            aib_question_map[question] = find_pro_twin(
+                question, pro_questions_by_title.get(question.title, [])
             )
     print("creating AIB <> Pro AIB question mapping...DONE\n")
     #
@@ -364,16 +408,27 @@ def gather_data(
                 include_future=False,
             )[aggregation_method]
             if not aggregate_forecasts:
-                pass
-            elif question in aib_question_map:
-                # set the last aggregate to be the one that gets scored
-                # TODO: instead grab the aggregate that was live at spot scoring time
-                forecast = aggregate_forecasts[-1]
-                forecast.start_time = question.get_spot_scoring_time() - timedelta(
-                    seconds=1
+                print(
+                    f"\033[KNo human aggregate for question {question.id} "
+                    f"(source question {human_question.id}); skipping its matches"
                 )
-                forecast.end_time = None
-                forecast_dict["Pro Aggregate"] = [forecast]
+            elif question in aib_question_map:
+                aib_spot_time = question.get_spot_scoring_time()
+                pro_aggregates_before_spot = [
+                    aggregate
+                    for aggregate in aggregate_forecasts
+                    if aggregate.start_time < aib_spot_time
+                ]
+                if pro_aggregates_before_spot:
+                    forecast = pro_aggregates_before_spot[-1]
+                    forecast.start_time = aib_spot_time - timedelta(seconds=1)
+                    forecast.end_time = None
+                    forecast_dict["Pro Aggregate"] = [forecast]
+                else:
+                    print(
+                        f"\033[KNo Pro aggregate before the spot scoring time of "
+                        f"question {question.id}; skipping its Pro matches"
+                    )
             else:
                 forecast_dict["Community Aggregate"] = aggregate_forecasts
 
@@ -1092,6 +1147,7 @@ def run_update_global_bot_leaderboard(  # noqa: C901
 
     # SETUP: users to evaluate & questions
     print("Initializing...")
+    assert_bot_tournaments_mapped()
     users: QuerySet[User] = User.objects.filter(is_bot=True).order_by("id")
     user_forecast_exists = Forecast.objects.filter(
         question_id=OuterRef("pk"), author__in=users
@@ -1114,16 +1170,8 @@ def run_update_global_bot_leaderboard(  # noqa: C901
         )
         .exclude(resolution__in=UnsuccessfulResolutionType)
         .filter(Exists(user_forecast_exists))
-        .prefetch_related(  # only prefetch forecasts from those users
-            Prefetch(
-                "user_forecasts", queryset=Forecast.objects.filter(author__in=users)
-            )
-        )
         .distinct("id")
     )
-    for question in questions:
-        if question.default_score_type == "spot_peer":
-            break
     if not include_minibench and not aib_minibench_only:
         questions = questions.exclude(
             post__default_project__slug__startswith="minibench"
@@ -1195,20 +1243,17 @@ def run_update_global_bot_leaderboard(  # noqa: C901
     for user1_id, user2_id, timestamp in zip(user1_ids, user2_ids, timestamps):
         user1_id = userid_mapping.get(user1_id, user1_id)
         user2_id = userid_mapping.get(user2_id, user2_id)
+        close_year = datetime.fromtimestamp(timestamp, tz=dt_timezone.utc).year
         if cp_by_years:
             if user1_id == "Community Aggregate":
-                user1_id = (
-                    f"Community Aggregate ({datetime.fromtimestamp(timestamp).year})"
-                )
+                user1_id = f"Community Aggregate ({close_year})"
             if user2_id == "Community Aggregate":
-                user2_id = (
-                    f"Community Aggregate ({datetime.fromtimestamp(timestamp).year})"
-                )
+                user2_id = f"Community Aggregate ({close_year})"
         if pro_by_years:
             if user1_id == "Pro Aggregate":
-                user1_id = f"Pro Aggregate ({datetime.fromtimestamp(timestamp).year})"
+                user1_id = f"Pro Aggregate ({close_year})"
             if user2_id == "Pro Aggregate":
-                user2_id = f"Pro Aggregate ({datetime.fromtimestamp(timestamp).year})"
+                user2_id = f"Pro Aggregate ({close_year})"
         temp_uer1_ids.append(user1_id)
         temp_user2_ids.append(user2_id)
     user1_ids = temp_uer1_ids
@@ -1218,6 +1263,11 @@ def run_update_global_bot_leaderboard(  # noqa: C901
     excluded_ids: set[int | str] = set()
     # agent bots that have metac_bot=True in metadata but should not be scored
     agent_bot_usernames = {"metac-azimuth", "metac-agent"}
+    excluded_ids.update(
+        User.objects.filter(username__in=agent_bot_usernames).values_list(
+            "id", flat=True
+        )
+    )
     metac_bots = User.objects.filter(
         is_bot=True, metadata__bot_details__metac_bot=True
     ).exclude(username__in=agent_bot_usernames)
@@ -1229,7 +1279,9 @@ def run_update_global_bot_leaderboard(  # noqa: C901
             continue
         if len(release_iso) == 7:
             release_iso += "-01"
-        metac_bot_releases[bot.id] = datetime.fromisoformat(release_iso)
+        metac_bot_releases[bot.id] = datetime.fromisoformat(release_iso).replace(
+            tzinfo=dt_timezone.utc
+        )
     non_metac_bot_ids: set[int] = set(
         User.objects.filter(is_bot=True)
         .exclude(metadata__bot_details__metac_bot=True)
@@ -1244,17 +1296,14 @@ def run_update_global_bot_leaderboard(  # noqa: C901
     # non_metac_bot_ids membership, which intentionally bypasses the recency filter
     # below so the full per-year history is retained.
     if non_metac_bots_by_year:
-        non_metac_bot_usernames: dict[int, str] = dict(
-            User.objects.filter(id__in=non_metac_bot_ids).values_list("id", "username")
-        )
         temp_user1_ids = []
         temp_user2_ids = []
         for user1_id, user2_id, timestamp in zip(user1_ids, user2_ids, timestamps):
-            year = datetime.fromtimestamp(timestamp).year
+            year = datetime.fromtimestamp(timestamp, tz=dt_timezone.utc).year
             if user1_id in non_metac_bot_ids:
-                user1_id = f"{non_metac_bot_usernames[user1_id]} ({year})"
+                user1_id = f"{user1_id} ({year})"
             if user2_id in non_metac_bot_ids:
-                user2_id = f"{non_metac_bot_usernames[user2_id]} ({year})"
+                user2_id = f"{user2_id} ({year})"
             temp_user1_ids.append(user1_id)
             temp_user2_ids.append(user2_id)
         user1_ids = temp_user1_ids
