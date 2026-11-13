@@ -3,7 +3,13 @@ from django.utils.translation import override
 from freezegun import freeze_time
 from rest_framework.exceptions import ValidationError
 
-from comments.models import KeyFactorVote, KeyFactorDriver, KeyFactorBaseRate
+from comments.models import (
+    Comment,
+    CommentDiff,
+    KeyFactorVote,
+    KeyFactorDriver,
+    KeyFactorBaseRate,
+)
 from rest_framework.exceptions import PermissionDenied
 
 from comments.services.common import (
@@ -405,6 +411,39 @@ def test_bot_with_allow_public_comments_can_post_public(post):
         user=bot, on_post=post, text="Public comment", is_private=False
     )
     assert comment.is_private is False
+
+
+FAKE_OPENROUTER_KEY = "sk-or-v1-" + "0123456789abcdef" * 4
+
+
+@pytest.mark.parametrize("is_bot", [True, False], ids=["bot", "human"])
+def test_create_comment__rejects_text_with_credential(post, is_bot):
+    author = factory_user(is_bot=is_bot, allow_public_comments=True)
+    text = f"*LLMs*: {{'default': {{'api_key': '{FAKE_OPENROUTER_KEY}'}}}}"
+
+    with pytest.raises(ValidationError) as error:
+        create_comment(user=author, on_post=post, text=text, is_private=True)
+
+    assert error.value.get_codes() == ["CREDENTIAL_DETECTED"]
+    detail = str(error.value.detail)
+    assert "OpenRouter" in detail
+    assert "forecasting-tools to 0.3.2 or later" in detail
+    assert "https://github.com/Metaculus/forecasting-tools/pull/353" in detail
+    assert FAKE_OPENROUTER_KEY not in detail
+    assert not Comment.objects.filter(author=author).exists()
+
+
+def test_update_comment__rejects_text_with_credential(post, user1):
+    comment = create_comment(user=user1, on_post=post, text="Old text")
+
+    with pytest.raises(ValidationError) as error:
+        update_comment(comment, text=f"New text {FAKE_OPENROUTER_KEY}")
+
+    assert error.value.get_codes() == ["CREDENTIAL_DETECTED"]
+    assert "forecasting-tools" not in str(error.value.detail)
+    comment.refresh_from_db()
+    assert comment.text == "Old text"
+    assert not CommentDiff.objects.filter(comment=comment).exists()
 
 
 @pytest.mark.parametrize(
