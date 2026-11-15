@@ -66,7 +66,12 @@ def test_update_post__run_post_indexing(user1, user2, mocker):
         author=user1,
         title="Post",
         question=create_question(
-            title="Binary Question", question_type=Question.QuestionType.BINARY
+            title="Binary Question",
+            question_type=Question.QuestionType.BINARY,
+            open_time=timezone.now(),
+            cp_reveal_time=timezone.now(),
+            scheduled_close_time=timezone.now() + datetime.timedelta(days=1),
+            scheduled_resolve_time=timezone.now() + datetime.timedelta(days=2),
         ),
     )
 
@@ -98,7 +103,10 @@ def test_update_post__actual_close_time(user1, user2, mocker):
         question=create_question(
             title="Binary Question",
             question_type=Question.QuestionType.BINARY,
+            open_time=make_aware(datetime.datetime(2023, 11, 1)),
+            cp_reveal_time=make_aware(datetime.datetime(2023, 11, 1)),
             scheduled_close_time=make_aware(datetime.datetime(2024, 1, 1)),
+            scheduled_resolve_time=make_aware(datetime.datetime(2024, 6, 1)),
             actual_close_time=make_aware(datetime.datetime(2024, 1, 1)),
         ),
     )

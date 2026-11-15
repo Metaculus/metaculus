@@ -31,6 +31,12 @@ urlpatterns = [
     # Password Reset
     path("auth/password-reset/", common.password_reset_api_view),
     path("auth/password-reset/change/", common.password_reset_confirm_api_view),
+    # Email change rollback
+    path(
+        "auth/email-change/rollback/",
+        common.email_change_rollback_api_view,
+        name="auth-email-change-rollback",
+    ),
     # Invite user
     path("auth/invite/", common.invite_user_api_view),
     # API Key

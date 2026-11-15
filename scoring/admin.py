@@ -19,6 +19,7 @@ from scoring.models import (
     MedalExclusionRecord,
     ArchivedScore,
     LeaderboardsRanksEntry,
+    Reputation,
 )
 from scoring.utils import update_project_leaderboard
 
@@ -543,3 +544,16 @@ class LeaderboardsRanksEntryAdmin(admin.ModelAdmin):
     list_display = ["user", "rank", "rank_type"]
     search_fields = ["user__username"]
     autocomplete_fields = ["user"]
+
+
+@admin.register(Reputation)
+class ReputationAdmin(admin.ModelAdmin):
+    list_display = ["__str__", "user", "type", "value", "contribution", "time"]
+    search_fields = ["user__username", "user__email"]
+    autocomplete_fields = ["user"]
+    list_filter = [
+        "type",
+        AutocompleteFilterFactory("User", "user"),
+    ]
+    date_hierarchy = "time"
+    ordering = ["-time"]

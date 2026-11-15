@@ -186,17 +186,37 @@ class CommentWriteSerializer(serializers.ModelSerializer):
             "key_factors",
         )
 
+    def get_visible_posts(self) -> QuerySet[Post]:
+        """
+        With a user in context, posts they can't view are treated exactly like
+        missing ones, so their ids can't be probed.
+        """
+
+        if "user" in self.context:
+            return Post.objects.filter_permission(user=self.context["user"])
+
+        return Post.objects.all()
+
     def validate_on_post(self, value):
-        try:
-            return Post.objects.get(pk=value)
-        except Post.DoesNotExist:
+        post = self.get_visible_posts().filter(pk=value).first()
+
+        if not post:
             raise ValidationError("Post does not exist")
+
+        return post
 
     def validate_parent(self, value):
         if not value:
             return value
 
-        return Comment.objects.get(pk=value)
+        parent = Comment.objects.filter(
+            pk=value, on_post__in=self.get_visible_posts()
+        ).first()
+
+        if not parent:
+            raise ValidationError("Comment does not exist")
+
+        return parent
 
     def validate(self, attrs: dict) -> dict:
         text = attrs.get("text")

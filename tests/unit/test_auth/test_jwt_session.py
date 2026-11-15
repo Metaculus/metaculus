@@ -20,12 +20,7 @@ from authentication.services.common import get_tokens_for_user
 from tests.unit.test_users.factories import factory_user
 
 
-@pytest.fixture(autouse=True)
-def clear_cache():
-    """Clear cache before each test."""
-    cache.clear()
-    yield
-    cache.clear()
+pytestmark = pytest.mark.usefixtures("clear_cache")
 
 
 class TestSessionTokenBasics:

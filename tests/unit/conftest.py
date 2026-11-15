@@ -74,6 +74,27 @@ def user_admin() -> User:
 
 
 @pytest.fixture
+def metac_bot() -> User:
+    return User.objects.create(
+        email="metac-bot@metaculus.com",
+        username="metac-test-bot",
+        is_bot=True,
+        bot_owner=None,
+        metadata={"bot_details": {"metac_bot": True}},
+        api_forecasting_access=ApiForecastingAccess.ENABLED,
+    )
+
+
+@pytest.fixture
+def metac_bot_runner() -> User:
+    return User.objects.create(
+        email="metac-bot-runner@metaculus.com",
+        username="metac-bot-runner",
+        metadata={"can_act_as_metac_bots": True},
+    )
+
+
+@pytest.fixture
 def create_client_for_user() -> Callable[[User | None], APIClient]:
     def f(user: User | None = None) -> APIClient:
         client = APIClient()
@@ -113,3 +134,11 @@ def user_admin_client(
     create_client_for_user: Callable[[User | None], APIClient], user_admin: User
 ) -> APIClient:
     return create_client_for_user(user_admin)
+
+
+@pytest.fixture
+def metac_bot_runner_client(
+    create_client_for_user: Callable[[User | None], APIClient],
+    metac_bot_runner: User,
+) -> APIClient:
+    return create_client_for_user(metac_bot_runner)

@@ -1,3 +1,4 @@
+import { isNil } from "lodash";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { FC, PropsWithChildren } from "react";
@@ -15,7 +16,36 @@ type Props = {
   maxCoverage?: number;
   userId?: number;
   withPrizePool?: boolean;
+  withRankCI?: boolean;
+  withScoreCI?: boolean;
+  compactScores?: boolean;
   isAdvanced?: boolean;
+};
+
+// One decimal below `threshold`, none from there on
+function formatCompact(value: number, threshold: number): string {
+  const withDecimal = value.toFixed(1);
+  return Math.abs(Number(withDecimal)) < threshold
+    ? withDecimal
+    : value.toFixed(0);
+}
+
+// Renders the "(lower–upper)" interval shown beside a rank or score
+const Interval: FC<{
+  lower: number | null | undefined;
+  upper: number | null | undefined;
+  format: (value: number) => string;
+}> = ({ lower, upper, format }) => {
+  if (isNil(lower) || isNil(upper)) {
+    return null;
+  }
+  return (
+    <span className="text-xs tabular-nums">
+      ({format(lower)}
+      {"–"}
+      {format(upper)})
+    </span>
+  );
 };
 
 const TableRow: FC<Props> = ({
@@ -23,6 +53,9 @@ const TableRow: FC<Props> = ({
   maxCoverage,
   userId,
   withPrizePool = true,
+  withRankCI = false,
+  withScoreCI = false,
+  compactScores = false,
   isAdvanced = false,
 }) => {
   const {
@@ -30,7 +63,11 @@ const TableRow: FC<Props> = ({
     aggregation_method,
     medal,
     rank,
+    rank_ci_lower,
+    rank_ci_upper,
     score,
+    ci_lower,
+    ci_upper,
     exclusion_status,
     coverage,
     contribution_count,
@@ -39,9 +76,9 @@ const TableRow: FC<Props> = ({
     prize,
   } = rowEntry;
   const t = useTranslations();
-  const highlight =
-    user?.id === userId ||
+  const isExcludedFromRanking =
     exclusion_status > ExclusionStatuses.EXCLUDE_PRIZE_ONLY;
+  const highlight = user?.id === userId || isExcludedFromRanking;
   const coveragePercent = coverage
     ? maxCoverage
       ? ((coverage / maxCoverage) * 100).toFixed(1) + "%"
@@ -54,13 +91,22 @@ const TableRow: FC<Props> = ({
       : aggregation_method == "unweighted"
         ? t("unweightedAggregate")
         : aggregation_method ?? "";
+  const formatScore = (value: number) =>
+    compactScores ? formatCompact(value, 10) : value.toFixed(3);
+  const formatScoreBound = (value: number) =>
+    compactScores ? formatCompact(value, 10) : value.toFixed(1);
+  const formatTake = (value: number) =>
+    compactScores ? formatCompact(value, 100) : value.toFixed(3);
   const forecasterLink = user
     ? `/accounts/profile/${user.id}/`
     : `/faq/#community-prediction`;
 
   return (
     <tr>
-      <Td className="sticky left-0 text-left" highlight={highlight}>
+      <Td
+        className={cn("sticky left-0 w-0 text-left", withRankCI && "pr-1")}
+        highlight={highlight}
+      >
         {!user &&
         (aggregation_method === "recency_weighted" ||
           aggregation_method === "unweighted") ? (
@@ -82,20 +128,23 @@ const TableRow: FC<Props> = ({
                 <MedalIcon type={medal} className="mr-2 inline-block size-4" />
               ))}
 
-            <span className="flex-1 text-center">
-              {exclusion_status > ExclusionStatuses.EXCLUDE_PRIZE_ONLY ? (
-                <>
-                  <ExcludedEntryTooltip />
-                </>
-              ) : (
-                rank
-              )}
+            <span className="flex-1 text-center tabular-nums">
+              {isExcludedFromRanking ? <ExcludedEntryTooltip /> : rank}
             </span>
           </>
         )}
       </Td>
+      {withRankCI && (
+        <Td className="w-0 pl-1 text-left" highlight={highlight}>
+          <Interval
+            lower={rank_ci_lower}
+            upper={rank_ci_upper}
+            format={(value) => value.toFixed(0)}
+          />
+        </Td>
+      )}
       <Td
-        className="sticky left-0 w-0 max-w-[16rem] text-left"
+        className="sticky left-0 w-0 max-w-[9rem] text-left sm:max-w-[16rem]"
         highlight={highlight}
       >
         <Link
@@ -106,9 +155,24 @@ const TableRow: FC<Props> = ({
           {forecasterLabel}
         </Link>
       </Td>
-      <Td className="text-right tabular-nums" highlight={highlight}>
-        {score.toFixed(3)}
+      <Td
+        className={cn(
+          "text-right tabular-nums",
+          isAdvanced && withScoreCI && "pr-1"
+        )}
+        highlight={highlight}
+      >
+        {formatScore(score)}
       </Td>
+      {isAdvanced && withScoreCI && (
+        <Td className="pl-1 text-left" highlight={highlight}>
+          <Interval
+            lower={ci_lower}
+            upper={ci_upper}
+            format={formatScoreBound}
+          />
+        </Td>
+      )}
       {isAdvanced && (
         <>
           <Td className="text-right tabular-nums" highlight={highlight}>
@@ -124,7 +188,7 @@ const TableRow: FC<Props> = ({
           {isAdvanced && (
             <>
               <Td className="text-right tabular-nums" highlight={highlight}>
-                {take?.toFixed(3)}
+                {isNil(take) ? null : formatTake(take)}
               </Td>
               <Td className="text-right tabular-nums" highlight={highlight}>
                 {percent_prize ? `${(percent_prize * 100).toFixed(1)}%` : "-"}

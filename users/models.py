@@ -189,11 +189,16 @@ class User(TimeStampedModel, AbstractUser):
         help_text="The human owner of the bot. This property can only be changed for bot users.",
     )
 
-    # Token revocation - all tokens issued before this timestamp are invalid
+    # Credential version: any change invalidates every issued JWT.
     auth_revoked_at = models.DateTimeField(
         null=True,
         blank=True,
-        help_text="All JWT tokens issued before this timestamp are invalid. Set on password change or 'log out everywhere'.",
+        help_text="Credential version. Any change invalidates every issued JWT. Set on password change or 'log out everywhere'.",
+    )
+    email_changed_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="Last applied email change. Starts the change lock and binds the rollback link.",
     )
 
     # Controls whether the account may submit forecasts via the API.
@@ -261,6 +266,32 @@ class User(TimeStampedModel, AbstractUser):
         """
 
         return not self.is_active and self.last_login is not None
+
+    def get_metadata(self) -> dict:
+        """
+        Returns `metadata` as a dict, tolerating null or malformed values.
+        """
+
+        return self.metadata if isinstance(self.metadata, dict) else {}
+
+    @property
+    def is_metac_bot(self) -> bool:
+        bot_details = self.get_metadata().get("bot_details")
+
+        return (
+            self.is_bot
+            and isinstance(bot_details, dict)
+            and bot_details.get("metac_bot") is True
+        )
+
+    @property
+    def can_act_as_metac_bots(self) -> bool:
+        """
+        Granted via the `can_act_as_metac_bots` key of `metadata`, which lets
+        admins give a non-superuser service account access to the metac bots.
+        """
+
+        return self.get_metadata().get("can_act_as_metac_bots") is True
 
     def get_old_usernames(self) -> list[tuple[str, datetime]]:
         return [

@@ -55,6 +55,12 @@ const TournamentTile: FC<Props> = ({ tile, feedPage, onDismiss }) => {
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
+            sendAnalyticsEvent("feedProjectTileDismiss", {
+              project_id: project.id,
+              project_name: project.name,
+              rule: tile.rule,
+              feed_page: feedPage,
+            });
             onDismiss();
           }}
           className="absolute right-2 top-2 z-10 flex h-6 w-6 items-center justify-center rounded text-gray-0/60 transition-colors hover:text-gray-0"

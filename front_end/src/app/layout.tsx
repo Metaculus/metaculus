@@ -33,9 +33,11 @@ import { LanguageService } from "@/services/language_service";
 import { CurrentUser } from "@/types/users";
 import { logError } from "@/utils/core/errors";
 import { getFontsString } from "@/utils/fonts";
+import { getPostHogIdentity } from "@/utils/posthog_identity";
 import { getPublicSettings } from "@/utils/public_settings.server";
 
 import { AllBWPixelTagsForRegisteredUsers } from "./(campaigns-registration)/(bridgewater)/bridgewater/components/pixels-tags";
+import RedditPageTracker from "./(main)/services/components/reddit_page_tracker";
 
 config.autoAddCss = false;
 
@@ -120,7 +122,10 @@ export default async function RootLayout({
         <NuqsAdapter>
           <QueryClientProviderWrapper>
             <PolyfillProvider>
-              <CSPostHogProvider locale={locale}>
+              <CSPostHogProvider
+                locale={locale}
+                identity={user ? getPostHogIdentity(user, locale) : null}
+              >
                 <AuthProvider user={user} locale={locale}>
                   <AppThemeProvider nonce={nonce}>
                     <NextIntlClientProvider messages={messages}>
@@ -138,6 +143,7 @@ export default async function RootLayout({
                                 <SimplifiedSignupModal />
                                 <Toaster />
                                 <GoogleTagManager />
+                                <RedditPageTracker />
                               </TranslationsBannerProvider>
                             </FeedLayoutProvider>
                           </NavigationProvider>

@@ -9,11 +9,13 @@ from freezegun import freeze_time
 from rest_framework.reverse import reverse
 
 from posts.models import Post
+from projects.models import Project
 from questions.models import Forecast, Question, UserForecastNotification
 from questions.types import OptionsHistoryType
 from questions.tasks import check_and_schedule_forecast_widrawal_due_notifications
 from tests.unit.test_posts.conftest import *  # noqa
 from tests.unit.test_posts.factories import factory_post
+from tests.unit.test_projects.factories import factory_project
 from tests.unit.test_questions.conftest import *  # noqa
 from tests.unit.test_questions.factories import create_question
 from tests.unit.test_users.factories import factory_user
@@ -413,6 +415,69 @@ class TestQuestionForecast:
             content_type="application/json",
         )
         assert response.status_code == status_code
+
+
+class TestForecastHiddenQuestions:
+    url = reverse("create-forecast")
+
+    @pytest.mark.parametrize(
+        "props",
+        [
+            {"probability_yes": 0.5},
+            # Would reveal the question type and options if validated as visible
+            {"probability_yes_per_category": {"x": 0.5, "y": 0.5}},
+            {"probability_yes_per_category": {"a": 0.25, "b": 0.75}},
+        ],
+    )
+    def test_hidden_question_looks_missing(self, user1_client, props):
+        hidden = create_question(
+            question_type=Question.QuestionType.MULTIPLE_CHOICE,
+            options=["a", "b"],
+            options_history=[("0001-01-01T00:00:00", ["a", "b"])],
+            open_time=datetime(2000, 1, 1, tzinfo=dt_timezone.utc),
+            scheduled_close_time=datetime(3000, 1, 1, tzinfo=dt_timezone.utc),
+        )
+        factory_post(
+            question=hidden,
+            default_project=factory_project(
+                type=Project.ProjectTypes.TOURNAMENT, default_permission=None
+            ),
+        )
+        missing_id = hidden.id + 1000
+
+        bodies = []
+        for question_id in (hidden.id, missing_id):
+            response = user1_client.post(
+                self.url,
+                data=json.dumps([{"question": question_id, **props}]),
+                content_type="application/json",
+            )
+            assert response.status_code == 400
+            bodies.append(response.content.decode().replace(str(question_id), "<id>"))
+
+        assert bodies[0] == bodies[1]
+        assert not Forecast.objects.filter(question=hidden).exists()
+
+    def test_withdraw_hidden_question_looks_missing(self, user1_client):
+        hidden = create_question(question_type=Question.QuestionType.BINARY)
+        factory_post(
+            question=hidden,
+            default_project=factory_project(
+                type=Project.ProjectTypes.TOURNAMENT, default_permission=None
+            ),
+        )
+
+        bodies = []
+        for question_id in (hidden.id, hidden.id + 1000):
+            response = user1_client.post(
+                reverse("create-withdraw"),
+                data=json.dumps([{"question": question_id}]),
+                content_type="application/json",
+            )
+            assert response.status_code == 400
+            bodies.append(response.content.decode().replace(str(question_id), "<id>"))
+
+        assert bodies[0] == bodies[1]
 
 
 class TestApiForecastingRestriction:

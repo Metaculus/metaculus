@@ -6,14 +6,16 @@ import deepseekLight from "@/app/(main)/aib/assets/ai-models/deepseek.svg?url";
 import exaLight from "@/app/(main)/aib/assets/ai-models/exa.png";
 import googleLight from "@/app/(main)/aib/assets/ai-models/google.svg?url";
 import kimiLight from "@/app/(main)/aib/assets/ai-models/kimi-icon.svg?url";
+import metaLight from "@/app/(main)/aib/assets/ai-models/meta.svg?url";
 import minimaxLight from "@/app/(main)/aib/assets/ai-models/minimax.svg?url";
-import llamaDark from "@/app/(main)/aib/assets/ai-models/ollama_dark.svg?url";
-import llamaLight from "@/app/(main)/aib/assets/ai-models/ollama_light.svg?url";
+import nvidiaLight from "@/app/(main)/aib/assets/ai-models/nvidia.svg?url";
 import openaiLight from "@/app/(main)/aib/assets/ai-models/openai.svg?url";
 import openaiDark from "@/app/(main)/aib/assets/ai-models/openai_dark.svg?url";
 import perplexityLight from "@/app/(main)/aib/assets/ai-models/perplexity.svg?url";
 import qwenDark from "@/app/(main)/aib/assets/ai-models/qwen_dark.svg?url";
 import qwenLight from "@/app/(main)/aib/assets/ai-models/qwen_light.svg?url";
+import thinkingMachinesDark from "@/app/(main)/aib/assets/ai-models/thinking-machines-dark.svg?url";
+import thinkingMachinesLight from "@/app/(main)/aib/assets/ai-models/thinking-machines-light.svg?url";
 import xLight from "@/app/(main)/aib/assets/ai-models/x.svg?url";
 import xDark from "@/app/(main)/aib/assets/ai-models/x_dark.svg?url";
 import zaiLight from "@/app/(main)/aib/assets/ai-models/zai.png";
@@ -22,7 +24,9 @@ import type { LeaderboardEntry } from "@/types/scoring";
 export type IconLike = StaticImageData | string;
 
 function detectFamily(username: string, model?: string) {
-  const u = username.toLowerCase();
+  // Ignore the research provider after "+", which can name another lab
+  // (e.g. "metac-deepseek-r1+gpt-4o-search-preview").
+  const u = username.toLowerCase().split("+")[0] ?? "";
   const m = (model ?? "").toLowerCase();
 
   if (
@@ -35,7 +39,7 @@ function detectFamily(username: string, model?: string) {
   if (u.includes("gemini") || u.includes("gemma")) return "google";
   if (
     u.includes("gpt") ||
-    u.includes("metac-o") ||
+    /^metac-o\d/.test(u) ||
     m.startsWith("gpt") ||
     m.startsWith("openai o")
   )
@@ -59,13 +63,16 @@ function detectFamily(username: string, model?: string) {
     m.includes("z.ai")
   )
     return "zai";
+  if (u.includes("nemotron") || m.includes("nemotron")) return "nvidia";
   if (
     u.includes("llama") ||
-    u.includes("nemotron") ||
+    u.includes("muse") ||
     m.includes("llama") ||
-    m.includes("nemotron")
+    m.includes("muse")
   )
-    return "llama";
+    return "meta";
+  if (u.includes("inkling") || m.includes("inkling"))
+    return "thinking_machines";
   if (u.startsWith("metac-exa") || m.startsWith("exa")) return "exa";
   if (u.includes("minimax") || m.startsWith("minimax")) return "minimax";
 
@@ -90,7 +97,13 @@ export const FAMILY_METADATA: Readonly<
   kimi: { label: "Moonshot", iconLight: kimiLight },
   perplexity: { label: "Perplexity", iconLight: perplexityLight },
   zai: { label: "Z.AI", iconLight: zaiLight },
-  llama: { label: "Meta", iconLight: llamaLight, iconDark: llamaDark },
+  meta: { label: "Meta", iconLight: metaLight },
+  nvidia: { label: "NVIDIA", iconLight: nvidiaLight },
+  thinking_machines: {
+    label: "Thinking Machines",
+    iconLight: thinkingMachinesLight,
+    iconDark: thinkingMachinesDark,
+  },
   exa: { label: "Exa", iconLight: exaLight },
   minimax: { label: "MiniMax", iconLight: minimaxLight },
   other: { label: "Other" },

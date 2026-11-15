@@ -102,6 +102,7 @@ MIDDLEWARE = [
     "utils.middlewares.middleware_alpha_access_check",
     "utils.middlewares.AuthenticationRequiredMiddleware",
     "utils.middlewares.IsStaffQueryParamRequiredMiddleware",
+    "utils.middlewares.ShadowAggregationsMiddleware",
 ]
 
 if DEBUG:
@@ -241,6 +242,15 @@ AUTH_SIGNUP_SIMPLIFIED_TOKEN = os.environ.get("AUTH_SIGNUP_SIMPLIFIED_TOKEN")
 # Email-link auth (gated CTA flow): max age of emailed sign-in links AND the
 # Redis TTL of pending gated actions, in seconds.
 AUTH_EMAIL_LINK_TIMEOUT = int(os.environ.get("AUTH_EMAIL_LINK_TIMEOUT", 60 * 60 * 24))
+
+# Max age of the email-change confirmation link, seconds
+AUTH_EMAIL_CHANGE_TIMEOUT = int(
+    os.environ.get("AUTH_EMAIL_CHANGE_TIMEOUT", 60 * 60 * 24)
+)
+# Max age of the email-change rollback link and length of the change lock, seconds
+AUTH_EMAIL_CHANGE_ROLLBACK_TIMEOUT = int(
+    os.environ.get("AUTH_EMAIL_CHANGE_ROLLBACK_TIMEOUT", 60 * 60 * 24 * 7)
+)
 
 PUBLIC_AUTHENTICATION_REQUIRED = (
     os.environ.get("PUBLIC_AUTHENTICATION_REQUIRED", "false").lower() == "true"
@@ -444,10 +454,18 @@ TURNSTILE_SECRET_KEY = os.environ.get("TURNSTILE_SECRET_KEY")
 # If none -> not restricted
 ALPHA_ACCESS_TOKEN = os.environ.get("ALPHA_ACCESS_TOKEN")
 
-# OpenAI configuration
+# LLM calls go through OpenRouter if its key is set, else to OpenAI directly; see docs/llm-usage.md
+OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY")
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
-# use a default value, otherwise openai lib will use the value from the default OPENAI_API_KEY variable
-OPENAI_API_KEY_FACTORS = os.environ.get("OPENAI_API_KEY_FACTORS", "nokey")
+
+
+def _llm_model(model: str) -> str:
+    return model if OPENROUTER_API_KEY else model.removeprefix("openai/")
+
+
+GENERAL_LLM_MODEL = _llm_model("openai/gpt-6-luna")
+# Stored Post/ITNArticle embedding vectors depend on it; changing requires re-embedding
+LLM_EMBEDDING_MODEL = _llm_model("openai/text-embedding-3-large")
 
 # Serper Google API key
 SERPER_API_KEY = os.environ.get("SERPER_API_KEY")
@@ -512,6 +530,7 @@ SENTRY_SAMPLE_RATE = float(os.environ.get("SENTRY_SAMPLE_RATE", 0.15))
 
 def traces_sampler(sampling_context):
     exclude_endpoints = [
+        "/api/healthcheck/",
         "/api/get-bulletins",
         "/api/auth/verify_token",
         "/api/auth/social",
@@ -528,7 +547,7 @@ def traces_sampler(sampling_context):
 
         # Reduced sampling for high-volume endpoints
         if url == "/api/users/me/":
-            return 0.05
+            return 0.005
 
         if method in ("POST", "PATCH", "PUT", "DELETE"):
             # High-volume write endpoints - use reduced rates
@@ -611,6 +630,13 @@ GOOGLE_TRANSLATE_SERVICE_ACCOUNT_KEY = os.environ.get(
     "GOOGLE_TRANSLATE_SERVICE_ACCOUNT_KEY", None
 )
 
+# Machine translation of new/edited content. When disabled, the whole
+# translation machinery stays in place (already translated content is still
+# served), but no new content is sent to the translation service.
+AUTOMATIC_TRANSLATIONS_ENABLED = (
+    os.environ.get("AUTOMATIC_TRANSLATIONS_ENABLED", "false").lower() == "true"
+)
+
 CAMPAIGN_USER_REGISTRATION_HOOK_KEY_URL_PAIR = os.environ.get(
     "CAMPAIGN_USER_REGISTRATION_HOOK_KEY_URL_PAIR", None
 )
@@ -621,4 +647,15 @@ CHECK_FOR_SPAM_IN_COMMENTS_AND_POSTS = (
 
 WEEKLY_TOP_COMMENTS_SEND_EMAILS = (
     os.environ.get("WEEKLY_TOP_COMMENTS_SEND_EMAILS", "false").lower() == "true"
+)
+
+FUTUREEVAL_COMMENT_REMINDERS_SEND_EMAILS = (
+    os.environ.get("FUTUREEVAL_COMMENT_REMINDERS_SEND_EMAILS", "false").lower()
+    == "true"
+)
+
+# Kill switch for building aggregations that shadow the default one (see
+# questions.types.SHADOW_AGGREGATION_METHODS) without being shown to users
+SHADOW_AGGREGATIONS_ENABLED = (
+    os.environ.get("SHADOW_AGGREGATIONS_ENABLED", "false").lower() == "true"
 )

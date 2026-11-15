@@ -5,8 +5,8 @@ import { getTranslations } from "next-intl/server";
 import { ServiceType } from "@/constants/services";
 
 import PlatformBlock from "../../private-instances/components/platform_block";
-import Button from "../button";
 import ContactSection from "../contact_section/contact_section";
+import ContactUsButton from "../contact_us_button";
 import StepCard from "../step_card";
 
 type Props = {
@@ -52,9 +52,9 @@ const PrivateInstancesPageTemplate: React.FC<Props> = async ({
             <p className="m-0 text-sm sm:text-lg">{deployedDescription}</p>
           </div>
 
-          <Button href="#contact-us" className="mx-auto mt-8 block">
+          <ContactUsButton className="mx-auto mt-8 block">
             {t("contactUs")}
-          </Button>
+          </ContactUsButton>
         </div>
 
         <PlatformBlock

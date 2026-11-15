@@ -1,0 +1,23 @@
+diff --git a/numeric-1.2.6.js b/numeric-1.2.6.js
+index 44edb9b8d6463354ef721820c5ca94e1c08e2d9e..fe95a70740b6877467203cb545872241beedcc3b 100644
+--- a/numeric-1.2.6.js
++++ b/numeric-1.2.6.js
+@@ -3367,7 +3367,8 @@ numeric.MPStoLP = function MPStoLP(MPS) {
+ // slower.
+ numeric.seedrandom = { pow:Math.pow, random:Math.random };
+ 
+-(function (pool, math, width, chunks, significance, overflow, startdenom) {
++(function (pool, math, significance, overflow, startdenom) {
++var width = 256, chunks = 6;
+ 
+ 
+ //
+@@ -3535,8 +3536,6 @@ mixkey(math.random(), pool);
+ }(
+   [],   // pool: entropy pool starts empty
+   numeric.seedrandom, // math: package containing random, pow, and seedrandom
+-  256,  // width: each RC4 output is 0 <= x < 256
+-  6,    // chunks: at least six RC4 outputs for each double
+   52    // significance: there are 52 significant digits in a double
+   ));
+ /* This file is a slightly modified version of quadprog.js from Alberto Santini.

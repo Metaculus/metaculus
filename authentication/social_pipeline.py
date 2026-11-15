@@ -36,7 +36,8 @@ def associate_by_email(backend, details, user=None, *args, **kwargs):
             raise ValidationError("This account is no longer available")
 
         existing.is_active = True
-        existing.save(update_fields=["is_active"])
+        existing.set_unusable_password()
+        existing.save(update_fields=["is_active", "password"])
 
     return {"user": existing, "is_new": False}
 

@@ -71,6 +71,25 @@ export function estimateReadingTime(markdown: string) {
   return Math.ceil(words / wordsPerMinute);
 }
 
+// Names match EMBEDDED_QUESTION_COMPONENT_NAME and EMBEDDED_TWITTER_COMPONENT_NAME
+const EMBEDDED_QUESTION_REGEX =
+  /<EmbeddedQuestion\s+id=(?:\{(\d+)\}|["'](\d+)["'])\s*\/>/g;
+const TWEET_REGEX = /<Tweet\s+id=(?:\{(\d+)\}|["'](\d+)["'])\s*\/>/g;
+
+export function replaceEmbedsWithLinks(
+  markdown: string,
+  origin: string
+): string {
+  return markdown
+    .replace(EMBEDDED_QUESTION_REGEX, (_match, braced, quoted) =>
+      new URL(`/questions/${braced ?? quoted}/`, origin).toString()
+    )
+    .replace(
+      TWEET_REGEX,
+      (_match, braced, quoted) => `https://x.com/i/status/${braced ?? quoted}`
+    );
+}
+
 export function sanitizeHtmlContent(
   content: string,
   options?: { allowStyleTag?: boolean }

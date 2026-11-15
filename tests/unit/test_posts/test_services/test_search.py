@@ -13,7 +13,7 @@ from tests.unit.test_posts.factories import factory_post
 def test_gather_search_results_returns_google_results_when_embedding_fails(
     monkeypatch,
 ):
-    async def mock_generate_text_embed_vector_async(_search_text):
+    async def mock_generate_text_embed_vector_async(_search_text, _feature):
         raise RuntimeError("OpenAI quota exhausted")
 
     async def mock_perform_google_search(_search_text):

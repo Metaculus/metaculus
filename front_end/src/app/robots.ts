@@ -3,7 +3,7 @@ import type { MetadataRoute } from "next";
 import { getPublicSettings } from "@/utils/public_settings.server";
 export const dynamic = "force-dynamic";
 
-const { PUBLIC_DISALLOW_ALL_BOTS } = getPublicSettings();
+const { PUBLIC_APP_URL, PUBLIC_DISALLOW_ALL_BOTS } = getPublicSettings();
 
 export default function robots(): MetadataRoute.Robots {
   let allowRules: MetadataRoute.Robots["rules"] = {
@@ -20,5 +20,8 @@ export default function robots(): MetadataRoute.Robots {
       userAgent: "*",
       ...allowRules,
     },
+    ...(PUBLIC_DISALLOW_ALL_BOTS
+      ? {}
+      : { sitemap: `${PUBLIC_APP_URL}/sitemap.xml` }),
   };
 }

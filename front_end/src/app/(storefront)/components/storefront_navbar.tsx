@@ -33,18 +33,17 @@ type NavLink = {
 
 const PRIMARY_LINKS: NavLink[] = [
   { href: "/questions/", labelKey: "questions" },
-  { href: "/tournaments", labelKey: "tournaments" },
-  { href: "/services", labelKey: "services" },
-  { href: "/news/", labelKey: "news" },
+  { href: "/tournaments/", labelKey: "tournaments" },
+  { href: "/initiatives/", labelKey: "discover" },
+  { href: "/services/", labelKey: "services" },
 ];
 
 const SECONDARY_LINKS: NavLink[] = [
-  { href: "/leaderboard", labelKey: "leaderboards" },
   { href: "/about/", labelKey: "aboutMetaculus" },
   { href: "/press/", labelKey: "forJournalists" },
-  { href: "/faq/", labelKey: "faq" },
+  { href: "/news/", labelKey: "news" },
   { href: "/questions/track-record/", labelKey: "trackRecord" },
-  { href: "/aggregation-explorer", labelKey: "aggregationExplorer" },
+  { href: "/faq/", labelKey: "faq" },
 ];
 
 const MenuLink: FC<{

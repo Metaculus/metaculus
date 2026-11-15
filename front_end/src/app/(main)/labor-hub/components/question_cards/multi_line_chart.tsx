@@ -55,6 +55,18 @@ type Props = {
   showLegend?: boolean;
   legendOrder?: string[];
   yAxisGutter?: number;
+  /**
+   * Lower bound for the Y axis (e.g. 0 for rates that can't be negative). The
+   * computed domain never extends below it, and it is ignored where it would
+   * push the axis above a plotted value or a yAxisLabels value.
+   */
+  yAxisMin?: number;
+  /**
+   * Upper bound for the Y axis (e.g. 100 for shares that can't exceed it). The
+   * computed domain never extends above it, and it is ignored where it would
+   * push the axis below a plotted value or a yAxisLabels value.
+   */
+  yAxisMax?: number;
   formatYTick?: (value: number) => string;
   formatYValue?: (value: number) => string;
   formatXTick?: (value: number) => string;
@@ -626,6 +638,8 @@ export const MultiLineChart: FC<Props> = ({
   showLegend = true,
   legendOrder,
   yAxisGutter,
+  yAxisMin,
+  yAxisMax,
   formatYTick,
   formatYValue: formatYValueProp,
   formatXTick,
@@ -696,8 +710,18 @@ export const MultiLineChart: FC<Props> = ({
         showTickLabels,
         formatYTick: formatResolvedYTick,
         yAxisGutter,
+        yAxisMin,
+        yAxisMax,
       }),
-    [series, yAxisLabels, showTickLabels, formatResolvedYTick, yAxisGutter]
+    [
+      series,
+      yAxisLabels,
+      showTickLabels,
+      formatResolvedYTick,
+      yAxisGutter,
+      yAxisMin,
+      yAxisMax,
+    ]
   );
 
   const shouldDisplayChart = !!chartWidth;

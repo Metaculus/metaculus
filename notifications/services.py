@@ -217,16 +217,9 @@ class NotificationTypeBase:
         mailing_tag: MailingTags = None,
         **kwargs,
     ):
-        """
-        Schedules a notification to be sent using a cron job.
+        """Single choke point for cron notifications; filter recipients here."""
 
-        Convention: this is the single choke point for all cron-scheduled
-        notification types. Inactive users are skipped here rather than in
-        each subclass' callers. Non-scheduled email senders rely on their
-        callers to filter recipient querysets.
-        """
-
-        if not recipient.is_active:
+        if not recipient.is_active or not recipient.email:
             return
 
         # Skip notification sending if it was ignored
@@ -377,21 +370,22 @@ class NotificationNewComments(NotificationTypeSimilarPostsMixin, NotificationTyp
         return _("Questions Have New Comments")
 
     @classmethod
-    def _generate_previews(cls, recipient_username, new_comment_ids: list[int]):
-        """
-        Extracts comments list from new_comment_ids
-        """
-
-        comments = (
-            (
-                Comment.objects.filter(is_soft_deleted=False)
-                .filter(pk__in=new_comment_ids)
-                .order_by("-created_at")
-            )
+    def _get_comments(cls, new_comment_ids: list[int]) -> list[Comment]:
+        return list(
+            Comment.objects.filter(is_soft_deleted=False, pk__in=new_comment_ids)
+            .order_by("-created_at")
             .select_related("author", "on_post")
-            .only("id", "text", "author__username", "on_post__title")
+            .only(
+                "id",
+                "text",
+                "author__username",
+                "on_post__title",
+                "on_post__notebook_id",
+            )
         )
 
+    @classmethod
+    def _generate_previews(cls, recipient_username, comments: list[Comment]):
         data = []
 
         for comment in comments:
@@ -403,9 +397,7 @@ class NotificationNewComments(NotificationTypeSimilarPostsMixin, NotificationTyp
                 {
                     "author_username": comment.author.username,
                     "preview_text": preview_text,
-                    "url": build_post_comment_url(
-                        comment.on_post_id, comment.on_post.title, comment.id
-                    ),
+                    "url": build_post_comment_url(comment.on_post, comment.id),
                 }
             )
 
@@ -441,18 +433,18 @@ class NotificationNewComments(NotificationTypeSimilarPostsMixin, NotificationTyp
         serialized_notifications = []
 
         for post_id, params in cls._merge_notifications_params(notifications).items():
+            comments = cls._get_comments(params["new_comment_ids"])
             preview_comments = cls._generate_previews(
-                recipient.username, params["new_comment_ids"]
+                recipient.username, comments[: cls.comments_to_display]
             )
 
-            # Limit total comments
-            comments_count = len(preview_comments)
+            comments_count = len(comments)
             read_more_count = comments_count - cls.comments_to_display
 
             serialized_notifications.append(
                 {
                     **params,
-                    "comments": preview_comments[: cls.comments_to_display],
+                    "comments": preview_comments,
                     "comments_count": comments_count,
                     "read_more_count": read_more_count if read_more_count > 0 else 0,
                 }
@@ -748,9 +740,7 @@ def send_comment_mention_notification(recipient, comment: Comment, mention: str)
                 "author_username": comment.author.username,
                 "mention_label": mention_label,
                 "preview_text": preview_text,
-                "comment_url": build_post_comment_url(
-                    comment.on_post_id, comment.on_post.title, comment.id
-                ),
+                "comment_url": build_post_comment_url(comment.on_post, comment.id),
             },
         },
         use_async=False,
@@ -779,9 +769,7 @@ def send_comment_report_notification_to_staff(
                 "preview_text": generate_email_comment_preview_text(
                     comment.text, max_chars=300
                 )[0],
-                "comment_url": build_post_comment_url(
-                    comment.on_post_id, comment.on_post.title, comment.id
-                ),
+                "comment_url": build_post_comment_url(comment.on_post, comment.id),
                 "reporter": reporter,
                 "reason": reason,
             },
@@ -811,9 +799,7 @@ def send_key_factor_report_notification_to_staff(
             "params": {
                 "post_title": comment.on_post.title,
                 "key_factor": key_factor,
-                "comment_url": build_post_comment_url(
-                    comment.on_post_id, comment.on_post.title, comment.id
-                ),
+                "comment_url": build_post_comment_url(comment.on_post, comment.id),
                 "reporter": reporter,
                 "reason": reason,
             },

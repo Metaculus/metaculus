@@ -25,6 +25,8 @@ def factory_ad_tile(
     exposure_rate: int = 100,
     image=None,
     project=None,
+    target_post=None,
+    target_project=None,
     placements: list[str] | None = None,
     **kwargs,
 ) -> AdTile:
@@ -32,6 +34,8 @@ def factory_ad_tile(
         AdTile,
         image=image,
         project=project,
+        target_post=target_post,
+        target_project=target_project,
         placements=(default_ad_tile_placements() if placements is None else placements),
         **setdefaults_not_null(
             kwargs,

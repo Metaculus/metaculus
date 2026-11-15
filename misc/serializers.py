@@ -21,6 +21,8 @@ class AdTileSerializer(serializers.ModelSerializer):
             "exposure_rate",
             "placements",
             "project_id",
+            "target_post_id",
+            "target_project_id",
         )
 
     def get_title(self, obj: AdTile) -> str:

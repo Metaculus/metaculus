@@ -12,6 +12,8 @@ class LeaderboardEntrySerializer(serializers.ModelSerializer):
     ci_lower = serializers.FloatField()
     ci_upper = serializers.FloatField()
     rank = serializers.IntegerField()
+    rank_ci_lower = serializers.IntegerField()
+    rank_ci_upper = serializers.IntegerField()
     # deprecate in favor of exclusion_status
     excluded = serializers.BooleanField()
     show_when_excluded = serializers.BooleanField()
@@ -33,6 +35,8 @@ class LeaderboardEntrySerializer(serializers.ModelSerializer):
             "ci_lower",
             "ci_upper",
             "rank",
+            "rank_ci_lower",
+            "rank_ci_upper",
             # deprecate in favor of exclusion_status
             "excluded",
             "show_when_excluded",
@@ -63,6 +67,8 @@ class LeaderboardSerializer(serializers.Serializer):
     prize_pool = serializers.SerializerMethodField()
     max_coverage = serializers.SerializerMethodField()
     display_config = serializers.JSONField()
+    bot_exclusion_status = serializers.IntegerField()
+    human_exclusion_status = serializers.IntegerField()
 
     class Meta:
         model = Leaderboard
@@ -82,6 +88,8 @@ class LeaderboardSerializer(serializers.Serializer):
             "prize_pool",
             "max_coverage",
             "display_config",
+            "bot_exclusion_status",
+            "human_exclusion_status",
         ]
 
     def get_prize_pool(self, obj: Leaderboard):

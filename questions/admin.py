@@ -15,7 +15,6 @@ from rest_framework.exceptions import ValidationError as DRFValidationError
 
 from posts.models import Post
 from posts.tasks import run_post_generate_history_snapshot
-from questions.constants import UnsuccessfulResolutionType
 from questions.models import (
     AggregateForecast,
     Conditional,
@@ -23,7 +22,8 @@ from questions.models import (
     GroupOfQuestions,
     Forecast,
 )
-from questions.services.forecasts import build_question_forecasts
+from questions.services.forecasts import rebuild_question_aggregations
+from questions.services.lifecycle import queue_reputation_refresh
 from questions.types import AggregationMethod
 from questions.services.multiple_choice_handlers import (
     MultipleChoiceOptionsUpdateSerializer,
@@ -35,6 +35,7 @@ from questions.services.multiple_choice_handlers import (
     multiple_choice_reorder_options,
 )
 from utils.csv_utils import export_all_data_for_questions
+from utils.the_math.aggregations import AGGREGATIONS
 from utils.models import CustomTranslationAdmin
 
 
@@ -759,21 +760,17 @@ class QuestionAdmin(CustomTranslationAdmin, DynamicArrayMixin):
 
     def rebuild_aggregation_history(self, request, queryset: QuerySet[Question]):
         for question in queryset:
-            build_question_forecasts(question)
+            rebuild_question_aggregations(question)
 
     def trigger_scoring(self, request, queryset: QuerySet[Question]):
         from scoring.utils import score_question
 
         for question in queryset:
-            if not question.resolution or question.resolution in (
-                UnsuccessfulResolutionType.AMBIGUOUS,
-                UnsuccessfulResolutionType.ANNULLED,
-            ):
-                continue
             score_question(
                 question=question,
                 resolution=question.resolution,
             )
+            queue_reputation_refresh(question, question.actual_resolve_time)
 
     trigger_scoring.short_description = "Trigger Scoring (does nothing if not resolved)"
 
@@ -783,16 +780,17 @@ class QuestionAdmin(CustomTranslationAdmin, DynamicArrayMixin):
         from scoring.utils import score_question
 
         for question in queryset:
-            if not question.resolution or question.resolution in (
-                UnsuccessfulResolutionType.AMBIGUOUS,
-                UnsuccessfulResolutionType.ANNULLED,
-            ):
-                continue
             score_question(
                 question=question,
                 resolution=question.resolution,
-                aggregation_methods=list(AggregationMethod._member_map_.values()),
+                aggregation_methods=[
+                    aggregation.method
+                    for aggregation in AGGREGATIONS
+                    if aggregation.method in AggregationMethod.values
+                ]
+                + [AggregationMethod.METACULUS_PREDICTION],
             )
+            queue_reputation_refresh(question, question.actual_resolve_time)
 
     trigger_scoring_with_all_aggregations.short_description = (
         "Trigger Scoring (Includes ALL Aggregations) (does nothing if not resolved)"

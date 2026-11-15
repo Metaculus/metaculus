@@ -12,7 +12,7 @@ import { forEach, isNil } from "lodash";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useForm, UseFormReturn } from "react-hook-form";
+import { Control, FieldValues, useForm, UseFormReturn } from "react-hook-form";
 import * as z from "zod";
 
 import GroupFormBulkModal, {
@@ -20,8 +20,10 @@ import GroupFormBulkModal, {
 } from "@/app/(main)/questions/components/group_form_bulk_modal";
 import ProjectPickerInput from "@/app/(main)/questions/components/project_picker_input";
 import Button from "@/components/ui/button";
+import Checkbox from "@/components/ui/checkbox";
 import DatetimeUtc from "@/components/ui/datetime_utc";
 import {
+  DateInput,
   FormError,
   FormErrorMessage,
   Input,
@@ -31,8 +33,10 @@ import {
 import { InputContainer } from "@/components/ui/input_container";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { MarkdownText } from "@/components/ui/markdown_text";
+import SectionToggle from "@/components/ui/section_toggle";
 import Select from "@/components/ui/select";
 import { ContinuousQuestionTypes } from "@/constants/questions";
+import { useAuth } from "@/contexts/auth_context";
 import { useDebouncedCallback } from "@/hooks/use_debounce";
 import {
   GroupOfQuestionsGraphType,
@@ -101,6 +105,7 @@ type CreateSubQuestionPayload = {
   open_time: string | undefined;
   cp_reveal_time: string | undefined;
   group_rank: number | undefined;
+  include_bots_in_aggregates?: boolean;
   unit?: string;
   scaling?: Scaling;
   open_lower_bound?: boolean | null;
@@ -128,6 +133,7 @@ type PostCreationData = {
   short_title: string;
   categories: number[];
   default_project: string | number | null;
+  published_at: string | null;
   group_of_questions: {
     delete: number[];
     title: string;
@@ -168,6 +174,8 @@ const createGroupQuestionSchema = (t: ReturnType<typeof useTranslations>) => {
     resolution_criteria: z.string().min(1, { message: t("errorRequired") }),
     fine_print: z.string().optional(),
     default_project: z.nullable(z.union([z.number(), z.string()])),
+    published_at: z.string().datetime({ offset: true }).nullable().optional(),
+    include_bots_in_aggregates: z.boolean().optional(),
     subquestions_order: z
       .union([
         z.literal(PostGroupOfQuestionsSubquestionsOrder.MANUAL),
@@ -209,6 +217,8 @@ const GroupForm: React.FC<Props> = ({
 }) => {
   const router = useRouter();
   const t = useTranslations();
+  const { user } = useAuth();
+  const isAdminOrModerator = !!user?.is_staff || !!user?.is_superuser;
   const isDuplicate = mode === "create" && !!post;
   const isDraftMounted = useRef(false);
   const draftKey = `group_${subtype}`;
@@ -250,6 +260,9 @@ const GroupForm: React.FC<Props> = ({
       return;
     }
 
+    const includeBotsInAggregatesChanged = form.getFieldState(
+      "include_bots_in_aggregates"
+    ).isDirty;
     let break_out = false;
     const groupData = subQuestions
       .map((x, idx) => {
@@ -264,6 +277,13 @@ const GroupForm: React.FC<Props> = ({
           open_time: x.open_time,
           cp_reveal_time: x.cp_reveal_time,
           group_rank: idx,
+          // Only admins/mods can change it. New subquestions always get the
+          // group value; existing ones keep their stored value unless the
+          // group control was changed.
+          ...(isAdminOrModerator &&
+            (isNil(x.id) || includeBotsInAggregatesChanged) && {
+              include_bots_in_aggregates: data["include_bots_in_aggregates"],
+            }),
         };
 
         if (!x.scheduled_close_time || !x.scheduled_resolve_time) {
@@ -346,6 +366,7 @@ const GroupForm: React.FC<Props> = ({
       title: data["title"],
       short_title: data["short_title"],
       default_project: data["default_project"],
+      published_at: data["published_at"] ?? null,
       categories: categoriesList.map((x) => x.id),
       group_of_questions: {
         delete: questionToDelete,
@@ -436,6 +457,11 @@ const GroupForm: React.FC<Props> = ({
     mode: "all",
     resolver: zodResolver(groupQuestionSchema),
     defaultValues: {
+      published_at: isDuplicate ? undefined : post?.published_at,
+      // Backend assumes all subquestions share the same value
+      include_bots_in_aggregates:
+        post?.group_of_questions?.questions?.[0]?.include_bots_in_aggregates ??
+        false,
       subquestions_order:
         post?.group_of_questions?.subquestions_order ??
         PostGroupOfQuestionsSubquestionsOrder.MANUAL,
@@ -444,6 +470,9 @@ const GroupForm: React.FC<Props> = ({
         GroupOfQuestionsGraphType.MultipleChoiceGraph,
     },
   });
+  useEffect(() => {
+    form.register("include_bots_in_aggregates");
+  }, [form]);
 
   const questionSubtypeDisplayMap: Record<
     string,
@@ -629,16 +658,6 @@ const GroupForm: React.FC<Props> = ({
         }}
         className="mt-4 flex w-full flex-col gap-4 rounded"
       >
-        {!community_id && defaultProject.type !== TournamentType.Community && (
-          <ProjectPickerInput
-            tournaments={tournaments}
-            siteMain={siteMain}
-            currentProject={currentProject}
-            onChange={(project) => {
-              form.setValue("default_project", project.id);
-            }}
-          />
-        )}
         <InputContainer
           labelText={t("longTitle")}
           explanation={t("longTitleExplanation")}
@@ -1225,6 +1244,73 @@ const GroupForm: React.FC<Props> = ({
             </Button>
           </div>
         </div>
+
+        <SectionToggle title="Advanced Options" defaultOpen={false}>
+          <div className="mb-4 text-sm text-gray-700 dark:text-gray-700-dark md:mt-1 md:text-base">
+            {t("advancedOptionsDescription")}
+          </div>
+
+          <div className="mb-6 flex w-full flex-col gap-4 md:flex-row">
+            <InputContainer
+              labelText={"Publish Time"}
+              explanation={
+                mode === "edit" ? (
+                  <>
+                    <span>{t("publishTimeDescription")} </span>
+                    <span>{t("publishTimeLockedDescription")}</span>
+                  </>
+                ) : (
+                  t("publishTimeDescription")
+                )
+              }
+              className="w-full gap-2"
+            >
+              <DateInput
+                control={form.control as unknown as Control<FieldValues>}
+                name="published_at"
+                defaultValue={isDuplicate ? undefined : post?.published_at}
+                errors={form.formState.errors.published_at}
+                disabled={mode === "edit"}
+                className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
+              />
+            </InputContainer>
+          </div>
+
+          {!community_id &&
+            defaultProject.type !== TournamentType.Community && (
+              <ProjectPickerInput
+                tournaments={tournaments}
+                siteMain={siteMain}
+                currentProject={currentProject}
+                onChange={(project) => {
+                  form.setValue("default_project", project.id);
+                  // Keep the picker in sync when Advanced Options remounts
+                  setCurrentProject(project as Tournament);
+                }}
+              />
+            )}
+
+          {isAdminOrModerator && (
+            <InputContainer
+              labelText={t("includeBotsInAggregatesLabel")}
+              explanation={t("includeBotsInAggregatesExplanation")}
+              isNativeFormControl={false}
+              className="mb-6"
+            >
+              <Checkbox
+                label={t("includeBotsInAggregatesLabel")}
+                checked={form.watch("include_bots_in_aggregates") ?? false}
+                onChange={(checked) => {
+                  form.setValue("include_bots_in_aggregates", checked, {
+                    shouldDirty: true,
+                    shouldTouch: true,
+                    shouldValidate: true,
+                  });
+                }}
+              />
+            </InputContainer>
+          )}
+        </SectionToggle>
 
         <div className="flex-col">
           <div className="-mt-2 min-h-[32px] flex-col">

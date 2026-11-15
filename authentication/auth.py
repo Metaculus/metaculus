@@ -25,7 +25,7 @@ class SessionJWTAuthentication(JWTAuthentication):
         user = super().get_user(validated_token)
 
         # Check user-level token revocation
-        if is_user_global_token_revoked(user, validated_token.get("iat", 0)):
+        if is_user_global_token_revoked(user, validated_token):
             raise JWTAuthenticationFailed(
                 "Token has been invalidated. Please log in again.",
                 code="token_invalidated",

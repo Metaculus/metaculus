@@ -145,6 +145,7 @@ export function ResearchSection({
               showTickLabels: true,
               valueFormat: "percentage",
               decimals: 1,
+              yAxisMin: 0,
             }}
           />
           <ActivityCard

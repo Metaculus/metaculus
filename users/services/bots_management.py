@@ -1,5 +1,6 @@
 from rest_framework.exceptions import ValidationError
 
+from notifications.constants import MailingTags
 from users.constants import ApiForecastingAccess, DEFAULT_MAX_BOTS
 from users.models import User
 
@@ -19,7 +20,7 @@ def get_max_bots(user: User) -> int | None:
     if user.is_superuser:
         return None
 
-    limit = (user.metadata or {}).get("max_bots")
+    limit = user.get_metadata().get("max_bots")
 
     if isinstance(limit, bool) or not isinstance(limit, int) or limit < 0:
         return DEFAULT_MAX_BOTS
@@ -46,6 +47,11 @@ def create_bot(*, bot_owner: User, username: str, **kwargs) -> User:
         language=bot_owner.language,
         app_theme=bot_owner.app_theme,
         newsletter_optin=False,
+        automatically_follow_on_predict=False,
+        unsubscribed_mailing_tags=[
+            MailingTags.FORECASTED_CP_CHANGE,
+            MailingTags.FORECASTED_QUESTION_RESOLUTION,
+        ],
         api_forecasting_access=ApiForecastingAccess.ENABLED,
         **kwargs,
     )

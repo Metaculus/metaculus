@@ -43,7 +43,7 @@ const FutureEvalTabs: React.FC<Props> = async ({ current, searchParams }) => {
     {
       value: "news",
       href: "/futureeval/news",
-      label: "News",
+      label: "News & Research",
       content: <FutureEvalNewsTab searchParams={searchParams} />,
     },
   ];

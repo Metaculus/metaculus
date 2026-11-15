@@ -18,8 +18,16 @@ class Direction(TextChoices):
 class AggregationMethod(models.TextChoices):
     RECENCY_WEIGHTED = "recency_weighted"
     UNWEIGHTED = "unweighted"
+    REPUTATION_WEIGHTED = "reputation_weighted"
+    # Deprecated, superseded by REPUTATION_WEIGHTED. Kept while rows that
+    # reference it still exist.
     SINGLE_AGGREGATION = "single_aggregation"
     METACULUS_PREDICTION = "metaculus_prediction"
+
+
+# Aggregations built and stored alongside the default one, but not shown to users,
+# so their correctness and cost can be monitored before they're used anywhere
+SHADOW_AGGREGATION_METHODS = [AggregationMethod.REPUTATION_WEIGHTED]
 
 
 QuestionMovement = TypedDict(

@@ -1,5 +1,6 @@
 import logging
-from datetime import datetime, timezone as dt_timezone, timedelta
+from datetime import datetime, timedelta
+from datetime import timezone as dt_timezone
 
 import numpy as np
 from django.utils import timezone
@@ -11,24 +12,29 @@ from questions.constants import UnsuccessfulResolutionType
 from questions.models import (
     DEFAULT_INBOUND_OUTCOME_COUNT,
     QUESTION_CONTINUOUS_TYPES,
-    Question,
-    Conditional,
-    GroupOfQuestions,
     AggregateForecast,
+    Conditional,
     Forecast,
+    GroupOfQuestions,
+    Question,
 )
 from questions.serializers.aggregate_forecasts import serialize_question_aggregations
 from questions.services.multiple_choice_handlers import get_all_options_from_history
-from questions.types import OptionsHistoryType, QuestionMovement
+from questions.types import (
+    SHADOW_AGGREGATION_METHODS,
+    OptionsHistoryType,
+    QuestionMovement,
+)
 from users.models import User
+from utils.middlewares import shows_shadow_aggregations
 from utils.the_math.formulas import (
     get_scaled_quartiles_from_cdf,
     unscaled_location_to_scaled_location,
 )
 from utils.the_math.measures import (
+    get_difference_display,
     percent_point_function,
     prediction_difference_for_sorting,
-    get_difference_display,
 )
 
 logger = logging.getLogger(__name__)
@@ -282,11 +288,19 @@ class ConditionalWriteSerializer(serializers.ModelSerializer):
         model = Conditional
         fields = ("condition_id", "condition_child_id")
 
-    def validate_condition_id(self, value):
-        question = Question.objects.filter(pk=value).first()
+    def _get_viewable_question(self, question_id: int) -> Question:
+        question = Question.objects.filter(
+            pk=question_id,
+            post__in=Post.objects.filter_permission(user=self.context.get("user")),
+        ).first()
 
         if not question:
-            raise ValidationError("Condition does not exist")
+            raise ValidationError("Question ID does not exist")
+
+        return question
+
+    def validate_condition_id(self, value):
+        question = self._get_viewable_question(value)
 
         if question.type != Question.QuestionType.BINARY:
             raise ValidationError("Condition can only be binary question")
@@ -294,10 +308,7 @@ class ConditionalWriteSerializer(serializers.ModelSerializer):
         return value
 
     def validate_condition_child_id(self, value):
-        question = Question.objects.filter(pk=value).first()
-
-        if not question:
-            raise ValidationError("Condition Child does not exist")
+        self._get_viewable_question(value)
 
         return value
 
@@ -346,9 +357,7 @@ class GroupOfQuestionsUpdateSerializer(GroupOfQuestionsWriteSerializer):
 class ForecastSerializer(serializers.ModelSerializer):
     quartiles = serializers.SerializerMethodField()
     scaling = serializers.SerializerMethodField()
-    options = serializers.ListField(
-        child=serializers.CharField(), source="question.options"
-    )
+    options = serializers.SerializerMethodField()
     question_type = serializers.CharField(source="question.type")
     question_unit = serializers.CharField(source="question.unit")
 
@@ -365,6 +374,14 @@ class ForecastSerializer(serializers.ModelSerializer):
             "question_type",
             "question_unit",
         )
+
+    def get_options(self, forecast: Forecast) -> list[str] | None:
+        # Multiple choice PMFs are indexed against every option the question has
+        # ever had, not just the current ones, so labels must match that list.
+        question = forecast.question
+        if question.options_history:
+            return get_all_options_from_history(question.options_history)
+        return question.options
 
     def get_quartiles(self, forecast: Forecast):
         question = forecast.question
@@ -587,7 +604,16 @@ class ForecastWriteSerializer(serializers.ModelSerializer):
         question_id = data.get("question")
         if not question_id:
             raise serializers.ValidationError("question is required")
-        question = Question.objects.filter(id=question_id).first()
+
+        questions = Question.objects.filter(id=question_id)
+        # With a user in context, questions they can't view are treated exactly
+        # like missing ones, so their ids, types and options can't be probed
+        if "user" in self.context:
+            questions = questions.filter(
+                post__in=Post.objects.filter_permission(user=self.context["user"])
+            )
+
+        question = questions.first()
         if not question:
             raise serializers.ValidationError(
                 f"question with id {question_id} does not exist. "
@@ -676,6 +702,11 @@ def serialize_question(
         question, aggregate_forecasts, full_forecast_values, minimize
     )
     serialized_data["average_coverage"] = question_average_coverage
+    # Staff who asked to see shadow aggregations see them in place of the default
+    if shows_shadow_aggregations(current_user):
+        for method in SHADOW_AGGREGATION_METHODS:
+            if serialized_data["aggregations"].get(method, {}).get("history"):
+                serialized_data["default_aggregation_method"] = method
 
     if question_movement:
         if default_agg := serialized_data["aggregations"].get(

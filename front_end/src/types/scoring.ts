@@ -59,8 +59,10 @@ export type LeaderboardEntry = {
   aggregation_method: string | null;
   score: number;
   rank: number | null;
-  ci_lower?: number;
-  ci_upper?: number;
+  rank_ci_lower?: number | null;
+  rank_ci_upper?: number | null;
+  ci_lower?: number | null;
+  ci_upper?: number | null;
   exclusion_status: number;
   medal: MedalType | null;
   prize: number | null;

@@ -14,6 +14,7 @@ from scoring.management.commands.update_coherence_tournament_leaderboard import 
     Command as UpdateCoherenceTournamentLeaderboardCommand,
 )
 from scoring.models import Leaderboard, Score
+from scoring.reputations import refresh_reputations_for_question
 from scoring.score_math import evaluate_question
 from scoring.utils import (
     generate_entries_from_scores,
@@ -177,11 +178,10 @@ def update_custom_leaderboard(
     else:
         leaderboard.score_type = score_type
     new_entries = generate_entries_from_scores(scores, questions, leaderboard)
-    leaderboard.score_type = LeaderboardScoreTypes.MANUAL
-
     process_entries_for_leaderboard_(
-        new_entries, project, leaderboard, force_finalize=False
+        new_entries, project, leaderboard, force_finalize=False, scores=scores
     )
+    leaderboard.score_type = LeaderboardScoreTypes.MANUAL
 
     logger.info(f"Updated leaderboard: {leaderboard.name} with id {leaderboard.id}")
     return
@@ -190,6 +190,25 @@ def update_custom_leaderboard(
 @dramatiq.actor
 def update_coherence_spring_2026_cup() -> None:
     UpdateCoherenceTournamentLeaderboardCommand().handle()
+
+
+@dramatiq.actor(time_limit=1_800_000)
+def run_refresh_reputations_for_question(
+    question_id: int, previous_resolve_time: str | None
+) -> None:
+    question = Question.objects.get(id=question_id)
+    deleted, written = refresh_reputations_for_question(
+        question,
+        (
+            datetime.fromisoformat(previous_resolve_time)
+            if previous_resolve_time
+            else None
+        ),
+    )
+    logger.info(
+        f"Refreshed reputations for question {question_id}: "
+        f"{deleted} rows deleted, {written} written"
+    )
 
 
 @dramatiq.actor

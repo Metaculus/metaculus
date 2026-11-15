@@ -117,12 +117,17 @@ function ReusableGradientCarousel<T>({
     const vp = viewportRef.current;
     if (!vp) return;
 
+    // Touch and pen already pan natively; hijacking them fights the browser.
     const onPointerDown = (e: PointerEvent) => {
-      if (e.button !== 0) return;
+      if (e.button !== 0 || e.pointerType !== "mouse") return;
       dragging.current = true;
       movedPx.current = 0;
       startX.current = e.clientX;
       startScroll.current = vp.scrollLeft;
+      // Smooth scrolling and mandatory snapping would animate or snap every
+      // scrollLeft write below, so the row would lag behind the cursor.
+      vp.style.scrollBehavior = "auto";
+      vp.style.scrollSnapType = "none";
       setIsGrabbing(true);
     };
 
@@ -137,6 +142,8 @@ function ReusableGradientCarousel<T>({
     const endDrag = () => {
       if (!dragging.current) return;
       dragging.current = false;
+      vp.style.scrollBehavior = "";
+      vp.style.scrollSnapType = "";
       setIsGrabbing(false);
 
       if (movedPx.current > DRAG_THRESHOLD) {

@@ -8,6 +8,7 @@ from notifications.services import (
     NotificationPostStatusChange,
     NotificationProjectParams,
     NotificationPredictedQuestionResolved,
+    NotificationPostSpecificTime,
     delete_scheduled_question_resolution_notifications,
 )
 from posts.models import Post
@@ -16,6 +17,21 @@ from tests.unit.test_notifications.factories import factory_notification
 from tests.unit.test_posts.conftest import *  # noqa
 from tests.unit.test_posts.factories import factory_post
 from tests.unit.test_questions.conftest import *  # noqa
+from tests.unit.test_users.factories import factory_user
+
+
+class TestNotificationSchedule:
+    def test_skips_recipient_without_email(self, user1):
+        recipient = factory_user(username="no-email-bot", email="", is_bot=True)
+        params = NotificationPostSpecificTime.ParamsType(
+            post=NotificationPostParams.from_post(factory_post(author=user1))
+        )
+
+        NotificationPostSpecificTime.schedule(recipient, params)
+        NotificationPostSpecificTime.schedule(user1, params)
+
+        assert not Notification.objects.filter(recipient=recipient).exists()
+        assert Notification.objects.filter(recipient=user1).count() == 1
 
 
 class TestNotificationNewComments:
@@ -114,6 +130,74 @@ class TestNotificationNewComments:
 
         assert context_notifs[1]["post"]["post_id"] == post_2.pk
         assert len(context_notifs[1]["comments"]) == 2
+
+    def test_get_email_context_group_one_query_per_post(
+        self, user1, user2, mocker, django_assert_num_queries
+    ):
+        mocker.patch.object(
+            NotificationNewComments, "get_similar_posts", return_value=[]
+        )
+        post = factory_post(author=user1)
+        comment_ids = [
+            factory_comment(author=user2, on_post=post, text_en=f"Comment {i}").pk
+            for i in range(5)
+        ]
+        factory_notification(
+            recipient=user1,
+            notification_type="post_new_comments",
+            params=NotificationNewComments.ParamsType(
+                post=NotificationPostParams.from_post(post),
+                new_comments_count=5,
+                new_comment_ids=comment_ids,
+            ),
+        )
+        notifications = list(
+            Notification.objects.filter(recipient=user1).select_related("recipient")
+        )
+
+        with django_assert_num_queries(1):
+            context = NotificationNewComments.get_email_context_group(notifications)
+
+        urls = [c["url"] for c in context["notifications"][0]["comments"]]
+        assert all(f"/questions/{post.pk}/" in url for url in urls)
+        assert [url.rsplit("#comment-", 1)[1] for url in urls] == [
+            str(pk) for pk in reversed(comment_ids)
+        ]
+
+    def test_get_email_context_group_caps_displayed_comments(
+        self, user1, user2, mocker
+    ):
+        mocker.patch.object(
+            NotificationNewComments, "get_similar_posts", return_value=[]
+        )
+        post = factory_post(author=user1)
+        comment_ids = [
+            factory_comment(author=user2, on_post=post, text_en=f"Comment {i}").pk
+            for i in range(10)
+        ]
+        deleted_comment = factory_comment(
+            author=user2, on_post=post, text_en="Deleted", is_soft_deleted=True
+        )
+        factory_notification(
+            recipient=user1,
+            notification_type="post_new_comments",
+            params=NotificationNewComments.ParamsType(
+                post=NotificationPostParams.from_post(post),
+                new_comments_count=11,
+                new_comment_ids=comment_ids + [deleted_comment.pk],
+            ),
+        )
+
+        context = NotificationNewComments.get_email_context_group(
+            list(Notification.objects.filter(recipient=user1))
+        )
+        notification = context["notifications"][0]
+
+        assert [c["preview_text"] for c in notification["comments"]] == [
+            f"Comment {i}" for i in range(9, 1, -1)
+        ]
+        assert notification["comments_count"] == 10
+        assert notification["read_more_count"] == 2
 
 
 class TestNotificationCPChange:
@@ -391,7 +475,7 @@ def test_delete_scheduled_question_resolution_notifications(
     )
 
     sent = NotificationPredictedQuestionResolved.schedule(user1, params)
-    sent.mark_as_sent()
+    sent.email_sent = True
     sent.save()
 
     pending = NotificationPredictedQuestionResolved.schedule(user1, params)
