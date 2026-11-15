@@ -119,11 +119,7 @@ class Migration(migrations.Migration):
                         blank=True,
                         help_text=(
                             "Optional. Scopes this entry to a specific project. "
-                            "If neither project nor post is set while `view_user_data` is True, this entry "
-                            "will apply globally with respect to viewing user data. "
-                            "The API access tier will apply to this project if it exceeds the user's "
-                            "base tier. If neither project nor post is set, the api_access_tier will be "
-                            "taken from the User's base tier."
+                            "If neither project nor post is set, the entry applies globally."
                         ),
                         null=True,
                         on_delete=django.db.models.deletion.CASCADE,
@@ -137,8 +133,7 @@ class Migration(migrations.Migration):
                         blank=True,
                         help_text=(
                             "Optional. Scopes this entry to a specific post. "
-                            "The API access tier will apply to this post if it exceeds the user's "
-                            "base tier. If neither project nor post is set, the entry applies globally."
+                            "If neither project nor post is set, the entry applies globally."
                         ),
                         null=True,
                         on_delete=django.db.models.deletion.CASCADE,
