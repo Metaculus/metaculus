@@ -3,7 +3,7 @@ import PageWrapper from "../components/pagewrapper";
 export const metadata = {
   title: "Metaculus AI Products Terms Supplement",
   description:
-    "Additional terms that govern Metaculus AI products, including Radiant, and supplement the Metaculus Terms of Use and Privacy Policy.",
+    "Additional terms that govern Metaculus AI products, including Radiant and Autocast, and supplement the Metaculus Terms of Use and Privacy Policy.",
 };
 
 export default function AIProductsTerms() {
@@ -18,7 +18,7 @@ export default function AIProductsTerms() {
       </h1>
 
       <p className={styles.paragraph}>
-        <b>Effective Date:</b> September 21, 2026
+        <b>Effective Date:</b> October 28, 2026
       </p>
 
       <p className={styles.paragraph}>
@@ -32,12 +32,12 @@ export default function AIProductsTerms() {
 
       <p className={styles.paragraph}>
         These AI Products Terms (this &quot;<strong>Supplement</strong>&quot;)
-        govern your access to and use of Radiant (a &quot;Covered Product,&quot;
-        as defined below), an AI-assisted forecasting and modeling service
-        offered by Metaculus, Inc. (&quot;<strong>Metaculus</strong>,&quot;
-        &quot;<strong>we</strong>,&quot; or &quot;<strong>us</strong>&quot;).
-        This Supplement is part of, and incorporates by reference, the Metaculus
-        Terms of Use available at{" "}
+        govern your access to and use of Radiant and Autocast (each a
+        &quot;Covered Product,&quot; as defined below), AI-assisted forecasting
+        and modeling services offered by Metaculus, Inc. (&quot;
+        <strong>Metaculus</strong>,&quot; &quot;<strong>we</strong>,&quot; or
+        &quot;<strong>us</strong>&quot;). This Supplement is part of, and
+        incorporates by reference, the Metaculus Terms of Use available at{" "}
         <a href="https://www.metaculus.com/terms-of-use/">
           https://www.metaculus.com/terms-of-use/
         </a>{" "}
@@ -68,16 +68,21 @@ export default function AIProductsTerms() {
         1. Definitions
       </h2>
       <p className={styles.paragraph}>
-        1.1 &quot;<strong>Covered Products</strong>&quot; means Radiant, however
-        accessed, including its web interface on metaculus.com and its
-        subdomains, its API, its MCP server, and any plugin, connector, app, or
-        integration through which Metaculus makes it available, together with
-        any other Metaculus product that Metaculus identifies as subject to this
-        Supplement. &quot;<strong>Radiant</strong>&quot; means the interactive
+        1.1 &quot;<strong>Covered Products</strong>&quot; means Radiant and
+        Autocast, however accessed, including their web interfaces on
+        metaculus.com and its subdomains, their APIs, their MCP servers, and any
+        plugin, connector, app, or integration through which Metaculus makes
+        them available, together with any other Metaculus product that Metaculus
+        identifies as subject to this Supplement. &quot;
+        <strong>Autocast</strong>&quot; means the AI-assisted forecasting
+        service that Metaculus offers under the Autocast name, in which you
+        submit a question and receive a probabilistic forecast with supporting
+        reasoning. &quot;<strong>Radiant</strong>&quot; means the interactive
         forecasting and modeling service that Metaculus offers under the Radiant
         name, in which you build models (&quot;maps&quot;) of uncertain
         quantities and run simulations and analyses on them. A reference to a
-        &quot;Covered Product&quot; applies to each Covered Product.
+        &quot;Covered Product&quot; applies to each Covered Product, and a
+        provision that names only one product applies only to that product.{" "}
       </p>
       <p className={styles.paragraph}>
         1.2 &quot;<strong>Host Platform</strong>&quot; means any third-party AI
@@ -187,9 +192,12 @@ export default function AIProductsTerms() {
         the Terms of one Metaculus account per person applies separately to each
         Covered Product and to the Metaculus platform. Some Covered Products are
         available by invitation only, and Metaculus may create your account at
-        your or your organization&apos;s request. Use of a Covered Product may
-        also require you to link your account to a Host Platform, or to generate
-        API keys, tokens, or other credentials (&quot;
+        your or your organization&apos;s request. Others let you create an
+        account yourself, for example by signing in with an email address and a
+        one-time sign-in link, and may be limited to invited or waitlisted users
+        ahead of general availability. Use of a Covered Product may also require
+        you to link your account to a Host Platform, or to generate API keys,
+        tokens, or other credentials (&quot;
         <strong>Credentials</strong>&quot;). Credentials are personal to you and
         your account. You may not share, sell, or transfer Credentials, and you
         are responsible for all activity conducted through your Credentials and
@@ -465,8 +473,9 @@ export default function AIProductsTerms() {
         to this Supplement. If you publish or distribute Output externally, you
         must not remove any indication that it was generated by a Covered
         Product or misrepresent its source, and you must comply with Section
-        5.3(h). Attribution such as &quot;Built with Metaculus Radiant&quot; is
-        requested but not required.
+        5.3(h). Attribution such as &quot;Generated with Metaculus
+        Autocast&quot; or &quot;Built with Metaculus Radiant&quot; is requested
+        but not required.
       </p>
       <p className={styles.paragraph}>
         7.3 <strong>Metaculus&apos;s retained rights.</strong> Because Output is
