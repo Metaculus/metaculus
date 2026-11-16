@@ -178,7 +178,7 @@ const StorefrontNavbar: FC = () => {
         >
           <MetaculusWordmark
             aria-hidden
-            className="h-[28px] w-auto text-white md:h-[36px]"
+            className="h-[21px] w-auto text-white md:ml-3 md:h-[27px]"
           />
         </Link>
 
