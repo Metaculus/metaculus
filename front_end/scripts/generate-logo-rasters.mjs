@@ -11,6 +11,9 @@
  *   - AI-leaderboard: near-white (#f9fbfb) M on blue-900 (#283441) square
  *
  * The .ico is assembled by hand (PNG-in-ICO) to avoid an extra dependency.
+ *
+ * metaculus_wordmark.svg has no raster outputs: a wordmark-only change just
+ * updates metaculus_wordmark.tsx and needs no run of this script.
  */
 import { readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
