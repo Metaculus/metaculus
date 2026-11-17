@@ -565,4 +565,64 @@ describe("processMarkdown", () => {
       expect(result).toContain("> &#x20;\n");
     });
   });
+
+  describe("stored XSS regressions", () => {
+    it.each([
+      ["entity-encoded tag", "&lt;img src=x onerror=alert(1)&gt;"],
+      [
+        "double-encoded tag",
+        "&amp;lt;details open ontoggle=alert(1)&amp;gt;x&amp;lt;/details&amp;gt;",
+      ],
+      ["numeric entities", "&#60;img src=x onerror=alert(1)&#62;"],
+    ])("keeps %s as text", (_name, input) => {
+      const result = processMarkdown(input);
+
+      expect(result).not.toMatch(/<(img|details)\b/i);
+      expect(result).toContain(input);
+    });
+
+    it("sanitizes attributes of void tags", () => {
+      const result = processMarkdown(
+        'Look <img src="x.png" onerror="alert(1)" /> here'
+      );
+
+      expect(result).toContain('<img src="x.png" />');
+      expect(result).not.toContain("onerror");
+    });
+
+    it("sanitizes content wrapped by a void tag pair", () => {
+      const result = processMarkdown(
+        '<br class="a"><details open ontoggle="alert(1)">x</details></br>'
+      );
+
+      expect(result).not.toContain("ontoggle");
+    });
+
+    it.each([
+      '<Tweet id="1"><img src=x onerror=alert(1)></Tweet>',
+      "<EmbeddedQuestion id={alert(1)} />",
+      '<EmbeddedQuestion id="1" onload="alert(1)" />',
+    ])(
+      "does not exempt non-canonical embeds from sanitization: %s",
+      (input) => {
+        const result = processMarkdown(input);
+
+        expect(result).not.toContain("alert");
+      }
+    );
+
+    it("preserves entities the author typed", () => {
+      const result = processMarkdown("Tom &amp; Jerry, 1 &lt; 2 & 3 > 2");
+
+      expect(result).toContain("Tom &amp; Jerry, 1 &lt; 2 & 3 > 2");
+    });
+
+    it("keeps encoded payloads encoded in revert mode", () => {
+      const result = processMarkdown("&lt;img src=x onerror=alert(1)&gt;", {
+        revert: true,
+      });
+
+      expect(result).toBe("&lt;img src=x onerror=alert(1)&gt;");
+    });
+  });
 });

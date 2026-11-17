@@ -57,6 +57,7 @@ import { equationPlugin } from "./plugins/equation";
 import { errorRecoveryPlugin } from "./plugins/error_recovery_plugin";
 import { linkPlugin } from "./plugins/link";
 import { mentionsPlugin } from "./plugins/mentions";
+import { safeHtmlPlugin } from "./plugins/safe_html";
 import { trimTrailingParagraphPlugin } from "./plugins/trim_trailing_plugin";
 
 type EditorMode = "write" | "read";
@@ -235,6 +236,7 @@ const InitializedMarkdownEditor: FC<
 
   const baseFormattingPlugins = useMemo(() => {
     const common = [
+      safeHtmlPlugin(),
       headingsPlugin(),
       listsPlugin(),
       linkPlugin({ withUgcLinks }),
