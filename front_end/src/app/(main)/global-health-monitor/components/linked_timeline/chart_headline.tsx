@@ -19,8 +19,9 @@ export function ChartHeadline({ valueKey }: { valueKey: GhmValueKey }) {
           {datum.subtitle}
         </span>
       )}
+      {/* A resolved question shows its outcome, like its card. */}
       <span className="text-2xl font-bold leading-none text-blue-800 dark:text-blue-800-dark">
-        {datum.display}
+        {datum.resolution?.display ?? datum.display}
       </span>
       {datum.change && snapshot?.compareEdition && (
         <ChangeChip

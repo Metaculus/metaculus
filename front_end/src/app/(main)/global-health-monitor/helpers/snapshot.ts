@@ -204,11 +204,16 @@ function buildDatum(
     }
   }
 
+  const resolution = isLatest ? readResolution(question, ref, locale) : null;
   const previous =
     previousEdition && point
       ? readEditionPoint(question, ref, previousEdition, key, point.option)
       : null;
-  const change = computeChange(ref, point?.value, previous?.point.value);
+  // A resolved question's outcome replaces its forecast, so a move since the last edition
+  // would only mislead.
+  const change = resolution
+    ? null
+    : computeChange(ref, point?.value, previous?.point.value);
 
   const series = lttb(
     readHistorySeries(question, ref, point?.option ?? null),
@@ -233,7 +238,7 @@ function buildDatum(
     asOf: point?.startTime ?? null,
     lapsedSince,
     frozen,
-    resolution: isLatest ? readResolution(question, ref, locale) : null,
+    resolution,
     sparkline: series.map(({ x, y }) => [x, y] as [number, number]),
   };
 }

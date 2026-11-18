@@ -133,6 +133,34 @@ describe("buildGhmSnapshot", () => {
     });
   });
 
+  it("shows the outcome and no change once a question resolves", () => {
+    const post = h5Post(HISTORY);
+    const resolved = {
+      ...post,
+      question: {
+        ...post.question,
+        resolution: "yes",
+        actual_close_time: "2026-09-27T12:00:00Z",
+      },
+    } as unknown as PostWithForecasts;
+    const snapshot = buildGhmSnapshot(
+      {
+        posts: new Map([[45011, resolved]]),
+        editions: [SEPTEMBER, AUGUST],
+        edition: SEPTEMBER,
+        previousEdition: AUGUST,
+        isLatest: true,
+        locale: "en",
+      },
+      NOW
+    );
+
+    expect(snapshot.values.h5Pheic).toMatchObject({
+      change: null,
+      resolution: { display: "Yes" },
+    });
+  });
+
   it("skips values whose post failed to load", () => {
     const snapshot = buildGhmSnapshot(
       {
