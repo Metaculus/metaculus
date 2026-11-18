@@ -3,6 +3,7 @@
 import { GhmValueKey } from "../../config/questions";
 import { ChangeChip } from "../change_chip";
 import { useGhmSnapshot } from "../ghm_data_provider";
+import { ResolvedChip } from "../resolved_chip";
 
 export function ChartHeadline({ valueKey }: { valueKey: GhmValueKey }) {
   const snapshot = useGhmSnapshot();
@@ -19,15 +20,19 @@ export function ChartHeadline({ valueKey }: { valueKey: GhmValueKey }) {
           {datum.subtitle}
         </span>
       )}
-      {/* A resolved question shows its outcome, like its card. */}
       <span className="text-2xl font-bold leading-none text-blue-800 dark:text-blue-800-dark">
-        {datum.resolution?.display ?? datum.display}
+        {datum.display}
       </span>
-      {datum.change && snapshot?.compareEdition && (
-        <ChangeChip
-          change={datum.change}
-          sinceLabel={snapshot.compareEdition.label}
-        />
+      {datum.resolution ? (
+        <ResolvedChip resolution={datum.resolution} />
+      ) : (
+        datum.change &&
+        snapshot?.compareEdition && (
+          <ChangeChip
+            change={datum.change}
+            sinceLabel={snapshot.compareEdition.label}
+          />
+        )
       )}
     </div>
   );

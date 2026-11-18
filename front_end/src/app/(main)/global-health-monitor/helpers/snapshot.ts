@@ -204,7 +204,8 @@ function buildDatum(
     }
   }
 
-  const resolution = isLatest ? readResolution(question, ref, locale) : null;
+  // Past editions get posts as of their asOf, which keep only resolutions known by then.
+  const resolution = readResolution(question, ref, locale);
   const previous =
     previousEdition && point
       ? readEditionPoint(question, ref, previousEdition, key, point.option)
