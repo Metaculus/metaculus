@@ -16,7 +16,9 @@ concurrency:
 
 jobs:
   integration-tests:
-    runs-on: ubuntu-latest
+    # Pinned: `playwright install --with-deps` doesn't support Ubuntu 26.04 yet,
+    # which is what ubuntu-latest resolves to now.
+    runs-on: ubuntu-24.04
     permissions:
       contents: read
     environment: testing_env
