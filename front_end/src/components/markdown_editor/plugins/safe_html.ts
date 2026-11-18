@@ -1,6 +1,7 @@
 import {
   $createGenericHTMLNode,
   addImportVisitor$,
+  GenericHTMLNode,
   isMdastHTMLNode,
   MdastHTMLNode,
   MdastImportVisitor,
@@ -9,22 +10,29 @@ import {
 
 import { isSafeHtmlAttribute, SAFE_EDITOR_HTML_TAGS } from "@/utils/markdown";
 
-type MdxJsxAttribute = Extract<
+type SafeHtmlAttribute = Extract<
   MdastHTMLNode["attributes"][number],
   { type: "mdxJsxAttribute" }
->;
+> & { value: string | null };
 
-// MDXEditor's GenericHTMLNode copies every attribute onto a live DOM element,
-// so this import step, not the string-level preprocessing, is the trust boundary.
-function getSafeHtmlAttributes(node: MdastHTMLNode): MdxJsxAttribute[] {
-  return node.attributes.filter(
-    (attribute): attribute is MdxJsxAttribute =>
+function getSafeHtmlAttributes(
+  tag: string,
+  attributes: MdastHTMLNode["attributes"]
+): SafeHtmlAttribute[] {
+  return attributes.filter(
+    (attribute): attribute is SafeHtmlAttribute =>
       attribute.type === "mdxJsxAttribute" &&
       (attribute.value === null || typeof attribute.value === "string") &&
-      isSafeHtmlAttribute(node.name, attribute.name, attribute.value ?? "")
+      isSafeHtmlAttribute(tag, attribute.name, attribute.value ?? "")
   );
 }
 
+// Trust boundary for HTML in user Markdown: MDXEditor's GenericHTMLNode copies
+// every attribute onto a live element, so tags and attributes are filtered here,
+// after all string preprocessing. It only wins because MDXEditor tries import
+// visitors highest priority first and its own MdastHTMLVisitor is -100.
+// `<img>` and JSX embeds never reach it (imagePlugin and jsxPlugin have their
+// own visitors); read_only_image and createJsxComponent guard those instead.
 const MdastSafeHTMLVisitor: MdastImportVisitor<MdastHTMLNode> = {
   testNode: isMdastHTMLNode,
   visitNode({ mdastNode, actions, lexicalParent }) {
@@ -33,7 +41,10 @@ const MdastSafeHTMLVisitor: MdastImportVisitor<MdastHTMLNode> = {
       return;
     }
 
-    const attributes = getSafeHtmlAttributes(mdastNode);
+    const attributes = getSafeHtmlAttributes(
+      mdastNode.name,
+      mdastNode.attributes
+    );
     const [onlyAttribute] = attributes;
     if (
       mdastNode.name === "span" &&
@@ -50,8 +61,25 @@ const MdastSafeHTMLVisitor: MdastImportVisitor<MdastHTMLNode> = {
       $createGenericHTMLNode(mdastNode.name, mdastNode.type, attributes)
     );
   },
-  // Runs before MDXEditor's own MdastHTMLVisitor (-100)
   priority: -50,
+};
+
+// Pasted Lexical clipboard JSON rebuilds GenericHTMLNodes via importJSON without
+// any Markdown import, so the same policy is applied where the DOM is created.
+GenericHTMLNode.prototype.createDOM = function (this: GenericHTMLNode) {
+  const tag = this.getTag();
+  if (!SAFE_EDITOR_HTML_TAGS.has(tag)) {
+    return document.createElement(this.isInline() ? "span" : "div");
+  }
+
+  const element = document.createElement(tag);
+  for (const { name, value } of getSafeHtmlAttributes(
+    tag,
+    this.getAttributes()
+  )) {
+    element.setAttribute(name, value ?? "");
+  }
+  return element;
 };
 
 export const safeHtmlPlugin = realmPlugin({

@@ -624,5 +624,48 @@ describe("processMarkdown", () => {
 
       expect(result).toBe("&lt;img src=x onerror=alert(1)&gt;");
     });
+
+    it("leaves literal marker-like text untouched", () => {
+      const privateUse = `${String.fromCharCode(0xe000)}0amp${String.fromCharCode(0xe001)}`;
+      const input = `x___AMPERSAND___y ___JSX_COMPONENT_0___ ${privateUse} AT&T`;
+
+      expect(processMarkdown(input)).toBe(input);
+      expect(processMarkdown(input, { revert: true })).toBe(input);
+    });
+
+    it("restores an embed nested in a void-tag chunk", () => {
+      const result = processMarkdown(
+        '<br class="a"><EmbeddedQuestion id="1" /></br>'
+      );
+
+      expect(result).toContain('<EmbeddedQuestion id="1" />');
+      expect(result).not.toMatch(/[-]|JSX_COMPONENT/);
+    });
+
+    it("keeps the canonical stored embed form unchanged", () => {
+      const input = 'Before\n\n<EmbeddedQuestion id="35956" />\n\nAfter';
+
+      expect(processMarkdown(input)).toBe(input);
+      expect(processMarkdown(input, { revert: true })).toBe(input);
+    });
+
+    it.each([
+      '<EmbeddedQuestion id="1"></EmbeddedQuestion>',
+      '<EmbeddedQuestion id="1" width="500" />',
+      '<EmbeddedQuestion  id = "1" />',
+    ])("does not pass non-canonical embed %s through unsanitized", (input) => {
+      expect(processMarkdown(input)).not.toContain("<EmbeddedQuestion");
+    });
+
+    it.each([
+      ["a fenced code block", "```\nweek.&#x20;\na &lt; b\n```"],
+      ["inline code", "Inline `x &amp; y`"],
+      ["inline math", "Math $a &lt; b$ here"],
+      ["block math", "$$\na &amp; b\n$$"],
+    ])("keeps entities verbatim in %s", (_context, input) => {
+      expect(processMarkdown(input)).toContain(
+        input.match(/&[#\w]+;/)?.[0] ?? ""
+      );
+    });
   });
 });

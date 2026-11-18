@@ -3,6 +3,8 @@
 import { ImageNode } from "@mdxeditor/editor";
 import React from "react";
 
+import { isSafeHtmlAttribute } from "@/utils/markdown";
+
 // MDXEditor's imagePlugin uses an imgCache that preloads images via new Image() before
 // rendering. In some environments (reported on iOS Safari), this off-screen preload
 // silently hangs — neither onload nor onerror fires — leaving the imgCache Promise
@@ -17,8 +19,9 @@ ImageNode.prototype.decorate = function (
   config: Parameters<typeof _originalDecorate>[1]
 ): ReturnType<typeof _originalDecorate> {
   if (!parentEditor.isEditable()) {
+    const src = this.getSrc();
     return React.createElement("img", {
-      src: this.getSrc(),
+      src: isSafeHtmlAttribute("img", "src", src) ? src : undefined,
       alt: this.getAltText(),
       title: this.getTitle() ?? undefined,
       style: { maxWidth: "100%", display: "block", margin: "0 auto" },

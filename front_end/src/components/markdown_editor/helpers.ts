@@ -28,7 +28,12 @@ const preProcessMarkdownContent = (
   {
     search,
     placeholderName,
-  }: { search: string | RegExp; placeholderName: string }
+    createPlaceholder = (id) => `___${placeholderName}_${id}___`,
+  }: {
+    search: string | RegExp;
+    placeholderName: string;
+    createPlaceholder?: (id: number) => string;
+  }
 ) => {
   const placeholders: {
     placeholder: string;
@@ -37,7 +42,7 @@ const preProcessMarkdownContent = (
 
   let placeholderId = 0;
   markdown = markdown.replace(search, (match) => {
-    const placeholder = `___${placeholderName}_${placeholderId++}___`;
+    const placeholder = createPlaceholder(placeholderId++);
     placeholders.push({ placeholder, original: match });
     return placeholder;
   });
@@ -226,7 +231,16 @@ const escapeRawDollarSigns = (markdown: string): string => {
   );
 };
 
-const AMPERSAND_PLACEHOLDER = "___AMPERSAND___";
+const MARKER_START = String.fromCharCode(0xe000);
+const MARKER_END = String.fromCharCode(0xe001);
+
+// Private-use delimiters plus a nonce absent from the input, so no literal
+// user text can be mistaken for (or turned into) a placeholder.
+function createMarkerFactory(markdown: string) {
+  let nonce = 0;
+  while (markdown.includes(`${MARKER_START}${nonce}`)) nonce++;
+  return (name: string) => `${MARKER_START}${nonce}${name}${MARKER_END}`;
+}
 
 // Only the canonical `<Name id=… />` form skips DOMPurify
 const EMBEDDED_COMPONENT_REGEX = new RegExp(
@@ -240,14 +254,18 @@ const toSelfClosingVoidTags = (html: string) =>
   html.replace(/<(hr|br|img)\b([^>]*?)\s*\/?>/g, "<$1$2 />");
 
 function sanitizeHtml(markdown: string) {
+  const marker = createMarkerFactory(markdown);
+  const ampersand = marker("amp");
+
   // User-authored entities must stay encoded: only text DOMPurify itself
   // escaped is decoded below, otherwise `&lt;img onerror=…&gt;` becomes markup.
-  markdown = markdown.replace(/&/g, AMPERSAND_PLACEHOLDER);
+  markdown = markdown.replace(/&/g, ampersand);
 
   const { markdown: withoutEmbeds, placeholders: embeds } =
     preProcessMarkdownContent(markdown, {
       search: EMBEDDED_COMPONENT_REGEX,
       placeholderName: "JSX_COMPONENT",
+      createPlaceholder: (id) => marker(`jsx${id}`),
     });
 
   // DOMPurify rewrites void tags to HTML5 syntax, but MDX needs `<img />`
@@ -255,24 +273,28 @@ function sanitizeHtml(markdown: string) {
     preProcessMarkdownContent(withoutEmbeds, {
       search: VOID_TAG_REGEX,
       placeholderName: "SELF_CLOSING_TAG",
+      createPlaceholder: (id) => marker(`void${id}`),
     });
 
   markdown = sanitizeHtmlContent(withoutVoidTags);
 
-  embeds.forEach(({ placeholder, original }) => {
-    markdown = markdown.replace(placeholder, () => original);
-  });
+  // Void-tag chunks can contain embed placeholders, so restore them first
   voidTags.forEach(({ placeholder, original }) => {
     const sanitized = toSelfClosingVoidTags(sanitizeHtmlContent(original));
     markdown = markdown.replace(placeholder, () => sanitized);
+  });
+  embeds.forEach(({ placeholder, original }) => {
+    markdown = markdown.replace(placeholder, () => original);
   });
 
   // MDXEditor needs the plain characters DOMPurify escaped in text nodes
   markdown = markdown.replace(/&lt;/g, "<").replace(/&gt;/g, ">");
 
-  return markdown.replaceAll(AMPERSAND_PLACEHOLDER, "&");
+  return markdown.replaceAll(ampersand, "&");
 }
 
+// Returns MDX source for MDXEditor, not HTML-safe output: decoded `<`/`>` can
+// still form markup, which the editor's safe HTML import visitor then filters.
 export function processMarkdown(
   markdown: string,
   config?: { revert?: boolean; withTwitterPreview?: boolean }
