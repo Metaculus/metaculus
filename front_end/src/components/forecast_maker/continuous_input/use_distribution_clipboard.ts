@@ -1,10 +1,7 @@
-import { faCopy, faPaste } from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useTranslations } from "next-intl";
-import { FC, useCallback, useEffect } from "react";
+import { RefObject, useCallback, useEffect } from "react";
 import toast from "react-hot-toast";
 
-import Button from "@/components/ui/button";
 import { ContinuousForecastInputType } from "@/types/charts";
 import {
   DistributionQuantileComponent,
@@ -122,8 +119,7 @@ function isClipboardDistribution(data: unknown): data is ClipboardDistribution {
   );
 }
 
-type Props = {
-  forecastInputMode: ContinuousForecastInputType;
+export type DistributionClipboardData = {
   sliderComponents: DistributionSliderComponent[];
   quantileComponents: DistributionQuantileComponent;
   scaling: Scaling;
@@ -133,41 +129,50 @@ type Props = {
     type: ContinuousForecastInputType,
     components: DistributionSliderComponent[] | DistributionQuantileComponent
   ) => void;
-  disabled?: boolean;
-  containerRef?: React.RefObject<HTMLDivElement | null>;
 };
 
-const ContinuousClipboardMenu: FC<Props> = ({
+/**
+ * Copying/pasting distributions via the clipboard, plus the Ctrl+C / Ctrl+V
+ * shortcuts within `containerRef`. A hook rather than a component so the
+ * shortcuts keep working while the buttons' panel is closed.
+ *
+ * Returns null without `data`; `paste` is omitted when disabled.
+ */
+export function useDistributionClipboard({
+  data,
   forecastInputMode,
-  sliderComponents,
-  quantileComponents,
-  scaling,
-  openLowerBound,
-  openUpperBound,
-  onPaste,
   disabled,
   containerRef,
-}) => {
+}: {
+  data: DistributionClipboardData | undefined;
+  forecastInputMode: ContinuousForecastInputType;
+  disabled?: boolean;
+  containerRef: RefObject<HTMLElement | null>;
+}): { copy: () => void; paste?: () => void } | null {
   const t = useTranslations();
 
   const handleCopy = useCallback(async () => {
-    const data: ClipboardDistribution = {
+    if (!data) return;
+    const clipboardDistribution: ClipboardDistribution = {
       [CLIPBOARD_MARKER]: true,
       type: forecastInputMode,
       components:
         forecastInputMode === ContinuousForecastInputType.Slider
-          ? sliderComponents
-          : toPortableQuantileComponents(quantileComponents, scaling),
+          ? data.sliderComponents
+          : toPortableQuantileComponents(data.quantileComponents, data.scaling),
     };
     try {
-      await navigator.clipboard.writeText(JSON.stringify(data));
+      await navigator.clipboard.writeText(
+        JSON.stringify(clipboardDistribution)
+      );
       toast(t("distributionCopied"));
     } catch {
       toast.error(t("distributionCopyFailed"));
     }
-  }, [forecastInputMode, sliderComponents, quantileComponents, scaling, t]);
+  }, [data, forecastInputMode, t]);
 
   const handlePaste = useCallback(async () => {
+    if (!data) return;
     try {
       const text = await navigator.clipboard.readText();
       const parsed: unknown = JSON.parse(text);
@@ -179,22 +184,23 @@ const ContinuousClipboardMenu: FC<Props> = ({
         parsed.type === ContinuousForecastInputType.Quantile
           ? fromPortableQuantileComponents(
               parsed.components as DistributionQuantileComponent,
-              scaling,
-              openLowerBound,
-              openUpperBound
+              data.scaling,
+              data.openLowerBound,
+              data.openUpperBound
             )
           : parsed.components;
-      onPaste(parsed.type, components);
+      data.onPaste(parsed.type, components);
       toast(t("distributionPasted"));
     } catch {
       toast.error(t("distributionPasteInvalid"));
     }
-  }, [scaling, openLowerBound, openUpperBound, onPaste, t]);
+  }, [data, t]);
 
   // Ctrl+C / Ctrl+V keyboard shortcuts
+  const hasData = !!data;
   useEffect(() => {
-    const container = containerRef?.current;
-    if (!container) return;
+    const container = containerRef.current;
+    if (!container || !hasData) return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (!e.ctrlKey && !e.metaKey) return;
@@ -216,38 +222,8 @@ const ContinuousClipboardMenu: FC<Props> = ({
 
     container.addEventListener("keydown", handleKeyDown);
     return () => container.removeEventListener("keydown", handleKeyDown);
-  }, [containerRef, handleCopy, handlePaste, disabled]);
+  }, [containerRef, hasData, handleCopy, handlePaste, disabled]);
 
-  return (
-    <div className="flex gap-1">
-      <Button
-        className="size-[26px] border border-blue-400 dark:border-blue-400-dark"
-        variant="link"
-        onClick={handleCopy}
-        aria-label={t("copyDistribution")}
-        title={t("copyDistribution")}
-      >
-        <FontAwesomeIcon
-          className="text-blue-700 dark:text-blue-700-dark"
-          icon={faCopy}
-        />
-      </Button>
-      {!disabled && (
-        <Button
-          className="size-[26px] border border-blue-400 dark:border-blue-400-dark"
-          variant="link"
-          onClick={handlePaste}
-          aria-label={t("pasteDistribution")}
-          title={t("pasteDistribution")}
-        >
-          <FontAwesomeIcon
-            className="text-blue-700 dark:text-blue-700-dark"
-            icon={faPaste}
-          />
-        </Button>
-      )}
-    </div>
-  );
-};
-
-export default ContinuousClipboardMenu;
+  if (!data) return null;
+  return { copy: handleCopy, paste: disabled ? undefined : handlePaste };
+}
