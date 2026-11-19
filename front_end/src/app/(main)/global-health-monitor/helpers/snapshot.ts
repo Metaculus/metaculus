@@ -54,7 +54,12 @@ export type TokenDatum = {
   // End (seconds) of the latest aggregate when forecasts have lapsed.
   lapsedSince: number | null;
   frozen: boolean;
-  resolution: { display: string; forecastWas: string | null } | null;
+  resolution: {
+    display: string;
+    // Set for binary outcomes so the UI can translate them.
+    binaryOutcome: "yes" | "no" | null;
+    forecastWas: string | null;
+  } | null;
   sparkline: [number, number][];
 };
 
@@ -164,7 +169,9 @@ function readResolution(
   const atClose = closeTime
     ? readForecastAt(question, ref, toSeconds(closeTime))
     : null;
+  const outcome = String(question.resolution);
   return {
+    binaryOutcome: outcome === "yes" || outcome === "no" ? outcome : null,
     display: formatResolution({
       resolution: question.resolution,
       questionType: question.type,
@@ -210,11 +217,9 @@ function buildDatum(
     previousEdition && point
       ? readEditionPoint(question, ref, previousEdition, key, point.option)
       : null;
-  // A resolved question's outcome replaces its forecast, so a move since the last edition
-  // would only mislead.
-  const change = resolution
-    ? null
-    : computeChange(ref, point?.value, previous?.point.value);
+  // Kept once a question resolves so Trend prose still follows the measured move; the chips
+  // show the outcome in its place.
+  const change = computeChange(ref, point?.value, previous?.point.value);
 
   const series = lttb(
     readHistorySeries(question, ref, point?.option ?? null),

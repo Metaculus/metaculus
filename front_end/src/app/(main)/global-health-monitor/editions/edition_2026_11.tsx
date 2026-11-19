@@ -108,7 +108,7 @@ const DRC_TIP =
 
 export const EDITION_2026_11: Edition = {
   slug: "2026-11",
-  asOf: "2026-11-18T12:00:00Z",
+  asOf: "2026-11-19T12:00:00Z",
   // Section order and cards, as published.
   layout: [
     {

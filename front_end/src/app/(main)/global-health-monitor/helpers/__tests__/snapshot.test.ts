@@ -3,6 +3,7 @@ import { AggregateForecast, QuestionType } from "@/types/question";
 
 import { Edition } from "../../editions/types";
 import { buildGhmSnapshot } from "../snapshot";
+import { snapshotPostsAt } from "../snapshot_posts";
 
 const AUG_28 = Date.parse("2026-08-28T12:00:00Z") / 1000;
 const SEP_17 = Date.parse("2026-09-17T12:00:00Z") / 1000;
@@ -133,7 +134,7 @@ describe("buildGhmSnapshot", () => {
     });
   });
 
-  it("shows the outcome and no change once a question resolves", () => {
+  it("adds the outcome once a question resolves and keeps the measured change", () => {
     const post = h5Post(HISTORY);
     const resolved = {
       ...post,
@@ -156,36 +157,53 @@ describe("buildGhmSnapshot", () => {
     );
 
     expect(snapshot.values.h5Pheic).toMatchObject({
-      change: null,
-      resolution: { display: "Yes" },
+      change: { direction: "down" },
+      resolution: { display: "Yes", binaryOutcome: "yes" },
     });
   });
 
-  it("shows a resolution known at a past edition's date", () => {
-    const post = h5Post(HISTORY);
-    const resolved = {
-      ...post,
-      question: {
-        ...post.question,
-        resolution: "no",
-        actual_close_time: "2026-08-20T12:00:00Z",
-      },
-    } as unknown as PostWithForecasts;
-    const snapshot = buildGhmSnapshot(
-      {
-        posts: new Map([[45011, resolved]]),
-        editions: [SEPTEMBER, AUGUST],
-        edition: { ...AUGUST, frozen: {} },
-        previousEdition: null,
-        isLatest: false,
-        locale: "en",
-      },
-      NOW
-    );
+  describe("a past edition", () => {
+    function snapshotWithResolutionSetAt(resolutionSetTime: number) {
+      const post = h5Post(HISTORY);
+      const resolved = {
+        ...post,
+        question: {
+          ...post.question,
+          open_time: "2026-08-01T12:00:00Z",
+          scheduled_close_time: "2026-12-31T12:00:00Z",
+          resolution: "no",
+          resolution_set_time: new Date(resolutionSetTime * 1000).toISOString(),
+        },
+      } as unknown as PostWithForecasts;
+      return buildGhmSnapshot(
+        {
+          posts: snapshotPostsAt(new Map([[45011, resolved]]), SEP_17, {}),
+          editions: [SEPTEMBER, AUGUST],
+          edition: SEPTEMBER,
+          previousEdition: AUGUST,
+          isLatest: false,
+          locale: "en",
+        },
+        NOW
+      );
+    }
 
-    expect(snapshot.values.h5Pheic).toMatchObject({
-      change: null,
-      resolution: { display: "No" },
+    it("shows a resolution recorded before it was published", () => {
+      expect(
+        snapshotWithResolutionSetAt(SEP_17 - 86_400).values.h5Pheic
+      ).toMatchObject({
+        change: { direction: "down" },
+        resolution: { display: "No", binaryOutcome: "no" },
+      });
+    });
+
+    it("hides a resolution recorded after it was published", () => {
+      expect(
+        snapshotWithResolutionSetAt(SEP_17 + 86_400).values.h5Pheic
+      ).toMatchObject({
+        change: { direction: "down" },
+        resolution: null,
+      });
     });
   });
 

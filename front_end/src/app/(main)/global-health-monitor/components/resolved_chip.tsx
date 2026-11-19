@@ -2,21 +2,34 @@
 
 import { faCircleCheck } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { capitalize } from "lodash";
 import { useTranslations } from "next-intl";
 
 import cn from "@/utils/core/cn";
 
 import { TokenDatum } from "../helpers/snapshot";
 
+type Resolution = NonNullable<TokenDatum["resolution"]>;
+
+/** Formats the outcome in the page locale; formatResolution only formats Yes and No in English. */
+export function useResolutionLabel() {
+  const t = useTranslations();
+  return (resolution: Resolution) =>
+    resolution.binaryOutcome
+      ? capitalize(t(resolution.binaryOutcome))
+      : resolution.display;
+}
+
 /** Takes the place of a resolved question's change chip, in Metaculus' resolution purple. */
 export function ResolvedChip({
   resolution,
   className,
 }: {
-  resolution: NonNullable<TokenDatum["resolution"]>;
+  resolution: Resolution;
   className?: string;
 }) {
   const t = useTranslations();
+  const formatResolutionLabel = useResolutionLabel();
 
   return (
     <span
@@ -26,7 +39,9 @@ export function ResolvedChip({
       )}
     >
       <FontAwesomeIcon icon={faCircleCheck} className="size-2.5" />
-      {t("globalHealthMonitorResolvedAs", { value: resolution.display })}
+      {t("globalHealthMonitorResolvedAs", {
+        value: formatResolutionLabel(resolution),
+      })}
     </span>
   );
 }
