@@ -609,6 +609,56 @@ class TestResolveConditionalQuestion:
         assert question_no.status == QuestionStatus.RESOLVED
         assert question_no.resolution == UnsuccessfulResolutionType.ANNULLED
 
+    def test_resolution_bounds_propagate_to_branches(
+        self,
+        user1: User,  # noqa
+        post_parent_open: Post,
+    ):
+        post_child = factory_post(
+            author=user1,
+            question=create_question(
+                question_type=Question.QuestionType.NUMERIC,
+                range_min=0,
+                range_max=100,
+                open_lower_bound=False,
+                open_upper_bound=False,
+                open_time=make_aware(datetime(2023, 1, 1)),
+                scheduled_close_time=make_aware(datetime(2025, 1, 1)),
+                scheduled_resolve_time=make_aware(datetime(2026, 1, 1)),
+            ),
+        )
+        post_conditional = self.create_post_conditional(
+            user1, post_parent_open, post_child
+        )
+        parent = post_conditional.conditional.condition
+        child = post_conditional.conditional.condition_child
+        question_yes = post_conditional.conditional.question_yes
+        question_no = post_conditional.conditional.question_no
+
+        resolve_question(
+            child,
+            "5.0",
+            actual_resolve_time=make_aware(datetime(2024, 1, 1)),
+            resolution_lower_bound="4.5",
+            resolution_upper_bound="5.5",
+        )
+        resolve_question(
+            parent, "yes", actual_resolve_time=make_aware(datetime(2024, 1, 1))
+        )
+        for obj in [question_yes, question_no]:
+            obj.refresh_from_db()
+
+        assert question_yes.resolution == "5.0"
+        assert question_yes.resolution_lower_bound == "4.5"
+        assert question_yes.resolution_upper_bound == "5.5"
+        assert question_no.resolution == UnsuccessfulResolutionType.ANNULLED
+        assert question_no.resolution_lower_bound is None
+
+        unresolve_question(child)
+        question_yes.refresh_from_db()
+        assert question_yes.resolution is None
+        assert question_yes.resolution_lower_bound is None
+
     def test_case_14_parent_resolved_child_unresolved_to_open(
         self,
         user1: User,  # noqa

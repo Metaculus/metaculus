@@ -2684,5 +2684,12 @@
   "initiativeFroCastingName": "FRO-casting",
   "initiativeFroCastingDescription": "Colaboração com a Federation of American Scientists para usar previsões na avaliação de impactos, no fornecimento de feedback e na orientação da distribuição de recursos para pesquisa.",
   "initiativeAINuclearLandscapeName": "Previsões sobre IA e o cenário nuclear",
-  "initiativeAINuclearLandscapeDescription": "Em parceria com o Institute for Security and Technology, um relatório que avalia os riscos de escalada entre os EUA e a China, incluindo a integração da IA ao comando, controle e comunicações nucleares."
+  "initiativeAINuclearLandscapeDescription": "Em parceria com o Institute for Security and Technology, um relatório que avalia os riscos de escalada entre os EUA e a China, incluindo a integração da IA ao comando, controle e comunicações nucleares.",
+  "rangeResolutionToggle": "Pontuar como um intervalo",
+  "rangeResolutionHelp": "As previsões são pontuadas pela probabilidade entre os limites em vez de no valor de resolução. O valor de resolução continua sendo o exibido.",
+  "rangeResolutionLowerBound": "Limite inferior",
+  "rangeResolutionUpperBound": "Limite superior",
+  "rangeResolutionPresetDay": "Dia",
+  "rangeResolutionPresetMonth": "Mês",
+  "rangeResolutionPresetYear": "Ano"
 }

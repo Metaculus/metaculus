@@ -20,6 +20,11 @@ from questions.models import (
 from questions.services.multiple_choice_handlers import get_all_options_from_history
 from questions.types import AggregationMethod
 from scoring.models import ArchivedScore, Score
+from scoring.score_math import (
+    ResolutionRange,
+    get_resolution_range,
+    resolution_probability,
+)
 from scoring.reputations import REPUTATION_FORMULAS, reputations_at_forecast_time
 from users.models import User
 from utils.the_math.aggregations import (
@@ -353,6 +358,14 @@ def _reputation_columns(
     return [value, contribution, float(max(reputation, _REPUTATION_PARAMS["e"]))]
 
 
+def _get_resolution_range(
+    question: Question, cache: dict[int, ResolutionRange | None]
+) -> ResolutionRange | None:
+    if question.id not in cache:
+        cache[question.id] = get_resolution_range(question)
+    return cache[question.id]
+
+
 def generate_data(
     questions: QuerySet[Question],
     user_forecasts: QuerySet[Forecast] | list[Forecast] | None = None,
@@ -378,6 +391,8 @@ def generate_data(
     #     README.md - Always
     username_dict = dict(User.objects.values_list("id", "username"))
     is_bot_dict = dict(User.objects.values_list("id", "is_bot"))
+    resolution_ranges: dict[int, ResolutionRange | None] = {}
+
     questions = questions.select_related("post", "post__default_project")
     question_ids = questions.values_list("id", flat=True)
     if not question_ids:
@@ -448,6 +463,8 @@ def generate_data(
         + "**`Scheduled Close Time`** - the time when forecasting ends.\n"
         + "**`Actual Close Time`** - the earlier of the scheduled close time and the time when the resolution became known.\n"
         + "**`Resolution`** - the resolution for the question.\n"
+        + "**`Resolution Lower Bound`** - for a numeric or date question scored as a range, the lower end of that range. The question is scored on the probability between the two bounds rather than at the Resolution.\n"
+        + "**`Resolution Upper Bound`** - the upper end of that range.\n"
         + "**`Resolution Known Time`** - the time when the resolution became known.\n"
         + "**`Include Bots in Aggregates`** - whether bots are included in the aggregations by default.\n"
         + "**`Question Weight`** - the weight of the question in the leaderboard.\n"
@@ -486,6 +503,8 @@ def generate_data(
             "Scheduled Close Time",
             "Actual Close Time",
             "Resolution",
+            "Resolution Lower Bound",
+            "Resolution Upper Bound",
             "Resolution Known Time",
             "Include Bots in Aggregates",
             "Question Weight",
@@ -553,6 +572,8 @@ def generate_data(
                 question.scheduled_close_time,
                 question.actual_close_time,
                 question.resolution,
+                question.resolution_lower_bound,
+                question.resolution_upper_bound,
                 question.actual_resolve_time,
                 question.include_bots_in_aggregates,
                 question.question_weight,
@@ -672,10 +693,10 @@ def generate_data(
             row.extend([None, None])
         else:
             pmf = forecast.get_pmf()
-            forecast_at_resolution = (
-                pmf[resolution_index]
-                if not np.isnan(pmf[resolution_index])
-                else pmf[-1]
+            forecast_at_resolution = resolution_probability(
+                pmf,
+                resolution_index,
+                _get_resolution_range(forecast.question, resolution_ranges),
             )
             row.append(forecast_at_resolution)
             if forecast.question.type in QUESTION_CONTINUOUS_TYPES:
@@ -746,10 +767,10 @@ def generate_data(
             row.append(None)
         else:
             pmf = aggregate_forecast.get_pmf()
-            forecast_at_resolution = (
-                pmf[resolution_index]
-                if not np.isnan(pmf[resolution_index])
-                else pmf[-1]
+            forecast_at_resolution = resolution_probability(
+                pmf,
+                resolution_index,
+                _get_resolution_range(aggregate_forecast.question, resolution_ranges),
             )
             row.append(forecast_at_resolution)
             if aggregate_forecast.question.type in QUESTION_CONTINUOUS_TYPES:

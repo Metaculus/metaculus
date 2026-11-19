@@ -24,6 +24,8 @@ import { ErrorResponse } from "@/types/fetch";
 import { Question, QuestionType } from "@/types/question";
 import { getAllOptionsHistory } from "@/utils/questions/helpers";
 
+import ResolutionRangeInputs from "./resolution_range_inputs";
+
 type Props = {
   question: Question;
   isOpen: boolean;
@@ -38,6 +40,9 @@ const schema = z.object({
     .string()
     .transform((value) => new Date(value).toISOString()),
   scoreAsTask: z.boolean(),
+  scoreAsRange: z.boolean(),
+  resolutionLowerBound: z.string().optional(),
+  resolutionUpperBound: z.string().optional(),
 });
 type FormData = z.infer<typeof schema>;
 
@@ -96,12 +101,32 @@ const QuestionResolutionModal: FC<Props> = ({ isOpen, onClose, question }) => {
             : "",
         actualResolveTime: currentDateTime,
         scoreAsTask: false,
+        scoreAsRange: false,
       },
     });
 
   const resolutionType = watch("resolutionType");
   const unambiguousType = watch("unambiguousType");
   const scoreAsTask = watch("scoreAsTask");
+  const resolutionValue = watch("resolutionValue");
+  const scoreAsRange = watch("scoreAsRange");
+  const resolutionLowerBound = watch("resolutionLowerBound");
+  const resolutionUpperBound = watch("resolutionUpperBound");
+  const supportsRangeResolution =
+    (question.type === QuestionType.Numeric ||
+      question.type === QuestionType.Date) &&
+    resolutionType === "unambiguous" &&
+    unambiguousType === "knownValue";
+  const missingRangeBounds =
+    supportsRangeResolution &&
+    scoreAsRange &&
+    (!resolutionLowerBound || !resolutionUpperBound);
+
+  const resetRange = useCallback(() => {
+    setValue("scoreAsRange", false);
+    setValue("resolutionLowerBound", undefined);
+    setValue("resolutionUpperBound", undefined);
+  }, [setValue]);
 
   const unambiguousOptions = useMemo(() => {
     const options = [{ value: "knownValue", label: "Known value" }];
@@ -124,6 +149,9 @@ const QuestionResolutionModal: FC<Props> = ({ isOpen, onClose, question }) => {
       resolutionValue,
       actualResolveTime,
       scoreAsTask,
+      scoreAsRange,
+      resolutionLowerBound,
+      resolutionUpperBound,
     }: FormData) => {
       setSubmitErrors([]);
 
@@ -132,7 +160,13 @@ const QuestionResolutionModal: FC<Props> = ({ isOpen, onClose, question }) => {
         question.id,
         resolutionValue || resolutionType,
         actualResolveTime,
-        scoreAsTask
+        scoreAsTask,
+        supportsRangeResolution &&
+          scoreAsRange &&
+          resolutionLowerBound &&
+          resolutionUpperBound
+          ? { lower: resolutionLowerBound, upper: resolutionUpperBound }
+          : null
       );
 
       setIsSubmitting(false);
@@ -143,7 +177,7 @@ const QuestionResolutionModal: FC<Props> = ({ isOpen, onClose, question }) => {
         onClose?.(true);
       }
     },
-    [onClose, question.id]
+    [onClose, question.id, supportsRangeResolution]
   );
 
   return (
@@ -169,6 +203,7 @@ const QuestionResolutionModal: FC<Props> = ({ isOpen, onClose, question }) => {
                 setResolutionValueError("");
                 setValue("resolutionType", event.target.value);
                 setValue("resolutionValue", undefined);
+                resetRange();
               }}
             />
           ) : (
@@ -179,6 +214,7 @@ const QuestionResolutionModal: FC<Props> = ({ isOpen, onClose, question }) => {
                 setResolutionValueError("");
                 setValue("resolutionType", value);
                 setValue("resolutionValue", undefined);
+                resetRange();
               }}
               variant="tertiary"
             />
@@ -193,6 +229,7 @@ const QuestionResolutionModal: FC<Props> = ({ isOpen, onClose, question }) => {
                 value !== "knownValue"
                   ? setValue("resolutionValue", value)
                   : setValue("resolutionValue", undefined);
+                resetRange();
               }}
               variant="tertiary"
             />
@@ -281,6 +318,22 @@ const QuestionResolutionModal: FC<Props> = ({ isOpen, onClose, question }) => {
                 onChange={(val) => setValue("resolutionValue", val)}
               />
             )}
+          {supportsRangeResolution && (
+            <ResolutionRangeInputs
+              questionType={
+                question.type as QuestionType.Numeric | QuestionType.Date
+              }
+              resolutionValue={resolutionValue}
+              enabled={scoreAsRange}
+              lower={resolutionLowerBound}
+              upper={resolutionUpperBound}
+              onEnabledChange={(checked) => setValue("scoreAsRange", checked)}
+              onBoundsChange={(lower, upper) => {
+                setValue("resolutionLowerBound", lower);
+                setValue("resolutionUpperBound", upper);
+              }}
+            />
+          )}
           <label className="flex flex-col gap-2">
             Date when resolution was known:
             <DatetimeUtc
@@ -311,7 +364,12 @@ const QuestionResolutionModal: FC<Props> = ({ isOpen, onClose, question }) => {
           <div className="flex justify-center">
             <Button
               type="submit"
-              disabled={!formState.isValid || !resolutionType || isSubmitting}
+              disabled={
+                !formState.isValid ||
+                !resolutionType ||
+                isSubmitting ||
+                missingRangeBounds
+              }
             >
               {isSubmitting ? <LoadingSpinner size="sm" /> : t("resolve")}
             </Button>

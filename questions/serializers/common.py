@@ -29,6 +29,7 @@ from users.models import User
 from utils.middlewares import shows_shadow_aggregations
 from utils.the_math.formulas import (
     get_scaled_quartiles_from_cdf,
+    string_location_to_scaled_location,
     unscaled_location_to_scaled_location,
 )
 from utils.the_math.measures import (
@@ -74,6 +75,8 @@ class QuestionSerializer(serializers.ModelSerializer):
             "status",
             "possibilities",
             "resolution",
+            "resolution_lower_bound",
+            "resolution_upper_bound",
             "include_bots_in_aggregates",
             "question_weight",
             "default_score_type",
@@ -949,6 +952,59 @@ def validate_question_resolution(question: Question, resolution: str) -> str:
             f"Received {resolution}"
         )
     return str(resolution)
+
+
+def validate_question_resolution_bounds(
+    question: Question,
+    resolution: str,
+    lower_bound: str | None,
+    upper_bound: str | None,
+) -> tuple[str | None, str | None]:
+    """
+    `resolution` must already be validated. Returns the normalized bounds, or
+    (None, None) when neither is given.
+    """
+    if lower_bound in (None, "") and upper_bound in (None, ""):
+        return None, None
+    if lower_bound in (None, "") or upper_bound in (None, ""):
+        raise ValidationError("Provide both resolution bounds or neither.")
+    if question.type not in [
+        Question.QuestionType.NUMERIC,
+        Question.QuestionType.DATE,
+    ]:
+        raise ValidationError(
+            "Resolution bounds are only supported for numeric and date questions."
+        )
+    if resolution in UnsuccessfulResolutionType or resolution in [
+        "below_lower_bound",
+        "above_upper_bound",
+    ]:
+        raise ValidationError("Resolution bounds require a known resolution value.")
+
+    if question.type == Question.QuestionType.NUMERIC:
+        field = serializers.FloatField()
+    else:
+        field = serializers.DateTimeField()
+    lower_bound = str(field.run_validation(lower_bound))
+    upper_bound = str(field.run_validation(upper_bound))
+
+    value = string_location_to_scaled_location(resolution, question)
+    lower = string_location_to_scaled_location(lower_bound, question)
+    upper = string_location_to_scaled_location(upper_bound, question)
+    if not (question.range_min <= value <= question.range_max):
+        raise ValidationError(
+            "Resolution bounds require a resolution within the question's range."
+        )
+    if not (lower <= value <= upper) or lower == upper:
+        raise ValidationError(
+            "Resolution bounds must satisfy lower <= resolution <= upper, "
+            "with lower < upper."
+        )
+    if min(upper, question.range_max) <= max(lower, question.range_min):
+        raise ValidationError(
+            "Resolution bounds must overlap the question's range by more than a point."
+        )
+    return lower_bound, upper_bound
 
 
 class OldForecastWriteSerializer(serializers.Serializer):
