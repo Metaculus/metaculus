@@ -41,6 +41,10 @@ export const GHM_SOURCES = {
     name: "CDC",
     url: "https://www.cdc.gov/flu/php/surveillance/in-season-severity.html",
   },
+  paho: {
+    name: "PAHO",
+    url: "https://www.paho.org/en/topics/measles",
+  },
 } as const satisfies Record<string, GhmSource>;
 
 export type GhmSourceId = keyof typeof GHM_SOURCES;

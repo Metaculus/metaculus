@@ -54,7 +54,12 @@ export type TokenDatum = {
   // End (seconds) of the latest aggregate when forecasts have lapsed.
   lapsedSince: number | null;
   frozen: boolean;
-  resolution: { display: string; forecastWas: string | null } | null;
+  resolution: {
+    display: string;
+    // Set for binary outcomes so the UI can translate them.
+    binaryOutcome: "yes" | "no" | null;
+    forecastWas: string | null;
+  } | null;
   sparkline: [number, number][];
 };
 
@@ -164,7 +169,9 @@ function readResolution(
   const atClose = closeTime
     ? readForecastAt(question, ref, toSeconds(closeTime))
     : null;
+  const outcome = String(question.resolution);
   return {
+    binaryOutcome: outcome === "yes" || outcome === "no" ? outcome : null,
     display: formatResolution({
       resolution: question.resolution,
       questionType: question.type,
@@ -204,10 +211,14 @@ function buildDatum(
     }
   }
 
+  // Past editions get posts as of their asOf, which keep only resolutions known by then.
+  const resolution = readResolution(question, ref, locale);
   const previous =
     previousEdition && point
       ? readEditionPoint(question, ref, previousEdition, key, point.option)
       : null;
+  // Kept once a question resolves so Trend prose still follows the measured move; the chips
+  // show the outcome in its place.
   const change = computeChange(ref, point?.value, previous?.point.value);
 
   const series = lttb(
@@ -233,7 +244,7 @@ function buildDatum(
     asOf: point?.startTime ?? null,
     lapsedSince,
     frozen,
-    resolution: isLatest ? readResolution(question, ref, locale) : null,
+    resolution,
     sparkline: series.map(({ x, y }) => [x, y] as [number, number]),
   };
 }

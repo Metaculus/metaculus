@@ -3,12 +3,13 @@
 import { GhmValueKey } from "../../config/questions";
 import { ChangeChip } from "../change_chip";
 import { useGhmSnapshot } from "../ghm_data_provider";
+import { ResolvedChip } from "../resolved_chip";
 
 export function ChartHeadline({ valueKey }: { valueKey: GhmValueKey }) {
   const snapshot = useGhmSnapshot();
   const datum = snapshot?.values[valueKey];
 
-  if (!datum?.display) {
+  if (!datum || (!datum.display && !datum.resolution)) {
     return null;
   }
 
@@ -19,14 +20,21 @@ export function ChartHeadline({ valueKey }: { valueKey: GhmValueKey }) {
           {datum.subtitle}
         </span>
       )}
-      <span className="text-2xl font-bold leading-none text-blue-800 dark:text-blue-800-dark">
-        {datum.display}
-      </span>
-      {datum.change && snapshot?.compareEdition && (
-        <ChangeChip
-          change={datum.change}
-          sinceLabel={snapshot.compareEdition.label}
-        />
+      {datum.display && (
+        <span className="text-2xl font-bold leading-none text-blue-800 dark:text-blue-800-dark">
+          {datum.display}
+        </span>
+      )}
+      {datum.resolution ? (
+        <ResolvedChip resolution={datum.resolution} />
+      ) : (
+        datum.change &&
+        snapshot?.compareEdition && (
+          <ChangeChip
+            change={datum.change}
+            sinceLabel={snapshot.compareEdition.label}
+          />
+        )
       )}
     </div>
   );
