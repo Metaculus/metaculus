@@ -46,6 +46,7 @@ import {
   getNormalizedContinuousForecast,
   getUserContinuousQuartiles,
   isOpenQuestionPredicted,
+  makeDefaultSliderComponent,
 } from "@/utils/forecasts/helpers";
 import {
   extractPrevNumericForecastValue,
@@ -292,7 +293,7 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
         if (prevChoice.id === option.id) {
           const newUserForecast = [
             ...getNormalizedContinuousForecast(prevChoice.userSliderForecast),
-            { left: 0.4, center: 0.5, right: 0.6, weight: 1 },
+            makeDefaultSliderComponent(),
           ];
           const newUserQuartiles = getUserContinuousQuartiles(
             newUserForecast,

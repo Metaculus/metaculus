@@ -110,6 +110,38 @@ export function cdfFromSliders(
   return cdf;
 }
 
+/**
+ * Internal location (0-1 within the range) at which the CDF reaches the
+ * given percentile (0-100). 0 or 1 when that percentile falls out of
+ * bounds.
+ */
+export function percentileFromCdf(
+  cdf: number[],
+  percentile: number,
+  discrete?: boolean
+): number {
+  if (cdf === null) {
+    cdf = [];
+  }
+  const target = percentile / 100;
+  for (let i = 0; i < cdf.length; i++) {
+    /* eslint-disable @typescript-eslint/no-non-null-assertion */
+    if (cdf[i]! >= target) {
+      if (i === 0) return 0;
+
+      if (discrete) {
+        return (i - 0.5) / (cdf.length - 1);
+      }
+
+      const diff = cdf[i]! - cdf[i - 1]!;
+      const adjustedPercentile = (target - cdf[i - 1]!) / diff;
+      return (i - 1 + adjustedPercentile) / (cdf.length - 1);
+    }
+    /* eslint-enable @typescript-eslint/no-non-null-assertion */
+  }
+  return 1;
+}
+
 export function computeQuartilesFromCDF(
   cdf: number[],
   extendedQuartiles: true,
@@ -126,28 +158,8 @@ export function computeQuartilesFromCDF(
   extendedQuartiles?: boolean,
   discrete?: boolean
 ): Quartiles | ExtendedQuartiles {
-  function findPercentile(cdf: number[], percentile: number) {
-    if (cdf === null) {
-      cdf = [];
-    }
-    const target = percentile / 100;
-    for (let i = 0; i < cdf.length; i++) {
-      /* eslint-disable @typescript-eslint/no-non-null-assertion */
-      if (cdf[i]! >= target) {
-        if (i === 0) return 0;
-
-        if (discrete) {
-          return (i - 0.5) / (cdf.length - 1);
-        }
-
-        const diff = cdf[i]! - cdf[i - 1]!;
-        const adjustedPercentile = (target - cdf[i - 1]!) / diff;
-        return (i - 1 + adjustedPercentile) / (cdf.length - 1);
-      }
-      /* eslint-enable @typescript-eslint/no-non-null-assertion */
-    }
-    return 1;
-  }
+  const findPercentile = (cdf: number[], percentile: number) =>
+    percentileFromCdf(cdf, percentile, discrete);
 
   const median = findPercentile(cdf, 50);
   const lower25 = findPercentile(cdf, 25);
