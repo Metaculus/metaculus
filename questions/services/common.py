@@ -121,6 +121,12 @@ def clone_question(question: Question, title: str = None, **kwargs) -> Question:
         type=kwargs.pop("type", question.type),
         possibilities=kwargs.pop("possibilities", question.possibilities),
         resolution=kwargs.pop("resolution", question.resolution),
+        resolution_lower_bound=kwargs.pop(
+            "resolution_lower_bound", question.resolution_lower_bound
+        ),
+        resolution_upper_bound=kwargs.pop(
+            "resolution_upper_bound", question.resolution_upper_bound
+        ),
         range_max=kwargs.pop("range_max", question.range_max),
         range_min=kwargs.pop("range_min", question.range_min),
         zero_point=kwargs.pop("zero_point", question.zero_point),

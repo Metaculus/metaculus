@@ -2632,5 +2632,12 @@
   "initiativeFroCastingName": "FRO-casting",
   "initiativeFroCastingDescription": "与 Federation of American Scientists 合作，利用预测评估影响、提供反馈，并为研究资金分配提供依据。",
   "initiativeAINuclearLandscapeName": "人工智能与核安全格局预测",
-  "initiativeAINuclearLandscapeDescription": "与 Institute for Security and Technology 合作的报告，评估美中局势升级的风险，包括将人工智能纳入核指挥、控制和通信系统。"
+  "initiativeAINuclearLandscapeDescription": "与 Institute for Security and Technology 合作的报告，评估美中局势升级的风险，包括将人工智能纳入核指挥、控制和通信系统。",
+  "rangeResolutionToggle": "按区间评分",
+  "rangeResolutionHelp": "预测按其在上下限之间的概率评分，而不是按决议值评分。显示的仍是决议值。",
+  "rangeResolutionLowerBound": "下限",
+  "rangeResolutionUpperBound": "上限",
+  "rangeResolutionPresetDay": "日",
+  "rangeResolutionPresetMonth": "月",
+  "rangeResolutionPresetYear": "年"
 }

@@ -259,6 +259,11 @@ export type CPMovement = {
   period?: string;
 };
 
+export type ResolutionBounds = {
+  lower: string;
+  upper: string;
+};
+
 export type GraphingQuestionProps = {
   scaling: Scaling;
   resolution?: Resolution | null;
@@ -298,6 +303,9 @@ export type Question = {
   inbound_outcome_count: number | null;
   // Other
   resolution: Resolution | null;
+  // Numeric and date only: when set, scored on the probability between these
+  resolution_lower_bound?: string | null;
+  resolution_upper_bound?: string | null;
   include_bots_in_aggregates: boolean;
   question_weight: number;
   default_score_type: ScoreType;

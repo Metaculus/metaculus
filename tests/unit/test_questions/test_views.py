@@ -11,6 +11,7 @@ from rest_framework.reverse import reverse
 from posts.models import Post
 from projects.models import Project
 from questions.models import Forecast, Question, UserForecastNotification
+from questions.serializers.common import QuestionSerializer
 from questions.types import OptionsHistoryType
 from questions.tasks import check_and_schedule_forecast_widrawal_due_notifications
 from tests.unit.test_posts.conftest import *  # noqa
@@ -749,6 +750,138 @@ class TestQuestionResolve:
             content_type="application/json",
         )
         assert response.status_code == status_code
+
+    NUMERIC = {
+        "type": Question.QuestionType.NUMERIC,
+        "range_min": 0,
+        "range_max": 100,
+        "open_lower_bound": False,
+        "open_upper_bound": False,
+    }
+
+    @pytest.mark.parametrize(
+        "status_code, q_props, resolution, lower, upper",
+        [
+            (200, NUMERIC, "5", "4.5", "5.5"),
+            (200, NUMERIC, "0", "-0.5", "0.5"),  # clipped when scored
+            (200, NUMERIC, "5", "5", "6"),  # resolution may sit on a bound
+            (400, NUMERIC, "5", "4.5", None),  # only one bound
+            (400, NUMERIC, "5", "5.5", "6.5"),  # resolution outside the bounds
+            (400, NUMERIC, "5", "5", "5"),  # zero width
+            (400, NUMERIC, "0", "-1", "0"),  # no overlap with the range
+            (400, NUMERIC, "5", "abc", "6"),
+            (400, NUMERIC, "annulled", "4.5", "5.5"),
+            (
+                400,
+                {**NUMERIC, "open_upper_bound": True},
+                "above_upper_bound",
+                "100",
+                "101",
+            ),
+            (  # outside the range, through an open bound
+                400,
+                {**NUMERIC, "open_upper_bound": True},
+                "105",
+                "104.5",
+                "105.5",
+            ),
+            (
+                400,
+                {**NUMERIC, "type": Question.QuestionType.DISCRETE},
+                "5",
+                "4.5",
+                "5.5",
+            ),
+            (
+                200,
+                {
+                    "type": Question.QuestionType.DATE,
+                    "range_min": datetime(
+                        2020, 1, 1, tzinfo=dt_timezone.utc
+                    ).timestamp(),
+                    "range_max": datetime(
+                        2025, 1, 1, tzinfo=dt_timezone.utc
+                    ).timestamp(),
+                    "open_lower_bound": False,
+                    "open_upper_bound": False,
+                },
+                "2021-03-15T00:00:00Z",
+                "2021-03-01T00:00:00Z",
+                "2021-04-01T00:00:00Z",
+            ),
+        ],
+    )
+    def test_resolve_with_bounds(
+        self,
+        post_numeric_public,
+        user_admin_client,
+        status_code,
+        q_props,
+        resolution,
+        lower,
+        upper,
+    ):
+        question = post_numeric_public.question
+        for key, value in q_props.items():
+            setattr(question, key, value)
+        question.save()
+        url = reverse("question-resolve", args=[question.id])
+        payload = {
+            "resolution": resolution,
+            "actual_resolve_time": datetime.max.strftime("%Y-%m-%dT%H:%M:%S"),
+            "resolution_lower_bound": lower,
+            "resolution_upper_bound": upper,
+        }
+        response = user_admin_client.post(
+            url, data=json.dumps(payload), content_type="application/json"
+        )
+        assert response.status_code == status_code
+        question.refresh_from_db()
+        if status_code == 200:
+            assert question.resolution_lower_bound is not None
+            assert question.resolution_upper_bound is not None
+        else:
+            assert question.resolution is None
+            assert question.resolution_lower_bound is None
+
+    def test_bounds_in_api_and_cleared_on_unresolve(
+        self, post_numeric_public, user_admin_client
+    ):
+        question = post_numeric_public.question
+        for key, value in self.NUMERIC.items():
+            setattr(question, key, value)
+        question.save()
+        response = user_admin_client.post(
+            reverse("question-resolve", args=[question.id]),
+            data=json.dumps(
+                {
+                    "resolution": "5",
+                    "actual_resolve_time": datetime.max.strftime("%Y-%m-%dT%H:%M:%S"),
+                    "resolution_lower_bound": "4.5",
+                    "resolution_upper_bound": "5.5",
+                }
+            ),
+            content_type="application/json",
+        )
+        assert response.status_code == 200
+        question.refresh_from_db()
+        assert question.resolution == "5.0"
+        assert question.resolution_lower_bound == "4.5"
+        assert question.resolution_upper_bound == "5.5"
+
+        data = QuestionSerializer(question).data
+        assert data["resolution"] == "5.0"
+        assert data["resolution_lower_bound"] == "4.5"
+        assert data["resolution_upper_bound"] == "5.5"
+
+        response = user_admin_client.post(
+            reverse("question-unresolve", args=[question.id])
+        )
+        assert response.status_code == 200
+        question.refresh_from_db()
+        assert question.resolution is None
+        assert question.resolution_lower_bound is None
+        assert question.resolution_upper_bound is None
 
 
 class TestQuestionForecastAutoWithdrawal:
