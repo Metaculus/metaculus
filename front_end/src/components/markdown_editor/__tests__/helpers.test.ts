@@ -1,4 +1,5 @@
-import { processMarkdown } from "../helpers";
+import { processMarkdown, processMarkdownForDisplay } from "../helpers";
+import { decodeLiteralEntities } from "../plugins/literal_entities";
 
 jest.mock("../embedded_question", () => ({
   EMBEDDED_QUESTION_COMPONENT_NAME: "EmbeddedQuestion",
@@ -667,5 +668,56 @@ describe("processMarkdown", () => {
         input.match(/&[#\w]+;/)?.[0] ?? ""
       );
     });
+  });
+});
+
+describe("processMarkdownForDisplay", () => {
+  it.each([
+    ["plain text", "Just `a &lt; b`", {}, "basic"],
+    ["a comparison", "a < b and `x &#60; y`", {}, "full"],
+    ["an HTML tag", "<u>u</u> `x`", {}, "full"],
+    ["only an embed", '<EmbeddedQuestion id="1" />', {}, "basic"],
+    ["only a spaced void tag", 'Text <img src="a.png" /> end', {}, "basic"],
+    ["an unspaced void tag", "Line<br/>break", {}, "full"],
+    [
+      "a tweet link (the preview wraps it in a div)",
+      "See https://x.com/user/status/123",
+      { withTwitterPreview: true },
+      "full",
+    ],
+  ])("flags a document with %s as %s", (_name, markdown, config, expected) => {
+    expect(
+      processMarkdownForDisplay(markdown, config).legacyEntityDecoding
+    ).toBe(expected);
+  });
+
+  it("returns the same Markdown as processMarkdown", () => {
+    const input = "<u>x</u>\n\n```\na &lt; b&#x20;\n```";
+
+    expect(processMarkdownForDisplay(input).markdown).toBe(
+      processMarkdown(input)
+    );
+  });
+});
+
+describe("decodeLiteralEntities", () => {
+  const REPLACEMENT_CHARACTER = String.fromCharCode(0xfffd);
+
+  it.each([
+    ["&lt;&gt;&amp;", "basic", "<>&"],
+    ["&amp;lt;", "basic", "&lt;"],
+    ["&#60;&#x20;&quot;&nbsp;", "basic", "&#60;&#x20;&quot;&nbsp;"],
+    ["&#60;&#x26;&#x20;&quot;&copy;", "full", '<& "©'],
+    ["&amp;lt; &lt &#0;", "full", `&lt; < ${REPLACEMENT_CHARACTER}`],
+    ["&nbsp;&#160;&bogus;", "full", "&nbsp;&nbsp;&bogus;"],
+    ["<b>&lt;/title&gt;</b>", "full", "<b></title></b>"],
+    [
+      "</title><img src=x onerror=alert(1)>&amp;",
+      "full",
+      "</title><img src=x onerror=alert(1)>&",
+    ],
+    ["\nleading newline", "full", "\nleading newline"],
+  ] as const)("decodes %j in %s mode to %j", (value, mode, expected) => {
+    expect(decodeLiteralEntities(value, mode)).toBe(expected);
   });
 });

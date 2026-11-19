@@ -3,6 +3,7 @@ import { sanitizeHtmlContent } from "@/utils/markdown";
 import { EMBEDDED_QUESTION_COMPONENT_NAME } from "./embedded_question";
 import { EMBEDDED_TWITTER_COMPONENT_NAME } from "./embedded_twitter";
 import { transformTwitterLinks } from "./embedded_twitter/helpers";
+import type { LegacyEntityDecoding } from "./plugins/literal_entities";
 
 // match block math: $$...$$
 const BLOCK_MATH_REGEX = /\$\$(?:[^$]|\\\$)*?\$\$/g;
@@ -293,13 +294,28 @@ function sanitizeHtml(markdown: string) {
   return markdown.replaceAll(ampersand, "&");
 }
 
-// Returns MDX source for MDXEditor, not HTML-safe output: decoded `<`/`>` can
-// still form markup, which the editor's safe HTML import visitor then filters.
-export function processMarkdown(
+// The pre-fix sanitizer pulled these out before DOMPurify, and DOMPurify skips
+// parsing (and so entity decoding) when no `<` remains in its input.
+const LEGACY_EMBED_REGEX = new RegExp(
+  `<(${EMBEDDED_QUESTION_COMPONENT_NAME}|${EMBEDDED_TWITTER_COMPONENT_NAME})\\s+([^>]*)\\s*(?:\\/>|>(.*?)<\\/\\1>)`,
+  "gs"
+);
+const LEGACY_VOID_TAG_REGEX = /<(hr|br|img)\s+([^>]*)\s*(?:\/>|>(.*?)<\/\1>)/gs;
+
+const getLegacyEntityDecoding = (prepared: string): LegacyEntityDecoding =>
+  prepared
+    .replace(LEGACY_EMBED_REGEX, "")
+    .replace(LEGACY_VOID_TAG_REGEX, "")
+    .includes("<")
+    ? "full"
+    : "basic";
+
+type ProcessMarkdownConfig = { revert?: boolean; withTwitterPreview?: boolean };
+
+function prepareMarkdown(
   markdown: string,
-  config?: { revert?: boolean; withTwitterPreview?: boolean }
-): string {
-  const { revert, withTwitterPreview } = config ?? {};
+  { revert, withTwitterPreview }: ProcessMarkdownConfig
+) {
   markdown = formatBlockquoteNewlines(markdown);
   if (!revert) {
     markdown = transformMathJaxToLatex(markdown);
@@ -309,8 +325,25 @@ export function processMarkdown(
   if (withTwitterPreview) {
     markdown = transformTwitterLinks(markdown);
   }
-
-  markdown = sanitizeHtml(markdown);
-
   return markdown;
+}
+
+// Returns MDX source for MDXEditor, not HTML-safe output: decoded `<`/`>` can
+// still form markup, which the editor's safe HTML import visitor then filters.
+export function processMarkdown(
+  markdown: string,
+  config?: ProcessMarkdownConfig
+): string {
+  return sanitizeHtml(prepareMarkdown(markdown, config ?? {}));
+}
+
+export function processMarkdownForDisplay(
+  markdown: string,
+  config?: ProcessMarkdownConfig
+) {
+  const prepared = prepareMarkdown(markdown, config ?? {});
+  return {
+    markdown: sanitizeHtml(prepared),
+    legacyEntityDecoding: getLegacyEntityDecoding(prepared),
+  };
 }

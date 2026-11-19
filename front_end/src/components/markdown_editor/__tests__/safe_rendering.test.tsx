@@ -12,7 +12,7 @@ import { createRef } from "react";
 
 import messages from "../../../../messages/en.json";
 import "./matchMedia.mock";
-import { processMarkdown } from "../helpers";
+import { processMarkdown, processMarkdownForDisplay } from "../helpers";
 import InitializedMarkdownEditor, {
   MarkdownEditorProps,
 } from "../initialized_editor";
@@ -336,18 +336,145 @@ describe("safe rendering in the real editor", () => {
     });
   });
 
-  describe("entities in literal contexts", () => {
-    it("shows entities in code verbatim and keeps them through save and reload", async () => {
+  describe("entities in code and math", () => {
+    const inlineCodeTexts = (editor: HTMLElement) =>
+      Array.from(editor.querySelectorAll("code"))
+        .filter((element) => !element.closest("pre"))
+        .map((element) => element.textContent);
+
+    // Expected values are what the pre-fix editor displayed: a document with no
+    // `<` only decoded `&lt;`/`&gt;`/`&amp;`, one with HTML decoded every reference
+    it.each([
+      ["Plain", "&lt;", "<"],
+      ["Plain", "&amp;", "&"],
+      ["Plain", "&amp;lt;", "&lt;"],
+      ["Plain", "&#60;", "&#60;"],
+      ["Plain", "&#x20;", "&#x20;"],
+      ["Plain", "&nbsp;", "&nbsp;"],
+      ["<u>Tag</u>", "&lt;", "<"],
+      ["<u>Tag</u>", "&#60;", "<"],
+      ["<u>Tag</u>", "&#x26;", "&"],
+      ["<u>Tag</u>", "&#x20;", " "],
+      ["<u>Tag</u>", "&copy;", "©"],
+      ["<u>Tag</u>", "&amp;lt;", "&lt;"],
+      ["<u>Tag</u>", "&nbsp;", "&nbsp;"],
+      ["<u>Tag</u>", "&#160;", "&nbsp;"],
+      ["<u>Tag</u>", "&bogus;", "&bogus;"],
+    ])("after %s shows %s in code as %j", async (prefix, entity, shown) => {
+      const { editor } = await renderEditor({
+        markdown: `${prefix}\n\n\`\`\`\nA${entity}B\n\`\`\`\n\nInline \`A${entity}B\` end`,
+      });
+
+      expect(editor.querySelector("pre")?.textContent).toBe(`A${shown}B`);
+      expect(inlineCodeTexts(editor)).toEqual([`A${shown}B`]);
+    });
+
+    it("keeps syntax highlighting on the decoded code", async () => {
+      const { editor } = await renderEditor({
+        markdown: "```js\nconst ok = a &lt; b &amp;&amp; c;\n```",
+      });
+
+      const code = editor.querySelector("pre");
+      expect(code).toHaveTextContent("const ok = a < b && c;");
+      expect(code?.querySelectorAll("span").length).toBeGreaterThan(5);
+    });
+
+    it("feeds decoded operators and alignment to KaTeX", async () => {
+      const { editor } = await renderEditor({
+        markdown:
+          "Inline $a &lt; b$ here\n\n$$\n\\begin{aligned}\nx &amp;= 1 \\\\\ny &amp;= 2\n\\end{aligned}\n$$",
+      });
+
+      expect(editor.querySelector(".katex-error")).toBeNull();
+      const [inline, block] = Array.from(editor.querySelectorAll(".katex"));
+      expect(inline?.querySelector(".mrel")).toHaveTextContent("<");
+      expect(block?.querySelector(".col-align-l")).not.toBeNull();
+    });
+
+    it("keeps KaTeX trust restrictions on decoded math", async () => {
+      const { editor } = await renderEditor({
+        markdown:
+          "<u>Tag</u>\n\nLink $\\href{javascript&#58;alert(1)}{x}$ and class $\\htmlClass{evil}{y}$",
+      });
+
+      expect(editor.querySelector(".katex a, .katex .evil")).toBeNull();
+      expect(findUnsafeMarkup(editor)).toEqual([]);
+    });
+
+    it.each(["Plain", "<u>Tag</u>"])(
+      "keeps decoded HTML-looking code inert after %s",
+      async (prefix) => {
+        const { editor } = await renderEditor({
+          markdown: `${prefix}\n\n\`\`\`html\n&lt;img src=x onerror=alert(1)&gt;&lt;script&gt;alert(1)&lt;/script&gt;\n\`\`\`\n\nInline \`&lt;b onclick=alert(1)&gt;bold&lt;/b&gt;\``,
+        });
+
+        expect(editor.querySelector("pre")).toHaveTextContent(
+          "<img src=x onerror=alert(1)><script>alert(1)</script>"
+        );
+        expect(inlineCodeTexts(editor)).toEqual([
+          "<b onclick=alert(1)>bold</b>",
+        ]);
+        expect(editor.querySelector("img, script, b")).toBeNull();
+        expect(findUnsafeMarkup(editor)).toEqual([]);
+      }
+    );
+
+    it.each([
+      ["Inline `x &#60; y` end", "Inline `x &#60; y` end<script></script>"],
+      ["Inline `x &#60; y` end<script></script>", "Inline `x &#60; y` end"],
+    ])(
+      "rebuilds inline code when %j becomes %j on a mounted editor",
+      async (first, second) => {
+        const view = (markdown: string) => (
+          <NextIntlClientProvider locale="en" messages={messages}>
+            <InitializedMarkdownEditor markdown={markdown} mode="read" />
+          </NextIntlClientProvider>
+        );
+        const expected = (markdown: string) =>
+          processMarkdownForDisplay(markdown).legacyEntityDecoding === "full"
+            ? "x < y"
+            : "x &#60; y";
+        expect(processMarkdownForDisplay(first).markdown).toBe(
+          processMarkdownForDisplay(second).markdown
+        );
+
+        let rendered: ReturnType<typeof render> | undefined;
+        await act(async () => {
+          rendered = render(view(first));
+        });
+        const before = rendered?.container.querySelector("code");
+        expect(before?.textContent).toBe(expected(first));
+
+        await act(async () => {
+          rendered?.rerender(view(second));
+        });
+        const after = rendered?.container.querySelector("code");
+        expect(after?.textContent).toBe(expected(second));
+        expect(after).not.toBe(before);
+      }
+    );
+
+    it("edits the stored entities and keeps them through save and reopen", async () => {
       const markdown =
-        "```\nsame week.&#x20;\nif (a &lt; b && c) {}\n```\n\nInline `x &amp; y` and text a &lt; b";
+        "<u>Tag</u>\n\n```\nif (a &lt; b) {}&#x20;\n```\n\nInline `x &amp; y` and $a &lt; b$";
+
+      const { editor: writeEditor } = await renderEditor({
+        markdown,
+        mode: "write",
+      });
+      expect(writeEditor.querySelector("pre")).toHaveTextContent(
+        "if (a &lt; b) {}&#x20;"
+      );
+      expect(inlineCodeTexts(writeEditor)).toEqual(["x &amp; y"]);
+      cleanup();
 
       const { renderedText, saved, reloaded } = await saveAndReload(markdown);
 
-      expect(renderedText).toContain("same week.&#x20;");
-      expect(renderedText).toContain("if (a &lt; b && c) {}");
-      expect(renderedText).toContain("x &amp; y");
-      expect(renderedText).toContain("text a < b");
-      expect(saved).toContain("&#x20;");
+      expect(renderedText).toContain("if (a < b) {} ");
+      expect(renderedText).toContain("x & y");
+      expect(saved).toContain("if (a &lt; b) {}&#x20;");
+      expect(saved).toContain("`x &amp; y`");
+      expect(saved).toContain("$a &lt; b$");
       expect(reloaded.textContent).toBe(renderedText);
     });
   });
