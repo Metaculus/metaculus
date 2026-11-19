@@ -1435,6 +1435,8 @@
   "distributionClipboard": "Copy & paste",
   "distributionClipboardDescription": "Copy this distribution to reuse it on another question. You can also press Ctrl+C / Ctrl+V while the forecast is selected.",
   "paste": "Paste",
+  "nudgeUp": "Increase",
+  "nudgeDown": "Decrease",
   "otherSubquestions": "Other subquestions",
   "otherSubquestionsDescription": "Copy this forecast to, or from, the group's other subquestions.",
   "switchBackToSlidersHint": "switch back to sliders for a smooth fit",

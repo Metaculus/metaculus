@@ -1156,6 +1156,8 @@
   "distributionClipboard": "Copiar y pegar",
   "distributionClipboardDescription": "Copia esta distribución para reutilizarla en otra pregunta. También puedes pulsar Ctrl+C / Ctrl+V con el pronóstico seleccionado.",
   "paste": "Pegar",
+  "nudgeUp": "Aumentar",
+  "nudgeDown": "Disminuir",
   "otherSubquestions": "Otras subpreguntas",
   "otherSubquestionsDescription": "Copia este pronóstico a las otras subpreguntas del grupo, o desde ellas.",
   "lowerBound": "Límite inferior",

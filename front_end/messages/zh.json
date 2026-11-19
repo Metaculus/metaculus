@@ -1158,6 +1158,8 @@
   "distributionClipboard": "复制和粘贴",
   "distributionClipboardDescription": "复制此分布以在其他问题中重复使用。选中预测时也可以按 Ctrl+C / Ctrl+V。",
   "paste": "粘贴",
+  "nudgeUp": "增加",
+  "nudgeDown": "减少",
   "otherSubquestions": "其他子问题",
   "otherSubquestionsDescription": "将此预测复制到该组的其他子问题，或从其他子问题复制。",
   "lowerBound": "下界",

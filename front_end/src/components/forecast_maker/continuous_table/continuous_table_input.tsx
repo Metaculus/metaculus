@@ -14,6 +14,8 @@ type Props = {
   error?: string;
   disabled?: boolean;
   showPercentSign?: boolean;
+  // Number inputs only: enables up/down nudging (see AbreviatedNumericInput)
+  nudge?: (value: number | undefined, steps: number) => number | undefined;
 };
 
 const ContinuousTableInput: FC<Props> = ({
@@ -23,6 +25,7 @@ const ContinuousTableInput: FC<Props> = ({
   error,
   disabled,
   showPercentSign,
+  nudge,
 }) => {
   if (type === "number") {
     return (
@@ -33,6 +36,7 @@ const ContinuousTableInput: FC<Props> = ({
         }}
         value={quantileValue?.value}
         showPercentSign={showPercentSign}
+        nudge={nudge}
         error={error}
         isDirty={quantileValue?.isDirty}
         placeholder={"—"}
