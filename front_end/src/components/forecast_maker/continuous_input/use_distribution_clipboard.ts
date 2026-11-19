@@ -6,9 +6,14 @@ import { ContinuousForecastInputType } from "@/types/charts";
 import {
   DistributionQuantileComponent,
   DistributionSliderComponent,
+  PinnedOutOfBounds,
   Quantile,
   Scaling,
 } from "@/types/question";
+import {
+  hasOpenBound,
+  reconcilePinnedOutOfBounds,
+} from "@/utils/forecasts/slider_components";
 import { scaleInternalLocation, unscaleNominalLocation } from "@/utils/math";
 
 // Matches the tolerance validateQuantileInput (forecast_maker/helpers.ts)
@@ -29,6 +34,8 @@ type ClipboardDistribution = {
   [CLIPBOARD_MARKER]: true;
   type: ContinuousForecastInputType;
   components: DistributionSliderComponent[] | DistributionQuantileComponent;
+  // Slider distributions only
+  pinned_out_of_bounds?: PinnedOutOfBounds | null;
 };
 
 const VALID_INPUT_TYPES: string[] = Object.values(ContinuousForecastInputType);
@@ -121,13 +128,15 @@ function isClipboardDistribution(data: unknown): data is ClipboardDistribution {
 
 export type DistributionClipboardData = {
   sliderComponents: DistributionSliderComponent[];
+  pinnedOutOfBounds?: PinnedOutOfBounds | null;
   quantileComponents: DistributionQuantileComponent;
   scaling: Scaling;
   openLowerBound: boolean;
   openUpperBound: boolean;
   onPaste: (
     type: ContinuousForecastInputType,
-    components: DistributionSliderComponent[] | DistributionQuantileComponent
+    components: DistributionSliderComponent[] | DistributionQuantileComponent,
+    pinnedOutOfBounds: PinnedOutOfBounds | null
   ) => void;
 };
 
@@ -159,10 +168,17 @@ export function useDistributionClipboard({
     const clipboardDistribution: ClipboardDistribution = {
       [CLIPBOARD_MARKER]: true,
       type: forecastInputMode,
-      components:
-        forecastInputMode === ContinuousForecastInputType.Slider
-          ? data.sliderComponents
-          : toPortableQuantileComponents(data.quantileComponents, data.scaling),
+      ...(forecastInputMode === ContinuousForecastInputType.Slider
+        ? {
+            components: data.sliderComponents,
+            pinned_out_of_bounds: data.pinnedOutOfBounds ?? null,
+          }
+        : {
+            components: toPortableQuantileComponents(
+              data.quantileComponents,
+              data.scaling
+            ),
+          }),
     };
     try {
       await navigator.clipboard.writeText(
@@ -192,7 +208,18 @@ export function useDistributionClipboard({
               data.openUpperBound
             )
           : parsed.components;
-      data.onPaste(parsed.type, components);
+      // Pins have to fit the target question's bounds
+      const bounds = {
+        open_lower_bound: data.openLowerBound,
+        open_upper_bound: data.openUpperBound,
+      };
+      const pinned =
+        parsed.type === ContinuousForecastInputType.Slider &&
+        parsed.pinned_out_of_bounds &&
+        hasOpenBound(bounds)
+          ? reconcilePinnedOutOfBounds(parsed.pinned_out_of_bounds, bounds)
+          : null;
+      data.onPaste(parsed.type, components, pinned);
       toast(t("distributionPasted"));
     } catch {
       toast.error(t("distributionPasteInvalid"));

@@ -3,9 +3,11 @@ import { uncmin } from "numeric";
 import {
   DistributionQuantileComponent,
   DistributionSliderComponent,
+  PinnedOutOfBounds,
   Quantile,
   Question,
   QuestionWithNumericForecasts,
+  SliderComponentType,
 } from "@/types/question";
 import { getSliderNumericForecastDataset } from "@/utils/forecasts/dataset";
 import { getUserContinuousQuartiles } from "@/utils/forecasts/helpers";
@@ -93,6 +95,7 @@ export function getSliderDistributionFromQuantiles(
   const result = uncmin(costFunc, initialParams);
   return [
     {
+      type: SliderComponentType.Logistic,
       left: result.solution.at(0) ?? 0.4,
       center: result.solution.at(1) ?? 0.5,
       right: result.solution.at(2) ?? 0.6,
@@ -107,9 +110,14 @@ export function getSliderDistributionFromQuantiles(
 export function getQuantilesDistributionFromSlider(
   components: DistributionSliderComponent[],
   question: QuestionWithNumericForecasts,
-  isDirty: boolean = false
+  isDirty: boolean = false,
+  pinnedOutOfBounds?: PinnedOutOfBounds | null
 ): DistributionQuantileComponent {
-  const cdf = getSliderNumericForecastDataset(components, question).cdf;
+  const cdf = getSliderNumericForecastDataset(
+    components,
+    question,
+    pinnedOutOfBounds
+  ).cdf;
   const quartiles = computeQuartilesFromCDF(cdf);
   const firstCdfValue = cdf[0] ?? 0;
   const p0 = Number((firstCdfValue * 100).toFixed(2));

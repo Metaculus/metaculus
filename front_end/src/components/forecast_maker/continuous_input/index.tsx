@@ -1,5 +1,5 @@
 import { useTranslations } from "next-intl";
-import React, { FC, ReactNode, useEffect, useRef } from "react";
+import React, { FC, ReactNode, useEffect, useRef, useState } from "react";
 
 import ContinuousTable from "@/components/forecast_maker/continuous_table";
 import ForecastPredictionMessage from "@/components/forecast_maker/prediction_message";
@@ -9,6 +9,7 @@ import { ContinuousForecastInputType } from "@/types/charts";
 import {
   DistributionQuantileComponent,
   DistributionSliderComponent,
+  PinnedOutOfBounds,
   QuantileValue,
   QuestionType,
   QuestionWithNumericForecasts,
@@ -17,6 +18,11 @@ import {
   isAllQuantileComponentsDirty,
   isForecastActive,
 } from "@/utils/forecasts/helpers";
+import { getInitialQuantileDistributionComponents } from "@/utils/forecasts/initial_values";
+import {
+  hasAdvancedSliderComponents,
+  makeDefaultSliderComponent,
+} from "@/utils/forecasts/slider_components";
 import {
   getQuantilesDistributionFromSlider,
   getSliderDistributionFromQuantiles,
@@ -30,6 +36,12 @@ import ContinuousPredictionChart from "./continuous_prediction_chart";
 import ContinuousSlider from "./continuous_slider";
 import { validateAllQuantileInputs } from "../helpers";
 
+type InputState = {
+  slider: DistributionSliderComponent[];
+  pinned: PinnedOutOfBounds | null;
+  quantile: DistributionQuantileComponent;
+};
+
 type Props = {
   question: QuestionWithNumericForecasts;
   dataset: {
@@ -42,7 +54,12 @@ type Props = {
   overlayPreviousCdf?: number[] | undefined;
   communityCdf: number[] | undefined;
   sliderComponents: DistributionSliderComponent[];
-  onSliderChange: (components: DistributionSliderComponent[]) => void;
+  // Pinned out-of-bounds mass (advanced mode only); part of the slider state
+  pinnedOutOfBounds?: PinnedOutOfBounds | null;
+  onSliderChange: (
+    components: DistributionSliderComponent[],
+    pinnedOutOfBounds: PinnedOutOfBounds | null
+  ) => void;
   quantileComponent: DistributionQuantileComponent;
   onQuantileChange: (quantileComponents: QuantileValue[]) => void;
   overlayPreviousForecast: boolean;
@@ -75,6 +92,7 @@ const ContinuousInput: FC<Props> = ({
   userPreviousCdf,
   communityCdf,
   sliderComponents,
+  pinnedOutOfBounds = null,
   onSliderChange,
   quantileComponent,
   onQuantileChange,
@@ -105,6 +123,65 @@ const ContinuousInput: FC<Props> = ({
   const isMounted = useRef(false);
   const withCommunityQuartiles = !user || !hideCP;
 
+  // Advanced mode keeps its own input state, separate from regular mode:
+  // toggling stashes the state of the mode being left and restores that of
+  // the mode being entered. There's no conversion between them.
+  const requiresAdvanced =
+    hasAdvancedSliderComponents(sliderComponents) || !!pinnedOutOfBounds;
+  const [isAdvanced, setIsAdvanced] = useState(requiresAdvanced);
+  const stashedStateRef = useRef<{
+    regular?: InputState;
+    advanced?: InputState;
+  }>({});
+  // State only advanced mode can show may arrive at any time (loading a
+  // forecast, discarding edits, pasting), so switch to advanced to show it
+  if (!isAdvanced && requiresAdvanced) {
+    setIsAdvanced(true);
+  }
+
+  const restoreState = ({ slider, pinned, quantile }: InputState) => {
+    // The group forecast maker takes the input mode from whichever state
+    // changed last, so update the active mode's state last
+    if (forecastInputMode === ContinuousForecastInputType.Slider) {
+      onQuantileChange(quantile);
+      onSliderChange(slider, pinned);
+    } else {
+      onSliderChange(slider, pinned);
+      onQuantileChange(quantile);
+    }
+  };
+
+  const handleAdvancedChange = (value: boolean) => {
+    if (value === isAdvanced) return;
+    const current: InputState = {
+      slider: sliderComponents,
+      pinned: pinnedOutOfBounds,
+      quantile: quantileComponent,
+    };
+    const stash = stashedStateRef.current;
+    if (value) {
+      stash.regular = current;
+      // On first entry, the regular state is a valid advanced state as-is
+      if (stash.advanced) restoreState(stash.advanced);
+    } else {
+      stash.advanced = current;
+      // Nothing is stashed if we started in advanced mode (e.g. the saved
+      // forecast needs it), so start fresh
+      restoreState(
+        stash.regular ?? {
+          slider: [makeDefaultSliderComponent()],
+          pinned: null,
+          quantile: getInitialQuantileDistributionComponents(
+            undefined,
+            undefined,
+            question
+          ),
+        }
+      );
+    }
+    setIsAdvanced(value);
+  };
+
   // populate forecast data from another tab
   useEffect(() => {
     if (!isMounted.current) {
@@ -113,6 +190,10 @@ const ContinuousInput: FC<Props> = ({
     }
     if (skipModeSyncRef?.current) {
       skipModeSyncRef.current = false;
+      return;
+    }
+    // Translating between slider and table isn't supported in advanced mode
+    if (isAdvanced) {
       return;
     }
     if (
@@ -135,7 +216,8 @@ const ContinuousInput: FC<Props> = ({
       }).length === 0
     ) {
       onSliderChange(
-        getSliderDistributionFromQuantiles(quantileComponent, question)
+        getSliderDistributionFromQuantiles(quantileComponent, question),
+        null
       );
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -168,6 +250,8 @@ const ContinuousInput: FC<Props> = ({
       }
       disabled={disabled || disableInputModeSwitch}
       questionType={question.type}
+      isAdvanced={isAdvanced}
+      onAdvancedChange={handleAdvancedChange}
     >
       {(sliderGraphType, tableGraphType) => (
         <>
@@ -191,8 +275,24 @@ const ContinuousInput: FC<Props> = ({
             <>
               <ContinuousSlider
                 components={sliderComponents}
-                onChange={onSliderChange}
+                onChange={(components) =>
+                  onSliderChange(components, pinnedOutOfBounds)
+                }
                 disabled={disabled}
+                advanced={
+                  isAdvanced
+                    ? {
+                        bounds: {
+                          open_lower_bound: !!question.open_lower_bound,
+                          open_upper_bound: !!question.open_upper_bound,
+                        },
+                        pinnedOutOfBounds,
+                        onPinnedOutOfBoundsChange: (pinned) =>
+                          onSliderChange(sliderComponents, pinned),
+                        cdf: dataset.cdf,
+                      }
+                    : undefined
+                }
               />
               {submitControls}
             </>
@@ -204,7 +304,7 @@ const ContinuousInput: FC<Props> = ({
             question={question}
             userBounds={getCdfBounds(userCdf)}
             userQuartiles={
-              userCdf
+              userCdf?.length
                 ? computeQuartilesFromCDF(userCdf, true, discrete)
                 : undefined
             }

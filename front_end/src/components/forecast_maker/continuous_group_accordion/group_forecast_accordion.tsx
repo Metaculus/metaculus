@@ -13,6 +13,7 @@ import {
   DistributionQuantileComponent,
   DistributionSlider,
   DistributionSliderComponent,
+  PinnedOutOfBounds,
   Quartiles,
   QuestionWithNumericForecasts,
   Scaling,
@@ -29,6 +30,7 @@ export type ContinuousGroupOption = {
   name: string;
   question: QuestionWithNumericForecasts;
   userSliderForecast: DistributionSliderComponent[];
+  userPinnedOutOfBounds: PinnedOutOfBounds | null;
   userQuantileForecast: DistributionQuantileComponent;
   forecastInputMode: ContinuousForecastInputType;
   userQuartiles: Quartiles | null;

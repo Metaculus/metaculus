@@ -23,6 +23,7 @@ import ForecastPredictionMessage from "@/components/forecast_maker/prediction_me
 import Button from "@/components/ui/button";
 import { FormError } from "@/components/ui/form_field";
 import { useAuth } from "@/contexts/auth_context";
+import { ForecastPayload } from "@/services/api/questions/questions.server";
 import { ContinuousForecastInputType } from "@/types/charts";
 import { ErrorResponse } from "@/types/fetch";
 import {
@@ -42,17 +43,19 @@ import {
   getSliderNumericForecastDataset,
 } from "@/utils/forecasts/dataset";
 import {
+  buildSliderDistributionInput,
   clearQuantileComponents,
   getNormalizedContinuousForecast,
   getUserContinuousQuartiles,
   isOpenQuestionPredicted,
-  makeDefaultSliderComponent,
 } from "@/utils/forecasts/helpers";
 import {
   extractPrevNumericForecastValue,
+  getInitialPinnedOutOfBounds,
   getInitialQuantileDistributionComponents,
   getInitialSliderDistributionComponents,
 } from "@/utils/forecasts/initial_values";
+import { makeDefaultSliderComponent } from "@/utils/forecasts/slider_components";
 import {
   getQuantilesDistributionFromSlider,
   getSliderDistributionFromQuantiles,
@@ -223,9 +226,12 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
               ...(forecastInputMode === ContinuousForecastInputType.Slider
                 ? {
                     userSliderForecast: components,
+                    userPinnedOutOfBounds:
+                      distribution.pinned_out_of_bounds ?? null,
                     userQuartiles: getUserContinuousQuartiles(
                       components,
-                      option.question
+                      option.question,
+                      distribution.pinned_out_of_bounds
                     ),
                   }
                 : { userQuantileForecast: components }),
@@ -249,16 +255,20 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
 
       if (!fromOption) return;
 
-      const { userSliderForecast, userQuantileForecast, forecastInputMode } =
-        fromOption;
+      const {
+        userSliderForecast,
+        userPinnedOutOfBounds,
+        userQuantileForecast,
+        forecastInputMode,
+      } = fromOption;
 
       handleChange(
         toOptionId,
         forecastInputMode === ContinuousForecastInputType.Slider
-          ? {
-              type: ContinuousForecastInputType.Slider,
-              components: userSliderForecast,
-            }
+          ? buildSliderDistributionInput(
+              userSliderForecast,
+              userPinnedOutOfBounds
+            )
           : {
               type: ContinuousForecastInputType.Quantile,
               components: userQuantileForecast,
@@ -297,7 +307,8 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
           ];
           const newUserQuartiles = getUserContinuousQuartiles(
             newUserForecast,
-            option.question
+            option.question,
+            prevChoice.userPinnedOutOfBounds
           );
 
           return {
@@ -327,15 +338,19 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
               prevForecast,
               prevOption.question
             );
+            const userPinnedOutOfBounds =
+              getInitialPinnedOutOfBounds(prevForecast);
             return {
               ...prevOption,
               forecastInputMode:
                 prevForecast?.type ?? prevOption.forecastInputMode,
               userQuartiles: getUserContinuousQuartiles(
                 userSliderForecast,
-                prevOption.question
+                prevOption.question,
+                userPinnedOutOfBounds
               ),
               userSliderForecast,
+              userPinnedOutOfBounds,
               userQuantileForecast: getInitialQuantileDistributionComponents(
                 prevOption.question.my_forecasts?.latest,
                 prevForecast,
@@ -360,47 +375,15 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
 
       if (!optionToSubmit) return;
 
+      const sliderError = getSliderOptionError(optionToSubmit);
+      if (sliderError) {
+        setSubmitError(new Error(t(sliderError)));
+        return;
+      }
+
       setIsSubmitting(true);
       const response = await createForecasts(postId, [
-        {
-          questionId: optionToSubmit.question.id,
-          forecastEndTime: forecastExpirationToDate(
-            forecastExpiration,
-            getExpirationBaseDate(optionToSubmit.question)
-          ),
-          forecastData: {
-            continuousCdf:
-              optionToSubmit.forecastInputMode ===
-              ContinuousForecastInputType.Quantile
-                ? getQuantileNumericForecastDataset(
-                    optionToSubmit.userQuantileForecast,
-                    optionToSubmit.question
-                  ).cdf
-                : getSliderNumericForecastDataset(
-                    getNormalizedContinuousForecast(
-                      optionToSubmit.userSliderForecast
-                    ),
-                    optionToSubmit.question
-                  ).cdf,
-            probabilityYesPerCategory: null,
-            probabilityYes: null,
-          },
-          distributionInput:
-            optionToSubmit.forecastInputMode ===
-            ContinuousForecastInputType.Slider
-              ? {
-                  type: ContinuousForecastInputType.Slider,
-                  components: getNormalizedContinuousForecast(
-                    optionToSubmit.userSliderForecast
-                  ),
-                }
-              : {
-                  type: ContinuousForecastInputType.Quantile,
-                  components: clearQuantileComponents(
-                    optionToSubmit.userQuantileForecast
-                  ),
-                },
-        },
+        buildOptionForecastPayload(optionToSubmit, forecastExpiration),
       ]);
 
       // update inactive forecast tab with new forecast data
@@ -416,7 +399,7 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
       setIsSubmitting(false);
       return response;
     },
-    [postId, onPredictionSubmit, groupOptions]
+    [postId, onPredictionSubmit, groupOptions, t]
   );
 
   const handlePredictSubmit = useCallback(async () => {
@@ -427,8 +410,14 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
     }
 
     setIsSubmitting(true);
-    // validate table forecast before submission
+    // validate forecasts before submission
     for (const option of questionsToSubmit) {
+      const sliderError = getSliderOptionError(option);
+      if (sliderError) {
+        setSubmitError(new Error(`${option.name}: ${t(sliderError)}`));
+        setIsSubmitting(false);
+        return;
+      }
       if (option.forecastInputMode === ContinuousForecastInputType.Quantile) {
         const subquestionErrors = validateUserQuantileData({
           question: option.question,
@@ -449,47 +438,8 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
 
     const response = await createForecasts(
       postId,
-      questionsToSubmit.map(
-        ({
-          question,
-          userSliderForecast,
-          userQuantileForecast,
-          forecastInputMode,
-          forecastExpiration,
-        }) => {
-          return {
-            questionId: question.id,
-            forecastEndTime: forecastExpirationToDate(
-              forecastExpiration,
-              getExpirationBaseDate(question)
-            ),
-            forecastData: {
-              continuousCdf:
-                forecastInputMode === ContinuousForecastInputType.Quantile
-                  ? getQuantileNumericForecastDataset(
-                      userQuantileForecast,
-                      question
-                    ).cdf
-                  : getSliderNumericForecastDataset(
-                      getNormalizedContinuousForecast(userSliderForecast),
-                      question
-                    ).cdf,
-              probabilityYesPerCategory: null,
-              probabilityYes: null,
-            },
-            distributionInput:
-              forecastInputMode === ContinuousForecastInputType.Slider
-                ? {
-                    type: forecastInputMode,
-                    components:
-                      getNormalizedContinuousForecast(userSliderForecast),
-                  }
-                : {
-                    type: ContinuousForecastInputType.Quantile,
-                    components: clearQuantileComponents(userQuantileForecast),
-                  },
-          };
-        }
+      questionsToSubmit.map((option) =>
+        buildOptionForecastPayload(option, option.forecastExpiration)
       )
     );
 
@@ -745,6 +695,7 @@ function generateGroupOptions({
       prevForecast,
       q
     );
+    const userPinnedOutOfBounds = getInitialPinnedOutOfBounds(prevForecast);
     const latest = q.aggregations[q.default_aggregation_method].latest;
     const last = q.my_forecasts?.latest;
     const wasWithdrawn = !!last?.end_time && last.end_time * 1000 < Date.now();
@@ -752,8 +703,13 @@ function generateGroupOptions({
       id: q.id,
       name: q.label,
       question: q,
-      userQuartiles: getUserContinuousQuartiles(userSliderForecast, q),
+      userQuartiles: getUserContinuousQuartiles(
+        userSliderForecast,
+        q,
+        userPinnedOutOfBounds
+      ),
       userSliderForecast,
+      userPinnedOutOfBounds,
       userQuantileForecast: getInitialQuantileDistributionComponents(
         q.my_forecasts?.latest,
         prevForecast,
@@ -792,6 +748,63 @@ function generateGroupOptions({
   });
 }
 
+/**
+ * Why a slider-mode option can't be submitted (e.g. dampers remove all the
+ * probability), if it can't
+ */
+function getSliderOptionError(option: ContinuousGroupOption) {
+  if (option.forecastInputMode !== ContinuousForecastInputType.Slider) {
+    return undefined;
+  }
+  return getSliderNumericForecastDataset(
+    getNormalizedContinuousForecast(option.userSliderForecast),
+    option.question,
+    option.userPinnedOutOfBounds
+  ).error;
+}
+
+function buildOptionForecastPayload(
+  option: ContinuousGroupOption,
+  forecastExpiration: ForecastExpirationValue | undefined
+): ForecastPayload {
+  const { question, forecastInputMode } = option;
+  const sliderForecast = getNormalizedContinuousForecast(
+    option.userSliderForecast
+  );
+  return {
+    questionId: question.id,
+    forecastEndTime: forecastExpirationToDate(
+      forecastExpiration,
+      getExpirationBaseDate(question)
+    ),
+    forecastData: {
+      continuousCdf:
+        forecastInputMode === ContinuousForecastInputType.Quantile
+          ? getQuantileNumericForecastDataset(
+              option.userQuantileForecast,
+              question
+            ).cdf
+          : getSliderNumericForecastDataset(
+              sliderForecast,
+              question,
+              option.userPinnedOutOfBounds
+            ).cdf,
+      probabilityYesPerCategory: null,
+      probabilityYes: null,
+    },
+    distributionInput:
+      forecastInputMode === ContinuousForecastInputType.Slider
+        ? buildSliderDistributionInput(
+            sliderForecast,
+            option.userPinnedOutOfBounds
+          )
+        : {
+            type: ContinuousForecastInputType.Quantile,
+            components: clearQuantileComponents(option.userQuantileForecast),
+          },
+  };
+}
+
 function updateGroupOptions(groupOption: ContinuousGroupOption) {
   const userSliderForecast =
     groupOption.forecastInputMode === ContinuousForecastInputType.Slider
@@ -808,15 +821,24 @@ function updateGroupOptions(groupOption: ContinuousGroupOption) {
         }))
       : getQuantilesDistributionFromSlider(
           groupOption.userSliderForecast,
-          groupOption.question
+          groupOption.question,
+          false,
+          groupOption.userPinnedOutOfBounds
         );
+  // A slider state derived from a table forecast has no pins
+  const userPinnedOutOfBounds =
+    groupOption.forecastInputMode === ContinuousForecastInputType.Slider
+      ? groupOption.userPinnedOutOfBounds
+      : null;
   const userQuartiles = getUserContinuousQuartiles(
     userSliderForecast,
-    groupOption.question
+    groupOption.question,
+    userPinnedOutOfBounds
   );
   return {
     ...groupOption,
     userSliderForecast,
+    userPinnedOutOfBounds,
     userQuantileForecast,
     userQuartiles,
     isDirty: false,

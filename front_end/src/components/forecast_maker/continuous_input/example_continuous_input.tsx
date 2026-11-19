@@ -9,10 +9,8 @@ import {
   QuestionWithNumericForecasts,
 } from "@/types/question";
 import { getSliderNumericForecastDataset } from "@/utils/forecasts/dataset";
-import {
-  getNormalizedContinuousForecast,
-  makeDefaultSliderComponent,
-} from "@/utils/forecasts/helpers";
+import { getNormalizedContinuousForecast } from "@/utils/forecasts/helpers";
+import { makeDefaultSliderComponent } from "@/utils/forecasts/slider_components";
 
 import ContinuousInput from ".";
 

@@ -77,7 +77,11 @@ const AccordionItem: FC<PropsWithChildren<AccordionItemProps>> = memo(
     const isResolvedOption = type === QuestionStatus.RESOLVED;
     const optionForecast =
       forecastInputMode === ContinuousForecastInputType.Slider
-        ? getSliderNumericForecastDataset(option.userSliderForecast, question)
+        ? getSliderNumericForecastDataset(
+            option.userSliderForecast,
+            question,
+            option.userPinnedOutOfBounds
+          )
         : getQuantileNumericForecastDataset(
             option.userQuantileForecast,
             question

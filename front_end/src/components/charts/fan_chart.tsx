@@ -1252,14 +1252,16 @@ function getFanOptionsFromContinuousGroup(
         userForecast.type === ContinuousForecastInputType.Slider
           ? (userCdf = getSliderNumericForecastDataset(
               userForecast.components,
-              q
+              q,
+              userForecast.pinned_out_of_bounds
             ).cdf)
           : (userCdf = getQuantileNumericForecastDataset(
               userForecast.components,
               q
             ).cdf);
-      } else if (activeForecast?.forecast_values.length) {
-        // distribution_input is absent for bots
+      }
+      if (!userCdf?.length && activeForecast?.forecast_values.length) {
+        // distribution_input is absent for bots, or couldn't be rebuilt
         // forecast_values still holds the full CDF, so fall back to it.
         userCdf = activeForecast.forecast_values;
       }

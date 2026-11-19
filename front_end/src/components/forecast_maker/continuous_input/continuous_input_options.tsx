@@ -23,6 +23,7 @@ type Props = {
     description: string;
   };
   // The rows below are only shown when provided
+  advanced?: { checked: boolean; onChange: (value: boolean) => void };
   overlayPrevious?: {
     label: string;
     checked: boolean;
@@ -39,6 +40,7 @@ type Props = {
  */
 const ContinuousInputOptions: FC<Props> = ({
   graph,
+  advanced,
   overlayPrevious,
   clipboard,
   subquestionCopyMenu,
@@ -73,6 +75,19 @@ const ContinuousInputOptions: FC<Props> = ({
             </span>
           </div>
         </OptionRow>
+
+        {advanced && (
+          <OptionRow
+            label={t("advancedInputMode")}
+            description={t("advancedInputModeDescription")}
+          >
+            <Switch
+              checked={advanced.checked}
+              onChange={advanced.onChange}
+              aria-label={t("advancedInputMode")}
+            />
+          </OptionRow>
+        )}
 
         {overlayPrevious && (
           <OptionRow label={overlayPrevious.label}>

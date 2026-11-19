@@ -12,12 +12,14 @@ import {
   DistributionQuantileComponent,
   DistributionSlider,
   DistributionSliderComponent,
+  PinnedOutOfBounds,
   Quantile,
   Question,
   QuestionWithForecasts,
   UserForecast,
 } from "@/types/question";
 import { getSliderNumericForecastDataset } from "@/utils/forecasts/dataset";
+import { makeDefaultSliderComponent } from "@/utils/forecasts/slider_components";
 import { computeQuartilesFromCDF } from "@/utils/math";
 
 export function isAllQuantileComponentsDirty(
@@ -53,18 +55,14 @@ export function clearQuantileComponents(
   }));
 }
 
-/** The component a new slider forecast, or an added component, starts with */
-export function makeDefaultSliderComponent(): DistributionSliderComponent {
-  return { left: 0.4, center: 0.5, right: 0.6, weight: 1 };
-}
-
 export const getNormalizedContinuousForecast = (
   forecast: DistributionSliderComponent[] | null | undefined
 ): DistributionSliderComponent[] => forecast ?? [makeDefaultSliderComponent()];
 
 export function getUserContinuousQuartiles(
   components?: DistributionSliderComponent[],
-  question?: Question
+  question?: Question,
+  pinnedOutOfBounds?: PinnedOutOfBounds | null
 ) {
   if (
     !components?.length ||
@@ -74,9 +72,28 @@ export function getUserContinuousQuartiles(
     return null;
   }
 
-  const dataset = getSliderNumericForecastDataset(components, question);
+  const dataset = getSliderNumericForecastDataset(
+    components,
+    question,
+    pinnedOutOfBounds
+  );
+  if (dataset.error) {
+    return null;
+  }
 
   return computeQuartilesFromCDF(dataset.cdf);
+}
+
+/** The `distribution_input` payload for a slider forecast */
+export function buildSliderDistributionInput(
+  components: DistributionSliderComponent[],
+  pinnedOutOfBounds: PinnedOutOfBounds | null | undefined
+): DistributionSlider {
+  return {
+    type: ContinuousForecastInputType.Slider,
+    components,
+    ...(pinnedOutOfBounds ? { pinned_out_of_bounds: pinnedOutOfBounds } : {}),
+  };
 }
 
 export const isSliderForecast = (

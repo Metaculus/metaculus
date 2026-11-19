@@ -29,8 +29,8 @@ import { PostWithForecasts } from "@/types/post";
 import {
   DistributionQuantile,
   DistributionQuantileComponent,
-  DistributionSlider,
   DistributionSliderComponent,
+  PinnedOutOfBounds,
   QuantileValue,
   QuestionWithNumericForecasts,
 } from "@/types/question";
@@ -41,17 +41,19 @@ import {
   getSliderNumericForecastDataset,
 } from "@/utils/forecasts/dataset";
 import {
+  buildSliderDistributionInput,
   clearQuantileComponents,
   isAllQuantileComponentsDirty,
   isForecastActive,
   isOpenQuestionPredicted,
-  makeDefaultSliderComponent,
 } from "@/utils/forecasts/helpers";
 import {
   extractPrevNumericForecastValue,
+  getInitialPinnedOutOfBounds,
   getInitialQuantileDistributionComponents,
   getInitialSliderDistributionComponents,
 } from "@/utils/forecasts/initial_values";
+import { makeDefaultSliderComponent } from "@/utils/forecasts/slider_components";
 import { getPredictionDisplayValue } from "@/utils/formatters/prediction";
 import { computeQuartilesFromCDF } from "@/utils/math";
 import { isQuestionPrePrediction } from "@/utils/questions/predictions";
@@ -120,6 +122,10 @@ const ForecastMakerContinuous: FC<Props> = ({
         question
       )
     );
+  const [pinnedOutOfBounds, setPinnedOutOfBounds] =
+    useState<PinnedOutOfBounds | null>(
+      getInitialPinnedOutOfBounds(previousForecastValues)
+    );
   const [quantileDistributionComponents, setQuantileDistributionComponents] =
     useState<DistributionQuantileComponent>(
       getInitialQuantileDistributionComponents(
@@ -166,6 +172,7 @@ const ForecastMakerContinuous: FC<Props> = ({
         question
       )
     );
+    setPinnedOutOfBounds(getInitialPinnedOutOfBounds(previousForecastValues));
     setIsDirty(
       previousForecast
         ? previousForecast.distribution_input?.type !==
@@ -177,10 +184,15 @@ const ForecastMakerContinuous: FC<Props> = ({
   const dataset = useMemo(() => {
     setSubmitError(undefined);
     if (forecastInputMode === ContinuousForecastInputType.Slider) {
-      return getSliderNumericForecastDataset(
+      const sliderDataset = getSliderNumericForecastDataset(
         sliderDistributionComponents,
-        question
+        question,
+        pinnedOutOfBounds
       );
+      if (sliderDataset.error) {
+        setSubmitError(new Error(t(sliderDataset.error)));
+      }
+      return sliderDataset;
     }
 
     const validationErrors = validateAllQuantileInputs({
@@ -208,6 +220,7 @@ const ForecastMakerContinuous: FC<Props> = ({
     return quantileDataset;
   }, [
     sliderDistributionComponents,
+    pinnedOutOfBounds,
     quantileDistributionComponents,
     forecastInputMode,
     question,
@@ -264,6 +277,8 @@ const ForecastMakerContinuous: FC<Props> = ({
   const buildForecastPayload = (
     forecastExpiration: ForecastExpirationValue
   ): ForecastPayload[] | null => {
+    // No valid distribution (see the dataset's error)
+    if (!userCdf.length) return null;
     if (forecastInputMode === ContinuousForecastInputType.Quantile) {
       const validationErrors = validateUserQuantileData({
         question,
@@ -286,13 +301,18 @@ const ForecastMakerContinuous: FC<Props> = ({
           forecastExpiration,
           getExpirationBaseDate(question)
         ),
-        distributionInput: {
-          type: forecastInputMode,
-          components:
-            forecastInputMode === ContinuousForecastInputType.Slider
-              ? sliderDistributionComponents
-              : clearQuantileComponents(quantileDistributionComponents),
-        } as DistributionSlider | DistributionQuantile,
+        distributionInput:
+          forecastInputMode === ContinuousForecastInputType.Slider
+            ? buildSliderDistributionInput(
+                sliderDistributionComponents,
+                pinnedOutOfBounds
+              )
+            : ({
+                type: ContinuousForecastInputType.Quantile,
+                components: clearQuantileComponents(
+                  quantileDistributionComponents
+                ),
+              } as DistributionQuantile),
       },
     ];
   };
@@ -368,6 +388,7 @@ const ForecastMakerContinuous: FC<Props> = ({
         question
       )
     );
+    setPinnedOutOfBounds(getInitialPinnedOutOfBounds(previousForecastValues));
     setQuantileDistributionComponents(
       getInitialQuantileDistributionComponents(
         previousForecast,
@@ -401,7 +422,7 @@ const ForecastMakerContinuous: FC<Props> = ({
           components: quantileDistributionComponents,
           t,
         }).length !== 0 || !isNil(submitError)
-      : undefined;
+      : !userCdf.length;
 
   let SubmitControls: ReactNode = null;
   if (canPredict) {
@@ -495,7 +516,8 @@ const ForecastMakerContinuous: FC<Props> = ({
   const handleClipboardPaste = useCallback(
     (
       type: ContinuousForecastInputType,
-      components: DistributionSliderComponent[] | DistributionQuantileComponent
+      components: DistributionSliderComponent[] | DistributionQuantileComponent,
+      pinned: PinnedOutOfBounds | null
     ) => {
       // Only skip the mode-sync effect if this paste actually changes the
       // mode — if it fires while already on the target mode, the effect
@@ -508,6 +530,7 @@ const ForecastMakerContinuous: FC<Props> = ({
         setSliderDistributionComponents(
           components as DistributionSliderComponent[]
         );
+        setPinnedOutOfBounds(pinned);
       } else {
         setQuantileDistributionComponents(
           (components as QuantileValue[]).map((c) => ({ ...c, isDirty: true }))
@@ -545,8 +568,10 @@ const ForecastMakerContinuous: FC<Props> = ({
         overlayPreviousCdf={overlayPreviousCdf}
         communityCdf={communityCdf}
         sliderComponents={sliderDistributionComponents}
-        onSliderChange={(components) => {
+        pinnedOutOfBounds={pinnedOutOfBounds}
+        onSliderChange={(components, pinned) => {
           setSliderDistributionComponents(components);
+          setPinnedOutOfBounds(pinned);
           setIsDirty(true);
           setShowSuccessBox(false);
         }}
@@ -576,6 +601,7 @@ const ForecastMakerContinuous: FC<Props> = ({
         predictionMessage={predictionMessage}
         clipboardData={{
           sliderComponents: sliderDistributionComponents,
+          pinnedOutOfBounds,
           quantileComponents: quantileDistributionComponents,
           onPaste: handleClipboardPaste,
         }}
