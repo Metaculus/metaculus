@@ -1,27 +1,20 @@
-import { faCircleQuestion } from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useTranslations } from "next-intl";
 import { FC, ReactNode, useCallback, useMemo, useRef, useState } from "react";
 
-import Checkbox from "@/components/ui/checkbox";
-import Switch from "@/components/ui/switch";
-import Tooltip from "@/components/ui/tooltip";
 import {
   ContinuousAreaGraphType,
   ContinuousForecastInputType,
 } from "@/types/charts";
-import {
-  QuestionType,
-  NumericUserForecast,
-  DistributionSliderComponent,
-  DistributionQuantileComponent,
-  Scaling,
-} from "@/types/question";
+import { QuestionType, NumericUserForecast } from "@/types/question";
 import cn from "@/utils/core/cn";
 import { isForecastActive } from "@/utils/forecasts/helpers";
 
-import ContinuousClipboardMenu from "./continuous_clipboard_menu";
 import ContinuousInputModeSwitcher from "./continuous_input_mode_switcher";
+import ContinuousInputOptions from "./continuous_input_options";
+import {
+  DistributionClipboardData,
+  useDistributionClipboard,
+} from "./use_distribution_clipboard";
 
 export type ContinuousInputContainerProps = {
   forecastInputMode: ContinuousForecastInputType;
@@ -31,17 +24,7 @@ export type ContinuousInputContainerProps = {
   previousForecast?: NumericUserForecast;
   menu?: ReactNode;
   copyMenu?: ReactNode;
-  clipboardData?: {
-    sliderComponents: DistributionSliderComponent[];
-    quantileComponents: DistributionQuantileComponent;
-    scaling: Scaling;
-    openLowerBound: boolean;
-    openUpperBound: boolean;
-    onPaste: (
-      type: ContinuousForecastInputType,
-      components: DistributionSliderComponent[] | DistributionQuantileComponent
-    ) => void;
-  };
+  clipboardData?: DistributionClipboardData;
   children?: (
     sliderGraphType: ContinuousAreaGraphType,
     tableGraphType: ContinuousAreaGraphType
@@ -65,6 +48,12 @@ const ContinuousInputContainer: FC<ContinuousInputContainerProps> = ({
 }) => {
   const t = useTranslations();
   const containerRef = useRef<HTMLDivElement>(null);
+  const clipboard = useDistributionClipboard({
+    data: clipboardData,
+    forecastInputMode,
+    disabled,
+    containerRef,
+  });
 
   const [sliderGraphType, setSliderGraphType] =
     useState<ContinuousAreaGraphType>("pmf");
@@ -100,94 +89,38 @@ const ContinuousInputContainer: FC<ContinuousInputContainerProps> = ({
             onChange={onInputModeChange}
           />
         )}
-        <div className="flex flex-col items-center gap-2 self-start">
-          <div className="flex w-fit flex-row items-center gap-2 self-end">
-            <p
-              className={cn(
-                "m-0 text-sm",
-                activeGraphType === "cdf" ? "opacity-60" : "opacity-90"
-              )}
-              title="probability density function"
-            >
-              {questionType === QuestionType.Discrete ? t("pmf") : t("pdf")}
-            </p>
-            <Switch
-              checked={activeGraphType === "cdf"}
-              onChange={(checked) =>
-                handleGraphTypeChange(checked ? "cdf" : "pmf")
-              }
-            />
-            <p
-              className={cn(
-                "m-0 text-sm",
-                activeGraphType === "cdf" ? "opacity-90" : "opacity-60"
-              )}
-              title="cumulative density function"
-            >
-              {t("cdf")}
-            </p>
-            <Tooltip
-              showDelayMs={200}
-              placement={"bottom"}
-              renderInPortal={false}
-              tooltipContent={
+        <div className="flex items-center gap-2 self-start">
+          <ContinuousInputOptions
+            graph={{
+              densityLabel:
+                questionType === QuestionType.Discrete ? t("pmf") : t("pdf"),
+              isCdf: activeGraphType === "cdf",
+              onChange: (isCdf) => handleGraphTypeChange(isCdf ? "cdf" : "pmf"),
+              description:
                 (questionType === QuestionType.Discrete
                   ? "PMF (Probability Mass Function) shows how likely different specific outcomes are,"
                   : "PDF (Probability Density Function) shows how likely different outcomes are around specific values,") +
-                " while CDF (Cumulative Distribution Function) shows the cumulative probability of outcomes up to a certain value."
-              }
-              className=""
-              variant="light"
-              tooltipClassName="text-center !max-w-[331px] !text-base !p-4"
-            >
-              <FontAwesomeIcon
-                icon={faCircleQuestion}
-                height={16}
-                className="text-gray-500 hover:text-blue-800 dark:text-gray-500-dark dark:hover:text-blue-800-dark"
-              />
-            </Tooltip>
-            <div className="flex gap-3">
-              {clipboardData && (
-                <div className="-mr-2 flex gap-1">
-                  <ContinuousClipboardMenu
-                    forecastInputMode={forecastInputMode}
-                    sliderComponents={clipboardData.sliderComponents}
-                    quantileComponents={clipboardData.quantileComponents}
-                    scaling={clipboardData.scaling}
-                    openLowerBound={clipboardData.openLowerBound}
-                    openUpperBound={clipboardData.openUpperBound}
-                    onPaste={clipboardData.onPaste}
-                    disabled={disabled}
-                    containerRef={containerRef}
-                  />
-                </div>
-              )}
-              {copyMenu && (
-                <div className="-mr-2 size-[26px] rounded-full bg-gray-100 dark:bg-gray-100-dark">
-                  {copyMenu}
-                </div>
-              )}
-              {menu && (
-                <div className="-mr-2 size-[26px] rounded-full bg-gray-100 dark:bg-gray-100-dark">
-                  {menu}
-                </div>
-              )}
-            </div>
-          </div>
-          {!!previousForecast && !disabled && (
-            <div className="ml-auto mr-auto mt-1 flex items-center md:-mr-1">
-              <Checkbox
-                checked={overlayPreviousForecast}
-                onChange={onOverlayPreviousForecastChange}
-                className={
-                  "flex flex-row gap-2 text-sm text-gray-700 dark:text-gray-700-dark md:flex-row-reverse "
-                }
-                label={
-                  !isForecastActive(previousForecast)
-                    ? t("overlayMostRecentForecast")
-                    : t("overlayCurrentForecast")
-                }
-              />
+                " while CDF (Cumulative Distribution Function) shows the cumulative probability of outcomes up to a certain value.",
+            }}
+            overlayPrevious={
+              !!previousForecast && !disabled
+                ? {
+                    label: !isForecastActive(previousForecast)
+                      ? t("overlayMostRecentForecast")
+                      : t("overlayCurrentForecast"),
+                    checked: overlayPreviousForecast,
+                    onChange: onOverlayPreviousForecastChange,
+                  }
+                : undefined
+            }
+            clipboard={clipboard ?? undefined}
+            subquestionCopyMenu={copyMenu}
+          />
+          {/* Subquestion actions rather than input options, so not in the
+              options panel */}
+          {menu && (
+            <div className="size-[26px] rounded-full bg-gray-100 dark:bg-gray-100-dark">
+              {menu}
             </div>
           )}
         </div>
