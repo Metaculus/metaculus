@@ -1160,6 +1160,8 @@
   "distributionClipboard": "Copiar e colar",
   "distributionClipboardDescription": "Copie esta distribuição para reutilizá-la em outra pergunta. Você também pode pressionar Ctrl+C / Ctrl+V com a previsão selecionada.",
   "paste": "Colar",
+  "nudgeUp": "Aumentar",
+  "nudgeDown": "Diminuir",
   "otherSubquestions": "Outras subperguntas",
   "otherSubquestionsDescription": "Copie esta previsão para as outras subperguntas do grupo, ou a partir delas.",
   "lowerBound": "Limite inferior",

@@ -1163,6 +1163,8 @@
   "distributionClipboard": "Kopírovat a vložit",
   "distributionClipboardDescription": "Zkopírujte toto rozdělení a použijte ho u jiné otázky. Můžete také stisknout Ctrl+C / Ctrl+V, když je předpověď vybraná.",
   "paste": "Vložit",
+  "nudgeUp": "Zvýšit",
+  "nudgeDown": "Snížit",
   "otherSubquestions": "Ostatní podotázky",
   "otherSubquestionsDescription": "Zkopírujte tuto předpověď do ostatních podotázek skupiny, nebo z nich.",
   "lowerBound": "Dolní mez",
