@@ -11,6 +11,7 @@ import {
   QuestionType,
 } from "@/types/question";
 import { TranslationKey } from "@/types/translations";
+import { isPercentileRow } from "@/utils/forecasts/quantile_components";
 import {
   isDamperComponent,
   isUniformComponent,
@@ -277,9 +278,12 @@ export function getQuantileNumericForecastDataset(
   components: DistributionQuantileComponent,
   question: Question
 ) {
+  // Every row needs a value, and every percentile row a percentile
   if (
     !components ||
-    Object.values(components).some((quartile) => isNil(quartile.value))
+    components.some(
+      (c) => isNil(c.value) || (isPercentileRow(c) && isNil(c.quantile))
+    )
   ) {
     return {
       cdf: [],
@@ -288,10 +292,8 @@ export function getQuantileNumericForecastDataset(
   }
 
   const cdf = generateQuantileContinuousCdf({
-    // Every row with a numeric quantile is a percentile; the rest are the
-    // out-of-bounds rows
     quantiles: components
-      .filter((c) => typeof c.quantile === "number")
+      .filter(isPercentileRow)
       .map((c) => ({ quantile: Number(c.quantile), value: c.value ?? 0 }))
       .sort((a, b) => a.quantile - b.quantile),
     probBelowLower:

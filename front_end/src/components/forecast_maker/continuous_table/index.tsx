@@ -32,6 +32,7 @@ import {
   getTableDisplayValue,
 } from "@/utils/formatters/prediction";
 
+import AdvancedQuantileTable from "./advanced_quantile_table";
 import ContinuousTableInput from "./continuous_table_input";
 import {
   validateAllQuantileInputs,
@@ -57,6 +58,11 @@ type Props = {
   userPreviousLabel?: string;
   userPreviousRowClassName?: string;
   hideCurrentUserRow?: boolean;
+  // Advanced mode: table input is a vertical list of any percentiles
+  advanced?: boolean;
+  // Full CDFs, for comparing at arbitrary percentiles in advanced mode
+  communityCdf?: number[];
+  userPreviousCdf?: number[];
 };
 
 const ContinuousTable: FC<Props> = ({
@@ -78,13 +84,16 @@ const ContinuousTable: FC<Props> = ({
   userPreviousLabel,
   userPreviousRowClassName,
   hideCurrentUserRow = false,
+  advanced = false,
+  communityCdf,
+  userPreviousCdf,
 }) => {
   const t = useTranslations();
   // initial state is a safety measure to avoid errors when we already have slider forecast
   // and we switch to quantile forecast with transformed values
   const [errors, setErrors] = useState<
     {
-      quantile?: Quantile;
+      quantile?: QuantileValue["quantile"];
       message?: string;
     }[]
   >(
@@ -184,6 +193,28 @@ const ContinuousTable: FC<Props> = ({
       discreteValueOptions,
     });
   };
+
+  if (
+    advanced &&
+    withUserQuartiles &&
+    forecastInputMode === ContinuousForecastInputType.Quantile &&
+    quantileComponents &&
+    onQuantileChange
+  ) {
+    return (
+      <AdvancedQuantileTable
+        question={question}
+        components={quantileComponents}
+        onChange={onQuantileChange}
+        disabled={disableQuantileInput}
+        formatValue={getDisplayValue}
+        communityCdf={withCommunityQuartiles ? communityCdf ?? null : undefined}
+        userPreviousCdf={userPreviousCdf}
+        userPreviousLabel={userPreviousLabel ?? t("myPredictionPrevious")}
+        userPreviousClassName={userPreviousRowClassName}
+      />
+    );
+  }
 
   return (
     <>

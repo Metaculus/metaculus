@@ -11,6 +11,8 @@ import {
 } from "@/types/question";
 import { getSliderNumericForecastDataset } from "@/utils/forecasts/dataset";
 import { getUserContinuousQuartiles } from "@/utils/forecasts/helpers";
+import { isStandardQuartileComponents } from "@/utils/forecasts/quantile_components";
+import { makeDefaultSliderComponent } from "@/utils/forecasts/slider_components";
 import {
   computeQuartilesFromCDF,
   nominalLocationToCdfLocation,
@@ -24,6 +26,11 @@ export function getSliderDistributionFromQuantiles(
   component: DistributionQuantileComponent,
   question: Question
 ): DistributionSliderComponent[] {
+  // The fit targets the quartiles, which an advanced table may not have.
+  // Translating advanced tables isn't supported, so start from the default.
+  if (!isStandardQuartileComponents(component)) {
+    return [makeDefaultSliderComponent()];
+  }
   const q1 = nominalLocationToCdfLocation(
     component.find((c) => c.quantile === Quantile.q1)?.value ?? 0,
     question

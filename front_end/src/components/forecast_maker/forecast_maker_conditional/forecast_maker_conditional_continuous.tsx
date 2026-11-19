@@ -29,7 +29,6 @@ import {
   DistributionQuantileComponent,
   DistributionSliderComponent,
   PinnedOutOfBounds,
-  Quantile,
   Quartiles,
   Question,
   QuestionWithNumericForecasts,
@@ -43,6 +42,7 @@ import {
 import {
   buildSliderDistributionInput,
   clearQuantileComponents,
+  getQuantileMedianValue,
   isForecastActive,
 } from "@/utils/forecasts/helpers";
 import {
@@ -1037,10 +1037,9 @@ function getTableValue(
     return null;
   }
   if (forecastInputMode === ContinuousForecastInputType.Quantile) {
-    return (
-      (components as DistributionQuantileComponent)?.find(
-        (component) => component.quantile === Quantile.q2
-      )?.value ?? null
+    return getQuantileMedianValue(
+      components as DistributionQuantileComponent,
+      question
     );
   }
 

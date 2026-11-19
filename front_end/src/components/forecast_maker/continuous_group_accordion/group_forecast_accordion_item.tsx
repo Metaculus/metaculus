@@ -14,12 +14,13 @@ import TruncatedTextTooltip from "@/components/truncated_text_tooltip";
 import { useBreakpoint } from "@/hooks/tailwind";
 import { ContinuousForecastInputType } from "@/types/charts";
 import { QuestionStatus } from "@/types/post";
-import { Quantile, QuestionType, Scaling } from "@/types/question";
+import { QuestionType, Scaling } from "@/types/question";
 import cn from "@/utils/core/cn";
 import {
   getQuantileNumericForecastDataset,
   getSliderNumericForecastDataset,
 } from "@/utils/forecasts/dataset";
+import { getQuantileMedianValue } from "@/utils/forecasts/helpers";
 import { formatRelativeDate } from "@/utils/formatters/date";
 import { getPredictionDisplayValue } from "@/utils/formatters/prediction";
 import { formatResolution } from "@/utils/formatters/resolution";
@@ -119,8 +120,7 @@ const AccordionItem: FC<PropsWithChildren<AccordionItemProps>> = memo(
     let userMedian = showUserPrediction
       ? forecastInputMode === ContinuousForecastInputType.Quantile
         ? getPredictionDisplayValue(
-            option.userQuantileForecast?.find((q) => q.quantile === Quantile.q2)
-              ?.value ?? null,
+            getQuantileMedianValue(option.userQuantileForecast, question),
             {
               questionType: option.question.type,
               unit,

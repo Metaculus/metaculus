@@ -19,6 +19,7 @@ import {
   isForecastActive,
 } from "@/utils/forecasts/helpers";
 import { getInitialQuantileDistributionComponents } from "@/utils/forecasts/initial_values";
+import { hasAdvancedQuantileComponents } from "@/utils/forecasts/quantile_components";
 import {
   hasAdvancedSliderComponents,
   makeDefaultSliderComponent,
@@ -127,7 +128,9 @@ const ContinuousInput: FC<Props> = ({
   // toggling stashes the state of the mode being left and restores that of
   // the mode being entered. There's no conversion between them.
   const requiresAdvanced =
-    hasAdvancedSliderComponents(sliderComponents) || !!pinnedOutOfBounds;
+    hasAdvancedSliderComponents(sliderComponents) ||
+    !!pinnedOutOfBounds ||
+    hasAdvancedQuantileComponents(quantileComponent);
   const [isAdvanced, setIsAdvanced] = useState(requiresAdvanced);
   const stashedStateRef = useRef<{
     regular?: InputState;
@@ -330,6 +333,9 @@ const ContinuousInput: FC<Props> = ({
             userPreviousLabel={userPreviousLabel}
             userPreviousRowClassName={userPreviousRowClassName}
             hideCurrentUserRow={derivedHideCurrentUserRow}
+            advanced={isAdvanced}
+            communityCdf={communityCdf}
+            userPreviousCdf={userPreviousCdf}
           />
 
           {forecastInputMode === ContinuousForecastInputType.Quantile && (

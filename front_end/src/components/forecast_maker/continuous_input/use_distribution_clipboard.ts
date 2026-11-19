@@ -10,6 +10,7 @@ import {
   Quantile,
   Scaling,
 } from "@/types/question";
+import { isPercentileRow } from "@/utils/forecasts/quantile_components";
 import {
   hasOpenBound,
   reconcilePinnedOutOfBounds,
@@ -47,15 +48,15 @@ function isEditableTarget(target: EventTarget | null): boolean {
 }
 
 // Quantile values are in the question's real-world units, which aren't
-// meaningful on a different question. `quantile` is a number (25/50/75) for
-// the actual value entries; `below_lower_bound`/`above_upper_bound` are
-// already scale-independent percentages, so they're left as-is.
+// meaningful on a different question. Percentile rows hold actual values;
+// `below_lower_bound`/`above_upper_bound` are already scale-independent
+// percentages, so they're left as-is.
 function toPortableQuantileComponents(
   components: DistributionQuantileComponent,
   scaling: Scaling
 ): DistributionQuantileComponent {
   return components.map((c) =>
-    typeof c.quantile === "number" && c.value !== undefined
+    isPercentileRow(c) && c.value !== undefined
       ? { ...c, value: unscaleNominalLocation(c.value, scaling) }
       : c
   );

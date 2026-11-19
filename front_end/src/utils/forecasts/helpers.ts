@@ -18,9 +18,12 @@ import {
   QuestionWithForecasts,
   UserForecast,
 } from "@/types/question";
-import { getSliderNumericForecastDataset } from "@/utils/forecasts/dataset";
+import {
+  getQuantileNumericForecastDataset,
+  getSliderNumericForecastDataset,
+} from "@/utils/forecasts/dataset";
 import { makeDefaultSliderComponent } from "@/utils/forecasts/slider_components";
-import { computeQuartilesFromCDF } from "@/utils/math";
+import { computeQuartilesFromCDF, scaleInternalLocation } from "@/utils/math";
 
 export function isAllQuantileComponentsDirty(
   components: DistributionQuantileComponent
@@ -82,6 +85,25 @@ export function getUserContinuousQuartiles(
   }
 
   return computeQuartilesFromCDF(dataset.cdf);
+}
+
+/**
+ * Median (in the question's units) of a table forecast: the 50th percentile
+ * row if there is one, otherwise read off the table's CDF. Null if the table
+ * doesn't describe a valid distribution.
+ */
+export function getQuantileMedianValue(
+  components: DistributionQuantileComponent,
+  question: Question
+): number | null {
+  const median = components.find((c) => c.quantile === Quantile.q2)?.value;
+  if (!isNil(median)) return median;
+  const { cdf } = getQuantileNumericForecastDataset(components, question);
+  if (!cdf.length) return null;
+  return scaleInternalLocation(
+    computeQuartilesFromCDF(cdf).median,
+    question.scaling
+  );
 }
 
 /** The `distribution_input` payload for a slider forecast */

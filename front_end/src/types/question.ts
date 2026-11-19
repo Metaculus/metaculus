@@ -198,7 +198,10 @@ export enum Quantile {
 }
 
 export type QuantileValue = {
-  quantile: Quantile;
+  // Quantile.lower/upper for the out-of-bounds rows. Otherwise a percentile
+  // (0-100): 25/50/75 in the regular table, any value in the advanced table,
+  // where null means it hasn't been filled in yet.
+  quantile: Quantile | number | null;
   value?: number; // quantile value or out of bounds value
   isDirty?: boolean;
 };
