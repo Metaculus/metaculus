@@ -4,6 +4,7 @@ import {
   DistributionQuantile,
   DistributionSlider,
   ForecastData,
+  ResolutionBounds,
 } from "@/types/question";
 import { serverFetcher } from "@/utils/core/fetch/fetch.server";
 
@@ -43,7 +44,8 @@ class ServerQuestionsApiClass extends ApiService {
     id: number,
     resolution: string,
     actual_resolve_time: string,
-    score_as_task: boolean
+    score_as_task: boolean,
+    resolution_bounds: ResolutionBounds | null = null
   ) {
     return this.post<
       { post_id: number },
@@ -51,11 +53,15 @@ class ServerQuestionsApiClass extends ApiService {
         resolution: string;
         actual_resolve_time: string;
         score_as_task: boolean;
+        resolution_lower_bound: string | null;
+        resolution_upper_bound: string | null;
       }
     >(`/questions/${id}/resolve/`, {
       resolution: resolution,
       actual_resolve_time: actual_resolve_time,
       score_as_task: score_as_task,
+      resolution_lower_bound: resolution_bounds?.lower ?? null,
+      resolution_upper_bound: resolution_bounds?.upper ?? null,
     });
   }
 

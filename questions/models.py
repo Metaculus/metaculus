@@ -90,6 +90,19 @@ class Question(TimeStampedModel, TranslatedModel):  # type: ignore
 
     type = models.CharField(max_length=20, choices=QuestionType.choices)
     resolution = models.TextField(null=True, blank=True)
+    resolution_lower_bound = models.TextField(
+        null=True,
+        blank=True,
+        help_text="""Numeric and date questions only. With resolution_upper_bound, scores
+        the question on the forecast's probability mass between the two bounds
+        instead of the bucket containing `resolution`, which stays the displayed
+        value. Same format as `resolution`.""",
+    )
+    resolution_upper_bound = models.TextField(
+        null=True,
+        blank=True,
+        help_text="See resolution_lower_bound.",
+    )
     include_bots_in_aggregates = models.BooleanField(default=False)
     question_weight = models.FloatField(default=1.0)
     default_score_type = models.CharField(
@@ -340,6 +353,9 @@ class Question(TimeStampedModel, TranslatedModel):  # type: ignore
         # Ensure resolution is always null or non-empty string
         if self.resolution is not None and self.resolution.strip() == "":
             self.resolution = None
+        if self.resolution is None:
+            self.resolution_lower_bound = None
+            self.resolution_upper_bound = None
 
         # Some simple field enforcement
         if self.type not in [

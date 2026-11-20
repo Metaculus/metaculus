@@ -30,7 +30,7 @@ import {
 } from "@/types/coherence";
 import { ErrorResponse } from "@/types/fetch";
 import { NotebookPost, PostSubscription } from "@/types/post";
-import { Question } from "@/types/question";
+import { Question, ResolutionBounds } from "@/types/question";
 import { DataParams, DeepPartial } from "@/types/utils";
 import { VoteDirection } from "@/types/votes";
 import { ApiError } from "@/utils/core/errors";
@@ -168,14 +168,16 @@ export async function resolveQuestion(
   questionId: number,
   resolution: string,
   actualResolveTime: string,
-  scoreAsTask: boolean
+  scoreAsTask: boolean,
+  resolutionBounds: ResolutionBounds | null = null
 ) {
   try {
     const { post_id } = await ServerQuestionsApi.resolve(
       questionId,
       resolution,
       actualResolveTime,
-      scoreAsTask
+      scoreAsTask,
+      resolutionBounds
     );
 
     revalidatePath(`/questions/${post_id}`);

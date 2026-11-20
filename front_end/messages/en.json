@@ -2675,5 +2675,12 @@
   "initiativeFroCastingName": "FRO-casting",
   "initiativeFroCastingDescription": "Collaboration with the Federation of American Scientists to use predictions to assess impact, deliver feedback, and inform the allocation of research funding.",
   "initiativeAINuclearLandscapeName": "Forecasting the AI and Nuclear Landscape",
-  "initiativeAINuclearLandscapeDescription": "In partnership with the Institute for Security and Technology, a report assessing the risks of US-China escalation, including integrating AI into nuclear command, control, and communications."
+  "initiativeAINuclearLandscapeDescription": "In partnership with the Institute for Security and Technology, a report assessing the risks of US-China escalation, including integrating AI into nuclear command, control, and communications.",
+  "rangeResolutionToggle": "Score as a range",
+  "rangeResolutionHelp": "Forecasts are scored on their probability between the bounds instead of at the resolution value. The resolution value is still the one displayed.",
+  "rangeResolutionLowerBound": "Lower bound",
+  "rangeResolutionUpperBound": "Upper bound",
+  "rangeResolutionPresetDay": "Day",
+  "rangeResolutionPresetMonth": "Month",
+  "rangeResolutionPresetYear": "Year"
 }

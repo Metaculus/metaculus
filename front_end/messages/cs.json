@@ -2686,5 +2686,12 @@
   "initiativeFroCastingName": "FRO-casting",
   "initiativeFroCastingDescription": "Spolupráce s Federation of American Scientists využívající prognózy k hodnocení dopadu, poskytování zpětné vazby a rozhodování o přidělování prostředků na výzkum.",
   "initiativeAINuclearLandscapeName": "Prognózy AI a jaderné bezpečnosti",
-  "initiativeAINuclearLandscapeDescription": "Ve spolupráci s Institute for Security and Technology zpráva hodnotící rizika eskalace mezi USA a Čínou, včetně začlenění AI do jaderného velení, řízení a komunikace."
+  "initiativeAINuclearLandscapeDescription": "Ve spolupráci s Institute for Security and Technology zpráva hodnotící rizika eskalace mezi USA a Čínou, včetně začlenění AI do jaderného velení, řízení a komunikace.",
+  "rangeResolutionToggle": "Hodnotit jako rozsah",
+  "rangeResolutionHelp": "Předpovědi se hodnotí podle pravděpodobnosti mezi hranicemi, nikoli v hodnotě vyhodnocení. Zobrazuje se stále hodnota vyhodnocení.",
+  "rangeResolutionLowerBound": "Dolní hranice",
+  "rangeResolutionUpperBound": "Horní hranice",
+  "rangeResolutionPresetDay": "Den",
+  "rangeResolutionPresetMonth": "Měsíc",
+  "rangeResolutionPresetYear": "Rok"
 }
