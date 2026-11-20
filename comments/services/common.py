@@ -2,6 +2,7 @@ import datetime
 import difflib
 from collections import defaultdict
 import logging
+import re
 
 from django.db import IntegrityError, transaction
 from django.db.models import (
@@ -36,6 +37,7 @@ from projects.models import Project
 from projects.permissions import ObjectPermission
 from questions.models import Forecast
 from users.models import User
+from utils.credential_detection import find_credential_providers
 from ..tasks import run_on_post_comment_create
 
 logger = logging.getLogger(__name__)
@@ -45,6 +47,49 @@ spam_error = ValidationError(
     "support@metaculus.com if you believe this was a mistake.",
     code="SPAM_DETECTED",
 )
+
+
+FORECASTING_TOOLS_LLMS_LINE = re.compile(r"\*LLMs\*:[^\n]*")
+FORECASTING_TOOLS_FIXED_VERSION = "0.3.2"
+FORECASTING_TOOLS_FIX_URL = "https://github.com/Metaculus/forecasting-tools/pull/353"
+
+
+def is_credential_in_forecasting_tools_llms_line(text: str) -> bool:
+    return any(
+        find_credential_providers(line)
+        for line in FORECASTING_TOOLS_LLMS_LINE.findall(text)
+    )
+
+
+def reject_text_with_credentials(user: User, text: str | None) -> None:
+    text = text or ""
+    providers = find_credential_providers(text)
+    if not providers:
+        return
+
+    provider_names = ", ".join(providers)
+    from_forecasting_tools = is_credential_in_forecasting_tools_llms_line(text)
+    logger.warning(
+        "Rejected comment text from user %s containing a %s credential "
+        "(forecasting-tools *LLMs* line: %s)",
+        user.id,
+        provider_names,
+        from_forecasting_tools,
+    )
+
+    detail = (
+        f"This comment appears to contain an API key ({provider_names}). "
+        "Remove it and post again. If the key was shared anywhere, rotate it."
+    )
+    if from_forecasting_tools:
+        detail += (
+            " The key is in the forecasting-tools '*LLMs*:' line, which older "
+            "versions filled with your LLM settings. Update forecasting-tools to "
+            f"{FORECASTING_TOOLS_FIXED_VERSION} or later, where this was patched: "
+            f"{FORECASTING_TOOLS_FIX_URL}"
+        )
+
+    raise ValidationError(detail=detail, code="CREDENTIAL_DETECTED")
 
 
 def get_comment_permission_for_user(
@@ -89,6 +134,8 @@ def create_comment(
     is_private: bool = False,
     text: str = None,
 ) -> Comment:
+    reject_text_with_credentials(user, text)
+
     on_post = parent.on_post if parent else on_post
     root = parent.root or parent if parent else None
 
@@ -200,6 +247,8 @@ def update_comment(
         raise ValidationError(
             "This comment's text has been archived and can no longer be edited."
         )
+
+    reject_text_with_credentials(comment.author, text)
 
     differ = difflib.Differ()
 

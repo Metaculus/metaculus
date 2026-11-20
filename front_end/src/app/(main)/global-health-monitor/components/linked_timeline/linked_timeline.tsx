@@ -9,6 +9,7 @@ import { DISEASE_NAME_KEYS, DiseaseId } from "../../config/diseases";
 import { GhmValueKey } from "../../config/questions";
 import { ChangeChip } from "../change_chip";
 import { useGhmSnapshot } from "../ghm_data_provider";
+import { ResolvedChip } from "../resolved_chip";
 import {
   LinkedTimelineProvider,
   useLinkedTimeline,
@@ -75,11 +76,16 @@ function TakeawayCard({
             {t(DISEASE_NAME_KEYS[disease])}
           </span>
         ))}
-        {lead?.change && snapshot?.compareEdition && (
-          <ChangeChip
-            change={lead.change}
-            sinceLabel={snapshot.compareEdition.label}
-          />
+        {lead?.resolution ? (
+          <ResolvedChip resolution={lead.resolution} />
+        ) : (
+          lead?.change &&
+          snapshot?.compareEdition && (
+            <ChangeChip
+              change={lead.change}
+              sinceLabel={snapshot.compareEdition.label}
+            />
+          )
         )}
       </div>
       <div className="text-sm leading-normal text-blue-900 [text-wrap:pretty] dark:text-blue-900-dark">
