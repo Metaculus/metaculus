@@ -1,7 +1,17 @@
 from datetime import timedelta
 from typing import Iterable
 
-from django.db.models import Q, QuerySet, Exists, Max, OuterRef
+from django.db.models import (
+    Q,
+    QuerySet,
+    Exists,
+    Max,
+    OuterRef,
+    Case,
+    When,
+    Value,
+    IntegerField,
+)
 from django.utils import timezone
 from rest_framework.exceptions import ValidationError, PermissionDenied
 
@@ -20,6 +30,37 @@ from utils.cache import cache_get_or_set
 from utils.dtypes import evenly_distribute_items
 from utils.models import build_order_by
 from utils.serializers import parse_order_by
+
+
+def _get_pinned_scope_project_id(
+    tournaments: list[Project] = None,
+    community: Project = None,
+    default_project_id: int | Project = None,
+) -> int | None:
+    """
+    Pinned posts are shown at the top of their default project's feed.
+
+    This resolves the single project a feed is scoped to (a tournament,
+    a community or an explicit default project). Returns None when the feed
+    isn't scoped to exactly one project (e.g. the main feed or search across
+    multiple tournaments), in which case pinning shouldn't affect ordering.
+    """
+
+    project = None
+
+    if tournaments and len(tournaments) == 1:
+        project = tournaments[0]
+    elif community:
+        project = community
+    elif default_project_id:
+        project = default_project_id
+
+    if project is None:
+        return None
+
+    # `default_project_id` may be passed either as a Project instance
+    # (resolved by the serializer) or as a raw id
+    return getattr(project, "pk", project)
 
 
 def get_posts_feed(  # noqa: C901
@@ -341,6 +382,32 @@ def get_posts_feed(  # noqa: C901
             .distinct()
             .only("pk")
         )
+
+    # Pinned posts are shown at the top of their default project's feed.
+    # Only applied to a feed scoped to a single project, and skipped when
+    # results are ordered by relevance (search / similar posts).
+    pinned_project_id = _get_pinned_scope_project_id(
+        tournaments=tournaments,
+        community=community,
+        default_project_id=default_project_id,
+    )
+    if pinned_project_id is not None and not search and not similar_to_post_id:
+        qs = qs.annotate(
+            is_pinned_first=Case(
+                When(
+                    is_pinned=True,
+                    default_project_id=pinned_project_id,
+                    then=Value(1),
+                ),
+                default=Value(0),
+                output_field=IntegerField(),
+            )
+        ).order_by(
+            build_order_by("is_pinned_first", True),
+            build_order_by(order_type, order_desc),
+        )
+
+        return qs.distinct("is_pinned_first", "id", order_type).only("pk")
 
     qs = qs.order_by(build_order_by(order_type, order_desc))
 
