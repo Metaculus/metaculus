@@ -262,7 +262,7 @@ const ForecastCard: FC<Props> = ({
         href={getPostLink(post)}
         prefetch={false}
         className="absolute inset-0"
-        target={navigateToNewTab ? "_blank" : "_self"}
+        target={navigateToNewTab ? "_blank" : undefined}
       />
       <div className="ForecastCard-header flex items-start justify-between max-[288px]:flex-col">
         {!post.conditional && (
