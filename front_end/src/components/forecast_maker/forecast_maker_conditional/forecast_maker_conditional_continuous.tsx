@@ -52,9 +52,8 @@ import {
   getInitialSliderDistributionComponents,
 } from "@/utils/forecasts/initial_values";
 import {
-  hasOpenBound,
+  fitPinnedOutOfBounds,
   makeDefaultSliderComponent,
-  reconcilePinnedOutOfBounds,
 } from "@/utils/forecasts/slider_components";
 import {
   getQuantilesDistributionFromSlider,
@@ -292,7 +291,10 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
                   isDirty: true,
                 })),
                 sliderForecast: fromChoice.sliderForecast,
-                pinnedOutOfBounds: fromChoice.pinnedOutOfBounds,
+                pinnedOutOfBounds: fitPinnedOutOfBounds(
+                  fromChoice.pinnedOutOfBounds,
+                  prevChoice.question
+                ),
                 forecastInputMode: fromChoice.forecastInputMode,
                 isDirty: true,
               };
@@ -322,10 +324,8 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
                       ),
                 // The child may have different bounds than this branch
                 pinnedOutOfBounds:
-                  latest.distribution_input.type === "slider" &&
-                  latest.distribution_input.pinned_out_of_bounds &&
-                  hasOpenBound(prevChoice.question)
-                    ? reconcilePinnedOutOfBounds(
+                  latest.distribution_input.type === "slider"
+                    ? fitPinnedOutOfBounds(
                         latest.distribution_input.pinned_out_of_bounds,
                         prevChoice.question
                       )
@@ -421,12 +421,20 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
     setQuestionOptions((prev) =>
       prev.map((prevChoice) => {
         if (prevChoice.id === optionId) {
+          const sliderForecast = [
+            ...prevChoice.sliderForecast,
+            makeDefaultSliderComponent(),
+          ];
           return {
             ...prevChoice,
-            sliderForecast: [
-              ...prevChoice.sliderForecast,
-              makeDefaultSliderComponent(),
-            ],
+            sliderForecast,
+            // The new component can make an invalid distribution valid
+            value: getTableValue(
+              sliderForecast,
+              prevChoice.question,
+              ContinuousForecastInputType.Slider,
+              prevChoice.pinnedOutOfBounds
+            ),
             isDirty: true,
           };
         }

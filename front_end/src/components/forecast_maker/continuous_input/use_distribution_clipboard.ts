@@ -11,10 +11,7 @@ import {
   Scaling,
 } from "@/types/question";
 import { isPercentileRow } from "@/utils/forecasts/quantile_components";
-import {
-  hasOpenBound,
-  reconcilePinnedOutOfBounds,
-} from "@/utils/forecasts/slider_components";
+import { fitPinnedOutOfBounds } from "@/utils/forecasts/slider_components";
 import { scaleInternalLocation, unscaleNominalLocation } from "@/utils/math";
 
 // Matches the tolerance validateQuantileInput (forecast_maker/helpers.ts)
@@ -210,15 +207,12 @@ export function useDistributionClipboard({
             )
           : parsed.components;
       // Pins have to fit the target question's bounds
-      const bounds = {
-        open_lower_bound: data.openLowerBound,
-        open_upper_bound: data.openUpperBound,
-      };
       const pinned =
-        parsed.type === ContinuousForecastInputType.Slider &&
-        parsed.pinned_out_of_bounds &&
-        hasOpenBound(bounds)
-          ? reconcilePinnedOutOfBounds(parsed.pinned_out_of_bounds, bounds)
+        parsed.type === ContinuousForecastInputType.Slider
+          ? fitPinnedOutOfBounds(parsed.pinned_out_of_bounds, {
+              open_lower_bound: data.openLowerBound,
+              open_upper_bound: data.openUpperBound,
+            })
           : null;
       data.onPaste(parsed.type, components, pinned);
       toast(t("distributionPasted"));

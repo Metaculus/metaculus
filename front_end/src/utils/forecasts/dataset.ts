@@ -164,44 +164,57 @@ export function getSliderNumericForecastDataset(
     question.inbound_outcome_count || DefaultInboundOutcomeCount;
 
   const dampers = components.filter(isDamperComponent);
-  const mixture = components.filter(
-    (c): c is Exclude<DistributionSliderComponent, DamperSliderComponent> =>
-      !isDamperComponent(c)
-  );
-  const totalWeight = mixture.reduce((acc, c) => acc + c.weight, 0);
-  if (!(totalWeight > 0)) {
-    return fail("sliderNoPositiveComponentsError");
-  }
-
-  // Each mixture component's weighted mass per bucket: lower out-of-bounds,
-  // inbound buckets, upper out-of-bounds (as in segmentBucketCoverage)
-  let componentPmfs = mixture.map((component) => {
-    const share = component.weight / totalWeight;
-    if (isUniformComponent(component)) {
-      const coverage = segmentBucketCoverage(
+  // Each mixture component's mass per bucket (summing to 1): lower
+  // out-of-bounds, inbound buckets, upper out-of-bounds (as in
+  // segmentBucketCoverage)
+  const mixture = components
+    .filter(
+      (c): c is Exclude<DistributionSliderComponent, DamperSliderComponent> =>
+        !isDamperComponent(c)
+    )
+    .flatMap((component) => {
+      if (isUniformComponent(component)) {
+        const coverage = segmentBucketCoverage(
+          component.left,
+          component.right,
+          lowerOpen,
+          upperOpen,
+          inboundOutcomeCount
+        );
+        const covered = coverage.reduce((acc, c) => acc + c, 0);
+        // A segment covering no bucket (only possible in pasted data) has
+        // no mass to contribute
+        return covered > 0
+          ? [
+              {
+                weight: component.weight,
+                pmf: coverage.map((c) => c / covered),
+              },
+            ]
+          : [];
+      }
+      const cdf = cdfFromSliders(
         component.left,
+        component.center,
         component.right,
         lowerOpen,
         upperOpen,
         inboundOutcomeCount
       );
-      const covered = coverage.reduce((acc, c) => acc + c, 0);
-      return coverage.map((c) => (c / covered) * share);
-    }
-    const cdf = cdfFromSliders(
-      component.left,
-      component.center,
-      component.right,
-      lowerOpen,
-      upperOpen,
-      inboundOutcomeCount
-    );
-    return [
-      cdf[0] ?? 0,
-      ...cdf.slice(1).map((F, i) => F - (cdf[i] ?? 0)),
-      1 - (cdf[cdf.length - 1] ?? 1),
-    ].map((p) => p * share);
-  });
+      const pmf = [
+        cdf[0] ?? 0,
+        ...cdf.slice(1).map((F, i) => F - (cdf[i] ?? 0)),
+        1 - (cdf[cdf.length - 1] ?? 1),
+      ];
+      return [{ weight: component.weight, pmf }];
+    });
+  const totalWeight = mixture.reduce((acc, c) => acc + c.weight, 0);
+  if (!(totalWeight > 0)) {
+    return fail("sliderNoPositiveComponentsError");
+  }
+  let componentPmfs = mixture.map(({ weight, pmf }) =>
+    pmf.map((p) => (p * weight) / totalWeight)
+  );
 
   if (dampers.length) {
     // Per-bucket multiplier from all dampers (overlapping dampers compound;
@@ -209,6 +222,9 @@ export function getSliderNumericForecastDataset(
     // to every component, then everything renormalized together
     const multipliers = Array<number>(inboundOutcomeCount + 2).fill(1);
     for (const damper of dampers) {
+      // Clamped, as pasted data could hold anything; outside [0, 1] a
+      // multiplier could go negative
+      const strength = Math.min(Math.max(damper.strength, 0), 1);
       segmentBucketCoverage(
         damper.left,
         damper.right,
@@ -216,8 +232,7 @@ export function getSliderNumericForecastDataset(
         upperOpen,
         inboundOutcomeCount
       ).forEach((coverage, j) => {
-        multipliers[j] =
-          (multipliers[j] ?? 1) * (1 - damper.strength * coverage);
+        multipliers[j] = (multipliers[j] ?? 1) * (1 - strength * coverage);
       });
     }
     componentPmfs = componentPmfs.map((pmf) =>

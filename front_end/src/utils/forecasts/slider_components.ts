@@ -154,6 +154,20 @@ export function reconcilePinnedOutOfBounds(
 }
 
 /**
+ * Pinned values carried over to a question (e.g. copied or pasted from
+ * another one) that may have different bounds: reconciled with its bounds,
+ * or dropped if it has no open bound.
+ */
+export function fitPinnedOutOfBounds(
+  pinned: PinnedOutOfBounds | null | undefined,
+  bounds: Bounds
+): PinnedOutOfBounds | null {
+  return pinned && hasOpenBound(bounds)
+    ? reconcilePinnedOutOfBounds(pinned, bounds)
+    : null;
+}
+
+/**
  * Pinned values matching the out-of-bounds mass of an existing CDF, so that
  * turning pinning on doesn't move the distribution.
  */

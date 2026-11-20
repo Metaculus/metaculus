@@ -55,7 +55,10 @@ import {
   getInitialQuantileDistributionComponents,
   getInitialSliderDistributionComponents,
 } from "@/utils/forecasts/initial_values";
-import { makeDefaultSliderComponent } from "@/utils/forecasts/slider_components";
+import {
+  fitPinnedOutOfBounds,
+  makeDefaultSliderComponent,
+} from "@/utils/forecasts/slider_components";
 import {
   getQuantilesDistributionFromSlider,
   getSliderDistributionFromQuantiles,
@@ -252,8 +255,9 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
   const handleCopy = useCallback(
     (fromOptionId: number, toOptionId: number) => {
       const fromOption = groupOptions.find((obj) => obj.id === fromOptionId);
+      const toOption = groupOptions.find((obj) => obj.id === toOptionId);
 
-      if (!fromOption) return;
+      if (!fromOption || !toOption) return;
 
       const {
         userSliderForecast,
@@ -267,7 +271,8 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
         forecastInputMode === ContinuousForecastInputType.Slider
           ? buildSliderDistributionInput(
               userSliderForecast,
-              userPinnedOutOfBounds
+              // Subquestions may have different bounds
+              fitPinnedOutOfBounds(userPinnedOutOfBounds, toOption.question)
             )
           : {
               type: ContinuousForecastInputType.Quantile,
