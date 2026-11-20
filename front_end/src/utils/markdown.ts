@@ -90,6 +90,61 @@ export function replaceEmbedsWithLinks(
     );
 }
 
+const SANITIZE_ADD_ATTR = [
+  /**
+   * Attribute-driven toggle
+   */
+  "toggle-details",
+  "ng-show",
+
+  /**
+   * Iframe attributes
+   */
+  "src",
+  "loading",
+  "style",
+  "width",
+  "height",
+  "frameborder",
+  "allowfullscreen",
+  "scrolling",
+
+  /**
+   * Link attributes
+   */
+  "target",
+  "rel",
+];
+
+// Tags MDXEditor may turn into live DOM elements (subset of its `htmlTags`)
+export const SAFE_EDITOR_HTML_TAGS: ReadonlySet<string> = new Set(
+  "a abbr address article aside audio b bdi bdo blockquote br caption cite code col colgroup data dd del details dfn div dl dt em figcaption figure footer h1 h2 h3 h4 h5 h6 header hgroup hr i iframe ins kbd li main mark meter nav ol p picture pre progress q rp rt ruby s samp section small source span strong sub summary sup table tbody td tfoot th thead time tr track u ul var video wbr".split(
+    " "
+  )
+);
+
+let attributePurifier: ReturnType<typeof DOMPurify> | null = null;
+
+export function isSafeHtmlAttribute(
+  tag: string,
+  name: string,
+  value: string
+): boolean {
+  // Separate instance: setConfig would otherwise override per-call configs
+  if (!attributePurifier) {
+    attributePurifier = DOMPurify(window);
+    attributePurifier.setConfig({
+      ADD_TAGS: ["iframe"],
+      ADD_ATTR: SANITIZE_ADD_ATTR,
+    });
+  }
+  return attributePurifier.isValidAttribute(
+    tag.toLowerCase(),
+    name.toLowerCase(),
+    value
+  );
+}
+
 export function sanitizeHtmlContent(
   content: string,
   options?: { allowStyleTag?: boolean }
@@ -110,31 +165,7 @@ export function sanitizeHtmlContent(
     ADD_TAGS: addTags,
     // FORCE_BODY prevents DOMPurify from stripping <style> tags at the beginning of HTML
     FORCE_BODY: options?.allowStyleTag,
-    ADD_ATTR: [
-      /**
-       * Attribute-driven toggle
-       */
-      "toggle-details",
-      "ng-show",
-
-      /**
-       * Iframe attributes
-       */
-      "src",
-      "loading",
-      "style",
-      "width",
-      "height",
-      "frameborder",
-      "allowfullscreen",
-      "scrolling",
-
-      /**
-       * Link attributes
-       */
-      "target",
-      "rel",
-    ],
+    ADD_ATTR: SANITIZE_ADD_ATTR,
   });
 
   // Prevent tabnabbing: add rel="noopener noreferrer" to target="_blank" links

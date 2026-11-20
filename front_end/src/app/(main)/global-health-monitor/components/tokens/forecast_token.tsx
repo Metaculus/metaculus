@@ -17,6 +17,7 @@ import { ForecastSparkline } from "../forecast_sparkline";
 import { useGhmSnapshot } from "../ghm_data_provider";
 import { TokenHoverCard, tokenBaseClassName } from "./token_hover_card";
 import { useLinkedTimeline } from "../linked_timeline/linked_timeline_context";
+import { useResolutionLabel } from "../resolved_chip";
 
 function resolveChartKey(
   key: GhmValueKey,
@@ -34,11 +35,18 @@ function resolveChartKey(
   );
 }
 
+// A resolved question shows its outcome instead of how its forecast moved.
+function getShownChange(datum: TokenDatum) {
+  return datum.resolution ? null : datum.change;
+}
+
 function ForecastHoverContent({ datum }: { datum: TokenDatum }) {
   const t = useTranslations();
   const locale = useLocale();
   const snapshot = useGhmSnapshot();
   const compareEdition = snapshot?.compareEdition;
+  const formatResolutionLabel = useResolutionLabel();
+  const change = getShownChange(datum);
 
   return (
     <div className="flex flex-col gap-2">
@@ -58,23 +66,18 @@ function ForecastHoverContent({ datum }: { datum: TokenDatum }) {
         <span className="text-2xl font-bold leading-none text-blue-800 dark:text-blue-800-dark">
           {datum.display}
         </span>
-        {datum.change && (
-          <ChangeChip
-            change={datum.change}
-            sinceLabel={compareEdition?.label}
-          />
+        {change && (
+          <ChangeChip change={change} sinceLabel={compareEdition?.label} />
         )}
       </div>
-      {datum.change &&
-        datum.change.direction !== "steady" &&
-        compareEdition && (
-          <div className="text-xs text-gray-600 dark:text-gray-600-dark">
-            {t("globalHealthMonitorChangeSince", {
-              change: datum.change.text,
-              date: compareEdition.label,
-            })}
-          </div>
-        )}
+      {change && change.direction !== "steady" && compareEdition && (
+        <div className="text-xs text-gray-600 dark:text-gray-600-dark">
+          {t("globalHealthMonitorChangeSince", {
+            change: change.text,
+            date: compareEdition.label,
+          })}
+        </div>
+      )}
       {datum.interval && (
         <div className="text-xs text-gray-600 dark:text-gray-600-dark">
           {t("globalHealthMonitorInterval", { range: datum.interval })}
@@ -84,7 +87,7 @@ function ForecastHoverContent({ datum }: { datum: TokenDatum }) {
       {datum.resolution && (
         <div className="text-xs font-medium text-gray-700 dark:text-gray-700-dark">
           {t("globalHealthMonitorResolvedAs", {
-            value: datum.resolution.display,
+            value: formatResolutionLabel(datum.resolution),
           })}
           {datum.resolution.forecastWas &&
             ` · ${t("globalHealthMonitorForecastWas", { value: datum.resolution.forecastWas })}`}
@@ -146,9 +149,10 @@ export function Forecast({
 
   const chartKey = resolveChartKey(v, linkedTimeline?.chartKeys);
   const since = snapshot?.compareEdition?.shortLabel;
+  const shownChange = getShownChange(datum);
   const extras = [
-    change && datum.change && since
-      ? formatInlineChange(datum.change, since)
+    change && shownChange && since
+      ? formatInlineChange(shownChange, since)
       : null,
     interval && datum.interval ? formatInlineInterval(datum.interval) : null,
   ].filter(Boolean);

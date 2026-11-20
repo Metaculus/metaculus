@@ -20,6 +20,7 @@ import {
   tablePlugin,
   thematicBreakPlugin,
   toolbarPlugin,
+  useCellValue,
 } from "@mdxeditor/editor";
 import { BeautifulMentionsTheme } from "lexical-beautiful-mentions";
 import { useTranslations } from "next-intl";
@@ -46,7 +47,7 @@ import cn from "@/utils/core/cn";
 import EditorToolbar from "./editor_toolbar";
 import { embeddedQuestionDescriptor } from "./embedded_question";
 import { tweetDescriptor } from "./embedded_twitter";
-import { processMarkdown } from "./helpers";
+import { processMarkdown, processMarkdownForDisplay } from "./helpers";
 import { codeFenceShortcutPlugin } from "./plugins/code/code_fence_shortcut";
 import {
   CANONICAL_TO_LABEL,
@@ -56,7 +57,13 @@ import {
 import { equationPlugin } from "./plugins/equation";
 import { errorRecoveryPlugin } from "./plugins/error_recovery_plugin";
 import { linkPlugin } from "./plugins/link";
+import {
+  decodeLiteralEntities,
+  literalEntitiesPlugin,
+  literalEntityDecoding$,
+} from "./plugins/literal_entities";
 import { mentionsPlugin } from "./plugins/mentions";
+import { safeHtmlPlugin } from "./plugins/safe_html";
 import { trimTrailingParagraphPlugin } from "./plugins/trim_trailing_plugin";
 
 type EditorMode = "write" | "read";
@@ -73,10 +80,14 @@ const PrismCodeBlock: FC<{ code?: string; language?: string }> = ({
   const { theme } = useAppTheme();
   const prismTheme =
     theme === "dark" ? prismThemes.dracula : prismThemes.github;
+  const entityDecoding = useCellValue(literalEntityDecoding$);
 
   const raw = (language as string | undefined) ?? "ts";
   const normalizedLang = normalizeLang(raw);
-  const codeTrimmed = (code ?? "").replace(/^\n+|\n+$/g, "");
+  const source = entityDecoding
+    ? decodeLiteralEntities(code ?? "", entityDecoding)
+    : code ?? "";
+  const codeTrimmed = source.replace(/^\n+|\n+$/g, "");
 
   // Handle plain text without syntax highlighting
   if (normalizedLang === "text") {
@@ -170,9 +181,9 @@ const InitializedMarkdownEditor: FC<
   useConfirmPageLeave(shouldConfirmLeave, false);
 
   // Transform MathJax syntax to JSX embeds to properly utilise the MarkJax renderer
-  const formattedMarkdown = useMemo(
+  const { markdown: formattedMarkdown, legacyEntityDecoding } = useMemo(
     () =>
-      processMarkdown(markdown, {
+      processMarkdownForDisplay(markdown, {
         revert: false,
         withTwitterPreview: mode === "read" && withTwitterPreview,
       }),
@@ -181,12 +192,14 @@ const InitializedMarkdownEditor: FC<
 
   const handleEditorChange = useCallback(
     (value: string) => {
+      // Read mode holds display-only decoded code text, so it must never be saved
+      if (mode === "read") return;
       // Revert the MathJax transformation before passing the markdown to the parent component
       onChange?.(
         processMarkdown(value, { revert: true, withTwitterPreview: false })
       );
     },
-    [onChange]
+    [mode, onChange]
   );
   const debouncedHandleEditorChange = useDebouncedCallback(
     handleEditorChange,
@@ -235,6 +248,7 @@ const InitializedMarkdownEditor: FC<
 
   const baseFormattingPlugins = useMemo(() => {
     const common = [
+      safeHtmlPlugin(),
       headingsPlugin(),
       listsPlugin(),
       linkPlugin({ withUgcLinks }),
@@ -305,6 +319,9 @@ const InitializedMarkdownEditor: FC<
     const list = [
       ...baseFormattingPlugins,
       jsxPlugin({ jsxComponentDescriptors: jsxDescriptors }),
+      literalEntitiesPlugin({
+        decoding: mode === "read" ? legacyEntityDecoding : null,
+      }),
     ];
     if (editorToolbarPlugin) list.push(editorToolbarPlugin);
     if (mode === "read") list.push(trimTrailingParagraphPlugin());
@@ -317,6 +334,7 @@ const InitializedMarkdownEditor: FC<
     editorToolbarPlugin,
     editorDiffSourcePlugin,
     mode,
+    legacyEntityDecoding,
   ]);
 
   const lexicalTheme = useMemo(
@@ -333,6 +351,9 @@ const InitializedMarkdownEditor: FC<
 
   return (
     <MDXEditor
+      // Inline code is decoded at import, and setMarkdown ignores an unchanged
+      // string, so a decoding flip needs a fresh read-only editor
+      key={mode === "read" ? legacyEntityDecoding : undefined}
       ref={mergeRefs([editorRef, forwardedRef])}
       className={cn(
         "content markdown-editor",

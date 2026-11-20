@@ -754,6 +754,8 @@ class Post(TimeStampedModel, TranslatedModel):  # type: ignore
                     [
                         self.conditional.condition.open_time,
                         self.conditional.condition_child.open_time,
+                        self.conditional.question_yes.open_time,
+                        self.conditional.question_no.open_time,
                     ],
                 ),
                 default=None,
