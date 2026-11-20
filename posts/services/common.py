@@ -438,7 +438,12 @@ def approve_post(
         # we have a group or conditional question
         # filled out values only apply to subquestions without pre-filled values
         for question in questions:
-            question.open_time = question.open_time or open_time
+            if post.conditional_id:
+                # Sub-questions always inherit open_time from condition_child
+                # (see clone_question), so honor the approval open_time when later
+                question.open_time = max(question.open_time or open_time, open_time)
+            else:
+                question.open_time = question.open_time or open_time
             question.cp_reveal_time = question.cp_reveal_time or cp_reveal_time
             question.scheduled_close_time = (
                 question.scheduled_close_time or scheduled_close_time
