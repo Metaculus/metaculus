@@ -1,43 +1,36 @@
 import { JsxComponentDescriptor, MdastJsx } from "@mdxeditor/editor";
-import { FC, type Attributes } from "react";
+import { FC } from "react";
 
-function createEditorComponent<P extends Record<string, unknown>>(
-  Component: FC<P>
+const EMBED_ID_REGEX = /^\d{1,20}$/;
+
+// Embed ids become request paths (`/tweet/{id}`, `/posts/{id}/`), so anything
+// but plain digits must render nothing rather than reach a fetch.
+export const isEmbedId = (id: unknown): id is string =>
+  typeof id === "string" && EMBED_ID_REGEX.test(id);
+
+function getEmbedId(node: MdastJsx): string | null {
+  const attribute = node.attributes.find(
+    (a) => a.type === "mdxJsxAttribute" && a.name === "id"
+  );
+  if (attribute?.type !== "mdxJsxAttribute") return null;
+
+  const raw =
+    typeof attribute.value === "string"
+      ? attribute.value
+      : attribute.value?.value.trim();
+  return isEmbedId(raw) ? raw : null;
+}
+
+function createEmbedEditorComponent(
+  Component: FC<{ id: string }>
 ): JsxComponentDescriptor["Editor"] {
-  const Editor: JsxComponentDescriptor["Editor"] = ({
-    mdastNode,
-    descriptor,
-  }) => {
-    const componentProps = extractComponentProps<P>(mdastNode, descriptor);
-    return <Component {...(componentProps as P & Attributes)} />;
+  const Editor: JsxComponentDescriptor["Editor"] = ({ mdastNode }) => {
+    const id = getEmbedId(mdastNode);
+    return id ? <Component id={id} /> : null;
   };
-  Editor.displayName = "EditorComponent";
+  Editor.displayName = "EmbedEditorComponent";
 
   return Editor;
 }
 
-type Primitive = string | number | boolean | null | undefined;
-
-function extractComponentProps<
-  P extends Record<string, unknown> = Record<string, unknown>,
->(node: MdastJsx, descriptor: JsxComponentDescriptor): P {
-  const props: Record<string, Primitive> = {};
-  for (const attribute of node.attributes) {
-    if (attribute.type === "mdxJsxAttribute") {
-      const propDescriptor = descriptor.props.find(
-        (prop) => prop.name === attribute.name
-      );
-      if (!propDescriptor) continue;
-
-      if (propDescriptor.type === "number") {
-        props[attribute.name] = Number(attribute.value);
-      } else {
-        props[attribute.name] = attribute.value as Primitive;
-      }
-    }
-  }
-
-  return props as unknown as P;
-}
-
-export default createEditorComponent;
+export default createEmbedEditorComponent;
