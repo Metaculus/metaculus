@@ -1,40 +1,72 @@
 import { isNil } from "lodash";
 
 import {
+  DamperSliderComponent,
   DefaultInboundOutcomeCount,
   DistributionQuantileComponent,
   DistributionSliderComponent,
+  PinnedOutOfBounds,
   Quantile,
   Question,
   QuestionType,
 } from "@/types/question";
 import { TranslationKey } from "@/types/translations";
+import { isPercentileRow } from "@/utils/forecasts/quantile_components";
+import {
+  isDamperComponent,
+  isUniformComponent,
+} from "@/utils/forecasts/slider_components";
 import {
   cdfFromSliders,
   cdfToPmf,
   nominalLocationToCdfLocation,
+  segmentBucketCoverage,
 } from "@/utils/math";
+
+// Share of the mass standardization spreads uniformly over the inbound
+// range, guaranteeing a minimum density in every inbound bucket
+const INBOUND_FLOOR_MASS = 0.01;
 
 function standardizeCdf(
   cdf: number[],
   lowerOpen: boolean,
   upperOpen: boolean,
-  inboundOutcomeCount: number
+  inboundOutcomeCount: number,
+  pinnedOutOfBounds?: PinnedOutOfBounds | null
 ): number[] {
   if (cdf.length === 0) {
     return [];
   }
 
-  // apply lower bound
-  const cdfOffset =
-    lowerOpen && upperOpen
-      ? (F: number, x: number) => 0.988 * F + 0.01 * x + 0.001
-      : lowerOpen
-        ? (F: number, x: number) => 0.989 * F + 0.01 * x + 0.001
-        : upperOpen
-          ? (F: number, x: number) => 0.989 * F + 0.01 * x
-          : (F: number, x: number) => 0.99 * F + 0.01 * x;
-  cdf = cdf.map((F, index) => cdfOffset(F, index / (cdf.length - 1)));
+  if (pinnedOutOfBounds) {
+    // Out-of-bounds mass is exactly the pinned values (the capping below
+    // never changes it); the inbound mass keeps the shape of `cdf`, plus
+    // the floor. Callers guarantee there is inbound mass to shape.
+    const below = pinnedOutOfBounds.below_lower_bound;
+    const inboundMass = 1 - below - pinnedOutOfBounds.above_upper_bound;
+    const first = cdf[0] ?? 0;
+    const rawInboundMass = (cdf[cdf.length - 1] ?? 1) - first;
+    cdf = cdf.map((F, index) => {
+      const x = index / (cdf.length - 1);
+      const shape = (F - first) / rawInboundMass;
+      return (
+        below +
+        (inboundMass - INBOUND_FLOOR_MASS) * shape +
+        INBOUND_FLOOR_MASS * x
+      );
+    });
+  } else {
+    // apply lower bound
+    const cdfOffset =
+      lowerOpen && upperOpen
+        ? (F: number, x: number) => 0.988 * F + 0.01 * x + 0.001
+        : lowerOpen
+          ? (F: number, x: number) => 0.989 * F + 0.01 * x + 0.001
+          : upperOpen
+            ? (F: number, x: number) => 0.989 * F + 0.01 * x
+            : (F: number, x: number) => 0.99 * F + 0.01 * x;
+    cdf = cdf.map((F, index) => cdfOffset(F, index / (cdf.length - 1)));
+  }
 
   // apply upper bound
   let pmf: number[] = [];
@@ -94,40 +126,158 @@ function standardizeCdf(
 /**
  * Get chart data from slider input
  */
+// Below this much remaining probability, a distribution can't be
+// meaningfully renormalized
+const MIN_RENORMALIZABLE_MASS = 1e-9;
+
+export type SliderDatasetError =
+  | "sliderNoPositiveComponentsError"
+  | "sliderDamperRemovesAllError"
+  | "sliderNoInboundMassError";
+
+export type SliderNumericForecastDataset = {
+  cdf: number[];
+  pmf: number[];
+  componentCdfs: number[][];
+  // Set when no valid distribution can be built; cdf and pmf are then empty
+  // and the forecast can't be submitted
+  error?: SliderDatasetError;
+};
+
+/**
+ * Get chart data from slider input
+ */
 export function getSliderNumericForecastDataset(
   components: DistributionSliderComponent[],
-  question: Question
-) {
-  const weights = components.map(({ weight }) => weight);
-  const normalizedWeights = weights.map(
-    (x) => x / weights.reduce((a, b) => a + b)
-  );
+  question: Question,
+  pinnedOutOfBounds?: PinnedOutOfBounds | null
+): SliderNumericForecastDataset {
+  const fail = (error: SliderDatasetError) => ({
+    cdf: [],
+    pmf: [],
+    componentCdfs: [],
+    error,
+  });
   const lowerOpen = question.open_lower_bound || false;
   const upperOpen = question.open_upper_bound || false;
   const inboundOutcomeCount =
     question.inbound_outcome_count || DefaultInboundOutcomeCount;
 
-  const componentCdfs = components.map((component, index) => {
-    const cdf = cdfFromSliders(
-      component.left,
-      component.center,
-      component.right,
-      lowerOpen,
-      upperOpen,
-      inboundOutcomeCount
+  const dampers = components.filter(isDamperComponent);
+  // Each mixture component's mass per bucket (summing to 1): lower
+  // out-of-bounds, inbound buckets, upper out-of-bounds (as in
+  // segmentBucketCoverage)
+  const mixture = components
+    .filter(
+      (c): c is Exclude<DistributionSliderComponent, DamperSliderComponent> =>
+        !isDamperComponent(c)
+    )
+    .flatMap((component) => {
+      if (isUniformComponent(component)) {
+        const coverage = segmentBucketCoverage(
+          component.left,
+          component.right,
+          lowerOpen,
+          upperOpen,
+          inboundOutcomeCount
+        );
+        const covered = coverage.reduce((acc, c) => acc + c, 0);
+        // A segment covering no bucket (only possible in pasted data) has
+        // no mass to contribute
+        return covered > 0
+          ? [
+              {
+                weight: component.weight,
+                pmf: coverage.map((c) => c / covered),
+              },
+            ]
+          : [];
+      }
+      const cdf = cdfFromSliders(
+        component.left,
+        component.center,
+        component.right,
+        lowerOpen,
+        upperOpen,
+        inboundOutcomeCount
+      );
+      const pmf = [
+        cdf[0] ?? 0,
+        ...cdf.slice(1).map((F, i) => F - (cdf[i] ?? 0)),
+        1 - (cdf[cdf.length - 1] ?? 1),
+      ];
+      return [{ weight: component.weight, pmf }];
+    });
+  const totalWeight = mixture.reduce((acc, c) => acc + c.weight, 0);
+  if (!(totalWeight > 0)) {
+    return fail("sliderNoPositiveComponentsError");
+  }
+  let componentPmfs = mixture.map(({ weight, pmf }) =>
+    pmf.map((p) => (p * weight) / totalWeight)
+  );
+
+  if (dampers.length) {
+    // Per-bucket multiplier from all dampers (overlapping dampers compound;
+    // a partially covered bucket is scaled by the covered fraction), applied
+    // to every component, then everything renormalized together
+    const multipliers = Array<number>(inboundOutcomeCount + 2).fill(1);
+    for (const damper of dampers) {
+      // Clamped, as pasted data could hold anything; outside [0, 1] a
+      // multiplier could go negative
+      const strength = Math.min(Math.max(damper.strength, 0), 1);
+      segmentBucketCoverage(
+        damper.left,
+        damper.right,
+        lowerOpen,
+        upperOpen,
+        inboundOutcomeCount
+      ).forEach((coverage, j) => {
+        multipliers[j] = (multipliers[j] ?? 1) * (1 - strength * coverage);
+      });
+    }
+    componentPmfs = componentPmfs.map((pmf) =>
+      pmf.map((p, j) => p * (multipliers[j] ?? 1))
     );
+    const remainingMass = componentPmfs.flat().reduce((acc, p) => acc + p, 0);
+    if (!(remainingMass > MIN_RENORMALIZABLE_MASS)) {
+      return fail("sliderDamperRemovesAllError");
+    }
+    componentPmfs = componentPmfs.map((pmf) =>
+      pmf.map((p) => p / remainingMass)
+    );
+  }
 
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    const result = cdf.map((x) => x * normalizedWeights[index]!);
-    return result;
+  // Back to CDF space; the upper out-of-bounds bucket is implied by the last
+  // CDF value
+  const componentCdfs = componentPmfs.map((pmf) => {
+    let cumulative = 0;
+    return pmf.slice(0, -1).map((p) => (cumulative += p));
   });
-  let cdf = componentCdfs.reduce((acc, componentCdf) => {
-    return acc.map((x, i) => x + componentCdf[i]);
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  }, Array(componentCdfs[0]!.length).fill(0));
-  cdf = cdf.map((F) => Number(F));
+  let cdf = componentCdfs.reduce(
+    (acc, componentCdf) => acc.map((x, i) => x + (componentCdf[i] ?? 0)),
+    Array<number>(inboundOutcomeCount + 1).fill(0)
+  );
 
-  cdf = standardizeCdf(cdf, lowerOpen, upperOpen, inboundOutcomeCount);
+  // Pinning replaces the out-of-bounds mass, so it needs mass inside the
+  // range to shape the rest of the distribution with
+  if (
+    pinnedOutOfBounds &&
+    !((cdf[cdf.length - 1] ?? 0) - (cdf[0] ?? 0) > MIN_RENORMALIZABLE_MASS)
+  ) {
+    return fail(
+      dampers.length
+        ? "sliderDamperRemovesAllError"
+        : "sliderNoInboundMassError"
+    );
+  }
+
+  cdf = standardizeCdf(
+    cdf,
+    lowerOpen,
+    upperOpen,
+    inboundOutcomeCount,
+    pinnedOutOfBounds
+  );
 
   return {
     cdf: cdf,
@@ -143,9 +293,12 @@ export function getQuantileNumericForecastDataset(
   components: DistributionQuantileComponent,
   question: Question
 ) {
+  // Every row needs a value, and every percentile row a percentile
   if (
     !components ||
-    Object.values(components).some((quartile) => isNil(quartile.value))
+    components.some(
+      (c) => isNil(c.value) || (isPercentileRow(c) && isNil(c.quantile))
+    )
   ) {
     return {
       cdf: [],
@@ -154,10 +307,8 @@ export function getQuantileNumericForecastDataset(
   }
 
   const cdf = generateQuantileContinuousCdf({
-    // Every row with a numeric quantile is a percentile; the rest are the
-    // out-of-bounds rows
     quantiles: components
-      .filter((c) => typeof c.quantile === "number")
+      .filter(isPercentileRow)
       .map((c) => ({ quantile: Number(c.quantile), value: c.value ?? 0 }))
       .sort((a, b) => a.quantile - b.quantile),
     probBelowLower:

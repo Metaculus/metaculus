@@ -165,7 +165,8 @@ const ConditionalChart: FC<Props> = ({
       if (isSliderForecast(prevForecastValue)) {
         dataset = getSliderNumericForecastDataset(
           prevForecastValue.components,
-          question
+          question,
+          prevForecastValue.pinned_out_of_bounds
         );
       }
       if (isQuantileForecast(prevForecastValue)) {
@@ -175,7 +176,7 @@ const ConditionalChart: FC<Props> = ({
         );
       }
 
-      if (!!dataset) {
+      if (!!dataset && dataset.cdf.length) {
         continuousAreaChartData.push({
           pmf: dataset.pmf,
           cdf: dataset.cdf,

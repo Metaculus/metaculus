@@ -111,6 +111,33 @@ export function cdfFromSliders(
 }
 
 /**
+ * Fraction (0-1) of each bucket covered by the segment [left, right] (0-1
+ * locations within the range), over all inboundOutcomeCount + 2 buckets:
+ * the lower out-of-bounds bucket, the inbound buckets, then the upper
+ * out-of-bounds bucket (the layout of cdfToPmf). An edge sitting at an
+ * open bound extends one bucket-width past it, covering that out-of-bounds
+ * bucket as if it were one more inbound bucket.
+ */
+export function segmentBucketCoverage(
+  left: number,
+  right: number,
+  lowerOpen: boolean,
+  upperOpen: boolean,
+  inboundOutcomeCount: number = DefaultInboundOutcomeCount
+): number[] {
+  const bucketWidth = 1 / inboundOutcomeCount;
+  const start = lowerOpen && left <= 0 ? -bucketWidth : left;
+  const end = upperOpen && right >= 1 ? 1 + bucketWidth : right;
+  return Array.from({ length: inboundOutcomeCount + 2 }, (_, j) => {
+    // Bucket j spans [(j - 1) / n, j / n]
+    const bucketStart = (j - 1) * bucketWidth;
+    const bucketEnd = j * bucketWidth;
+    const overlap = Math.min(end, bucketEnd) - Math.max(start, bucketStart);
+    return Math.min(1, Math.max(0, overlap / bucketWidth));
+  });
+}
+
+/**
  * Internal location (0-1 within the range) at which the CDF reaches the
  * given percentile (0-100). 0 or 1 when that percentile falls out of
  * bounds.

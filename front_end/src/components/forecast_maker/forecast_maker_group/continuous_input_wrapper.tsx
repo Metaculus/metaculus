@@ -22,6 +22,7 @@ import {
   DistributionQuantileComponent,
   DistributionSlider,
   DistributionSliderComponent,
+  PinnedOutOfBounds,
   QuantileValue,
 } from "@/types/question";
 import { TranslationKey } from "@/types/translations";
@@ -111,7 +112,8 @@ const ContinuousInputWrapper: FC<PropsWithChildren<Props>> = ({
 
   const userCdf: number[] | undefined = getSliderNumericForecastDataset(
     getNormalizedContinuousForecast(option.userSliderForecast),
-    option.question
+    option.question,
+    option.userPinnedOutOfBounds
   ).cdf;
   const previousForecast = option.question.my_forecasts?.latest;
   const [overlayPreviousForecast, setOverlayPreviousForecast] =
@@ -165,10 +167,15 @@ const ContinuousInputWrapper: FC<PropsWithChildren<Props>> = ({
     setSubmitError(undefined);
 
     if (forecastInputMode === ContinuousForecastInputType.Slider) {
-      return getSliderNumericForecastDataset(
+      const sliderDataset = getSliderNumericForecastDataset(
         forecast as DistributionSliderComponent[],
-        option.question
+        option.question,
+        option.userPinnedOutOfBounds
       );
+      if (sliderDataset.error) {
+        setSubmitError(new Error(t(sliderDataset.error)));
+      }
+      return sliderDataset;
     }
     const validationErrors = validateAllQuantileInputs({
       question: option.question,
@@ -275,7 +282,8 @@ const ContinuousInputWrapper: FC<PropsWithChildren<Props>> = ({
   const handleClipboardPaste = useCallback(
     (
       type: ContinuousForecastInputType,
-      components: DistributionSliderComponent[] | DistributionQuantileComponent
+      components: DistributionSliderComponent[] | DistributionQuantileComponent,
+      pinned: PinnedOutOfBounds | null
     ) => {
       // Only skip the mode-sync effect if this paste actually changes the
       // mode — if it fires while already on the target mode, the effect
@@ -288,6 +296,7 @@ const ContinuousInputWrapper: FC<PropsWithChildren<Props>> = ({
         handleChange(option.id, {
           type: ContinuousForecastInputType.Slider,
           components: components as DistributionSliderComponent[],
+          pinned_out_of_bounds: pinned,
         });
       } else {
         handleChange(option.id, {
@@ -311,8 +320,9 @@ const ContinuousInputWrapper: FC<PropsWithChildren<Props>> = ({
       : option.userQuantileForecast.some((q) => q.isDirty);
   const predictButtonIsDisabled =
     forecastInputMode === ContinuousForecastInputType.Slider
-      ? option.userSliderForecast === null &&
-        option.question.status !== QuestionStatus.OPEN
+      ? (option.userSliderForecast === null &&
+          option.question.status !== QuestionStatus.OPEN) ||
+        !dataset.cdf.length
       : validateAllQuantileInputs({
           question: option.question,
           components: option.userQuantileForecast,
@@ -437,10 +447,12 @@ const ContinuousInputWrapper: FC<PropsWithChildren<Props>> = ({
           overlayPreviousCdf={overlayPreviousCdf}
           communityCdf={communityCdf}
           sliderComponents={option.userSliderForecast}
-          onSliderChange={(components) =>
+          pinnedOutOfBounds={option.userPinnedOutOfBounds}
+          onSliderChange={(components, pinned) =>
             handleChange(option.id, {
               components: components,
               type: ContinuousForecastInputType.Slider,
+              pinned_out_of_bounds: pinned,
             })
           }
           quantileComponent={option.userQuantileForecast}
@@ -469,6 +481,7 @@ const ContinuousInputWrapper: FC<PropsWithChildren<Props>> = ({
           copyMenu={copyMenu}
           clipboardData={{
             sliderComponents: option.userSliderForecast,
+            pinnedOutOfBounds: option.userPinnedOutOfBounds,
             quantileComponents: option.userQuantileForecast,
             onPaste: handleClipboardPaste,
           }}

@@ -6,6 +6,7 @@ import {
   DistributionQuantileComponent,
   DistributionSlider,
   DistributionSliderComponent,
+  PinnedOutOfBounds,
   Quantile,
   Question,
   QuestionWithNumericForecasts,
@@ -51,7 +52,9 @@ export function getInitialQuantileDistributionComponents(
         )
       : getQuantilesDistributionFromSlider(
           activeForecastValues.components as DistributionSliderComponent[],
-          question
+          question,
+          false,
+          getInitialPinnedOutOfBounds(activeForecastValues)
         )
     : [
         {
@@ -98,4 +101,13 @@ export function getInitialSliderDistributionComponents(
         activeForecastValues?.components as DistributionQuantileComponent,
         question
       );
+}
+
+/** Pinned out-of-bounds values of a saved slider forecast, if any */
+export function getInitialPinnedOutOfBounds(
+  activeForecastValues: DistributionSlider | DistributionQuantile | undefined
+): PinnedOutOfBounds | null {
+  return activeForecastValues?.type === ContinuousForecastInputType.Slider
+    ? activeForecastValues.pinned_out_of_bounds ?? null
+    : null;
 }

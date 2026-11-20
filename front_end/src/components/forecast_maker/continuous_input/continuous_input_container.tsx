@@ -31,6 +31,9 @@ export type ContinuousInputContainerProps = {
   ) => ReactNode;
   disabled?: boolean;
   questionType: QuestionType;
+  // Omit to hide the advanced mode toggle
+  isAdvanced?: boolean;
+  onAdvancedChange?: (value: boolean) => void;
 };
 
 const ContinuousInputContainer: FC<ContinuousInputContainerProps> = ({
@@ -45,6 +48,8 @@ const ContinuousInputContainer: FC<ContinuousInputContainerProps> = ({
   children,
   disabled,
   questionType,
+  isAdvanced,
+  onAdvancedChange,
 }) => {
   const t = useTranslations();
   const clipboard = useDistributionClipboard({
@@ -85,6 +90,8 @@ const ContinuousInputContainer: FC<ContinuousInputContainerProps> = ({
           <ContinuousInputModeSwitcher
             mode={forecastInputMode}
             onChange={onInputModeChange}
+            // Switching modes doesn't translate the forecast in advanced mode
+            showSliderHint={!isAdvanced}
           />
         )}
         <div className="flex items-center gap-2 self-start">
@@ -100,6 +107,11 @@ const ContinuousInputContainer: FC<ContinuousInputContainerProps> = ({
                   : "PDF (Probability Density Function) shows how likely different outcomes are around specific values,") +
                 " while CDF (Cumulative Distribution Function) shows the cumulative probability of outcomes up to a certain value.",
             }}
+            advanced={
+              onAdvancedChange && !disabled
+                ? { checked: !!isAdvanced, onChange: onAdvancedChange }
+                : undefined
+            }
             overlayPrevious={
               !!previousForecast && !disabled
                 ? {

@@ -12,13 +12,18 @@ import {
   DistributionQuantileComponent,
   DistributionSlider,
   DistributionSliderComponent,
+  PinnedOutOfBounds,
   Quantile,
   Question,
   QuestionWithForecasts,
   UserForecast,
 } from "@/types/question";
-import { getSliderNumericForecastDataset } from "@/utils/forecasts/dataset";
-import { computeQuartilesFromCDF } from "@/utils/math";
+import {
+  getQuantileNumericForecastDataset,
+  getSliderNumericForecastDataset,
+} from "@/utils/forecasts/dataset";
+import { makeDefaultSliderComponent } from "@/utils/forecasts/slider_components";
+import { computeQuartilesFromCDF, scaleInternalLocation } from "@/utils/math";
 
 export function isAllQuantileComponentsDirty(
   components: DistributionQuantileComponent
@@ -53,18 +58,14 @@ export function clearQuantileComponents(
   }));
 }
 
-/** The component a new slider forecast, or an added component, starts with */
-export function makeDefaultSliderComponent(): DistributionSliderComponent {
-  return { left: 0.4, center: 0.5, right: 0.6, weight: 1 };
-}
-
 export const getNormalizedContinuousForecast = (
   forecast: DistributionSliderComponent[] | null | undefined
 ): DistributionSliderComponent[] => forecast ?? [makeDefaultSliderComponent()];
 
 export function getUserContinuousQuartiles(
   components?: DistributionSliderComponent[],
-  question?: Question
+  question?: Question,
+  pinnedOutOfBounds?: PinnedOutOfBounds | null
 ) {
   if (
     !components?.length ||
@@ -74,9 +75,47 @@ export function getUserContinuousQuartiles(
     return null;
   }
 
-  const dataset = getSliderNumericForecastDataset(components, question);
+  const dataset = getSliderNumericForecastDataset(
+    components,
+    question,
+    pinnedOutOfBounds
+  );
+  if (dataset.error) {
+    return null;
+  }
 
   return computeQuartilesFromCDF(dataset.cdf);
+}
+
+/**
+ * Median (in the question's units) of a table forecast: the 50th percentile
+ * row if there is one, otherwise read off the table's CDF. Null if the table
+ * doesn't describe a valid distribution.
+ */
+export function getQuantileMedianValue(
+  components: DistributionQuantileComponent,
+  question: Question
+): number | null {
+  const median = components.find((c) => c.quantile === Quantile.q2)?.value;
+  if (!isNil(median)) return median;
+  const { cdf } = getQuantileNumericForecastDataset(components, question);
+  if (!cdf.length) return null;
+  return scaleInternalLocation(
+    computeQuartilesFromCDF(cdf).median,
+    question.scaling
+  );
+}
+
+/** The `distribution_input` payload for a slider forecast */
+export function buildSliderDistributionInput(
+  components: DistributionSliderComponent[],
+  pinnedOutOfBounds: PinnedOutOfBounds | null | undefined
+): DistributionSlider {
+  return {
+    type: ContinuousForecastInputType.Slider,
+    components,
+    ...(pinnedOutOfBounds ? { pinned_out_of_bounds: pinnedOutOfBounds } : {}),
+  };
 }
 
 export const isSliderForecast = (

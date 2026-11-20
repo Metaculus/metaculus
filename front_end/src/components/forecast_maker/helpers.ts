@@ -1,15 +1,20 @@
-import { isNil } from "lodash";
+import { countBy, isNil, round } from "lodash";
 import { useTranslations } from "next-intl";
 
 import {
   DefaultInboundOutcomeCount,
   DistributionQuantileComponent,
   Quantile,
+  QuantileValue,
   QuestionType,
   QuestionWithNumericForecasts,
   Scaling,
 } from "@/types/question";
 import { TranslationKey } from "@/types/translations";
+import {
+  isPercentileRow,
+  isStandardQuartileComponents,
+} from "@/utils/forecasts/quantile_components";
 import { unscaleNominalLocation } from "@/utils/math";
 
 export function validateQuantileInput({
@@ -175,6 +180,20 @@ export function validateQuantileInput({
   return undefined;
 }
 
+export type QuantileValidationError = {
+  quantile: QuantileValue["quantile"];
+  // Index of the offending row in the components
+  index: number;
+  message: string;
+  // Which cell of the row is at fault (advanced table); the value otherwise
+  field?: "percentile" | "value";
+};
+
+/**
+ * Validates table input: the regular table's rows (bounds + quartiles) with
+ * the quartile-specific checks, anything else (the advanced table's
+ * arbitrary percentiles) with validatePercentileInputs.
+ */
 export function validateAllQuantileInputs({
   question,
   components,
@@ -183,36 +202,210 @@ export function validateAllQuantileInputs({
   question: QuestionWithNumericForecasts;
   components: DistributionQuantileComponent;
   t: ReturnType<typeof useTranslations>;
-}): {
-  quantile: Quantile;
-  message: string;
-}[] {
+}): QuantileValidationError[] {
   if (!components.length) {
     return [
       {
         quantile: Quantile.q1,
+        index: 0,
         message: t("unexpectedError"),
       },
     ];
   }
 
-  const errors = components
-    .map((q) => {
-      return {
-        quantile: q.quantile,
-        message: validateQuantileInput({
-          question,
-          components,
-          newValue: q.value,
-          quantile: q.quantile,
-          t,
-        }),
-      };
-    })
+  if (!isStandardQuartileComponents(components)) {
+    return validatePercentileInputs({ question, components, t });
+  }
+
+  return components
+    .map((q, index) => ({
+      quantile: q.quantile,
+      index,
+      message: validateQuantileInput({
+        question,
+        components,
+        newValue: q.value,
+        // Standard rows always have a Quantile
+        quantile: q.quantile as Quantile,
+        t,
+      }),
+    }))
     .filter(
-      (error): error is { quantile: Quantile; message: string } =>
-        error.message !== undefined
+      (error): error is QuantileValidationError => error.message !== undefined
     );
+}
+
+/**
+ * The same rules as the regular table, for any set of percentile rows
+ * (advanced table)
+ */
+function validatePercentileInputs({
+  question,
+  components,
+  t,
+}: {
+  question: QuestionWithNumericForecasts;
+  components: DistributionQuantileComponent;
+  t: ReturnType<typeof useTranslations>;
+}): QuantileValidationError[] {
+  const errors: QuantileValidationError[] = [];
+  const add = (
+    index: number,
+    message: string,
+    field: QuantileValidationError["field"] = "value"
+  ) => {
+    if (errors.some((e) => e.index === index && e.message === message)) return;
+    errors.push({
+      quantile: components[index]?.quantile ?? null,
+      index,
+      message,
+      field,
+    });
+  };
+
+  const { open_lower_bound, open_upper_bound, scaling } = question;
+  const { range_min, range_max } = scaling;
+  const lowerIndex = components.findIndex((c) => c.quantile === Quantile.lower);
+  const upperIndex = components.findIndex((c) => c.quantile === Quantile.upper);
+  if (
+    isNil(range_min) ||
+    isNil(range_max) ||
+    lowerIndex < 0 ||
+    upperIndex < 0
+  ) {
+    return [{ quantile: null, index: 0, message: t("unexpectedError") }];
+  }
+  const probBelow = components[lowerIndex]?.value;
+  const probAbove = components[upperIndex]?.value;
+
+  // Out-of-bounds rows: same rules as the regular table
+  for (const [index, isOpen] of [
+    [lowerIndex, open_lower_bound],
+    [upperIndex, open_upper_bound],
+  ] as const) {
+    const value = components[index]?.value;
+    if (isNil(value)) {
+      add(index, t("quantileEmptyError"));
+    } else if (
+      (isOpen && (value < 0.1 || value > 99.9)) ||
+      (!isOpen && value !== 0)
+    ) {
+      add(index, t("probabilityRangeError"));
+    }
+  }
+  if (probBelow && probAbove && probBelow + probAbove > 99) {
+    add(lowerIndex, t("probabilitySumError"));
+    add(upperIndex, t("probabilitySumError"));
+  }
+
+  // Percentile rows: all filled in, with valid, unique percentiles
+  const rows = components
+    .map((c, index) => ({ c, index }))
+    .filter(({ c }) => isPercentileRow(c));
+  const counts = countBy(
+    rows.filter(({ c }) => !isNil(c.quantile)),
+    ({ c }) => c.quantile
+  );
+  for (const { c, index } of rows) {
+    const percentile = c.quantile as number | null;
+    if (isNil(percentile)) {
+      add(index, t("advancedTablePercentileEmptyError"), "percentile");
+    } else if (!(percentile > 0 && percentile < 100)) {
+      add(index, t("advancedTablePercentileRangeError"), "percentile");
+    } else if ((counts[String(percentile)] ?? 0) > 1) {
+      add(index, t("advancedTablePercentileDuplicateError"), "percentile");
+    }
+    if (isNil(c.value)) {
+      add(index, t("quantileEmptyError"));
+    }
+  }
+
+  // Filled rows in percentile order
+  const filled = rows
+    .flatMap(({ c, index }) =>
+      isNil(c.quantile) || isNil(c.value)
+        ? []
+        : [{ percentile: Number(c.quantile), value: c.value, index }]
+    )
+    .sort((a, b) => a.percentile - b.percentile);
+  const isInRange = (value: number) => range_min < value && value < range_max;
+
+  // Values must increase with the percentile (they may only tie outside the
+  // range, where many percentiles can share the out-of-bounds mass), and
+  // stay apart inside the range, like the regular table's quartiles
+  for (let i = 1; i < filled.length; i++) {
+    const prev = filled[i - 1];
+    const cur = filled[i];
+    if (!prev || !cur || prev.percentile === cur.percentile) continue;
+    if (
+      cur.value < prev.value ||
+      (cur.value === prev.value && isInRange(cur.value))
+    ) {
+      add(prev.index, t("advancedTableValuesOrderError"));
+      add(cur.index, t("advancedTableValuesOrderError"));
+    } else if (
+      isInRange(prev.value) &&
+      isInRange(cur.value) &&
+      checkNormalizedDistance(prev.value, cur.value, scaling)
+    ) {
+      add(prev.index, t("quantileTooCloseError"));
+      add(cur.index, t("quantileTooCloseError"));
+    }
+  }
+
+  // Each value against the bounds and the out-of-bounds probabilities
+  for (const { percentile, value, index } of filled) {
+    const remaining = round(100 - percentile, 10);
+    if (!open_lower_bound && value <= range_min) {
+      add(index, t("quantileBelowBoundError"));
+    }
+    if (!open_upper_bound && value >= range_max) {
+      add(index, t("quantileAboveBoundError"));
+    }
+    // Below the range, at least that much mass must be below the lower
+    // bound; inside it, no more than that can be. Likewise above.
+    const boundErrors: [boolean, string, number][] = [
+      [
+        !!open_lower_bound &&
+          !isNil(probBelow) &&
+          value <= range_min &&
+          probBelow < percentile,
+        t("advancedTableBelowRangeError", { percentile }),
+        lowerIndex,
+      ],
+      [
+        !!open_lower_bound &&
+          !isNil(probBelow) &&
+          value > range_min &&
+          probBelow > percentile,
+        t("advancedTableInRangeProbBelowError", { percentile }),
+        lowerIndex,
+      ],
+      [
+        !!open_upper_bound &&
+          !isNil(probAbove) &&
+          value >= range_max &&
+          probAbove < remaining,
+        t("advancedTableAboveRangeError", { percentile, remaining }),
+        upperIndex,
+      ],
+      [
+        !!open_upper_bound &&
+          !isNil(probAbove) &&
+          value < range_max &&
+          probAbove > remaining,
+        t("advancedTableInRangeProbAboveError", { percentile, remaining }),
+        upperIndex,
+      ],
+    ];
+    for (const [failed, message, boundIndex] of boundErrors) {
+      if (failed) {
+        add(index, message);
+        add(boundIndex, message);
+      }
+    }
+  }
+
   return errors;
 }
 

@@ -6,6 +6,19 @@ import { scaleInternalLocation, unscaleNominalLocation } from "@/utils/math";
 // Nudge functions take a signed number of steps: ±1 for a regular nudge,
 // more with Shift held (see nudgeSteps in components/ui/nudge_buttons).
 
+/**
+ * A percentile nudged by `steps` points, or undefined if that would leave
+ * (0, 100). An unfilled percentile starts at 50.
+ */
+export function nudgePercentile(
+  percentile: number | null | undefined,
+  steps: number
+): number | undefined {
+  if (isNil(percentile)) return 50;
+  const next = round(percentile + steps, 10);
+  return next > 0 && next < 100 ? next : undefined;
+}
+
 /** Roughly how much of the range one nudge moves a value */
 const VALUE_NUDGE_FRACTION = 0.01;
 

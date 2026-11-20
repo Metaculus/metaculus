@@ -140,11 +140,53 @@ export type DistributionInput<T> = {
   components: T[];
 };
 
-export type DistributionSliderComponent = {
+export enum SliderComponentType {
+  Logistic = "logistic",
+  Uniform = "uniform",
+  Damper = "damper",
+}
+
+export type LogisticSliderComponent = {
+  // Absent on forecasts made before component types existed; a missing
+  // type means logistic
+  type?: SliderComponentType.Logistic;
   weight: number;
   left: number;
   center: number;
   right: number;
+};
+
+// Mass spread uniformly over [left, right] (0-1 locations within the
+// question's range). An edge at an open bound also covers that
+// out-of-bounds bucket.
+export type UniformSliderComponent = {
+  type: SliderComponentType.Uniform;
+  weight: number;
+  left: number;
+  right: number;
+};
+
+// Removes probability rather than adding it: once the other components are
+// mixed, mass inside [left, right] (same semantics as uniform) is multiplied
+// by (1 - strength), then everything is renormalized. Dampers have no
+// weight in the mixture.
+export type DamperSliderComponent = {
+  type: SliderComponentType.Damper;
+  strength: number;
+  left: number;
+  right: number;
+};
+
+export type DistributionSliderComponent =
+  | LogisticSliderComponent
+  | UniformSliderComponent
+  | DamperSliderComponent;
+
+// Probability mass (0-1) pinned outside the question's range, overriding
+// what the components put there. Always 0 on a closed bound.
+export type PinnedOutOfBounds = {
+  below_lower_bound: number;
+  above_upper_bound: number;
 };
 
 export enum Quantile {
@@ -156,7 +198,10 @@ export enum Quantile {
 }
 
 export type QuantileValue = {
-  quantile: Quantile;
+  // Quantile.lower/upper for the out-of-bounds rows. Otherwise a percentile
+  // (0-100): 25/50/75 in the regular table, any value in the advanced table,
+  // where null means it hasn't been filled in yet.
+  quantile: Quantile | number | null;
   value?: number; // quantile value or out of bounds value
   isDirty?: boolean;
 };
@@ -166,6 +211,8 @@ export type DistributionQuantileComponent = QuantileValue[];
 export type DistributionSlider =
   DistributionInput<DistributionSliderComponent> & {
     type: ContinuousForecastInputType.Slider;
+    // Absent/null when out-of-bounds mass isn't pinned
+    pinned_out_of_bounds?: PinnedOutOfBounds | null;
   };
 
 export type DistributionQuantile = {

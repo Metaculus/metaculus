@@ -6,9 +6,12 @@ import { ContinuousForecastInputType } from "@/types/charts";
 import {
   DistributionQuantileComponent,
   DistributionSliderComponent,
+  PinnedOutOfBounds,
   Quantile,
   Scaling,
 } from "@/types/question";
+import { isPercentileRow } from "@/utils/forecasts/quantile_components";
+import { fitPinnedOutOfBounds } from "@/utils/forecasts/slider_components";
 import { scaleInternalLocation, unscaleNominalLocation } from "@/utils/math";
 
 // Matches the tolerance validateQuantileInput (forecast_maker/helpers.ts)
@@ -29,6 +32,8 @@ type ClipboardDistribution = {
   [CLIPBOARD_MARKER]: true;
   type: ContinuousForecastInputType;
   components: DistributionSliderComponent[] | DistributionQuantileComponent;
+  // Slider distributions only
+  pinned_out_of_bounds?: PinnedOutOfBounds | null;
 };
 
 const VALID_INPUT_TYPES: string[] = Object.values(ContinuousForecastInputType);
@@ -40,15 +45,15 @@ function isEditableTarget(target: EventTarget | null): boolean {
 }
 
 // Quantile values are in the question's real-world units, which aren't
-// meaningful on a different question. `quantile` is a number (25/50/75) for
-// the actual value entries; `below_lower_bound`/`above_upper_bound` are
-// already scale-independent percentages, so they're left as-is.
+// meaningful on a different question. Percentile rows hold actual values;
+// `below_lower_bound`/`above_upper_bound` are already scale-independent
+// percentages, so they're left as-is.
 function toPortableQuantileComponents(
   components: DistributionQuantileComponent,
   scaling: Scaling
 ): DistributionQuantileComponent {
   return components.map((c) =>
-    typeof c.quantile === "number" && c.value !== undefined
+    isPercentileRow(c) && c.value !== undefined
       ? { ...c, value: unscaleNominalLocation(c.value, scaling) }
       : c
   );
@@ -121,13 +126,15 @@ function isClipboardDistribution(data: unknown): data is ClipboardDistribution {
 
 export type DistributionClipboardData = {
   sliderComponents: DistributionSliderComponent[];
+  pinnedOutOfBounds?: PinnedOutOfBounds | null;
   quantileComponents: DistributionQuantileComponent;
   scaling: Scaling;
   openLowerBound: boolean;
   openUpperBound: boolean;
   onPaste: (
     type: ContinuousForecastInputType,
-    components: DistributionSliderComponent[] | DistributionQuantileComponent
+    components: DistributionSliderComponent[] | DistributionQuantileComponent,
+    pinnedOutOfBounds: PinnedOutOfBounds | null
   ) => void;
 };
 
@@ -159,10 +166,17 @@ export function useDistributionClipboard({
     const clipboardDistribution: ClipboardDistribution = {
       [CLIPBOARD_MARKER]: true,
       type: forecastInputMode,
-      components:
-        forecastInputMode === ContinuousForecastInputType.Slider
-          ? data.sliderComponents
-          : toPortableQuantileComponents(data.quantileComponents, data.scaling),
+      ...(forecastInputMode === ContinuousForecastInputType.Slider
+        ? {
+            components: data.sliderComponents,
+            pinned_out_of_bounds: data.pinnedOutOfBounds ?? null,
+          }
+        : {
+            components: toPortableQuantileComponents(
+              data.quantileComponents,
+              data.scaling
+            ),
+          }),
     };
     try {
       await navigator.clipboard.writeText(
@@ -192,7 +206,15 @@ export function useDistributionClipboard({
               data.openUpperBound
             )
           : parsed.components;
-      data.onPaste(parsed.type, components);
+      // Pins have to fit the target question's bounds
+      const pinned =
+        parsed.type === ContinuousForecastInputType.Slider
+          ? fitPinnedOutOfBounds(parsed.pinned_out_of_bounds, {
+              open_lower_bound: data.openLowerBound,
+              open_upper_bound: data.openUpperBound,
+            })
+          : null;
+      data.onPaste(parsed.type, components, pinned);
       toast(t("distributionPasted"));
     } catch {
       toast.error(t("distributionPasteInvalid"));

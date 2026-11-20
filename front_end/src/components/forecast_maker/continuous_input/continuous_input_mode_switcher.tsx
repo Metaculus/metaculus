@@ -7,9 +7,14 @@ import cn from "@/utils/core/cn";
 type Props = {
   mode: ContinuousForecastInputType;
   onChange: (mode: ContinuousForecastInputType) => void;
+  showSliderHint?: boolean;
 };
 
-const ContinuousInputModeSwitcher: FC<Props> = ({ mode, onChange }) => {
+const ContinuousInputModeSwitcher: FC<Props> = ({
+  mode,
+  onChange,
+  showSliderHint = true,
+}) => {
   const t = useTranslations();
   return (
     <div className="flex h-fit flex-col gap-1">
@@ -29,7 +34,7 @@ const ContinuousInputModeSwitcher: FC<Props> = ({ mode, onChange }) => {
           {t("table")}
         </SwitcherBtn>
       </div>
-      {mode === ContinuousForecastInputType.Quantile && (
+      {showSliderHint && mode === ContinuousForecastInputType.Quantile && (
         <p className="m-0 pl-3 text-xs text-gray-600 dark:text-gray-600-dark">
           ↑ {t("switchBackToSlidersHint")}
         </p>

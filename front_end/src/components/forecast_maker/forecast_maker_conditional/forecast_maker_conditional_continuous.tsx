@@ -27,9 +27,8 @@ import { Post, PostConditional, QuestionStatus } from "@/types/post";
 import {
   DistributionQuantile,
   DistributionQuantileComponent,
-  DistributionSlider,
   DistributionSliderComponent,
-  Quantile,
+  PinnedOutOfBounds,
   Quartiles,
   Question,
   QuestionWithNumericForecasts,
@@ -41,15 +40,21 @@ import {
   getSliderNumericForecastDataset,
 } from "@/utils/forecasts/dataset";
 import {
+  buildSliderDistributionInput,
   clearQuantileComponents,
+  getQuantileMedianValue,
   isForecastActive,
-  makeDefaultSliderComponent,
 } from "@/utils/forecasts/helpers";
 import {
   extractPrevNumericForecastValue,
+  getInitialPinnedOutOfBounds,
   getInitialQuantileDistributionComponents,
   getInitialSliderDistributionComponents,
 } from "@/utils/forecasts/initial_values";
+import {
+  fitPinnedOutOfBounds,
+  makeDefaultSliderComponent,
+} from "@/utils/forecasts/slider_components";
 import {
   getQuantilesDistributionFromSlider,
   getSliderDistributionFromQuantiles,
@@ -148,6 +153,7 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
       ConditionalTableOption & {
         question: QuestionWithNumericForecasts;
         sliderForecast: DistributionSliderComponent[];
+        pinnedOutOfBounds: PinnedOutOfBounds | null;
         quantileForecast: DistributionQuantileComponent;
         quantileValue: number | null;
         forecastInputMode: ContinuousForecastInputType;
@@ -285,6 +291,10 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
                   isDirty: true,
                 })),
                 sliderForecast: fromChoice.sliderForecast,
+                pinnedOutOfBounds: fitPinnedOutOfBounds(
+                  fromChoice.pinnedOutOfBounds,
+                  prevChoice.question
+                ),
                 forecastInputMode: fromChoice.forecastInputMode,
                 isDirty: true,
               };
@@ -301,7 +311,9 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
                     ? latest.distribution_input.components
                     : getQuantilesDistributionFromSlider(
                         latest.distribution_input.components,
-                        condition_child as QuestionWithNumericForecasts
+                        condition_child as QuestionWithNumericForecasts,
+                        false,
+                        latest.distribution_input.pinned_out_of_bounds
                       ),
                 sliderForecast:
                   latest.distribution_input.type === "slider"
@@ -310,6 +322,14 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
                         latest.distribution_input.components,
                         condition_child
                       ),
+                // The child may have different bounds than this branch
+                pinnedOutOfBounds:
+                  latest.distribution_input.type === "slider"
+                    ? fitPinnedOutOfBounds(
+                        latest.distribution_input.pinned_out_of_bounds,
+                        prevChoice.question
+                      )
+                    : null,
                 isDirty: true,
                 forecastInputMode:
                   latest.distribution_input.type === "slider"
@@ -333,7 +353,9 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
     (
       optionId: number,
       components: DistributionSliderComponent[] | DistributionQuantileComponent,
-      forecastInputMode: ContinuousForecastInputType
+      forecastInputMode: ContinuousForecastInputType,
+      // Slider changes only
+      pinnedOutOfBounds: PinnedOutOfBounds | null = null
     ) => {
       setQuestionOptions((prev) =>
         prev.map((option) => {
@@ -352,13 +374,15 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
                     value: getTableValue(
                       components,
                       option.question,
-                      forecastInputMode
+                      forecastInputMode,
+                      pinnedOutOfBounds
                     ),
                   }),
               isDirty: true,
               ...(forecastInputMode === ContinuousForecastInputType.Slider
                 ? {
                     sliderForecast: components as DistributionSliderComponent[],
+                    pinnedOutOfBounds,
                   }
                 : {
                     quantileForecast:
@@ -397,12 +421,20 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
     setQuestionOptions((prev) =>
       prev.map((prevChoice) => {
         if (prevChoice.id === optionId) {
+          const sliderForecast = [
+            ...prevChoice.sliderForecast,
+            makeDefaultSliderComponent(),
+          ];
           return {
             ...prevChoice,
-            sliderForecast: [
-              ...prevChoice.sliderForecast,
-              makeDefaultSliderComponent(),
-            ],
+            sliderForecast,
+            // The new component can make an invalid distribution valid
+            value: getTableValue(
+              sliderForecast,
+              prevChoice.question,
+              ContinuousForecastInputType.Slider,
+              prevChoice.pinnedOutOfBounds
+            ),
             isDirty: true,
           };
         }
@@ -425,8 +457,12 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
             ...prevChoice,
             value: getTableValue(
               prevYesForecastValue?.components as DistributionSliderComponent[],
-              question_yes
+              question_yes,
+              undefined,
+              getInitialPinnedOutOfBounds(prevYesForecastValue)
             ),
+            pinnedOutOfBounds:
+              getInitialPinnedOutOfBounds(prevYesForecastValue),
             sliderForecast: getInitialSliderDistributionComponents(
               latestYes,
               prevYesForecastValue,
@@ -452,8 +488,11 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
             ...prevChoice,
             value: getTableValue(
               prevNoForecastValue?.components as DistributionSliderComponent[],
-              question_no
+              question_no,
+              undefined,
+              getInitialPinnedOutOfBounds(prevNoForecastValue)
             ),
+            pinnedOutOfBounds: getInitialPinnedOutOfBounds(prevNoForecastValue),
             sliderForecast: getInitialSliderDistributionComponents(
               latestNo,
               prevNoForecastValue,
@@ -494,6 +533,18 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
     }
     setIsSubmitting(true);
     for (const q of questionsToSubmit) {
+      if (q.forecastInputMode === ContinuousForecastInputType.Slider) {
+        const { error } = getSliderNumericForecastDataset(
+          q.sliderForecast,
+          q.question,
+          q.pinnedOutOfBounds
+        );
+        if (error) {
+          setSubmitError(new Error(`${q.name}: ${t(error)}`));
+          setIsSubmitting(false);
+          return;
+        }
+      }
       if (q.forecastInputMode === ContinuousForecastInputType.Quantile) {
         const validationErrors = validateUserQuantileData({
           question: q.question,
@@ -520,6 +571,7 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
         ({
           question,
           sliderForecast,
+          pinnedOutOfBounds,
           quantileForecast,
           forecastInputMode,
           forecastExpiration: questionForecastExpiration,
@@ -534,17 +586,21 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
               forecastInputMode === ContinuousForecastInputType.Quantile
                 ? getQuantileNumericForecastDataset(quantileForecast, question)
                     .cdf
-                : getSliderNumericForecastDataset(sliderForecast, question).cdf,
+                : getSliderNumericForecastDataset(
+                    sliderForecast,
+                    question,
+                    pinnedOutOfBounds
+                  ).cdf,
             probabilityYesPerCategory: null,
             probabilityYes: null,
           },
-          distributionInput: {
-            type: forecastInputMode,
-            components:
-              forecastInputMode === ContinuousForecastInputType.Slider
-                ? sliderForecast
-                : clearQuantileComponents(quantileForecast),
-          } as DistributionSlider | DistributionQuantile,
+          distributionInput:
+            forecastInputMode === ContinuousForecastInputType.Slider
+              ? buildSliderDistributionInput(sliderForecast, pinnedOutOfBounds)
+              : ({
+                  type: ContinuousForecastInputType.Quantile,
+                  components: clearQuantileComponents(quantileForecast),
+                } as DistributionQuantile),
         })
       )
     );
@@ -573,8 +629,15 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
               }))
             : getQuantilesDistributionFromSlider(
                 prevChoice.sliderForecast,
-                prevChoice.question
+                prevChoice.question,
+                false,
+                prevChoice.pinnedOutOfBounds
               );
+        // A slider state derived from a table forecast has no pins
+        const pinnedOutOfBounds =
+          prevChoice.forecastInputMode === ContinuousForecastInputType.Slider
+            ? prevChoice.pinnedOutOfBounds
+            : null;
         const sliderForecast =
           prevChoice.forecastInputMode === ContinuousForecastInputType.Slider
             ? prevChoice.sliderForecast
@@ -587,6 +650,7 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
           ...prevChoice,
           quantileForecast,
           sliderForecast,
+          pinnedOutOfBounds,
           ...(prevChoice.forecastInputMode ===
           ContinuousForecastInputType.Quantile
             ? {
@@ -647,13 +711,17 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
     setSubmitError(undefined);
     return questionOptions.map((option) => {
       if (option.forecastInputMode === ContinuousForecastInputType.Slider) {
-        return {
-          id: option.id,
-          dataset: getSliderNumericForecastDataset(
-            option.sliderForecast,
-            option.question
-          ),
-        };
+        const sliderDataset = getSliderNumericForecastDataset(
+          option.sliderForecast,
+          option.question,
+          option.pinnedOutOfBounds
+        );
+        if (sliderDataset.error) {
+          setSubmitError(
+            new Error(`${option.name}: ${t(sliderDataset.error)}`)
+          );
+        }
+        return { id: option.id, dataset: sliderDataset };
       } else if (
         validateAllQuantileInputs({
           question: option.question,
@@ -683,7 +751,8 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
     activeOptionData &&
     getSliderNumericForecastDataset(
       activeOptionData.sliderForecast,
-      activeOptionData.question
+      activeOptionData.question,
+      activeOptionData.pinnedOutOfBounds
     ).cdf;
   const userPreviousCdf: number[] | undefined =
     overlayPreviousForecast && previousForecast
@@ -698,9 +767,15 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
       ? aggregateLatest.forecast_values
       : undefined;
 
+  // Any branch whose slider distribution can't be built blocks submission
+  const hasInvalidSliderForecast = questionOptions.some(
+    (option) =>
+      option.forecastInputMode === ContinuousForecastInputType.Slider &&
+      !datasets.find(({ id }) => id === option.id)?.dataset.cdf.length
+  );
   const predictButtonIsDisabled =
     activeOptionData?.forecastInputMode === ContinuousForecastInputType.Slider
-      ? !questionsToSubmit.length
+      ? !questionsToSubmit.length || hasInvalidSliderForecast
       : activeOptionData?.forecastInputMode ===
             ContinuousForecastInputType.Quantile && activeQuestion
         ? validateAllQuantileInputs({
@@ -897,11 +972,13 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
               userPreviousCdf={userPreviousCdf}
               communityCdf={communityCdf}
               sliderComponents={option.sliderForecast}
-              onSliderChange={(components) =>
+              pinnedOutOfBounds={option.pinnedOutOfBounds}
+              onSliderChange={(components, pinned) =>
                 handleChange(
                   option.id,
                   components,
-                  ContinuousForecastInputType.Slider
+                  ContinuousForecastInputType.Slider,
+                  pinned
                 )
               }
               quantileComponent={option.quantileForecast}
@@ -937,13 +1014,21 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
 
 function getUserQuartiles(
   question: Question,
-  components?: DistributionSliderComponent[]
+  components?: DistributionSliderComponent[],
+  pinnedOutOfBounds?: PinnedOutOfBounds | null
 ): Quartiles | null {
   if (!components) {
     return null;
   }
 
-  const dataset = getSliderNumericForecastDataset(components, question);
+  const dataset = getSliderNumericForecastDataset(
+    components,
+    question,
+    pinnedOutOfBounds
+  );
+  if (dataset.error) {
+    return null;
+  }
   return computeQuartilesFromCDF(dataset.cdf);
 }
 
@@ -953,22 +1038,23 @@ function getTableValue(
     | DistributionQuantileComponent
     | undefined,
   question: Question,
-  forecastInputMode?: ContinuousForecastInputType
+  forecastInputMode?: ContinuousForecastInputType,
+  pinnedOutOfBounds?: PinnedOutOfBounds | null
 ) {
   if (!components) {
     return null;
   }
   if (forecastInputMode === ContinuousForecastInputType.Quantile) {
-    return (
-      (components as DistributionQuantileComponent)?.find(
-        (component) => component.quantile === Quantile.q2
-      )?.value ?? null
+    return getQuantileMedianValue(
+      components as DistributionQuantileComponent,
+      question
     );
   }
 
   const quartiles = getUserQuartiles(
     question,
-    components as DistributionSliderComponent[]
+    components as DistributionSliderComponent[],
+    pinnedOutOfBounds
   );
   return quartiles?.median ?? null;
 }
@@ -1007,6 +1093,8 @@ function getQuestionOptions(
           prevYesForecastValue,
           question_yes
         );
+        const pinnedOutOfBounds =
+          getInitialPinnedOutOfBounds(prevYesForecastValue);
         const forecastInputMode =
           prevYesForecastValue?.type === ContinuousForecastInputType.Quantile
             ? ContinuousForecastInputType.Quantile
@@ -1014,12 +1102,14 @@ function getQuestionOptions(
         return {
           forecastInputMode,
           sliderForecast,
+          pinnedOutOfBounds,
           quantileForecast,
           value: prevYesForecastValue
             ? getTableValue(
                 sliderForecast,
                 question_yes,
-                ContinuousForecastInputType.Slider
+                ContinuousForecastInputType.Slider,
+                pinnedOutOfBounds
               )
             : null,
           quantileValue: prevYesForecastValue
@@ -1052,6 +1142,8 @@ function getQuestionOptions(
           prevNoForecastValue,
           question_no
         );
+        const pinnedOutOfBounds =
+          getInitialPinnedOutOfBounds(prevNoForecastValue);
         const forecastInputMode =
           prevNoForecastValue?.type === ContinuousForecastInputType.Quantile
             ? ContinuousForecastInputType.Quantile
@@ -1060,12 +1152,14 @@ function getQuestionOptions(
         return {
           forecastInputMode,
           sliderForecast,
+          pinnedOutOfBounds,
           quantileForecast,
           value: prevNoForecastValue
             ? getTableValue(
                 sliderForecast,
                 question_no,
-                ContinuousForecastInputType.Slider
+                ContinuousForecastInputType.Slider,
+                pinnedOutOfBounds
               )
             : null,
           quantileValue: prevNoForecastValue
