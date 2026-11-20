@@ -18,7 +18,10 @@ import { useBreakpoint } from "@/hooks/tailwind";
 import useAppTheme from "@/hooks/use_app_theme";
 import useContainerSize from "@/hooks/use_container_size";
 
-import { CollisionAwareLabels } from "./collision-aware-labels";
+import {
+  CollisionAwareLabels,
+  REFERENCE_CAPTION_OFFSET,
+} from "./collision-aware-labels";
 import { MappedAggregates, MappedBots } from "./mapping";
 import {
   computeSotaPoints,
@@ -243,24 +246,20 @@ export function BenchmarkChart({
   // 1. showAllLabels is true (show all), OR
   // 2. It's a SOTA model (only when not hovering a different family), OR
   // 3. The family is specifically selected in the legend (only when not hovering a different family), OR
-  // 4. The family is hovered in the legend, OR
-  // 5. The specific point is hovered
+  // 4. The family is hovered in the legend
+  // A hovered point's label is added on top of these by CollisionAwareLabels.
   const dataWithLabels = useMemo(() => {
     return chartData.map((d) => {
       const familyIsSelected = selectedFamilies.has(d.family ?? "");
       const familyIsHovered = hoveredFamily === d.family;
       const isHoveredPointFlag = hoveredPointKey === d.pointKey;
-      // When hovering a family, only show labels for that family (and hovered points)
+      // When hovering a family, only show labels for that family
       // Hide labels from selected/SOTA families while hovering a different family
-      const showLabelWhenHovering = familyIsHovered || isHoveredPointFlag;
       const showLabelNormally =
-        showAllLabels ||
-        sotaModelNames.has(d.name) ||
-        familyIsSelected ||
-        isHoveredPointFlag;
+        showAllLabels || sotaModelNames.has(d.name) || familyIsSelected;
       return {
         ...d,
-        showLabel: hoveredFamily ? showLabelWhenHovering : showLabelNormally,
+        showLabel: hoveredFamily ? familyIsHovered : showLabelNormally,
         isHighlighted: isHighlighted(d.family ?? ""),
         isSota: sotaModelNames.has(d.name),
         isHoveredPoint: isHoveredPointFlag,
@@ -441,10 +440,10 @@ export function BenchmarkChart({
               labelComponent={
                 <VictoryLabel
                   dx={2}
-                  dy={-6}
+                  dy={-REFERENCE_CAPTION_OFFSET}
                   textAnchor="end"
                   style={{
-                    fontSize: isSmallScreen ? 10 : 12,
+                    fontSize: labelFontSize,
                     fontFamily: "system-ui, sans-serif",
                     fontWeight: 600,
                     fill: getThemeColor(METAC_COLORS.purple[700]),
@@ -516,6 +515,7 @@ export function BenchmarkChart({
           {/* Custom labels layer with collision detection */}
           <CollisionAwareLabels
             data={dataWithLabels}
+            referenceLines={referenceLines}
             xDomain={[minX, maxX]}
             yDomain={[minY, maxY]}
             colorForFamily={colorForFamily}
