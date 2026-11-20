@@ -22,7 +22,7 @@ function niceStep(x: number): number {
  * A value (in the question's units) nudged by `steps` times about 1% of the
  * range:
  * - linear scales: a round step near range / 100;
- * - log scales: 1% of the (log) axis, rounded to 3 significant figures;
+ * - log scales: 1% of the (log) axis, rounded to the step's magnitude;
  * - discrete questions: whole outcomes, snapped onto the outcomes.
  * An unfilled value starts at the middle of the range.
  */
@@ -62,7 +62,10 @@ export function nudgeNominalValue(
       location + steps * VALUE_NUDGE_FRACTION,
       question.scaling
     );
-    return Number(next.toPrecision(3));
+    // Round to the step's leading digit, so the result stays readable but
+    // always moves by roughly one step in the intended direction
+    const magnitude = 10 ** Math.floor(Math.log10(Math.abs(next - value)));
+    return round(Math.round(next / magnitude) * magnitude, 10);
   }
   return round(value + steps * niceStep(range * VALUE_NUDGE_FRACTION), 10);
 }
