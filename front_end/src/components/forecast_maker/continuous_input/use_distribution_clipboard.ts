@@ -1,5 +1,5 @@
 import { useTranslations } from "next-intl";
-import { RefObject, useCallback, useEffect } from "react";
+import { KeyboardEvent, useCallback } from "react";
 import toast from "react-hot-toast";
 
 import { ContinuousForecastInputType } from "@/types/charts";
@@ -133,8 +133,9 @@ export type DistributionClipboardData = {
 
 /**
  * Copying/pasting distributions via the clipboard, plus the Ctrl+C / Ctrl+V
- * shortcuts within `containerRef`. A hook rather than a component so the
- * shortcuts keep working while the buttons' panel is closed.
+ * shortcuts (attach `onKeyDown` to the input's container). A hook rather
+ * than a component so the shortcuts keep working while the buttons' panel
+ * is closed.
  *
  * Returns null without `data`; `paste` is omitted when disabled.
  */
@@ -142,13 +143,15 @@ export function useDistributionClipboard({
   data,
   forecastInputMode,
   disabled,
-  containerRef,
 }: {
   data: DistributionClipboardData | undefined;
   forecastInputMode: ContinuousForecastInputType;
   disabled?: boolean;
-  containerRef: RefObject<HTMLElement | null>;
-}): { copy: () => void; paste?: () => void } | null {
+}): {
+  copy: () => void;
+  paste?: () => void;
+  onKeyDown: (e: KeyboardEvent<HTMLElement>) => void;
+} | null {
   const t = useTranslations();
 
   const handleCopy = useCallback(async () => {
@@ -196,34 +199,30 @@ export function useDistributionClipboard({
     }
   }, [data, t]);
 
-  // Ctrl+C / Ctrl+V keyboard shortcuts
-  const hasData = !!data;
-  useEffect(() => {
-    const container = containerRef.current;
-    if (!container || !hasData) return;
+  // Ctrl+C / Ctrl+V keyboard shortcuts. A React handler rather than a native
+  // listener, so it also covers portaled children like the options panel.
+  const handleKeyDown = (e: KeyboardEvent<HTMLElement>) => {
+    if (!e.ctrlKey && !e.metaKey) return;
+    // Let native copy/paste happen when the user is focused on a form field
+    // (e.g. a percentile input) instead of hijacking the shortcut
+    if (isEditableTarget(e.target)) return;
 
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (!e.ctrlKey && !e.metaKey) return;
-      // Let native copy/paste happen when the user is focused on a form
-      // field (e.g. a percentile input) instead of hijacking the shortcut
-      if (isEditableTarget(e.target)) return;
-
-      if (e.key === "c") {
-        // Only intercept if no text is selected
-        const selection = window.getSelection()?.toString();
-        if (selection) return;
-        e.preventDefault();
-        handleCopy();
-      } else if (e.key === "v" && !disabled) {
-        e.preventDefault();
-        handlePaste();
-      }
-    };
-
-    container.addEventListener("keydown", handleKeyDown);
-    return () => container.removeEventListener("keydown", handleKeyDown);
-  }, [containerRef, hasData, handleCopy, handlePaste, disabled]);
+    if (e.key === "c") {
+      // Only intercept if no text is selected
+      const selection = window.getSelection()?.toString();
+      if (selection) return;
+      e.preventDefault();
+      handleCopy();
+    } else if (e.key === "v" && !disabled) {
+      e.preventDefault();
+      handlePaste();
+    }
+  };
 
   if (!data) return null;
-  return { copy: handleCopy, paste: disabled ? undefined : handlePaste };
+  return {
+    copy: handleCopy,
+    paste: disabled ? undefined : handlePaste,
+    onKeyDown: handleKeyDown,
+  };
 }

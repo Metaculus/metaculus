@@ -1,5 +1,5 @@
 import { useTranslations } from "next-intl";
-import { FC, ReactNode, useCallback, useMemo, useRef, useState } from "react";
+import { FC, ReactNode, useCallback, useMemo, useState } from "react";
 
 import {
   ContinuousAreaGraphType,
@@ -47,12 +47,10 @@ const ContinuousInputContainer: FC<ContinuousInputContainerProps> = ({
   questionType,
 }) => {
   const t = useTranslations();
-  const containerRef = useRef<HTMLDivElement>(null);
   const clipboard = useDistributionClipboard({
     data: clipboardData,
     forecastInputMode,
     disabled,
-    containerRef,
   });
 
   const [sliderGraphType, setSliderGraphType] =
@@ -78,7 +76,7 @@ const ContinuousInputContainer: FC<ContinuousInputContainerProps> = ({
 
   return (
     <div
-      ref={containerRef}
+      onKeyDown={clipboard?.onKeyDown}
       className="mr-0 flex flex-col sm:mr-2"
       tabIndex={-1}
     >

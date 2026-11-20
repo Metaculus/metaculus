@@ -56,7 +56,10 @@ const AbreviatedNumericInput: FC<Props> = ({
         : Number(value);
     const next = nudge(current, steps);
     if (isNil(next)) return;
-    setLocalValue(abbreviatedNumber(next, 4));
+    // While editing, show the exact value: abbreviating it (e.g. 12345 as
+    // "12.35k") would lose steps smaller than the display precision. It's
+    // abbreviated on blur, like typed input.
+    setLocalValue(isFocused ? String(next) : abbreviatedNumber(next, 4));
     onChange(next);
   };
 
