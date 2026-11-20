@@ -249,7 +249,7 @@ const EMBEDDED_COMPONENT_REGEX = new RegExp(
   "g"
 );
 const VOID_TAG_REGEX =
-  /<(?:hr|br|img)\s+[^>]*?\s*(?:\/>|>(?:.*?)<\/(?:hr|br|img)>)/gs;
+  /<(?:hr|br|img)\s+(?:[^\s>][^>]*?)?(?:\/>|>.*?<\/(?:hr|br|img)>)/gs;
 
 const toSelfClosingVoidTags = (html: string) =>
   html.replace(/<(hr|br|img)\b([^>]*?)\s*\/?>/g, "<$1$2 />");
@@ -297,10 +297,11 @@ function sanitizeHtml(markdown: string) {
 // The pre-fix sanitizer pulled these out before DOMPurify, and DOMPurify skips
 // parsing (and so entity decoding) when no `<` remains in its input.
 const LEGACY_EMBED_REGEX = new RegExp(
-  `<(${EMBEDDED_QUESTION_COMPONENT_NAME}|${EMBEDDED_TWITTER_COMPONENT_NAME})\\s+([^>]*)\\s*(?:\\/>|>(.*?)<\\/\\1>)`,
+  `<(${EMBEDDED_QUESTION_COMPONENT_NAME}|${EMBEDDED_TWITTER_COMPONENT_NAME})\\s+(?:[^\\s>][^>]*)?(?:\\/>|>.*?<\\/\\1>)`,
   "gs"
 );
-const LEGACY_VOID_TAG_REGEX = /<(hr|br|img)\s+([^>]*)\s*(?:\/>|>(.*?)<\/\1>)/gs;
+const LEGACY_VOID_TAG_REGEX =
+  /<(hr|br|img)\s+(?:[^\s>][^>]*)?(?:\/>|>.*?<\/\1>)/gs;
 
 const getLegacyEntityDecoding = (prepared: string): LegacyEntityDecoding =>
   prepared

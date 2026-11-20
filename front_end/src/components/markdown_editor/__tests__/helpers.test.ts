@@ -677,6 +677,8 @@ describe("processMarkdownForDisplay", () => {
     ["a comparison", "a < b and `x &#60; y`", {}, "full"],
     ["an HTML tag", "<u>u</u> `x`", {}, "full"],
     ["only an embed", '<EmbeddedQuestion id="1" />', {}, "basic"],
+    ["a spaced void tag without attributes", "Line<br   />break", {}, "basic"],
+    ["a spaced paired void tag", "<br   >text</br>", {}, "basic"],
     ["only a spaced void tag", 'Text <img src="a.png" /> end', {}, "basic"],
     ["an unspaced void tag", "Line<br/>break", {}, "full"],
     [
