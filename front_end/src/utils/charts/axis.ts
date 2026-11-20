@@ -1296,7 +1296,7 @@ export function generateScale({
     !isNil(rangeMax)
   ) {
     discreteValueOptions = [];
-    for (let i = 0; i < inbound_outcome_count; i++) {
+    for (let i = -1; i < inbound_outcome_count + 1; i++) {
       discreteValueOptions.push(
         rangeMin + ((rangeMax - rangeMin) * (i + 0.5)) / inbound_outcome_count
       );
@@ -1313,7 +1313,7 @@ export function generateScale({
   ) {
     // look at the size of the last two labels to determine the max label count
     const lastLabel = getPredictionDisplayValue(
-      1 - 0.5 / inbound_outcome_count,
+      1 + 0.5 / inbound_outcome_count,
       {
         questionType: displayType as QuestionType,
         scaling: rangeScaling,
