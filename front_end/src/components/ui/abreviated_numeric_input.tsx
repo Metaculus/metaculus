@@ -4,6 +4,7 @@ import { isNil } from "lodash";
 import { FC, useCallback, useEffect, useState } from "react";
 
 import { Input } from "@/components/ui/form_field";
+import NudgeButtons, { nudgeSteps } from "@/components/ui/nudge_buttons";
 import cn from "@/utils/core/cn";
 import { abbreviatedNumber } from "@/utils/formatters/number";
 
@@ -16,6 +17,10 @@ type Props = {
   error?: string;
   isDirty?: boolean;
   showPercentSign?: boolean;
+  // Enables up/down buttons and arrow keys. Gets the current value and a
+  // signed number of steps (see nudgeSteps); returns the nudged value, or
+  // undefined to leave it as is.
+  nudge?: (value: number | undefined, steps: number) => number | undefined;
 };
 
 const AbreviatedNumericInput: FC<Props> = ({
@@ -27,7 +32,9 @@ const AbreviatedNumericInput: FC<Props> = ({
   error,
   isDirty,
   showPercentSign,
+  nudge,
 }) => {
+  const canNudge = !!nudge && !disabled;
   const [localValue, setLocalValue] = useState<string>(
     isNil(value) ? "" : abbreviatedNumber(value, 4)
   );
@@ -38,6 +45,23 @@ const AbreviatedNumericInput: FC<Props> = ({
     }
     setLocalValue(isNil(value) ? "" : abbreviatedNumber(value, 4));
   }, [value, isFocused]);
+
+  const handleNudge = (steps: number) => {
+    if (!nudge) return;
+    // While editing, nudge what's typed; otherwise the current value
+    const current = isFocused
+      ? parseFormattedNumber(localValue)
+      : isNil(value)
+        ? undefined
+        : Number(value);
+    const next = nudge(current, steps);
+    if (isNil(next)) return;
+    // While editing, show the exact value: abbreviating it (e.g. 12345 as
+    // "12.35k") would lose steps smaller than the display precision. It's
+    // abbreviated on blur, like typed input.
+    setLocalValue(isFocused ? String(next) : abbreviatedNumber(next, 4));
+    onChange(next);
+  };
 
   const handleBlur = useCallback(
     (e: React.FocusEvent<HTMLInputElement>) => {
@@ -79,9 +103,23 @@ const AbreviatedNumericInput: FC<Props> = ({
             "border-salmon-500 bg-salmon-200 dark:border-salmon-500-dark dark:bg-salmon-200-dark":
               error,
             "text-xs sm:text-base": disabled,
+            // Room for the nudge buttons, on both sides to stay centered
+            "px-6": canNudge,
           },
           className
         )}
+        onKeyDown={
+          canNudge
+            ? (e) => {
+                if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+                  e.preventDefault();
+                  handleNudge(
+                    nudgeSteps(e.key === "ArrowUp" ? 1 : -1, e.shiftKey)
+                  );
+                }
+              }
+            : undefined
+        }
         onFocus={(e) => {
           setIsFocused(true);
           e.target.placeholder = "";
@@ -92,10 +130,16 @@ const AbreviatedNumericInput: FC<Props> = ({
         }}
       />
       {showPercentSign && !disabled && (
-        <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-xs text-orange-800 dark:text-orange-800-dark sm:text-sm">
+        <span
+          className={cn(
+            "pointer-events-none absolute top-1/2 -translate-y-1/2 text-xs text-orange-800 dark:text-orange-800-dark sm:text-sm",
+            canNudge ? "right-5" : "right-2"
+          )}
+        >
           %
         </span>
       )}
+      {canNudge && <NudgeButtons onNudge={handleNudge} />}
     </div>
   );
 };

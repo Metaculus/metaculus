@@ -24,6 +24,10 @@ import cn from "@/utils/core/cn";
 import { getQuantileNumericForecastDataset } from "@/utils/forecasts/dataset";
 import { isAllQuantileComponentsDirty } from "@/utils/forecasts/helpers";
 import {
+  nudgeBoundProbability,
+  nudgeNominalValue,
+} from "@/utils/forecasts/nudge";
+import {
   getDiscreteValueOptions,
   getTableDisplayValue,
 } from "@/utils/formatters/prediction";
@@ -167,6 +171,8 @@ const ContinuousTable: FC<Props> = ({
   );
 
   const discreteValueOptions = getDiscreteValueOptions(question);
+  const nudgeValue = (value: number | undefined, steps: number) =>
+    nudgeNominalValue(value, steps, question);
 
   const getDisplayValue = (value: number | null | undefined) => {
     return getTableDisplayValue(value, {
@@ -291,6 +297,7 @@ const ContinuousTable: FC<Props> = ({
                       <Td>
                         <ContinuousTableInput
                           type="number"
+                          nudge={nudgeBoundProbability}
                           quantileValue={quantileComponents?.[0]}
                           error={
                             errors.find(
@@ -317,6 +324,7 @@ const ContinuousTable: FC<Props> = ({
                             ? "number"
                             : "date"
                         }
+                        nudge={nudgeValue}
                         quantileValue={quantileComponents?.[1]}
                         error={
                           errors.find(
@@ -340,6 +348,7 @@ const ContinuousTable: FC<Props> = ({
                             ? "number"
                             : "date"
                         }
+                        nudge={nudgeValue}
                         quantileValue={quantileComponents?.[2]}
                         error={
                           errors.find(
@@ -363,6 +372,7 @@ const ContinuousTable: FC<Props> = ({
                             ? "number"
                             : "date"
                         }
+                        nudge={nudgeValue}
                         quantileValue={quantileComponents?.[3]}
                         error={
                           errors.find(
@@ -382,6 +392,7 @@ const ContinuousTable: FC<Props> = ({
                       <Td>
                         <ContinuousTableInput
                           type="number"
+                          nudge={nudgeBoundProbability}
                           quantileValue={quantileComponents?.[4]}
                           error={
                             errors.find(
@@ -504,6 +515,7 @@ const ContinuousTable: FC<Props> = ({
                   <Td>
                     <ContinuousTableInput
                       type="number"
+                      nudge={nudgeBoundProbability}
                       quantileValue={quantileComponents?.[0]}
                       error={
                         errors.find((e) => e.quantile === Quantile.lower)
@@ -563,6 +575,7 @@ const ContinuousTable: FC<Props> = ({
                       ? "number"
                       : "date"
                   }
+                  nudge={nudgeValue}
                   quantileValue={quantileComponents?.[1]}
                   error={
                     errors.find((e) => e.quantile === Quantile.q1)?.message
@@ -607,6 +620,7 @@ const ContinuousTable: FC<Props> = ({
                       ? "number"
                       : "date"
                   }
+                  nudge={nudgeValue}
                   quantileValue={quantileComponents?.[2]}
                   error={
                     errors.find((e) => e.quantile === Quantile.q2)?.message
@@ -651,6 +665,7 @@ const ContinuousTable: FC<Props> = ({
                       ? "number"
                       : "date"
                   }
+                  nudge={nudgeValue}
                   quantileValue={quantileComponents?.[3]}
                   error={
                     errors.find((e) => e.quantile === Quantile.q3)?.message
@@ -702,6 +717,7 @@ const ContinuousTable: FC<Props> = ({
                   <Td>
                     <ContinuousTableInput
                       type="number"
+                      nudge={nudgeBoundProbability}
                       quantileValue={quantileComponents?.[4]}
                       error={
                         errors.find((e) => e.quantile === Quantile.upper)

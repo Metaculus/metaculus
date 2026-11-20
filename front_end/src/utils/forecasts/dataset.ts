@@ -154,20 +154,12 @@ export function getQuantileNumericForecastDataset(
   }
 
   const cdf = generateQuantileContinuousCdf({
-    quantiles: [
-      {
-        quantile: Number(Quantile.q1),
-        value: components.find((c) => c.quantile === Quantile.q1)?.value ?? 0,
-      },
-      {
-        quantile: Number(Quantile.q2),
-        value: components.find((c) => c.quantile === Quantile.q2)?.value ?? 0,
-      },
-      {
-        quantile: Number(Quantile.q3),
-        value: components.find((c) => c.quantile === Quantile.q3)?.value ?? 0,
-      },
-    ],
+    // Every row with a numeric quantile is a percentile; the rest are the
+    // out-of-bounds rows
+    quantiles: components
+      .filter((c) => typeof c.quantile === "number")
+      .map((c) => ({ quantile: Number(c.quantile), value: c.value ?? 0 }))
+      .sort((a, b) => a.quantile - b.quantile),
     probBelowLower:
       components.find((c) => c.quantile === Quantile.lower)?.value ?? 0,
     probAboveUpper:

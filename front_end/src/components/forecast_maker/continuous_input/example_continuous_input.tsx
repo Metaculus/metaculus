@@ -9,7 +9,10 @@ import {
   QuestionWithNumericForecasts,
 } from "@/types/question";
 import { getSliderNumericForecastDataset } from "@/utils/forecasts/dataset";
-import { getNormalizedContinuousForecast } from "@/utils/forecasts/helpers";
+import {
+  getNormalizedContinuousForecast,
+  makeDefaultSliderComponent,
+} from "@/utils/forecasts/helpers";
 
 import ContinuousInput from ".";
 
@@ -36,12 +39,7 @@ const ExampleContinuousInput: FC<Props> = ({ question }) => {
   const handleAddComponent = () => {
     setSliderDistributionComponents([
       ...sliderDistributionComponents,
-      {
-        left: 0.4,
-        right: 0.6,
-        center: 0.5,
-        weight: 1,
-      },
+      makeDefaultSliderComponent(),
     ]);
   };
 
