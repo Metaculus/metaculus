@@ -15,7 +15,7 @@
     "build": "next build --webpack",
     "start": "next start",
     "lint": "run-p lint:*",
-    "lint:js": "eslint .",
+    "lint:js": "bun lint --no-script",
     "lint:types": "tsc",
     "format": "bun fmt \"src/**/*.{js,jsx,ts,tsx}\"",
     "format:check": "bun fmt --check \"src/**/*.{js,jsx,ts,tsx}\"",
