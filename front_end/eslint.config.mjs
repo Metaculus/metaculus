@@ -4,6 +4,7 @@ import { fileURLToPath } from "url";
 import { FlatCompat } from "@eslint/eslintrc";
 import nextCoreWebVitals from "eslint-config-next/core-web-vitals";
 import nextTypescript from "eslint-config-next/typescript";
+import prettierConfig from "eslint-config-prettier/flat";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -15,10 +16,8 @@ const compat = new FlatCompat({
 const eslintConfig = [
   ...nextCoreWebVitals,
   ...nextTypescript,
-  ...compat.extends(
-    "plugin:prettier/recommended",
-    "plugin:storybook/recommended"
-  ),
+  prettierConfig,
+  ...compat.extends("plugin:storybook/recommended"),
   {
     rules: {
       // React Compiler rules from eslint-config-next v16 — downgrade to warn
