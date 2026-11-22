@@ -7,3 +7,146 @@ minimumReleaseAgeExcludes = []
 
 [install.security]
 scanner = "@socketsecurity/bun-security-scanner"
+
+[fmt]
+trailingComma = "es5"
+
+[fmt.sortTailwindcss]
+config = "./tailwind.config.prettier.ts"
+# Only class/className attributes, like prettier-plugin-tailwindcss's default.
+# Bun's default also sorts inside cn()/clsx()/cva() calls.
+functions = []
+preserveWhitespace = true
+preserveDuplicates = true
+
+[lint]
+ignorePatterns = [
+  "node_modules/",
+  ".next/",
+  "out/",
+  "build/",
+  "next-env.d.ts",
+  "commitlint.config.js",
+  "tailwind.config.ts",
+  "postcss.config.js",
+  "next.config.mjs",
+  "global.d.ts",
+  ".storybook/",
+]
+
+# Start from nothing so the rule set below is exactly what is enforced:
+# the rules eslint-config-next (core-web-vitals + typescript) enabled, plus ours.
+[lint.categories]
+all = "off"
+
+[lint.rules]
+# Next.js
+"@next/next/google-font-display" = "warn"
+"@next/next/google-font-preconnect" = "warn"
+"@next/next/inline-script-id" = "error"
+"@next/next/next-script-for-ga" = "warn"
+"@next/next/no-assign-module-variable" = "error"
+"@next/next/no-async-client-component" = "warn"
+"@next/next/no-before-interactive-script-outside-document" = "warn"
+"@next/next/no-css-tags" = "warn"
+"@next/next/no-document-import-in-page" = "error"
+"@next/next/no-duplicate-head" = "error"
+"@next/next/no-head-element" = "warn"
+"@next/next/no-head-import-in-document" = "error"
+# Targets the pages router; ESLint's version is a no-op without a pages/ directory.
+"@next/next/no-html-link-for-pages" = "off"
+"@next/next/no-img-element" = "warn"
+"@next/next/no-page-custom-font" = "warn"
+"@next/next/no-script-component-in-head" = "error"
+"@next/next/no-styled-jsx-in-document" = "warn"
+"@next/next/no-sync-scripts" = "error"
+"@next/next/no-title-in-document-head" = "warn"
+"@next/next/no-typos" = "warn"
+"@next/next/no-unwanted-polyfillio" = "warn"
+
+# TypeScript
+"@typescript-eslint/ban-ts-comment" = "error"
+"@typescript-eslint/no-array-constructor" = "error"
+"@typescript-eslint/no-duplicate-enum-values" = "error"
+"@typescript-eslint/no-empty-object-type" = "error"
+"@typescript-eslint/no-explicit-any" = "warn"
+"@typescript-eslint/no-extra-non-null-assertion" = "error"
+"@typescript-eslint/no-misused-new" = "error"
+"@typescript-eslint/no-namespace" = "error"
+"@typescript-eslint/no-non-null-asserted-optional-chain" = "error"
+"@typescript-eslint/no-non-null-assertion" = "error"
+"@typescript-eslint/no-require-imports" = "error"
+"@typescript-eslint/no-this-alias" = "error"
+"@typescript-eslint/no-unnecessary-type-constraint" = "error"
+"@typescript-eslint/no-unsafe-declaration-merging" = "error"
+"@typescript-eslint/no-unsafe-function-type" = "error"
+"@typescript-eslint/no-unused-vars" = ["error", { ignoreRestSiblings = true, argsIgnorePattern = "^_", destructuredArrayIgnorePattern = "^_" }]
+"@typescript-eslint/no-wrapper-object-types" = "error"
+"@typescript-eslint/prefer-as-const" = "error"
+"@typescript-eslint/prefer-namespace-keyword" = "error"
+"@typescript-eslint/triple-slash-reference" = "error"
+
+# React
+"react/display-name" = "error"
+"react/jsx-key" = "error"
+"react/jsx-no-comment-textnodes" = "error"
+"react/jsx-no-duplicate-props" = "error"
+"react/jsx-no-undef" = "error"
+"react/jsx-uses-react" = "error"
+"react/jsx-uses-vars" = "error"
+"react/no-children-prop" = "error"
+"react/no-danger-with-children" = "error"
+"react/no-deprecated" = "error"
+"react/no-direct-mutation-state" = "error"
+"react/no-find-dom-node" = "error"
+"react/no-is-mounted" = "error"
+"react/no-render-return-value" = "error"
+"react/no-string-refs" = "error"
+"react/no-unescaped-entities" = "error"
+"react/require-render-return" = "error"
+
+# React hooks and React Compiler
+"react-hooks/config" = "error"
+"react-hooks/error-boundaries" = "error"
+"react-hooks/exhaustive-deps" = "warn"
+"react-hooks/gating" = "error"
+"react-hooks/globals" = "error"
+"react-hooks/rules-of-hooks" = "error"
+"react-hooks/use-memo" = "error"
+# Compiler rules are warnings so existing code doesn't block CI. Fix incrementally.
+"react-hooks/immutability" = "warn"
+"react-hooks/incompatible-library" = "warn"
+"react-hooks/preserve-manual-memoization" = "warn"
+"react-hooks/purity" = "warn"
+"react-hooks/refs" = "warn"
+"react-hooks/set-state-in-effect" = "warn"
+"react-hooks/set-state-in-render" = "warn"
+"react-hooks/static-components" = "warn"
+"react-hooks/unsupported-syntax" = "warn"
+
+# Accessibility
+"jsx-a11y/alt-text" = ["warn", { elements = ["img"], img = ["Image"] }]
+"jsx-a11y/aria-props" = "warn"
+"jsx-a11y/aria-proptypes" = "warn"
+"jsx-a11y/aria-unsupported-elements" = "warn"
+"jsx-a11y/role-has-required-aria-props" = "warn"
+"jsx-a11y/role-supports-aria-props" = "warn"
+
+# Core and imports
+"prefer-const" = ["error", { destructuring = "all" }]
+# On by default in Bun, but not part of the ESLint setup this replaces.
+"no-useless-assignment" = "off"
+"import/no-anonymous-default-export" = "warn"
+"import/order" = ["error", { groups = [["builtin", "external"], "internal", ["parent", "sibling"], "index", "object"], newlines-between = "always", alphabetize = { order = "asc", caseInsensitive = true } }]
+
+[[lint.overrides]]
+files = ["*.ts", "*.tsx", "*.mts", "*.cts"]
+rules = { "no-var" = "error", "prefer-rest-params" = "error", "prefer-spread" = "error" }
+
+[[lint.overrides]]
+# Story render functions call hooks outside components.
+files = ["*.stories.*", "*.story.*"]
+rules = { "react-hooks/rules-of-hooks" = "off" }
+
+[lint.settings.react]
+version = "detect"

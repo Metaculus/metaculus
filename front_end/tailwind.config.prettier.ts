@@ -11,7 +11,7 @@ import originalConfig from "./tailwind.config";
   in the expected order like before the change.
 
   When Tailwind CSS / Prettier are updated or repo-wide class changes are made
-  it's safe to remove this file (and configuration in .prettierrc.json) to
+  it's safe to remove this file (and [fmt.sortTailwindcss] in bunfig.toml) to
   re-sort all the classes in the files.
 */
 
