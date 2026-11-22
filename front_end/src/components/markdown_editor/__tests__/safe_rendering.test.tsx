@@ -2,6 +2,15 @@ import { $insertDataTransferForRichText } from "@lexical/clipboard";
 import { GenericHTMLNode, MDXEditorMethods } from "@mdxeditor/editor";
 import { act, cleanup, render, screen } from "@testing-library/react";
 import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  jest,
+  mock,
+} from "bun:test";
+import {
   $createParagraphNode,
   $getRoot,
   $getSelection,
@@ -25,9 +34,10 @@ if (typeof globalThis.structuredClone !== "function") {
       : JSON.parse(JSON.stringify(value))) as typeof structuredClone;
 }
 
+// Registered after the static imports above; Bun patches the already-loaded
+// module in place, which works because getPost is looked up at call time.
 const mockGetPost = jest.fn();
-jest.mock("@/services/api/posts/posts.client", () => ({
-  __esModule: true,
+mock.module("@/services/api/posts/posts.client", () => ({
   default: { getPost: (...args: unknown[]) => mockGetPost(...args) },
 }));
 

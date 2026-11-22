@@ -82,8 +82,7 @@ export async function renderMarkdownResponse(
       },
     });
   } catch (error) {
-    // Let Next render its own 404 instead of logging a 500. Inlined rather
-    // than next/navigation's unstable_rethrow, which next/jest stubs out.
+    // Let Next render its own 404 instead of logging a 500.
     if (isNextControlFlow(error)) throw error;
 
     logError(error, {

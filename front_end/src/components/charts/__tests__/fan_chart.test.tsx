@@ -67,7 +67,7 @@ beforeAll(() => {
     observe: jest.fn(),
     unobserve: jest.fn(),
     disconnect: jest.fn(),
-  }));
+  })) as unknown as typeof ResizeObserver;
 });
 
 describe("FanChart", () => {

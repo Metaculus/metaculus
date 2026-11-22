@@ -18,6 +18,10 @@
     "jsx": "react-jsx",
     "incremental": true,
     "noUncheckedIndexedAccess": true,
+    "types": [
+      "bun",
+      "bun-types/test-globals"
+    ],
     "plugins": [
       {
         "name": "next"

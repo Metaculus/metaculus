@@ -1,14 +1,6 @@
 import { processMarkdown, processMarkdownForDisplay } from "../helpers";
 import { decodeLiteralEntities } from "../plugins/literal_entities";
 
-jest.mock("../embedded_question", () => ({
-  EMBEDDED_QUESTION_COMPONENT_NAME: "EmbeddedQuestion",
-}));
-
-jest.mock("../embedded_twitter", () => ({
-  EMBEDDED_TWITTER_COMPONENT_NAME: "Tweet",
-}));
-
 describe("processMarkdown", () => {
   describe("blockquote formatting", () => {
     it("should format blockquote newlines with encoded spaces", () => {
@@ -688,7 +680,7 @@ describe("processMarkdownForDisplay", () => {
       "full",
     ],
   ])("flags a document with %s as %s", (_name, markdown, config, expected) => {
-    expect(
+    expect<string>(
       processMarkdownForDisplay(markdown, config).legacyEntityDecoding
     ).toBe(expected);
   });

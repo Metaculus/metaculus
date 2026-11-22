@@ -1,3 +1,5 @@
+import { beforeEach, describe, expect, it, jest, mock } from "bun:test";
+
 type NodeLike = {
   getType?: () => string;
   getPreviousSibling?: () => NodeLike | null;
@@ -29,14 +31,14 @@ const $getRoot = jest.fn(() => ({
 const $isParagraphNode = (n: NodeLike | null | undefined): boolean =>
   Boolean(n && n.__isParagraph === true);
 
-jest.mock("@mdxeditor/editor", () => {
+mock.module("@mdxeditor/editor", () => {
   const CREATE_ROOT_SUB$ = Symbol("createRootEditorSubscription$");
   return {
     realmPlugin: (spec: { init: (realm: Realm) => void }) => spec,
     createRootEditorSubscription$: CREATE_ROOT_SUB$,
   };
 });
-jest.mock("lexical", () => {
+mock.module("lexical", () => {
   class MockDecoratorNode {}
   return {
     $getRoot: () => $getRoot(),
@@ -45,10 +47,11 @@ jest.mock("lexical", () => {
   };
 });
 
-import { createRootEditorSubscription$ } from "@mdxeditor/editor";
-import { DecoratorNode } from "lexical";
-
-import { trimTrailingParagraphPlugin } from "@/components/markdown_editor/plugins/trim_trailing_plugin";
+const { createRootEditorSubscription$ } = await import("@mdxeditor/editor");
+const { DecoratorNode } = await import("lexical");
+const { trimTrailingParagraphPlugin } = await import(
+  "@/components/markdown_editor/plugins/trim_trailing_plugin"
+);
 
 function makeEditor(): EditorLike {
   const listeners: Array<() => void> = [];

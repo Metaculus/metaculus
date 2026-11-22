@@ -1,4 +1,6 @@
 import { RowData } from "@tanstack/table-core";
+import type { TestingLibraryMatchers } from "@testing-library/jest-dom/matchers";
+import type { expect } from "bun:test";
 
 import en from "./messages/en.json";
 
@@ -16,3 +18,10 @@ declare module "@tanstack/table-core" {
   }
 }
 
+declare module "bun:test" {
+  interface Matchers<T>
+    extends TestingLibraryMatchers<
+      ReturnType<typeof expect.stringContaining>,
+      T
+    > {}
+}
