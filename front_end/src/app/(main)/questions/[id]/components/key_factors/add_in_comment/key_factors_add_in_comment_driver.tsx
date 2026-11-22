@@ -4,15 +4,15 @@ import { faCog } from "@fortawesome/free-solid-svg-icons";
 import { useTranslations } from "next-intl";
 import { useMemo } from "react";
 
+import KeyFactorsAddInCommentWrapper from "@/app/(main)/questions/[id]/components/key_factors/add_in_comment/key_factors_add_in_comment_wrapper";
 import { FormError } from "@/components/ui/form_field";
 import { PostWithForecasts } from "@/types/post";
 import { isDriverDraft } from "@/utils/key_factors";
 
 import KeyFactorsDriverAdditionForm from "../item_creation/driver/key_factors_driver_addition_form";
+import KeyFactorsNewItemContainer from "../item_creation/key_factors_new_item_container";
 import { useKeyFactorsCtx } from "../key_factors_context";
 import { driverTextSchema } from "../schemas";
-import KeyFactorsAddInCommentWrapper from "./key_factors_add_in_comment_wrapper";
-import KeyFactorsNewItemContainer from "../item_creation/key_factors_new_item_container";
 
 type Props = {
   postData: PostWithForecasts;

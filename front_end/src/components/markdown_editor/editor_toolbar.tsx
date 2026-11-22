@@ -14,12 +14,12 @@ import {
 } from "@mdxeditor/editor";
 import { useState } from "react";
 
+import Button from "@/components/ui/button";
 import cn from "@/utils/core/cn";
 
 import { EmbedQuestionAction } from "./embedded_question";
 import AddEquationAction from "./plugins/equation/components/add_equation_action";
 import { SourceModeTitle } from "./source_mode_title";
-import Button from "../ui/button";
 
 const EditorToolbar: React.FC<{ withCodeBlocks?: boolean }> = ({
   withCodeBlocks,

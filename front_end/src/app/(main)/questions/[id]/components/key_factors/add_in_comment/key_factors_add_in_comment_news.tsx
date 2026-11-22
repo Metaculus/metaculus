@@ -5,16 +5,16 @@ import { useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
 
 import { useCommentsFeed } from "@/app/(main)/components/comments_feed_provider";
+import KeyFactorsAddInCommentWrapper from "@/app/(main)/questions/[id]/components/key_factors/add_in_comment/key_factors_add_in_comment_wrapper";
 import { FormError } from "@/components/ui/form_field";
 import { ImpactMetadata } from "@/types/comment";
 import { NewsArticle } from "@/types/news";
 import { PostWithForecasts } from "@/types/post";
 
+import { Target } from "../item_creation/driver/option_target_picker";
 import KeyFactorsNewItemContainer from "../item_creation/key_factors_new_item_container";
 import KeyFactorsNewsForm from "../item_creation/news/key_factors_news_form";
 import { useKeyFactorsCtx } from "../key_factors_context";
-import KeyFactorsAddInCommentWrapper from "./key_factors_add_in_comment_wrapper";
-import { Target } from "../item_creation/driver/option_target_picker";
 import { normalizeUrlForComparison } from "../utils";
 
 type Props = {

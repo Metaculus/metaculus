@@ -10,6 +10,7 @@ import {
   findById,
   useCommentsFeed,
 } from "@/app/(main)/components/comments_feed_provider";
+import { useQuestionLayoutSafe } from "@/app/(main)/questions/[id]/components/question_layout/question_layout_context";
 import { useBreakpoint } from "@/hooks/tailwind";
 import { FetchedAggregateCoherenceLink } from "@/types/coherence";
 import { BECommentType, KeyFactor } from "@/types/comment";
@@ -19,7 +20,6 @@ import { VoteDirection } from "@/types/votes";
 
 import CommentDetailPanel from "./comment_detail_panel";
 import { KeyFactorItem } from "./item_view";
-import { useQuestionLayoutSafe } from "../question_layout/question_layout_context";
 import QuestionLinkKeyFactorItem from "./item_view/question_link/question_link_key_factor_item";
 import MobileKeyFactorOverlay from "./mobile_key_factor_overlay";
 
