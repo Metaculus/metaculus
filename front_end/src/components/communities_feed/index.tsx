@@ -26,7 +26,7 @@ const AwaitedCommunitiesFeed: FC = async () => {
   const [{ results: initialCommunities }, followedCommunitiesResponse] =
     await Promise.all(requests);
   const followedCommunities = user
-    ? followedCommunitiesResponse?.results ?? []
+    ? (followedCommunitiesResponse?.results ?? [])
     : [];
   return (
     <PaginatedCommunitiesFeed

@@ -316,7 +316,7 @@ const GroupTimeline: FC<Props> = ({
       const target = findPreviousTimestamp(ts, cursorTimestamp);
       const idx = ts.findIndex((t) => t === target);
       return idx >= 0
-        ? highlightedChoice.aggregationForecasterCounts?.[idx] ?? null
+        ? (highlightedChoice.aggregationForecasterCounts?.[idx] ?? null)
         : null;
     }
 

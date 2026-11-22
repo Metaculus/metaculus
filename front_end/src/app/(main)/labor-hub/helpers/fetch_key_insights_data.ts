@@ -31,8 +31,7 @@ function getValueForYear(
   year: string
 ): number | null {
   const questions = post?.group_of_questions?.questions as
-    | QuestionWithNumericForecasts[]
-    | undefined;
+    QuestionWithNumericForecasts[] | undefined;
   const question = questions?.find((q) => q.label === year);
   if (!question) return null;
   return getSubQuestionValue(question);

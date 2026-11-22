@@ -26,14 +26,12 @@ export type ErrorProps = {
   detached?: boolean;
 };
 
-export interface InputProps
-  extends React.InputHTMLAttributes<HTMLInputElement> {
+export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   errors?: ErrorResponse;
   errorClassName?: string;
 }
 
-export interface TextAreaProps
-  extends React.InputHTMLAttributes<HTMLTextAreaElement> {
+export interface TextAreaProps extends React.InputHTMLAttributes<HTMLTextAreaElement> {
   errors?: ErrorResponse;
   rows?: number;
 }

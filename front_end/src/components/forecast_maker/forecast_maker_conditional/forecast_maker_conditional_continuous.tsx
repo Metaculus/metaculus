@@ -173,8 +173,8 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
 
   const [activeTableOption, setActiveTableOption] = useState(
     questionOptions.at(0)?.question.resolution === "annulled"
-      ? questionOptions.at(1)?.id ?? null
-      : questionOptions.at(0)?.id ?? null
+      ? (questionOptions.at(1)?.id ?? null)
+      : (questionOptions.at(0)?.id ?? null)
   );
   const activeQuestion = useMemo(
     () => [question_yes, question_no].find((q) => q.id === activeTableOption),
@@ -948,9 +948,7 @@ function getUserQuartiles(
 
 function getTableValue(
   components:
-    | DistributionSliderComponent[]
-    | DistributionQuantileComponent
-    | undefined,
+    DistributionSliderComponent[] | DistributionQuantileComponent | undefined,
   question: Question,
   forecastInputMode?: ContinuousForecastInputType
 ) {

@@ -63,8 +63,7 @@ const RegistrationContainer: FC<RegistrationContainerProps> = ({
   // Show eligibility status if registered
   if (registered) {
     const campaignDetails = campaigns?.[0]?.details as
-      | { undergrad: boolean }
-      | undefined;
+      { undergrad: boolean } | undefined;
     return (
       <div ref={eligibilityStatusRef}>
         <EligibilityStatus eligibleBoth={campaignDetails?.undergrad ?? false} />

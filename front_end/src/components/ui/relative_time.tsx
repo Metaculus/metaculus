@@ -4,7 +4,8 @@ import "@github/relative-time-element";
 
 // Extend the native RelativeTimeElement properties for React
 interface RelativeTimeProps
-  extends HTMLAttributes<HTMLElement>,
+  extends
+    HTMLAttributes<HTMLElement>,
     Partial<Omit<RelativeTimeElement, keyof HTMLElement>> {
   children?: ReactNode;
 }

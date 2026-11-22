@@ -314,7 +314,7 @@ const PaginatedPostsFeed: FC<Props> = ({
 
   const { layout: contextLayout } = useFeedLayout();
   const compactSearchMode = !!queryFilters.search;
-  const layout = compactSearchMode ? "list" : forceLayout ?? contextLayout;
+  const layout = compactSearchMode ? "list" : (forceLayout ?? contextLayout);
   const { columns: gridColumns, gap: gridGap } = useMediaValues(
     GRID_MEDIA,
     GRID_COLUMNS,

@@ -1,12 +1,7 @@
 import { stringify } from "yaml";
 
 export type FrontmatterValue =
-  | string
-  | number
-  | boolean
-  | readonly string[]
-  | null
-  | undefined;
+  string | number | boolean | readonly string[] | null | undefined;
 
 function isPresent(value: FrontmatterValue): boolean {
   if (value === null || value === undefined) return false;

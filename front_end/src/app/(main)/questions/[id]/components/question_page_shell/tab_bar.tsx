@@ -66,7 +66,7 @@ const QuestionPageShellTabBar: FC<Props> = ({ post, variant, className }) => {
   const commentCount =
     typeof commentsFeed?.totalCount === "number"
       ? commentsFeed.totalCount
-      : post.comment_count ?? 0;
+      : (post.comment_count ?? 0);
   const { aggregateCoherenceLinks } = useCoherenceLinksContext();
   const questionLinksCount = aggregateCoherenceLinks.data.filter(
     isDisplayableQuestionLink

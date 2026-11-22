@@ -124,7 +124,7 @@ const parseFormattedNumber = (value: string): number | undefined => {
   if (!match || !match[1]) return undefined;
 
   const number = parseFloat(match[1]);
-  const multiplier = match[2] ? multipliers[match[2]] ?? 1 : 1;
+  const multiplier = match[2] ? (multipliers[match[2]] ?? 1) : 1;
 
   return number * multiplier;
 };

@@ -429,8 +429,7 @@ export async function replyToComment(
 }
 
 export type VoteAggregateCoherenceLinkResult =
-  | { data: AggregateCoherenceLinkVotesSummary }
-  | { errors: ErrorResponse };
+  { data: AggregateCoherenceLinkVotesSummary } | { errors: ErrorResponse };
 
 export async function voteAggregateCoherenceLink(
   aggregationId: number,

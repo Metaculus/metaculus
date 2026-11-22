@@ -122,7 +122,7 @@ const NotebookContentSections: FC<Props> = ({
     if (!activeHeadingId) {
       return isNotebookTitleVisible && headings.length
         ? "Table of Contents"
-        : notebookTitle ?? undefined;
+        : (notebookTitle ?? undefined);
     }
 
     if (activeHeadingId === NOTEBOOK_COMMENTS_TITLE) return commentsTitle;
@@ -140,7 +140,7 @@ const NotebookContentSections: FC<Props> = ({
   const headerLabel = useMemo(() => {
     return isNotebookTitleVisible && headings.length
       ? "Table of Contents"
-      : notebookTitle ?? "Table of Contents";
+      : (notebookTitle ?? "Table of Contents");
   }, [headings.length, isNotebookTitleVisible, notebookTitle]);
 
   return (

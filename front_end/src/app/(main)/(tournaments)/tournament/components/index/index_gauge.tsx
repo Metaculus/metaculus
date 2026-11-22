@@ -149,7 +149,7 @@ function pickSeries(
     if (hit) return multi.series_by_year[hit] ?? null;
   }
   const lastKey = keys[keys.length - 1];
-  return lastKey ? multi.series_by_year[lastKey] ?? null : null;
+  return lastKey ? (multi.series_by_year[lastKey] ?? null) : null;
 }
 
 export function computeIndexDeltaFromSeries(

@@ -49,8 +49,6 @@ type MultiChipFilterSection = BaseFilterSection & {
 };
 
 export type FilterSection =
-  | ComboboxFilterSection
-  | ToggleChipFilterSection
-  | MultiChipFilterSection;
+  ComboboxFilterSection | ToggleChipFilterSection | MultiChipFilterSection;
 
 export type FilterReplaceInfo = { optionId: string; replaceIds: string[] };

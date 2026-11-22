@@ -99,8 +99,8 @@ export function cdfFromSliders(
     ),
   ];
   // clip cdf from closed_bounds
-  const scale_lower_to = lowerOpen ? 0 : cdf[0] ?? 0;
-  const scale_upper_to = upperOpen ? 1 : cdf[cdf.length - 1] ?? 1;
+  const scale_lower_to = lowerOpen ? 0 : (cdf[0] ?? 0);
+  const scale_upper_to = upperOpen ? 1 : (cdf[cdf.length - 1] ?? 1);
   const rescaled_inbound_mass = scale_upper_to - scale_lower_to;
   cdf = cdf.map((x) => (x - scale_lower_to) / rescaled_inbound_mass);
 

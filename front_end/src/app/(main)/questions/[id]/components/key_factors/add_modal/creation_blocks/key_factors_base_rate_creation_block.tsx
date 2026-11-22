@@ -35,8 +35,7 @@ const KeyFactorsBaseRateCreationBlock: React.FC<Props> = ({
   useEffect(() => {
     setDrafts((prevDrafts) => {
       const existingBaseRate = prevDrafts.find(isBaseRateDraft) as
-        | BaseRateDraft
-        | undefined;
+        BaseRateDraft | undefined;
 
       const otherDrafts = prevDrafts.filter((d) => !isBaseRateDraft(d));
 

@@ -27,8 +27,7 @@ export const fetchWage = cache(
     try {
       const post = await ServerPostsApi.getPost(wagePostId, true);
       const questions = post.group_of_questions?.questions as
-        | QuestionWithNumericForecasts[]
-        | undefined;
+        QuestionWithNumericForecasts[] | undefined;
       return getValueForLabel(questions, "2035");
     } catch (err) {
       logError(err);

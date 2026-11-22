@@ -357,8 +357,7 @@ async function ResearchTable({ labels }: { labels?: string[] } = {}) {
   const tableRows = jobs
     .map((job) => {
       const questions = job.post?.group_of_questions?.questions as
-        | QuestionWithNumericForecasts[]
-        | undefined;
+        QuestionWithNumericForecasts[] | undefined;
       const questionByLabel = new Map(
         questions?.map((q) => [q.label, q]) ?? []
       );

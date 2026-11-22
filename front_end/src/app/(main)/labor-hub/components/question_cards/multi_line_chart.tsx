@@ -421,7 +421,7 @@ const DataPointCircle: FC<{
   const resolvedIsFilled = datum?.filled ?? isFilled;
   const perPoint = colorFn && datum ? colorFn(datum) : undefined;
   const resolvedStroke = perPoint ?? strokeColor;
-  const resolvedFill = resolvedIsFilled ? perPoint ?? fillColor : bgColor;
+  const resolvedFill = resolvedIsFilled ? (perPoint ?? fillColor) : bgColor;
 
   return (
     <circle

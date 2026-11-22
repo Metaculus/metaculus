@@ -174,7 +174,7 @@ const Histogram: React.FC<HistogramProps> = ({
     () => binValues.reduce((acc, value) => acc + value, 0),
     [binValues]
   );
-  const hoveredValue = hoveredBin === null ? 0 : binValues[hoveredBin] ?? 0;
+  const hoveredValue = hoveredBin === null ? 0 : (binValues[hoveredBin] ?? 0);
   // Bars are recency-weighted, so a bin can't be expressed as a raw forecaster
   // count; show its share of the total weight instead.
   const sharePct = totalWeight > 0 ? (hoveredValue / totalWeight) * 100 : 0;

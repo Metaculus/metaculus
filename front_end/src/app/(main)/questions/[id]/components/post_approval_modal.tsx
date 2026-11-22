@@ -64,12 +64,12 @@ const PostApprovalModal: FC<{
             "UTC",
             "yyyy-MM-dd'T'HH:mm:ss'Z'"
           )
-      : post.published_at ??
+      : (post.published_at ??
         formatInTimeZone(
           addDays(new Date(), 1),
           "UTC",
           "yyyy-MM-dd'T'HH:mm:ss'Z'"
-        ),
+        )),
     cp_reveal_time:
       initial_cp_reveal_time ??
       formatInTimeZone(

@@ -67,12 +67,14 @@ export function useTopKeyFactorsCarouselItems({
 
   const items: TopItem[] = useMemo(() => {
     const combined: TopItem[] = [
-      ...topKeyFactors.map(
-        (kf): TopItem => ({ kind: "keyFactor", keyFactor: kf })
-      ),
-      ...topQuestionLinks.map(
-        (link): TopItem => ({ kind: "questionLink", link })
-      ),
+      ...topKeyFactors.map((kf): TopItem => ({
+        kind: "keyFactor",
+        keyFactor: kf,
+      })),
+      ...topQuestionLinks.map((link): TopItem => ({
+        kind: "questionLink",
+        link,
+      })),
     ];
     return applyLimit(combined, limit);
   }, [topKeyFactors, topQuestionLinks, limit]);

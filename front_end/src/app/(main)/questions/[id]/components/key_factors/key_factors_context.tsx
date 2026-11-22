@@ -32,9 +32,7 @@ type InitOpts = {
 };
 
 type SubmitResult =
-  | { errors: ErrorResponse }
-  | { comment: BECommentType }
-  | undefined;
+  { errors: ErrorResponse } | { comment: BECommentType } | undefined;
 
 type Ctx = State & {
   enabled: boolean;

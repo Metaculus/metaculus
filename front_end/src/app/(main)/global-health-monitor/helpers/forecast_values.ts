@@ -258,7 +258,9 @@ export function getContinuousQuestions(
 ): QuestionWithForecasts[] {
   return posts
     .flatMap((post): QuestionWithForecasts[] =>
-      post.question ? [post.question] : post.group_of_questions?.questions ?? []
+      post.question
+        ? [post.question]
+        : (post.group_of_questions?.questions ?? [])
     )
     .filter((question) => CONTINUOUS_TYPES.includes(question.type));
 }

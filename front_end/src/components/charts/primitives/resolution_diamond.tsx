@@ -104,7 +104,9 @@ const ResolutionDiamond = forwardRef<SVGGElement, Props>(function RD(
 
   // Arrow color animation values
   const lightColor = getThemeColor(
-    d.secondary ?? d.primary ? METAC_COLORS.gray[400] : METAC_COLORS.purple[500]
+    (d.secondary ?? d.primary)
+      ? METAC_COLORS.gray[400]
+      : METAC_COLORS.purple[500]
   );
   const darkColor = getThemeColor(d.primary ?? METAC_COLORS.purple[800]);
 

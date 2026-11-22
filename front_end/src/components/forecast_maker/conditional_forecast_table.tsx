@@ -109,7 +109,7 @@ const ConditionalForecastTable: FC<Props> = ({
                         ? formatForecastValue(
                             option.forecastInputMode ===
                               ContinuousForecastInputType.Quantile
-                              ? option.quantileValue ?? null
+                              ? (option.quantileValue ?? null)
                               : option.value,
                             option.forecastInputMode
                           )

@@ -62,8 +62,7 @@ type Props = {
 const BalanceOfPowerTimelines: FC<Props> = ({ post }) => {
   const t = useTranslations();
   const question = post?.question as
-    | QuestionWithMultipleChoiceForecasts
-    | undefined;
+    QuestionWithMultipleChoiceForecasts | undefined;
   // One timeframe for all three charts — they answer the same question about the
   // same window, so letting them drift apart would invite false comparisons.
   // Opens on two months: the full history reaches back to Jan 2025 and its early

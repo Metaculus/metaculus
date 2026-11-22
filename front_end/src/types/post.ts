@@ -16,12 +16,7 @@ import {
 } from "./projects";
 
 export type Resolution =
-  | "yes"
-  | "no"
-  | "below_lower_bound"
-  | "above_upper_bound"
-  | number
-  | string;
+  "yes" | "no" | "below_lower_bound" | "above_upper_bound" | number | string;
 
 export enum PostForecastType {
   Conditional = "conditional",

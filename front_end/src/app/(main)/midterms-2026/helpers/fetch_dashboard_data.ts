@@ -117,8 +117,7 @@ export const fetchSenateRaces = cache(
 
     const subQuestions =
       (parentPost?.group_of_questions?.questions as
-        | QuestionWithNumericForecasts[]
-        | undefined) ?? [];
+        QuestionWithNumericForecasts[] | undefined) ?? [];
     const byLabel = new Map(subQuestions.map((q) => [q.label, q]));
     const groupRaces = SENATE_RACES.map((r) =>
       buildGroupRace(r, parentPost, byLabel)
@@ -168,8 +167,7 @@ export const fetchGovernorRaces = cache(
     }
     const subQuestions =
       (groupPost?.group_of_questions?.questions as
-        | QuestionWithNumericForecasts[]
-        | undefined) ?? [];
+        QuestionWithNumericForecasts[] | undefined) ?? [];
     const byLabel = new Map(subQuestions.map((q) => [q.label, q]));
     const groupRaces = GOVERNOR_RACES.map((r) =>
       buildGroupRace(r, groupPost, byLabel)
@@ -264,8 +262,7 @@ export const fetchConsequenceConditionals = cache(
         if (!post) return null;
         const subs =
           (post.group_of_questions?.questions as
-            | QuestionWithNumericForecasts[]
-            | undefined) ?? [];
+            QuestionWithNumericForecasts[] | undefined) ?? [];
         return {
           id,
           href: `/questions/${id}`,

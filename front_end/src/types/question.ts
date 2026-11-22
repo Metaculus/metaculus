@@ -196,8 +196,7 @@ export type MultipleChoiceUserForecastHistory = {
 };
 
 export type UserForecastHistory =
-  | NumericUserForecastHistory
-  | MultipleChoiceUserForecastHistory;
+  NumericUserForecastHistory | MultipleChoiceUserForecastHistory;
 
 export type NumericAggregateForecast = NumericForecast & {
   method: AggregationMethod;
@@ -215,8 +214,7 @@ export type MultipleChoiceAggregateForecast = MultipleChoiceForecast & {
   forecast_values: number[] | null;
 };
 export type AggregateForecast =
-  | NumericAggregateForecast
-  | MultipleChoiceAggregateForecast;
+  NumericAggregateForecast | MultipleChoiceAggregateForecast;
 
 export type NumericAggregateForecastHistory = {
   history: NumericAggregateForecast[];
@@ -233,8 +231,7 @@ export type MultipleChoiceAggregateForecastHistory = {
 };
 
 export type AggregateForecastHistory =
-  | NumericAggregateForecastHistory
-  | MultipleChoiceAggregateForecastHistory;
+  NumericAggregateForecastHistory | MultipleChoiceAggregateForecastHistory;
 
 export type NumericAggregations = {
   recency_weighted: NumericAggregateForecastHistory;
@@ -394,8 +391,7 @@ export type QuestionWithMultipleChoiceForecasts = Question & {
 };
 
 export type QuestionWithForecasts =
-  | QuestionWithNumericForecasts
-  | QuestionWithMultipleChoiceForecasts;
+  QuestionWithNumericForecasts | QuestionWithMultipleChoiceForecasts;
 
 export type ForecastData = {
   continuousCdf: number[] | null;
@@ -473,8 +469,7 @@ export type NumericAggregationQuestion = {
 };
 
 export type AggregationQuestion =
-  | NumericAggregationQuestion
-  | MultipleChoiceAggregationQuestion;
+  NumericAggregationQuestion | MultipleChoiceAggregationQuestion;
 
 export enum CurveQuestionLabels {
   question = "your forecast",

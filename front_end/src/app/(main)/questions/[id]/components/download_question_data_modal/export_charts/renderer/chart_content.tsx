@@ -205,7 +205,7 @@ function renderChart(
       const effectiveTimestamps =
         timestamps.length > 0
           ? timestamps
-          : choiceItems[0]?.aggregationTimestamps ?? [];
+          : (choiceItems[0]?.aggregationTimestamps ?? []);
       if (!choiceItems.length || !effectiveTimestamps.length) return null;
 
       const timelineCloseTime = question?.actual_close_time

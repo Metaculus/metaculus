@@ -5,11 +5,7 @@ import cn from "@/utils/core/cn";
 export type ButtonSize = "xs" | "sm" | "md" | "lg" | "xl" | "2xl";
 
 export type ButtonVariant =
-  | "primary"
-  | "secondary"
-  | "tertiary"
-  | "text"
-  | "link";
+  "primary" | "secondary" | "tertiary" | "text" | "link";
 
 export function buttonVariantClassName(variant: ButtonVariant) {
   const className = {

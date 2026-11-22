@@ -285,11 +285,11 @@ const NumericQuestionInput: React.FC<{
           draftInboundOutcomeCount ?? DefaultInboundOutcomeCount;
         mn =
           Math.round(
-            1e10 * (isNil(draftMin) ? min ?? 0 : (draftMin as number))
+            1e10 * (isNil(draftMin) ? (min ?? 0) : (draftMin as number))
           ) / 1e10;
         mx =
           Math.round(
-            1e10 * (isNil(draftMax) ? max ?? 1 : (draftMax as number))
+            1e10 * (isNil(draftMax) ? (max ?? 1) : (draftMax as number))
           ) / 1e10;
         if (questionType === QuestionType.Discrete) {
           const draftStep =

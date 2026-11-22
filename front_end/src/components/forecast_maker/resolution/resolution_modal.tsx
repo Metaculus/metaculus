@@ -92,7 +92,7 @@ const QuestionResolutionModal: FC<Props> = ({ isOpen, onClose, question }) => {
       defaultValues: {
         resolutionType:
           question.type === QuestionType.MultipleChoice
-            ? resolutionTypeOptions[0]?.value ?? ""
+            ? (resolutionTypeOptions[0]?.value ?? "")
             : "",
         actualResolveTime: currentDateTime,
         scoreAsTask: false,
@@ -208,12 +208,12 @@ const QuestionResolutionModal: FC<Props> = ({ isOpen, onClose, question }) => {
                 min={
                   open_lower_bound
                     ? undefined
-                    : question?.scaling.range_min ?? undefined
+                    : (question?.scaling.range_min ?? undefined)
                 }
                 max={
                   open_upper_bound
                     ? undefined
-                    : question?.scaling.range_max ?? undefined
+                    : (question?.scaling.range_max ?? undefined)
                 }
                 {...register("resolutionValue")}
               />

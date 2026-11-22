@@ -83,9 +83,9 @@ function getScheduledCloseTime(
   const rawCloseTime =
     rule === FeedTileRule.ALL_QUESTIONS_RESOLVED && projectResolutionDate
       ? projectResolutionDate
-      : project.forecasting_end_date ??
+      : (project.forecasting_end_date ??
         project.close_date ??
-        project.start_date;
+        project.start_date);
   const rawCloseTs = safeTs(rawCloseTime) ?? Date.now() + 1000;
   return new Date(Math.max(rawCloseTs, Date.now() + 1000)).toISOString();
 }

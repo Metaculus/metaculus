@@ -428,7 +428,7 @@ const GroupForm: React.FC<Props> = ({
         inbound_outcome_count: ContinuousQuestionTypes.some(
           (type) => type === x.type
         )
-          ? x.inbound_outcome_count ?? DefaultInboundOutcomeCount
+          ? (x.inbound_outcome_count ?? DefaultInboundOutcomeCount)
           : undefined,
         has_forecasts:
           (x.aggregations[x.default_aggregation_method].latest
@@ -594,8 +594,7 @@ const GroupForm: React.FC<Props> = ({
       saveQuestionDraft(draftKey, {
         ...formData,
         default_project: (formData.default_project ?? undefined) as
-          | number
-          | undefined,
+          number | undefined,
         categories: categoriesList,
         subQuestions: subQuestions as unknown as QuestionWithForecasts[],
       });

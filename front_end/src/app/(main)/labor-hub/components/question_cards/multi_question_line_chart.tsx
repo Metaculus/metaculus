@@ -39,9 +39,7 @@ const DEFAULT_SERIES_COLORS: MultiLineChartColor[] = [
 ];
 
 type MultiQuestionLineChartValueFormat =
-  | "percentage"
-  | "percentageChange"
-  | "number";
+  "percentage" | "percentageChange" | "number";
 
 type SeriesOverride = Partial<
   Omit<MultiLineChartSeries, "id" | "label" | "data" | "color">
@@ -89,7 +87,7 @@ function buildSeriesFromDatasetRows(
   const series = rows.map<MultiLineChartSeries>((row, index) => {
     const overrides = getSeriesOptions?.(row, index);
     const isStaticRow = row.questionId == null;
-    const historicalValues = isStaticRow ? {} : row.historicalValues ?? {};
+    const historicalValues = isStaticRow ? {} : (row.historicalValues ?? {});
 
     return {
       id: row.questionId != null ? String(row.questionId) : `static-${index}`,

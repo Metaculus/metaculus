@@ -519,11 +519,11 @@ const KeyFactorsAddInCommentLLMSuggestions: React.FC<Props> = ({
           sourceTitle={
             session.swapped
               ? session.suggestion.question.title
-              : postData.question?.title ?? ""
+              : (postData.question?.title ?? "")
           }
           targetTitle={
             session.swapped
-              ? postData.question?.title ?? ""
+              ? (postData.question?.title ?? "")
               : session.suggestion.question.title
           }
           handleSwap={() =>
