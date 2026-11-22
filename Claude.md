@@ -5,6 +5,7 @@ This is a Django + Next.js monorepo. Python/Django backend lives in the root dir
 - `cd ./front_end && bun run build`: Build the project
 - `cd ./front_end && bun run format`: Format the frontend code
 - `cd ./front_end && bun run lint`: Run linter AND type checker in parallel (includes both `lint:js` and `lint:types`). Do NOT run `lint` and `lint:types` separately — `lint` already includes type checking.
+- `cd ./front_end && bun run test`: Run frontend unit tests (`bun test` + jsdom). Always go through this script, optionally with a path filter (`bun run test src/utils`): its `--parallel` gives each test file its own globals.
 - `uv run ruff format .`: Format Python code
 - `uv run ruff check .`: Lint Python code
 
@@ -14,6 +15,7 @@ This is a Django + Next.js monorepo. Python/Django backend lives in the root dir
 - Do not use inline imports where possible. Prefer top-level imports.
 - Do not add excessive comments. Add comments only to document what would be surprising to a senior engineer.
 - LLM calls: follow `docs/llm-usage.md` (OpenRouter only, tag every request).
+- Frontend tests: `mock.module()` from `bun:test` is unhoisted and process-wide. Register it before anything that reads the mock at load time (then `await import(...)` the code under test), and prefer real modules where practical. A file importing anything from `bun:test` imports every test global it uses from there.
 - For any frontend content visible to the user, use the translation mechanism used across the whole frontend. `const t = useTranslations()` and then `t("stringKey")` while adding the "stringKey" to all the corresponding language files in `front_end/messages/`: `en.json`, `es.json`, `cs.json`, `pt.json`, `zh.json`, `zh-TW.json`.
 
 # Workflow

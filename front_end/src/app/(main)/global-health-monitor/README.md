@@ -53,6 +53,6 @@ Writing rules:
 
 ## 4. Check and open the PR
 
-1. `cd front_end && bun run lint && bun run format && bun run test -- "src/app/\(main\)/global-health-monitor"`.
+1. `cd front_end && bun run lint && bun run format && bun run test "src/app/(main)/global-health-monitor"`.
 2. Check the page locally, the latest and the previous edition (`?edition=YYYY-MM`).
 3. Open a PR titled `feat: global health monitor — <Month YYYY> edition` that lists the source figures with their dates and links, the Pro comments summarized, and the layout changes. Grace reviews it on the PR preview.
