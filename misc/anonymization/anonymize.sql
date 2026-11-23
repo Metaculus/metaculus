@@ -111,7 +111,44 @@ WHERE cleaned.id = registration.id
   AND registration.details IS DISTINCT FROM cleaned.details;
 
 -- Private comments are personal notes, and soft-deleted comments were
--- removed by their authors. Clear every language column of both.
+-- removed by their authors. Clear every language column of both, plus the
+-- key factors written on them. Key factors on news articles are kept.
+-- Clearing is_text_archived stops the app from reading the original text of
+-- archived (bot) comments back from the S3 archive.
+UPDATE comments_keyfactordriver AS driver
+SET text = '',
+    text_original = '',
+    text_en = NULL,
+    text_cs = NULL,
+    text_es = NULL,
+    text_zh = NULL,
+    "text_zh_TW" = NULL,
+    text_pt = NULL,
+    content_last_md5 = NULL
+FROM comments_keyfactor AS key_factor
+JOIN comments_comment AS parent_comment ON parent_comment.id = key_factor.comment_id
+WHERE key_factor.driver_id = driver.id
+  AND (parent_comment.is_private OR parent_comment.is_soft_deleted)
+  AND (
+      driver.text, driver.text_original, driver.text_en, driver.text_cs,
+      driver.text_es, driver.text_zh, driver."text_zh_TW", driver.text_pt,
+      driver.content_last_md5
+  ) IS DISTINCT FROM ('', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+
+UPDATE comments_keyfactorbaserate AS base_rate
+SET reference_class = '',
+    based_on = '',
+    source = '',
+    content_last_md5 = NULL
+FROM comments_keyfactor AS key_factor
+JOIN comments_comment AS parent_comment ON parent_comment.id = key_factor.comment_id
+WHERE key_factor.base_rate_id = base_rate.id
+  AND (parent_comment.is_private OR parent_comment.is_soft_deleted)
+  AND (
+      base_rate.reference_class, base_rate.based_on, base_rate.source,
+      base_rate.content_last_md5
+  ) IS DISTINCT FROM ('', '', '', NULL);
+
 UPDATE comments_comment
 SET text = '',
     text_original = '',
@@ -122,7 +159,8 @@ SET text = '',
     "text_zh_TW" = NULL,
     text_pt = NULL,
     content_last_md5 = NULL,
-    text_original_search_vector = NULL
+    text_original_search_vector = NULL,
+    is_text_archived = FALSE
 WHERE (is_private OR is_soft_deleted)
   AND (
       (
@@ -130,6 +168,7 @@ WHERE (is_private OR is_soft_deleted)
           "text_zh_TW", text_pt, content_last_md5
       ) IS DISTINCT FROM ('', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL)
       OR text_original_search_vector IS NOT NULL
+      OR is_text_archived
   );
 
 -- edit_history holds ids of the comments_commentdiff rows deleted above.

@@ -43,17 +43,17 @@ COLUMNS: dict[str, dict[str, str]] = {
     },
     "comments_keyfactor": {"question_option": KEEP},
     "comments_keyfactorbaserate": {
-        "based_on": KEEP,
-        "content_last_md5": KEEP,
+        "based_on": SCRUB,
+        "content_last_md5": SCRUB,
         "content_original_lang": KEEP,
-        "reference_class": KEEP,
-        "source": KEEP,
+        "reference_class": SCRUB,
+        "source": SCRUB,
         "unit": KEEP,
     },
     "comments_keyfactordriver": {
-        "content_last_md5": KEEP,
+        "content_last_md5": SCRUB,
         "content_original_lang": KEEP,
-        "text": KEEP,
+        "text": SCRUB,
     },
     "comments_keyfactornews": {
         "img_url": KEEP,

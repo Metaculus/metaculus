@@ -19,7 +19,12 @@ from pgvector.django import VectorField
 from social_django.models import Association, Code, Nonce, Partial, UserSocialAuth
 
 from authentication.models import ApiKey
-from comments.models import CommentDiff, CommentsOfTheWeekNotification
+from comments.models import (
+    CommentDiff,
+    CommentsOfTheWeekNotification,
+    KeyFactorBaseRate,
+    KeyFactorDriver,
+)
 from misc.anonymization import get_anonymization_statements, run_anonymization
 from misc.anonymization.manifest import COLUMNS, KEEP, SCRUB, WIPED_TABLES
 from misc.models import UserDataAccess
@@ -27,7 +32,7 @@ from notifications.constants import MailingTags
 from notifications.models import Notification
 from posts.models import PostUserSnapshot
 from scoring.models import MedalExclusionRecord
-from tests.unit.test_comments.factories import factory_comment
+from tests.unit.test_comments.factories import factory_comment, factory_key_factor
 from tests.unit.test_posts.factories import factory_post, factory_post_snapshot
 from tests.unit.test_users.factories import factory_user
 from users.models import User, UserCampaignRegistration, UserSpamActivity
@@ -265,19 +270,50 @@ class TestRunAnonymization:
         )
 
         with connection.cursor() as cursor:
-            for comment, text in [
-                (private_comment, "private note"),
-                (deleted_comment, "deleted text"),
-                (public_comment, "public text"),
+            for comment, text, is_text_archived in [
+                (private_comment, "private note", True),
+                (deleted_comment, "deleted text", False),
+                (public_comment, "public text", True),
             ]:
                 cursor.execute(
                     "UPDATE comments_comment "
                     "SET text = %(text)s, text_original = %(text)s, "
                     'text_en = %(text)s, "text_zh_TW" = %(text)s, '
                     "content_last_md5 = md5(%(text)s), edit_history = %(history)s, "
-                    "text_original_search_vector = to_tsvector('english', %(text)s) "
+                    "text_original_search_vector = to_tsvector('english', %(text)s), "
+                    "is_text_archived = %(archived)s "
                     "WHERE id = %(id)s",
-                    {"text": text, "history": f"[{diff.pk}]", "id": comment.pk},
+                    {
+                        "text": text,
+                        "history": f"[{diff.pk}]",
+                        "archived": is_text_archived,
+                        "id": comment.pk,
+                    },
+                )
+
+        private_driver = KeyFactorDriver.objects.create(text="private driver")
+        public_driver = KeyFactorDriver.objects.create(text="public driver")
+        deleted_base_rate = KeyFactorBaseRate.objects.create(
+            type=KeyFactorBaseRate.BaseRateType.FREQUENCY,
+            reference_class="private class",
+            based_on="private basis",
+            unit="%",
+            source="private source",
+        )
+        factory_key_factor(comment=private_comment, driver=private_driver)
+        factory_key_factor(comment=public_comment, driver=public_driver)
+        factory_key_factor(comment=deleted_comment, base_rate=deleted_base_rate)
+
+        with connection.cursor() as cursor:
+            for driver, text in [
+                (private_driver, "private driver"),
+                (public_driver, "public driver"),
+            ]:
+                cursor.execute(
+                    "UPDATE comments_keyfactordriver "
+                    'SET text = %(text)s, text_original = %(text)s, "text_zh_TW" = %(text)s, '
+                    "content_last_md5 = md5(%(text)s) WHERE id = %(id)s",
+                    {"text": text, "id": driver.pk},
                 )
 
         factory_post_snapshot(
@@ -346,6 +382,7 @@ class TestRunAnonymization:
             "content_last_md5",
             "edit_history",
             "text_original_search_vector",
+            "is_text_archived",
         ]
         for comment in (private_comment, deleted_comment):
             row = fetch_columns("comments_comment", comment.pk, columns)
@@ -354,13 +391,37 @@ class TestRunAnonymization:
             assert all(row[column] is None for column in COMMENT_TEXT_COLUMNS[2:])
             assert row["content_last_md5"] is None
             assert row["text_original_search_vector"] is None
+            assert row["is_text_archived"] is False
             assert json.loads(row["edit_history"]) == []
 
         row = fetch_columns("comments_comment", public_comment.pk, columns)
         assert row["text_original"] == "public text"
         assert row["text_zh_TW"] == "public text"
         assert row["text_original_search_vector"] is not None
+        assert row["is_text_archived"] is True
         assert json.loads(row["edit_history"]) == []
+
+        row = fetch_columns(
+            "comments_keyfactordriver",
+            private_driver.pk,
+            COMMENT_TEXT_COLUMNS + ["content_last_md5"],
+        )
+        assert row["text"] == ""
+        assert row["text_original"] == ""
+        assert all(row[column] is None for column in COMMENT_TEXT_COLUMNS[2:])
+        assert row["content_last_md5"] is None
+
+        assert fetch_columns(
+            "comments_keyfactordriver",
+            public_driver.pk,
+            ["text_original", "text_zh_TW"],
+        ) == {"text_original": "public driver", "text_zh_TW": "public driver"}
+
+        assert fetch_columns(
+            "comments_keyfactorbaserate",
+            deleted_base_rate.pk,
+            ["reference_class", "based_on", "source", "unit"],
+        ) == {"reference_class": "", "based_on": "", "source": "", "unit": "%"}
 
         snapshot = PostUserSnapshot.objects.get(user=user, post=post)
         assert snapshot.private_note == ""
