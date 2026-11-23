@@ -27,23 +27,6 @@ DELETE FROM social_auth_nonce;
 DELETE FROM social_auth_partial;
 DELETE FROM social_auth_usersocialauth;
 
--- Deleting a key factor leaves its driver, base rate or news row behind,
--- still holding the text.
-DELETE FROM comments_keyfactordriver AS driver
-WHERE NOT EXISTS (
-    SELECT 1 FROM comments_keyfactor WHERE driver_id = driver.id
-);
-
-DELETE FROM comments_keyfactorbaserate AS base_rate
-WHERE NOT EXISTS (
-    SELECT 1 FROM comments_keyfactor WHERE base_rate_id = base_rate.id
-);
-
-DELETE FROM comments_keyfactornews AS news
-WHERE NOT EXISTS (
-    SELECT 1 FROM comments_keyfactor WHERE news_id = news.id
-);
-
 -- Staff keep their real email addresses, so unsubscribe them from every
 -- mailing tag (notifications.constants.MailingTags).
 WITH tags (all_tags) AS (

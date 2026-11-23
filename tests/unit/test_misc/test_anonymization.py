@@ -26,7 +26,6 @@ from comments.models import (
     KeyFactorDriver,
     KeyFactorNews,
 )
-from comments.services.key_factors.common import delete_key_factor
 from misc.anonymization import get_anonymization_statements, run_anonymization
 from misc.anonymization.manifest import COLUMNS, KEEP, SCRUB, WIPED_TABLES
 from misc.models import UserDataAccess
@@ -339,14 +338,6 @@ class TestRunAnonymization:
         )
         factory_key_factor(comment=private_comment, news=private_news)
 
-        removed_driver = KeyFactorDriver.objects.create(text="removed driver")
-        delete_key_factor(
-            factory_key_factor(comment=public_comment, driver=removed_driver)
-        )
-        orphan_news = KeyFactorNews.objects.create(
-            url="https://example.com", title="Orphan", source="Example"
-        )
-
         with connection.cursor() as cursor:
             for driver, text in [
                 (private_driver, "private driver"),
@@ -475,10 +466,6 @@ class TestRunAnonymization:
             private_news.pk,
             ["url", "title", "img_url", "source"],
         ) == {"url": "", "title": "", "img_url": "", "source": ""}
-
-        assert not KeyFactorDriver.objects.filter(pk=removed_driver.pk).exists()
-        assert not KeyFactorNews.objects.filter(pk=orphan_news.pk).exists()
-        assert KeyFactorDriver.objects.filter(pk=public_driver.pk).exists()
 
         snapshot = PostUserSnapshot.objects.get(user=user, post=post)
         assert snapshot.private_note == ""
