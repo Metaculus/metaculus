@@ -17,6 +17,21 @@ import {
 import { safeDocumentCookie } from "@/utils/core/storage";
 import { PostHogIdentity } from "@/utils/posthog_identity";
 
+// Survey popovers cover our embeds on these pages
+const SURVEY_BLOCKED_REFERRER_DOMAIN = "verity.news";
+
+function isSurveyBlockedReferrer(): boolean {
+  try {
+    const { hostname } = new URL(document.referrer);
+    return (
+      hostname === SURVEY_BLOCKED_REFERRER_DOMAIN ||
+      hostname.endsWith(`.${SURVEY_BLOCKED_REFERRER_DOMAIN}`)
+    );
+  } catch {
+    return false;
+  }
+}
+
 // Experiment assignments are pinned in first-party cookies by the
 // middleware (proxy.ts) when an eligible visitor is enrolled
 function getAssignmentCookie(cookieName: string): ExperimentAssignment | null {
@@ -64,6 +79,7 @@ function CSPostHogProvider({
         person_profiles: "always",
         // Disable automatic pageview capture, as we capture manually
         capture_pageview: false,
+        disable_surveys: isSurveyBlockedReferrer(),
         persistence:
           getAnalyticsCookieConsentGiven() === "yes"
             ? "localStorage+cookie"

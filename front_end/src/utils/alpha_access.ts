@@ -1,4 +1,4 @@
-"use server";
+import "server-only";
 
 /**
  * Returns Access Token which is used to restrict access to dev server

@@ -4,6 +4,9 @@ import { z } from "zod";
 export const driverTextSchema = z
   .string()
   .trim()
-  .min(20)
-  .max(120)
-  .or(z.string().trim().length(0));
+  .refine((value) => value.length === 0 || value.length >= 20, {
+    message: "String must contain at least 20 character(s)",
+  })
+  .refine((value) => value.length <= 120, {
+    message: "String must contain at most 120 character(s)",
+  });

@@ -7,10 +7,11 @@ import { QuestionWithForecasts } from "@/types/question";
 
 type Props = {
   question: QuestionWithForecasts;
+  cpLabel?: string;
 };
 
-const ConsumerTileClient: FC<Props> = ({ question }) => {
-  return <ConsumerQuestionTile question={question} />;
+const ConsumerTileClient: FC<Props> = ({ question, cpLabel }) => {
+  return <ConsumerQuestionTile question={question} cpLabel={cpLabel} />;
 };
 
 export default ConsumerTileClient;

@@ -11,7 +11,8 @@ from pgvector.django import CosineDistance
 from rest_framework.exceptions import APIException
 
 from posts.models import Post
-from utils.openai import (
+from utils.llm import (
+    LLMFeature,
     generate_text_embed_vector_async,
     chunked_tokens,
     generate_text_embed_vector,
@@ -64,7 +65,9 @@ def update_post_search_embedding_vector(post: Post):
 
     # Step 1: generate embedding chunks
     for chunk in chunked_tokens(content):
-        chunk_embeddings.append(generate_text_embed_vector(chunk))
+        chunk_embeddings.append(
+            generate_text_embed_vector(chunk, LLMFeature.EMBEDDINGS_SEARCH)
+        )
 
     # Step 2: weight them
     vector = np.average(
@@ -144,7 +147,9 @@ async def gather_search_results(
 
 async def perform_embedding_search(search_text: str) -> list[float] | None:
     try:
-        return await generate_text_embed_vector_async(search_text)
+        return await generate_text_embed_vector_async(
+            search_text, LLMFeature.EMBEDDINGS_SEARCH
+        )
     except Exception:
         logger.exception("Failed to generate search embedding")
 

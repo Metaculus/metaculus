@@ -219,6 +219,8 @@ export type AdTileData = {
   exposure_rate: number; // percent 1–100: chance this ad is shown in a given feed slot
   placements: TilePlacement[];
   project_id: number | null;
+  target_post_id: number | null;
+  target_project_id: number | null;
 };
 
 export type CombinedFeedTile =

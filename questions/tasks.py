@@ -1,7 +1,10 @@
 import logging
+import time
 from datetime import datetime, timedelta, timezone as dt_timezone
 
 import dramatiq
+from django.conf import settings
+from django.core.cache import cache
 from django.db.models import Q
 from django.utils import timezone
 
@@ -23,6 +26,7 @@ from questions.services.forecasts import (
     get_forecasts_per_user,
 )
 from questions.services.lifecycle import score_resolved_question
+from questions.types import SHADOW_AGGREGATION_METHODS
 from scoring.constants import ScoreTypes
 from users.models import User
 from utils.dramatiq import concurrency_retries, task_concurrent_limit
@@ -53,18 +57,100 @@ def run_build_question_forecasts(question_id: int):
 
     question = Question.objects.get(id=question_id)
     build_question_forecasts(question)
+    queue_shadow_aggregations(question_id)
+
+
+# Builds requested within this long of each other are coalesced into one
+SHADOW_AGGREGATION_DELAY_MS = 30_000
+
+
+def _shadow_pending_key(question_id: int) -> str:
+    return f"shadow-aggregations-pending:{question_id}"
+
+
+def queue_shadow_aggregations(question_id: int, check_enabled: bool = True):
+    """At most one shadow build is queued per question: while one is waiting,
+    further requests are covered by it. It's delayed so bursts of forecasts
+    (common from bots) share one build.
+    `check_enabled=False` leaves the kill switch to the build itself, for callers
+    that may run in a web process, where it isn't necessarily set.
+    Failures are logged and swallowed, like the build's own."""
+    if check_enabled and not settings.SHADOW_AGGREGATIONS_ENABLED:
+        return
+    key = _shadow_pending_key(question_id)
+    try:
+        # The timeout only matters if a queued build is lost before it starts
+        if cache.add(key, True, timeout=600):
+            try:
+                run_build_question_shadow_aggregations.send_with_options(
+                    args=(question_id,), delay=SHADOW_AGGREGATION_DELAY_MS
+                )
+            except Exception:
+                # so a later request can queue it again
+                cache.delete(key)
+                raise
+    except Exception:
+        logging.exception(
+            f"Queueing shadow aggregations failed for question {question_id}"
+        )
+
+
+@dramatiq.actor(max_backoff=10_000, retry_when=concurrency_retries(max_retries=20))
+@task_concurrent_limit(
+    lambda question_id: f"mutex:build-question-shadow-aggregations-{question_id}",
+    limit=1,
+    ttl=300_000,
+)
+def run_build_question_shadow_aggregations(question_id: int):
+    """
+    Queued after each default aggregation build, so it never delays one.
+    Failures are logged and swallowed: a shadow aggregation must not affect
+    anything users see.
+    """
+
+    # Cleared before building, so a forecast arriving mid-build queues another
+    cache.delete(_shadow_pending_key(question_id))
+    if not settings.SHADOW_AGGREGATIONS_ENABLED:
+        return
+    question = Question.objects.get(id=question_id)
+    for method in SHADOW_AGGREGATION_METHODS:
+        start = time.monotonic()
+        try:
+            build_question_forecasts(question, method)
+        except Exception:
+            logging.exception(
+                f"Building shadow aggregation {method} failed for question "
+                f"{question_id}"
+            )
+            continue
+        logging.info(
+            f"Built shadow aggregation {method} for question {question_id} in "
+            f"{time.monotonic() - start:.2f}s"
+        )
 
 
 @dramatiq.actor(time_limit=1_800_000)
-def resolve_question_and_send_notifications(question_id: int):
+def resolve_question_and_send_notifications(
+    question_id: int, previous_resolve_time: str | None = None
+):
     """
     Scoring + notifications for a question resolved with `score_as_task`, which
     opts out of the default of scoring inside the resolution request.
+    `previous_resolve_time` is the question's actual_resolve_time before this
+    resolution, in ISO format.
     """
 
     question: Question = Question.objects.get(id=question_id)
 
-    score_resolved_question(question, question.resolution)
+    score_resolved_question(
+        question,
+        question.resolution,
+        (
+            datetime.fromisoformat(previous_resolve_time)
+            if previous_resolve_time
+            else None
+        ),
+    )
     send_resolution_notifications(question)
 
 

@@ -37,6 +37,7 @@ import { getPostHogIdentity } from "@/utils/posthog_identity";
 import { getPublicSettings } from "@/utils/public_settings.server";
 
 import { AllBWPixelTagsForRegisteredUsers } from "./(campaigns-registration)/(bridgewater)/bridgewater/components/pixels-tags";
+import RedditPageTracker from "./(main)/services/components/reddit_page_tracker";
 
 config.autoAddCss = false;
 
@@ -142,6 +143,7 @@ export default async function RootLayout({
                                 <SimplifiedSignupModal />
                                 <Toaster />
                                 <GoogleTagManager />
+                                <RedditPageTracker />
                               </TranslationsBannerProvider>
                             </FeedLayoutProvider>
                           </NavigationProvider>

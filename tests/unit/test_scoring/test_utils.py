@@ -325,7 +325,9 @@ def _binary_question(**kwargs) -> Question:
         title="Question",
         type=Question.QuestionType.BINARY,
         open_time=timezone.now() - timedelta(days=10),
+        cp_reveal_time=timezone.now() - timedelta(days=10),
         scheduled_close_time=timezone.now() + timedelta(days=10),
+        scheduled_resolve_time=timezone.now() + timedelta(days=20),
         **kwargs,
     )
 

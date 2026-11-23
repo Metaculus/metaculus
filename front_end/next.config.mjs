@@ -1,4 +1,4 @@
-import { withSentryConfig } from "@sentry/nextjs";
+import { withSentryConfig } from "@sentry/nextjs/config";
 import createNextIntlPlugin from "next-intl/plugin";
 
 import { buildMarkdownRewrites } from "./src/agent_markdown/routes.mjs";
@@ -73,6 +73,11 @@ const nextConfig = {
       {
         source: "/aib/minibench/",
         destination: "/futureeval/minibench/",
+        permanent: true,
+      },
+      {
+        source: "/aib/contest-rules/",
+        destination: "/notebooks/28751/futureeval-competition-rules/",
         permanent: true,
       },
       {

@@ -3,9 +3,8 @@ import traceback
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
 from django.shortcuts import render
-from django.utils import timezone
 
-from comments.models import Comment
+from comments.services.common import publish_bot_private_comments
 from projects.models import Project
 
 from .utils import submit_questions
@@ -59,13 +58,7 @@ def fab_management_view(request):
                     )
                 case "publish_comments":
                     tournament = Project.objects.get(pk=tournament_id)
-                    now = timezone.now()
-                    count = Comment.objects.filter(
-                        on_post__default_project=tournament,
-                        author__is_bot=True,
-                        on_post__question__cp_reveal_time__lt=now,
-                        is_private=True,
-                    ).update(is_private=False)
+                    count = publish_bot_private_comments(tournament)
                     messages.info(
                         request,
                         f"Published {count} bot (🤖) private notes from questions with CP visible",

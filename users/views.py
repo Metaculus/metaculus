@@ -37,6 +37,7 @@ from users.serializers import (
 )
 from users.services.common import (
     change_user_password,
+    deactivate_spam_profile,
     get_users,
     mark_user_as_spam,
     register_user_to_campaign,
@@ -51,10 +52,7 @@ from utils.tasks import email_user_their_data_task
 
 from .services.bots_management import create_bot, get_user_bots
 from .services.profile_stats import serialize_user_stats
-from .services.spam_detection import (
-    check_profile_update_for_spam,
-    send_deactivation_email,
-)
+from .services.spam_detection import check_profile_update_for_spam
 
 logger = logging.getLogger(__name__)
 
@@ -166,8 +164,7 @@ def update_profile_api_view(request: Request) -> Response:
     is_spam, _ = check_profile_update_for_spam(user, serializer)
 
     if is_spam:
-        mark_user_as_spam(user)
-        send_deactivation_email(user.email)
+        deactivate_spam_profile(user, serializer.validated_data)
         return Response(
             data={
                 "message": "This bio seems to be spam. Please contact "
@@ -301,7 +298,7 @@ def create_bot_api_view(request: Request):
 def update_bot_profile_api_view(request: Request, pk: int):
     user: User = request.user
     # Check user bot permissions
-    bot = get_object_or_404(get_user_bots(user), pk=pk)
+    bot = get_object_or_404(get_user_bots(user).filter(is_active=True), pk=pk)
 
     serializer = BotUpdateProfileSerializer(bot, data=request.data, partial=True)
     serializer.is_valid(raise_exception=True)
@@ -309,8 +306,7 @@ def update_bot_profile_api_view(request: Request, pk: int):
     is_spam, _ = check_profile_update_for_spam(bot, serializer)
 
     if is_spam:
-        mark_user_as_spam(user)
-        send_deactivation_email(user.email)
+        deactivate_spam_profile(bot, serializer.validated_data)
 
         return Response(
             data={

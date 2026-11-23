@@ -9,7 +9,11 @@ from django_better_admin_arrayfield.models.fields import ArrayField
 from sql_util.aggregates import SubqueryAggregate
 
 from questions.constants import QuestionStatus
-from questions.types import AggregationMethod, OptionsHistoryType
+from questions.types import (
+    SHADOW_AGGREGATION_METHODS,
+    AggregationMethod,
+    OptionsHistoryType,
+)
 from scoring.constants import ScoreTypes
 from users.models import User
 from utils.models import TimeStampedModel, TranslatedModel
@@ -306,6 +310,31 @@ class Question(TimeStampedModel, TranslatedModel):  # type: ignore
             and self.open_time >= self.scheduled_resolve_time
         ):
             raise ValidationError("Scheduled Resolve Time must be after open_time")
+
+        if (
+            self.post_id
+            and self.post.curation_status == self.post.CurationStatus.APPROVED
+            and (error := self.get_missing_dates_error())
+        ):
+            raise ValidationError(error)
+
+    def get_missing_dates_error(self) -> str | None:
+        missing = [
+            self._meta.get_field(field).verbose_name
+            for field in (
+                "open_time",
+                "cp_reveal_time",
+                "scheduled_close_time",
+                "scheduled_resolve_time",
+            )
+            if getattr(self, field) is None
+        ]
+
+        if missing:
+            return (
+                f'Approved question "{self.label or self.title}" is missing: '
+                f"{', '.join(missing)}"
+            )
 
     def save(self, **kwargs):
         # Ensure resolution is always null or non-empty string
@@ -773,6 +802,13 @@ class Forecast(models.Model):
 class AggregateForecastQuerySet(QuerySet):
     def filter_default_aggregation(self):
         return self.filter(method=F("question__default_aggregation_method"))
+
+    def exclude_shadow_aggregations(self):
+        # A shadow method that is the question's own default isn't a shadow there
+        return self.exclude(
+            Q(method__in=SHADOW_AGGREGATION_METHODS)
+            & ~Q(method=F("question__default_aggregation_method"))
+        )
 
 
 class AggregateForecast(models.Model):

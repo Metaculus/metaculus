@@ -31,7 +31,7 @@ import { QuestionType } from "@/types/question";
 import { logError } from "@/utils/core/errors";
 import { addUrlParams } from "@/utils/navigation";
 
-import createEditorComponent from "../createJsxComponent";
+import createEmbedEditorComponent, { isEmbedId } from "../createJsxComponent";
 import EmbedQuestionModal from "./embed_question_modal";
 import useLexicalBackspaceNodeRemove from "../hooks/use_backspace_node_remove";
 
@@ -57,7 +57,7 @@ function isFanChartPost(post: PostWithForecasts) {
   );
 }
 
-const EmbeddedQuestion: FC<Props> = ({ id }) => {
+const EmbeddedQuestionContent: FC<Props> = ({ id }) => {
   const [postData, setPostData] = useState<PostWithForecasts | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -207,13 +207,16 @@ export const EmbedQuestionAction: FC = () => {
   );
 };
 
+const EmbeddedQuestion: FC<{ id: string }> = ({ id }) =>
+  isEmbedId(id) ? <EmbeddedQuestionContent id={Number(id)} /> : null;
+
 const MemorizedEmbeddedQuestion = memo(EmbeddedQuestion);
 export const embeddedQuestionDescriptor: JsxComponentDescriptor = {
   name: EMBEDDED_QUESTION_COMPONENT_NAME,
   props: [{ name: "id", type: "number", required: true }],
   kind: "flow",
   hasChildren: false,
-  Editor: createEditorComponent(MemorizedEmbeddedQuestion),
+  Editor: createEmbedEditorComponent(MemorizedEmbeddedQuestion),
 };
 
 export default MemorizedEmbeddedQuestion;

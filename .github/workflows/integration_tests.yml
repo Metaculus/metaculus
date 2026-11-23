@@ -16,7 +16,9 @@ concurrency:
 
 jobs:
   integration-tests:
-    runs-on: ubuntu-latest
+    # Pinned: `playwright install --with-deps` doesn't support Ubuntu 26.04 yet,
+    # which is what ubuntu-latest resolves to now.
+    runs-on: ubuntu-24.04
     permissions:
       contents: read
     environment: testing_env
@@ -88,6 +90,8 @@ jobs:
           node-version-file: front_end/.nvmrc
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: front_end/package.json
       - name: Cache node_modules
         id: cache-node-modules
         uses: actions/cache@v5

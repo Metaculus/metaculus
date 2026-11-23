@@ -40,12 +40,12 @@ class TestDataGetRequestSerializerAggregationMethods:
         assert "joined_before_date" in methods
         assert "recency_weighted" in methods
 
-    def test_all_drops_single_aggregation_for_non_staff(self):
+    def test_all_drops_reputation_weighted_for_non_staff(self):
         methods = self._validated({"aggregation_methods": "all"})["aggregation_methods"]
 
-        assert AggregationMethod.SINGLE_AGGREGATION not in methods
+        assert AggregationMethod.REPUTATION_WEIGHTED not in methods
 
-    def test_all_keeps_single_aggregation_for_staff(self, user_admin: User):
+    def test_all_keeps_reputation_weighted_for_staff(self, user_admin: User):
         user_admin.is_staff = True
         serializer = DataGetRequestSerializer(
             data={"aggregation_methods": "all"}, context={"user": user_admin}
@@ -54,14 +54,14 @@ class TestDataGetRequestSerializerAggregationMethods:
 
         methods = serializer.validated_data["aggregation_methods"]
 
-        assert AggregationMethod.SINGLE_AGGREGATION in methods
+        assert AggregationMethod.REPUTATION_WEIGHTED in methods
 
-    def test_non_staff_single_aggregation_alone_leaves_no_methods(self):
+    def test_non_staff_reputation_weighted_alone_leaves_no_methods(self):
         # Filtering the staff-only method empties the list, which the
         # "methods must be set" rule then rejects
         serializer = DataGetRequestSerializer(
             data={
-                "aggregation_methods": AggregationMethod.SINGLE_AGGREGATION,
+                "aggregation_methods": AggregationMethod.REPUTATION_WEIGHTED,
                 "include_bots": True,
             },
             context={"user": None},

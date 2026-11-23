@@ -48,6 +48,8 @@ jobs:
           node-version-file: front_end/.nvmrc
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: front_end/package.json
       - name: Cache node_modules
         id: cache-node-modules
         uses: actions/cache@v5

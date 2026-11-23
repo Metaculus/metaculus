@@ -41,6 +41,7 @@ export function BasicQuestionContent({
   timelineMarkers,
   timelineSubtitle,
   yDomainOptions,
+  asOfTime,
 }: {
   postData: PostWithForecasts;
   preferTimeline?: boolean;
@@ -49,6 +50,8 @@ export function BasicQuestionContent({
   timelineMarkers?: GroupTimelineMarker[];
   timelineSubtitle?: string;
   yDomainOptions?: TimelineYDomainOptions;
+  /** Ends group timelines at this time (ms), for pages that show forecasts as of a past date. */
+  asOfTime?: number;
 }) {
   const [cursorTimestamp, setCursorTimestamp] = useState<number | null>(null);
   const laborHubHover = useLaborHubChartHover();
@@ -96,6 +99,8 @@ export function BasicQuestionContent({
             }
             defaultZoom={TimelineChartZoomOption.TwoMonths}
             yDomainOptions={yDomainOptions}
+            actualCloseTime={asOfTime}
+            isClosed={asOfTime !== undefined}
           />
         </>
       );

@@ -74,14 +74,14 @@ export type Scaling = {
 export enum AggregationMethod {
   recency_weighted = "recency_weighted",
   unweighted = "unweighted",
-  single_aggregation = "single_aggregation",
+  reputation_weighted = "reputation_weighted",
   metaculus_prediction = "metaculus_prediction",
 }
 
 export enum DownloadAggregationMethod {
   recency_weighted = AggregationMethod.recency_weighted,
   unweighted = AggregationMethod.unweighted,
-  single_aggregation = AggregationMethod.single_aggregation,
+  reputation_weighted = AggregationMethod.reputation_weighted,
   metaculus_prediction = AggregationMethod.metaculus_prediction,
   geometric_mean = "geometric_mean",
 }
@@ -239,14 +239,14 @@ export type AggregateForecastHistory =
 export type NumericAggregations = {
   recency_weighted: NumericAggregateForecastHistory;
   unweighted: NumericAggregateForecastHistory;
-  single_aggregation: NumericAggregateForecastHistory;
+  reputation_weighted: NumericAggregateForecastHistory;
   metaculus_prediction: NumericAggregateForecastHistory;
 };
 
 export type MultipleChoiceAggregations = {
   recency_weighted: MultipleChoiceAggregateForecastHistory;
   unweighted: MultipleChoiceAggregateForecastHistory;
-  single_aggregation: MultipleChoiceAggregateForecastHistory;
+  reputation_weighted: MultipleChoiceAggregateForecastHistory;
   metaculus_prediction: MultipleChoiceAggregateForecastHistory;
 };
 

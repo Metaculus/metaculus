@@ -188,7 +188,7 @@ const initiativesPageData = {
       id: "global-health-monitor",
       nameKey: "initiativeGlobalHealthMonitorName",
       inventoryDescriptionKey: "initiativeGlobalHealthMonitorDescription",
-      url: "/tournament/global-health-monitor-26-27/",
+      url: "/global-health-monitor/",
       categoryId: "health-bio",
       order: 7,
       placements: ["inventory"],

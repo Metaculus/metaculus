@@ -19,6 +19,7 @@ import cn from "@/utils/core/cn";
 import { logError } from "@/utils/core/errors";
 
 import { submitGetInTouchForm } from "../../actions";
+import { trackServicesLead } from "../reddit_pixel";
 
 type ServiceTypeValue = (typeof ServiceType)[keyof typeof ServiceType];
 
@@ -121,6 +122,7 @@ const ContactForm: React.FC<ContactFormProps> = ({
 
   const onSubmit = useCallback(
     async (data: ContactFormSchema) => {
+      const submissionPath = window.location.pathname;
       setIsLoading(true);
       setError(undefined);
 
@@ -134,6 +136,7 @@ const ContactForm: React.FC<ContactFormProps> = ({
         });
 
         sendAnalyticsEvent("ServiceContactForm", { event_label: pageLabel });
+        trackServicesLead(submissionPath);
         reset();
       } catch (e) {
         logError(e);

@@ -1,4 +1,5 @@
-import { processMarkdown } from "../helpers";
+import { processMarkdown, processMarkdownForDisplay } from "../helpers";
+import { decodeLiteralEntities } from "../plugins/literal_entities";
 
 jest.mock("../embedded_question", () => ({
   EMBEDDED_QUESTION_COMPONENT_NAME: "EmbeddedQuestion",
@@ -564,5 +565,161 @@ describe("processMarkdown", () => {
       expect(result).toContain("> Blockquote 2");
       expect(result).toContain("> &#x20;\n");
     });
+  });
+
+  describe("stored XSS regressions", () => {
+    it.each([
+      ["entity-encoded tag", "&lt;img src=x onerror=alert(1)&gt;"],
+      [
+        "double-encoded tag",
+        "&amp;lt;details open ontoggle=alert(1)&amp;gt;x&amp;lt;/details&amp;gt;",
+      ],
+      ["numeric entities", "&#60;img src=x onerror=alert(1)&#62;"],
+    ])("keeps %s as text", (_name, input) => {
+      const result = processMarkdown(input);
+
+      expect(result).not.toMatch(/<(img|details)\b/i);
+      expect(result).toContain(input);
+    });
+
+    it("sanitizes attributes of void tags", () => {
+      const result = processMarkdown(
+        'Look <img src="x.png" onerror="alert(1)" /> here'
+      );
+
+      expect(result).toContain('<img src="x.png" />');
+      expect(result).not.toContain("onerror");
+    });
+
+    it("sanitizes content wrapped by a void tag pair", () => {
+      const result = processMarkdown(
+        '<br class="a"><details open ontoggle="alert(1)">x</details></br>'
+      );
+
+      expect(result).not.toContain("ontoggle");
+    });
+
+    it.each([
+      '<Tweet id="1"><img src=x onerror=alert(1)></Tweet>',
+      "<EmbeddedQuestion id={alert(1)} />",
+      '<EmbeddedQuestion id="1" onload="alert(1)" />',
+    ])(
+      "does not exempt non-canonical embeds from sanitization: %s",
+      (input) => {
+        const result = processMarkdown(input);
+
+        expect(result).not.toContain("alert");
+      }
+    );
+
+    it("preserves entities the author typed", () => {
+      const result = processMarkdown("Tom &amp; Jerry, 1 &lt; 2 & 3 > 2");
+
+      expect(result).toContain("Tom &amp; Jerry, 1 &lt; 2 & 3 > 2");
+    });
+
+    it("keeps encoded payloads encoded in revert mode", () => {
+      const result = processMarkdown("&lt;img src=x onerror=alert(1)&gt;", {
+        revert: true,
+      });
+
+      expect(result).toBe("&lt;img src=x onerror=alert(1)&gt;");
+    });
+
+    it("leaves literal marker-like text untouched", () => {
+      const privateUse = `${String.fromCharCode(0xe000)}0amp${String.fromCharCode(0xe001)}`;
+      const input = `x___AMPERSAND___y ___JSX_COMPONENT_0___ ${privateUse} AT&T`;
+
+      expect(processMarkdown(input)).toBe(input);
+      expect(processMarkdown(input, { revert: true })).toBe(input);
+    });
+
+    it("restores an embed nested in a void-tag chunk", () => {
+      const result = processMarkdown(
+        '<br class="a"><EmbeddedQuestion id="1" /></br>'
+      );
+
+      expect(result).toContain('<EmbeddedQuestion id="1" />');
+      expect(result).not.toMatch(/[-]|JSX_COMPONENT/);
+    });
+
+    it("keeps the canonical stored embed form unchanged", () => {
+      const input = 'Before\n\n<EmbeddedQuestion id="35956" />\n\nAfter';
+
+      expect(processMarkdown(input)).toBe(input);
+      expect(processMarkdown(input, { revert: true })).toBe(input);
+    });
+
+    it.each([
+      '<EmbeddedQuestion id="1"></EmbeddedQuestion>',
+      '<EmbeddedQuestion id="1" width="500" />',
+      '<EmbeddedQuestion  id = "1" />',
+    ])("does not pass non-canonical embed %s through unsanitized", (input) => {
+      expect(processMarkdown(input)).not.toContain("<EmbeddedQuestion");
+    });
+
+    it.each([
+      ["a fenced code block", "```\nweek.&#x20;\na &lt; b\n```"],
+      ["inline code", "Inline `x &amp; y`"],
+      ["inline math", "Math $a &lt; b$ here"],
+      ["block math", "$$\na &amp; b\n$$"],
+    ])("keeps entities verbatim in %s", (_context, input) => {
+      expect(processMarkdown(input)).toContain(
+        input.match(/&[#\w]+;/)?.[0] ?? ""
+      );
+    });
+  });
+});
+
+describe("processMarkdownForDisplay", () => {
+  it.each([
+    ["plain text", "Just `a &lt; b`", {}, "basic"],
+    ["a comparison", "a < b and `x &#60; y`", {}, "full"],
+    ["an HTML tag", "<u>u</u> `x`", {}, "full"],
+    ["only an embed", '<EmbeddedQuestion id="1" />', {}, "basic"],
+    ["a spaced void tag without attributes", "Line<br   />break", {}, "basic"],
+    ["a spaced paired void tag", "<br   >text</br>", {}, "basic"],
+    ["only a spaced void tag", 'Text <img src="a.png" /> end', {}, "basic"],
+    ["an unspaced void tag", "Line<br/>break", {}, "full"],
+    [
+      "a tweet link (the preview wraps it in a div)",
+      "See https://x.com/user/status/123",
+      { withTwitterPreview: true },
+      "full",
+    ],
+  ])("flags a document with %s as %s", (_name, markdown, config, expected) => {
+    expect(
+      processMarkdownForDisplay(markdown, config).legacyEntityDecoding
+    ).toBe(expected);
+  });
+
+  it("returns the same Markdown as processMarkdown", () => {
+    const input = "<u>x</u>\n\n```\na &lt; b&#x20;\n```";
+
+    expect(processMarkdownForDisplay(input).markdown).toBe(
+      processMarkdown(input)
+    );
+  });
+});
+
+describe("decodeLiteralEntities", () => {
+  const REPLACEMENT_CHARACTER = String.fromCharCode(0xfffd);
+
+  it.each([
+    ["&lt;&gt;&amp;", "basic", "<>&"],
+    ["&amp;lt;", "basic", "&lt;"],
+    ["&#60;&#x20;&quot;&nbsp;", "basic", "&#60;&#x20;&quot;&nbsp;"],
+    ["&#60;&#x26;&#x20;&quot;&copy;", "full", '<& "©'],
+    ["&amp;lt; &lt &#0;", "full", `&lt; < ${REPLACEMENT_CHARACTER}`],
+    ["&nbsp;&#160;&bogus;", "full", "&nbsp;&nbsp;&bogus;"],
+    ["<b>&lt;/title&gt;</b>", "full", "<b></title></b>"],
+    [
+      "</title><img src=x onerror=alert(1)>&amp;",
+      "full",
+      "</title><img src=x onerror=alert(1)>&",
+    ],
+    ["\nleading newline", "full", "\nleading newline"],
+  ] as const)("decodes %j in %s mode to %j", (value, mode, expected) => {
+    expect(decodeLiteralEntities(value, mode)).toBe(expected);
   });
 });

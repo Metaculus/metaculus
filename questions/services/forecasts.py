@@ -25,7 +25,10 @@ from users.constants import ApiForecastingAccess
 from users.models import User
 from utils.cache import cache_per_object
 from utils.frontend import build_frontend_url
-from utils.the_math.aggregations import get_aggregation_history
+from utils.the_math.aggregations import (
+    METHODS_ALWAYS_INCLUDING_BOTS,
+    get_aggregation_history,
+)
 from .common import get_questions_cutoff
 from ..cache import average_coverage_cache_key
 from ..constants import QuestionStatus
@@ -36,7 +39,7 @@ from ..models import (
     AggregateForecast,
     UserForecastNotification,
 )
-from ..types import AggregationMethod
+from ..types import SHADOW_AGGREGATION_METHODS, AggregationMethod
 
 logger = logging.getLogger(__name__)
 
@@ -195,7 +198,36 @@ def after_forecast_actions(question: Question, user: User):
     # rollback can't leave workers rebuilding aggregates for rolled-back forecasts.
     from questions.tasks import run_build_question_forecasts
 
-    transaction.on_commit(lambda: run_build_question_forecasts.send(question.id))
+    from questions.tasks import queue_shadow_aggregations
+
+    if counts_toward_aggregates(question, user):
+        transaction.on_commit(lambda: run_build_question_forecasts.send(question.id))
+    elif any(
+        counts_toward_aggregates(question, user, method)
+        for method in SHADOW_AGGREGATION_METHODS
+    ):
+        # This runs in a web process, so the worker checks the kill switch
+        transaction.on_commit(
+            lambda: queue_shadow_aggregations(question.id, check_enabled=False)
+        )
+
+
+def counts_toward_aggregates(
+    question: Question, user: User, method: AggregationMethod | None = None
+) -> bool:
+    """Whether the user's forecasts are part of the question's stored `method`
+    aggregate (default: its default one), mirroring get_aggregation_history's
+    default filtering. Forecasts that aren't can't change it, so they don't
+    trigger a rebuild."""
+    method = method or question.default_aggregation_method
+    if user.exclude_from_aggregations:
+        return False
+    if user.is_bot:
+        return user.is_primary_bot and (
+            question.include_bots_in_aggregates
+            or method in METHODS_ALWAYS_INCLUDING_BOTS
+        )
+    return True
 
 
 def create_forecast_bulk(
@@ -449,7 +481,7 @@ def get_aggregated_forecasts_for_questions(
     questions = list(questions)
     question_map = {q.pk: q for q in questions}
     if aggregated_forecast_qs is None:
-        aggregated_forecast_qs = AggregateForecast.objects.all()
+        aggregated_forecast_qs = AggregateForecast.objects.exclude_shadow_aggregations()
 
     questions_to_fetch = get_questions_cutoff(questions, group_cutoff=group_cutoff)
 
@@ -560,7 +592,7 @@ def build_question_forecasts(
         question,
         aggregation_methods=[aggregation_method],
         minimize=True,
-        include_bots=question.include_bots_in_aggregates,
+        include_bots=None,
         include_stats=True,
     )[aggregation_method]
 
@@ -589,6 +621,21 @@ def build_question_forecasts(
         AggregateForecast.objects.bulk_update(overwriters, fields, batch_size=50)
         AggregateForecast.objects.filter(id__in=[old.id for old in to_delete]).delete()
         AggregateForecast.objects.bulk_create(to_create, batch_size=50)
+
+
+def rebuild_question_aggregations(question: Question):
+    """
+    Rebuilds the default aggregation inline and queues the shadow ones, for
+    callers that change forecasts without going through run_build_question_forecasts
+    """
+    build_question_forecasts(question)
+
+    from questions.tasks import queue_shadow_aggregations
+
+    # This can run in a web process, so the worker checks the kill switch
+    transaction.on_commit(
+        lambda: queue_shadow_aggregations(question.id, check_enabled=False)
+    )
 
 
 def validate_and_create_forecasts(

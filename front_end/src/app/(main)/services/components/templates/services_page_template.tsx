@@ -16,6 +16,7 @@ import Button from "../button";
 import CaseStudyCard from "../case_studies/case_study_card";
 import { TCaseStudyCard } from "../case_studies/types";
 import ContactSection from "../contact_section/contact_section";
+import ContactUsButton from "../contact_us_button";
 import HeadingBlock from "../heading_block";
 import PartnersCarousel from "../partners_carousel";
 import SectionHeading from "../section_heading";
@@ -231,12 +232,9 @@ const ServicesPageTemplate: React.FC<Props> = async ({
                     />
                   </div>
 
-                  <Button
-                    href="#contact-us"
-                    className="order-2 mt-0 w-fit uppercase lg:order-1 lg:mt-[38px]"
-                  >
+                  <ContactUsButton className="order-2 mt-0 w-fit uppercase lg:order-1 lg:mt-[38px]">
                     {t("contactUs")}
-                  </Button>
+                  </ContactUsButton>
                 </div>
               </div>
 

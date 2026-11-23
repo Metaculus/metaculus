@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils import timezone
 
 from utils.models import TimeStampedModel
 
@@ -6,6 +7,9 @@ from utils.models import TimeStampedModel
 class NotificationQuerySet(models.QuerySet):
     def filter_pending_email(self):
         return self.filter(email_sent=False, read_at__isnull=True)
+
+    def mark_as_sent(self):
+        return self.update(email_sent=True, edited_at=timezone.now())
 
 
 class Notification(TimeStampedModel):
@@ -27,6 +31,3 @@ class Notification(TimeStampedModel):
     email_sent = models.BooleanField(default=False, db_index=True)
 
     objects = NotificationQuerySet.as_manager()
-
-    def mark_as_sent(self):
-        self.email_sent = True

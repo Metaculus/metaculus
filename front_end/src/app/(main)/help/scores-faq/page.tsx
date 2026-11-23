@@ -1133,7 +1133,9 @@ export default async function ScoresFAQ() {
         </a>
         : we resample the tournament&apos;s questions with replacement thousands
         of times, recompute everyone&apos;s score and rank on each resample, and
-        take the 2.5th to 97.5th percentiles.
+        take the 2.5th to 97.5th percentiles. Entries that are not eligible to
+        rank still show a Rank interval, which tells you where they would have
+        placed had they been eligible.
       </p>
 
       <hr />

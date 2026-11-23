@@ -1,5 +1,6 @@
 import datetime
 
+import pytest
 from django.utils.timezone import make_aware
 
 from misc.services.itn import assign_article_clusters
@@ -58,3 +59,41 @@ def test_assign_article_clusters_skips_already_clustered_and_unembedded():
     unembedded.refresh_from_db()
     assert clustered.cluster_id == 999
     assert unembedded.cluster_id is None
+
+
+@pytest.mark.parametrize("chunk_size", [1, 2, 500])
+def test_assign_article_clusters_joins_existing_cluster(mocker, chunk_size):
+    mocker.patch("misc.services.itn.ARTICLE_CLUSTER_CHUNK_SIZE", chunk_size)
+
+    _article([0, 0, 1], (2025, 4, 1), cluster_id=111)
+    _article([1, 0, 0], (2025, 4, 2), cluster_id=999)
+    # Clustered articles are candidates even when newer than the new article
+    _article([0, 1, 0], (2025, 4, 9), cluster_id=555)
+    near_999 = _article([10, 1, 0], (2025, 4, 3))
+    near_555 = _article([0, 10, 1], (2025, 4, 4))
+    far = _article([1, 1, 1], (2025, 4, 5))
+
+    assign_article_clusters()
+
+    for obj in (near_999, near_555, far):
+        obj.refresh_from_db()
+
+    assert near_999.cluster_id == 999
+    assert near_555.cluster_id == 555
+    assert far.cluster_id == far.pk
+
+
+def test_assign_article_clusters_prefers_nearest_across_new_and_existing():
+    _article([20, 8, 0], (2025, 4, 1), cluster_id=999)
+    a = _article([20, 0, 8], (2025, 4, 2))  # too far from 999: own cluster
+    b = _article([20, 3, 6], (2025, 4, 3))  # within range of both, nearer to a
+    c = _article([20, 6, 3], (2025, 4, 4))  # within range of all, nearest to 999
+
+    assign_article_clusters()
+
+    for obj in (a, b, c):
+        obj.refresh_from_db()
+
+    assert a.cluster_id == a.pk
+    assert b.cluster_id == a.pk
+    assert c.cluster_id == 999

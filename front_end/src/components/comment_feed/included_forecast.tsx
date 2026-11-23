@@ -14,6 +14,7 @@ import { formatDate } from "@/utils/formatters/date";
 import { abbreviatedNumber } from "@/utils/formatters/number";
 import { getQuestionDateFormatString } from "@/utils/formatters/prediction";
 import { scaleInternalLocation } from "@/utils/math";
+import { getAllOptionsHistory } from "@/utils/questions/helpers";
 import { formatValueUnit } from "@/utils/questions/units";
 
 type Props = {
@@ -51,7 +52,10 @@ export function userForecastToForecastType(
     start_time: new Date(userForecast.start_time * 1000),
     probability_yes: userForecast.forecast_values[1] ?? 0,
     probability_yes_per_category: userForecast.forecast_values,
-    options: question.options ?? [],
+    options:
+      questionType === QuestionType.MultipleChoice
+        ? getAllOptionsHistory(question)
+        : question.options ?? [],
     continuous_cdf: userForecast.forecast_values.map((value) => value ?? 0),
     quartiles,
     scaling,
@@ -60,21 +64,35 @@ export function userForecastToForecastType(
   };
 }
 
+/**
+ * Pairs each probability with its option label, sorted by probability.
+ * MC PMFs are indexed against all options ever (see getAllOptionsHistory),
+ * with null for options that did not exist when the forecast was made;
+ * those are dropped. Colors keep the definition index to match the chart.
+ */
+function getSortedChoices(forecast: ForecastType) {
+  return forecast.probability_yes_per_category
+    .map((probability, index) => ({
+      probability,
+      name: forecast.options[index] ?? "",
+      color: MULTIPLE_CHOICE_COLOR_SCALE[index],
+    }))
+    .filter(
+      (choice): choice is typeof choice & { probability: number } =>
+        !isNil(choice.probability)
+    )
+    .sort((a, b) => b.probability - a.probability);
+}
+
 export function formatForecastValueText(forecast: ForecastType): string {
   if (forecast.question_type === QuestionType.Binary) {
     return `${Math.round(forecast.probability_yes * 1000) / 10}%`;
   }
 
   if (forecast.question_type === QuestionType.MultipleChoice) {
-    const choices = forecast.probability_yes_per_category
-      .map((probability, index) => ({
-        probability,
-        name: forecast.options[index],
-      }))
-      .sort((a, b) => (b.probability || 0.0) - (a.probability || 0.0));
-    const top = choices[0];
+    const top = getSortedChoices(forecast)[0];
     if (top) {
-      return `${top.name}: ${Math.round((top.probability || 0.0) * 1000) / 10}%`;
+      return `${top.name}: ${Math.round(top.probability * 1000) / 10}%`;
     }
     return "";
   }
@@ -227,13 +245,7 @@ const ForecastValue: FC<ForecastValueProps> = ({ forecast }) => {
   const [showAll, setShowAll] = useState(false);
 
   if (forecast.question_type === QuestionType.MultipleChoice) {
-    const choices = forecast.probability_yes_per_category
-      .map((probability, index) => ({
-        probability: probability,
-        name: forecast.options[index],
-        color: MULTIPLE_CHOICE_COLOR_SCALE[index],
-      }))
-      .sort((a, b) => (b.probability || 0.0) - (a.probability || 0.0));
+    const choices = getSortedChoices(forecast);
     return (
       <ol className="order-1 grow-0 text-xl font-bold text-gray-900 dark:text-gray-900-dark">
         {choices.map((choice, index) => (
@@ -245,7 +257,7 @@ const ForecastValue: FC<ForecastValueProps> = ({ forecast }) => {
           >
             {/* TODO: why does this generate a slightly different color than in ForecastChoiceOption ? */}
             <ChoiceIcon color={choice.color} />
-            {`${choice.name}: ${Math.round((choice.probability || 0.0) * 1000) / 10}%`}
+            {`${choice.name}: ${Math.round(choice.probability * 1000) / 10}%`}
           </li>
         ))}
         <Button

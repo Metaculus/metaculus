@@ -84,11 +84,7 @@ def aggregation_explorer_api_view(request) -> Response:
         only_include_user_ids=only_include_user_ids,
         minimize=minimize,
         include_stats=True,
-        include_bots=(
-            include_bots
-            if include_bots is not None
-            else question.include_bots_in_aggregates
-        ),
+        include_bots=include_bots,
         only_bots=only_bots,
         histogram=True,
         include_future=False,

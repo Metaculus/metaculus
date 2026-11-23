@@ -16,7 +16,7 @@ from comments.models import (
 )
 from comments.services.feed import get_comments_feed
 from posts.models import PostUserSnapshot
-from questions.models import Forecast
+from questions.models import Forecast, Question
 from questions.services.forecasts import create_forecast
 from projects.models import Project
 from tests.unit.test_comments.factories import factory_comment, factory_key_factor
@@ -24,7 +24,11 @@ from tests.unit.test_misc.factories import factory_itn_article
 from tests.unit.test_posts.factories import factory_post
 from tests.unit.test_projects.factories import factory_project
 from tests.unit.test_questions.conftest import *  # noqa
-from tests.unit.test_questions.factories import factory_group_of_questions
+from tests.unit.test_questions.factories import (
+    create_question,
+    factory_group_of_questions,
+)
+from tests.unit.test_users.factories import factory_user
 
 
 class TestPagination:
@@ -1066,3 +1070,69 @@ class TestUnreadThreadPrioritization:
         # All roots accounted for, no duplicates
         all_paged = page1_root_ids | page2_root_ids | page3_root_ids
         assert all_paged == unread_root_ids | read_root_ids
+
+
+class TestPublishProjectBotComments:
+    @pytest.fixture
+    def staff_client(self, create_client_for_user):
+        return create_client_for_user(factory_user(username="staff", is_staff=True))
+
+    def make_post(self, project: Project, cp_reveal_time):
+        question = create_question(
+            question_type=Question.QuestionType.BINARY, cp_reveal_time=cp_reveal_time
+        )
+        return factory_post(question=question, default_project=project)
+
+    def test_publishes_bot_private_comments_with_revealed_cp(self, staff_client, user1):
+        project = factory_project(type=Project.ProjectTypes.QUESTION_SERIES)
+        other_project = factory_project(type=Project.ProjectTypes.QUESTION_SERIES)
+        bot = factory_user(username="bot", is_bot=True)
+        past = timezone.now() - timedelta(days=1)
+        future = timezone.now() + timedelta(days=1)
+        revealed_post = self.make_post(project, past)
+
+        bot_comment = factory_comment(
+            author=bot, on_post=revealed_post, is_private=True
+        )
+        human_comment = factory_comment(
+            author=user1, on_post=revealed_post, is_private=True
+        )
+        unrevealed_comment = factory_comment(
+            author=bot, on_post=self.make_post(project, future), is_private=True
+        )
+        other_project_comment = factory_comment(
+            author=bot, on_post=self.make_post(other_project, past), is_private=True
+        )
+
+        response = staff_client.post(
+            reverse(
+                "comment-publish-project-bot-comments",
+                kwargs={"project_id": project.id},
+            )
+        )
+
+        assert response.status_code == 200
+        assert response.data == {"published_count": 1}
+        for comment in (
+            bot_comment,
+            human_comment,
+            unrevealed_comment,
+            other_project_comment,
+        ):
+            comment.refresh_from_db()
+        assert not bot_comment.is_private
+        assert human_comment.is_private
+        assert unrevealed_comment.is_private
+        assert other_project_comment.is_private
+
+    def test_requires_staff(self, user1_client):
+        project = factory_project(type=Project.ProjectTypes.QUESTION_SERIES)
+
+        response = user1_client.post(
+            reverse(
+                "comment-publish-project-bot-comments",
+                kwargs={"project_id": project.id},
+            )
+        )
+
+        assert response.status_code == 403
