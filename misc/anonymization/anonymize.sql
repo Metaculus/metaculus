@@ -27,6 +27,23 @@ DELETE FROM social_auth_nonce;
 DELETE FROM social_auth_partial;
 DELETE FROM social_auth_usersocialauth;
 
+-- Deleting a key factor leaves its driver, base rate or news row behind,
+-- still holding the text.
+DELETE FROM comments_keyfactordriver AS driver
+WHERE NOT EXISTS (
+    SELECT 1 FROM comments_keyfactor WHERE driver_id = driver.id
+);
+
+DELETE FROM comments_keyfactorbaserate AS base_rate
+WHERE NOT EXISTS (
+    SELECT 1 FROM comments_keyfactor WHERE base_rate_id = base_rate.id
+);
+
+DELETE FROM comments_keyfactornews AS news
+WHERE NOT EXISTS (
+    SELECT 1 FROM comments_keyfactor WHERE news_id = news.id
+);
+
 -- Staff keep their real email addresses, so unsubscribe them from every
 -- mailing tag (notifications.constants.MailingTags).
 WITH tags (all_tags) AS (
@@ -88,31 +105,56 @@ WHERE NOT is_staff
       NULL, NULL, NULL, '[]'::jsonb
   );
 
+-- metadata is free-form JSON edited in the admin. Keep only the top-level
+-- keys the app reads, so notes added under any other key are dropped.
+UPDATE users_user
+SET metadata = cleaned.metadata
+FROM (
+    SELECT u.id,
+           CASE
+               WHEN jsonb_typeof(u.metadata) = 'object' THEN (
+                   SELECT jsonb_object_agg(entry.key, entry.value)
+                   FROM jsonb_each(u.metadata) AS entry
+                   WHERE entry.key IN (
+                       'bot_details',
+                       'can_act_as_metac_bots',
+                       'coherence_bot_for_user_id',
+                       'max_bots',
+                       'pro_details',
+                       'signup_details'
+                   )
+               )
+           END AS metadata
+    FROM users_user AS u
+    WHERE u.metadata IS NOT NULL
+) AS cleaned
+WHERE cleaned.id = users_user.id
+  AND users_user.metadata IS DISTINCT FROM cleaned.metadata;
+
 -- Campaign sign-up forms collect full name, country, institution, major and
--- graduation year. Keep only the flags, and drop any key a future form adds.
+-- graduation year, for staff too. Keep only the boolean flags, and drop any
+-- key a future form adds.
 UPDATE users_usercampaignregistration AS registration
 SET details = cleaned.details
 FROM (
     SELECT r.id,
            CASE
-               WHEN jsonb_typeof(r.details) = 'object' THEN jsonb_strip_nulls(
-                   jsonb_build_object(
-                       'undergrad', r.details -> 'undergrad',
-                       'accepted_terms', r.details -> 'accepted_terms'
-                   )
+               WHEN jsonb_typeof(r.details) = 'object' THEN (
+                   SELECT coalesce(jsonb_object_agg(entry.key, entry.value), '{}'::jsonb)
+                   FROM jsonb_each(r.details) AS entry
+                   WHERE entry.key IN ('undergrad', 'accepted_terms')
+                     AND jsonb_typeof(entry.value) = 'boolean'
                )
                ELSE '{}'::jsonb
            END AS details
     FROM users_usercampaignregistration AS r
-    JOIN users_user AS u ON u.id = r.user_id
-    WHERE NOT u.is_staff
 ) AS cleaned
 WHERE cleaned.id = registration.id
   AND registration.details IS DISTINCT FROM cleaned.details;
 
 -- Private comments are personal notes, and soft-deleted comments were
 -- removed by their authors. Clear every language column of both, plus the
--- key factors written on them. Key factors on news articles are kept.
+-- key factors written on them (news items can be entered by hand).
 -- Clearing is_text_archived stops the app from reading the original text of
 -- archived (bot) comments back from the S3 archive.
 UPDATE comments_keyfactordriver AS driver
@@ -139,6 +181,7 @@ UPDATE comments_keyfactorbaserate AS base_rate
 SET reference_class = '',
     based_on = '',
     source = '',
+    unit = '',
     content_last_md5 = NULL
 FROM comments_keyfactor AS key_factor
 JOIN comments_comment AS parent_comment ON parent_comment.id = key_factor.comment_id
@@ -146,8 +189,20 @@ WHERE key_factor.base_rate_id = base_rate.id
   AND (parent_comment.is_private OR parent_comment.is_soft_deleted)
   AND (
       base_rate.reference_class, base_rate.based_on, base_rate.source,
-      base_rate.content_last_md5
-  ) IS DISTINCT FROM ('', '', '', NULL);
+      base_rate.unit, base_rate.content_last_md5
+  ) IS DISTINCT FROM ('', '', '', '', NULL);
+
+UPDATE comments_keyfactornews AS news
+SET url = '',
+    title = '',
+    img_url = '',
+    source = ''
+FROM comments_keyfactor AS key_factor
+JOIN comments_comment AS parent_comment ON parent_comment.id = key_factor.comment_id
+WHERE key_factor.news_id = news.id
+  AND (parent_comment.is_private OR parent_comment.is_soft_deleted)
+  AND (news.url, news.title, news.img_url, news.source)
+      IS DISTINCT FROM ('', '', '', '');
 
 UPDATE comments_comment
 SET text = '',

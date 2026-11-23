@@ -24,7 +24,9 @@ from comments.models import (
     CommentsOfTheWeekNotification,
     KeyFactorBaseRate,
     KeyFactorDriver,
+    KeyFactorNews,
 )
+from comments.services.key_factors.common import delete_key_factor
 from misc.anonymization import get_anonymization_statements, run_anonymization
 from misc.anonymization.manifest import COLUMNS, KEEP, SCRUB, WIPED_TABLES
 from misc.models import UserDataAccess
@@ -44,6 +46,7 @@ TEXT_FIELD_TYPES = (
     models.BinaryField,
     models.FileField,
     models.GenericIPAddressField,
+    models.UUIDField,
     SearchVectorField,
     VectorField,
 )
@@ -64,7 +67,7 @@ def is_text_like(field: models.Field) -> bool:
     if isinstance(field, ArrayField):
         return is_text_like(field.base_field)
 
-    return isinstance(field, TEXT_FIELD_TYPES) and not field.choices
+    return isinstance(field, TEXT_FIELD_TYPES)
 
 
 def get_model_tables() -> set[str]:
@@ -180,6 +183,32 @@ class TestManifest:
             f"{', '.join(sorted(unknown))}"
         )
 
+    def test_every_database_column_belongs_to_a_model_field(self):
+        model_columns = defaultdict(set)
+
+        for model in apps.get_models(include_auto_created=True):
+            if not model._meta.proxy:
+                model_columns[model._meta.db_table].update(
+                    field.column for field in model._meta.local_concrete_fields
+                )
+
+        unknown = []
+        with connection.cursor() as cursor:
+            for table, columns in model_columns.items():
+                description = connection.introspection.get_table_description(
+                    cursor, table
+                )
+                unknown += [
+                    f"{table}.{column.name}"
+                    for column in description
+                    if column.name not in columns
+                ]
+
+        assert not unknown, (
+            "These columns have no model field, so the manifest can't classify "
+            f"them: {', '.join(sorted(unknown))}"
+        )
+
     def test_sql_handles_every_wiped_table_and_scrubbed_column(self):
         text_columns = get_text_columns()
         set_clauses, cleared = get_sql_targets()
@@ -210,6 +239,7 @@ class TestRunAnonymization:
             first_name="Staff",
             is_staff=True,
             last_login=now,
+            metadata={"note": "internal"},
         )
         staff.set_password("staff-password")
         staff.save()
@@ -224,6 +254,7 @@ class TestRunAnonymization:
             location="Paris",
             old_usernames=[["jane_old", now.isoformat()]],
             last_login=now,
+            metadata={"pro_details": {"is_current_pro": True}, "note": "called"},
         )
         user.set_password("user-password")
         user.save()
@@ -303,6 +334,18 @@ class TestRunAnonymization:
         factory_key_factor(comment=private_comment, driver=private_driver)
         factory_key_factor(comment=public_comment, driver=public_driver)
         factory_key_factor(comment=deleted_comment, base_rate=deleted_base_rate)
+        private_news = KeyFactorNews.objects.create(
+            url="https://docs.example.com/draft", title="Draft", source="Docs"
+        )
+        factory_key_factor(comment=private_comment, news=private_news)
+
+        removed_driver = KeyFactorDriver.objects.create(text="removed driver")
+        delete_key_factor(
+            factory_key_factor(comment=public_comment, driver=removed_driver)
+        )
+        orphan_news = KeyFactorNews.objects.create(
+            url="https://example.com", title="Orphan", source="Example"
+        )
 
         with connection.cursor() as cursor:
             for driver, text in [
@@ -334,7 +377,9 @@ class TestRunAnonymization:
             },
         )
         UserCampaignRegistration.objects.create(
-            user=staff, key="campaign", details={"full_name": "Staff Member"}
+            user=staff,
+            key="campaign",
+            details={"full_name": "Staff", "accepted_terms": {"email": "s@m.com"}},
         )
         MedalExclusionRecord.objects.create(
             user=user,
@@ -370,6 +415,7 @@ class TestRunAnonymization:
         assert user.old_usernames == []
         assert user.last_login is None
         assert not user.has_usable_password()
+        assert user.metadata == {"pro_details": {"is_current_pro": True}}
 
         staff.refresh_from_db()
         assert staff.email == "staff@metaculus.com"
@@ -377,6 +423,7 @@ class TestRunAnonymization:
         assert staff.last_login is None
         assert not staff.has_usable_password()
         assert set(MailingTags.values) <= set(staff.unsubscribed_mailing_tags)
+        assert staff.metadata is None
 
         columns = COMMENT_TEXT_COLUMNS + [
             "content_last_md5",
@@ -421,7 +468,17 @@ class TestRunAnonymization:
             "comments_keyfactorbaserate",
             deleted_base_rate.pk,
             ["reference_class", "based_on", "source", "unit"],
-        ) == {"reference_class": "", "based_on": "", "source": "", "unit": "%"}
+        ) == {"reference_class": "", "based_on": "", "source": "", "unit": ""}
+
+        assert fetch_columns(
+            "comments_keyfactornews",
+            private_news.pk,
+            ["url", "title", "img_url", "source"],
+        ) == {"url": "", "title": "", "img_url": "", "source": ""}
+
+        assert not KeyFactorDriver.objects.filter(pk=removed_driver.pk).exists()
+        assert not KeyFactorNews.objects.filter(pk=orphan_news.pk).exists()
+        assert KeyFactorDriver.objects.filter(pk=public_driver.pk).exists()
 
         snapshot = PostUserSnapshot.objects.get(user=user, post=post)
         assert snapshot.private_note == ""
@@ -431,9 +488,7 @@ class TestRunAnonymization:
             "undergrad": True,
             "accepted_terms": True,
         }
-        assert UserCampaignRegistration.objects.get(user=staff).details == {
-            "full_name": "Staff Member"
-        }
+        assert UserCampaignRegistration.objects.get(user=staff).details == {}
         assert MedalExclusionRecord.objects.get(user=user).notes is None
         assert UserDataAccess.objects.get(user=user).notes is None
         spam_activity = UserSpamActivity.objects.get(user=user)
