@@ -11,6 +11,12 @@ logger = logging.getLogger(__name__)
 def parallel_command_executor(
     items: list, handler: Callable[[list, int], None], num_processes: int = 1
 ):
+    # Forked workers would share the caller's DB connection
+    if num_processes == 1:
+        if items:
+            handler(items, 0)
+        return
+
     # Split post_ids into chunks for each process
     item_chunks = [list(x) for x in np.array_split(items, num_processes) if x.size]
 
