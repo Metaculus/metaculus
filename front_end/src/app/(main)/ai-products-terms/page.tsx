@@ -448,7 +448,16 @@ export default function AIProductsTerms() {
         from backups on our normal backup rotation, subject to retention for the
         purposes in Section 6.3(b) and as described in the AI Products Privacy
         Notice. Retention and deletion of Shared Content are governed by the
-        Terms and the Privacy Policy.
+        Terms and the Privacy Policy. Input that you submit directly to the
+        Autocast API using an API key, and the Output returned in response, are
+        retained only so that you can retrieve the forecast and are deleted from
+        active systems no later than [N days] after the forecast completes, and
+        from backups on our normal backup rotation. Metaculus does not use that
+        Input or Output for the purposes in Section 6.3(d). This paragraph does
+        not apply to Input submitted through the Autocast web interface or MCP
+        server, or to the usage, security, and billing records described in the
+        AI Products Privacy Notice, and Metaculus may retain specific Input or
+        Output longer where needed for the purposes in Section 6.3(b).
       </p>
       <p className={styles.paragraph}>
         6.9 <strong>Survival.</strong> Sections 6.1, 6.4, and 6.5 survive

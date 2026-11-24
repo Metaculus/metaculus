@@ -102,7 +102,8 @@ export default function AIProductsPrivacy() {
         support requests; comply with legal obligations and enforce our rights;
         and improve, evaluate, and develop the Covered Products using Input and
         Output in de-identified or aggregated form as described in Section
-        6.3(d) of the Metaculus AI Products Terms Supplement.{" "}
+        6.3(d) of the Metaculus AI Products Terms Supplement (except Input and
+        Output submitted through the Autocast API, as described in Section G.1).{" "}
         <strong>
           We do not use unshared Input or Output to serve advertising, to build
           advertising profiles, or
@@ -211,14 +212,20 @@ export default function AIProductsPrivacy() {
         <a href="mailto:legal@metaculus.com">legal@metaculus.com</a>
         ), and deleted content is removed from our active systems within 30 days
         of deletion or account closure and from backups on our normal rotation.
+        We keep Input submitted directly to the Autocast API using an API key,
+        and the Output returned in response, only so that you can retrieve the
+        forecast. We delete them from our active systems no later than [N days]
+        after the forecast completes and from backups on our normal rotation,
+        and we do not use them to improve the Covered Products.
       </p>
       <p className={styles.paragraph}>
         G.2 We may retain de-identified or aggregated data derived from Input
-        and Output indefinitely for the improvement purposes described in
-        Section B. We retain usage, security, and billing records for the
-        periods described in the &quot;General Retention Periods&quot; section
-        of the Privacy Policy, and we may retain any data as needed to comply
-        with law, resolve disputes, prevent abuse, or enforce our agreements.
+        and Output (other than Input and Output submitted through the Autocast
+        API) indefinitely for the improvement purposes described in Section B.
+        We retain usage, security, and billing records for the periods described
+        in the &quot;General Retention Periods&quot; section of the Privacy
+        Policy, and we may retain any data as needed to comply with law, resolve
+        disputes, prevent abuse, or enforce our agreements.
       </p>
       <p className={styles.paragraph}>
         G.3 AI Providers retain Input and Output for the limited periods
