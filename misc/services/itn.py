@@ -159,7 +159,8 @@ def get_itn_max_age():
 
 
 def clear_old_itn_news():
-    ITNArticle.objects.filter(created_at__lt=get_itn_max_age()).delete()
+    # Cascades make Django load every doomed row first; skip text and embeddings
+    ITNArticle.objects.filter(created_at__lt=get_itn_max_age()).only("id").delete()
 
 
 def sync_itn_news():
