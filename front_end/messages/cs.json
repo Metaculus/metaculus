@@ -117,7 +117,7 @@
   "commentsReportReasonViolation": "Porušuje pravidla komunity",
   "commentsReportReasonViolationDescription": "Obtěžování, osobní útoky nebo jiné chování, které naše pravidla nepovolují",
   "commentsReportReasonAiGenerated": "Obsah generovaný AI",
-  "commentsReportReasonAiGeneratedDescription": "Napsáno nástrojem AI bez podstatného lidského přispění",
+  "commentsReportReasonAiGeneratedDescription": "Obsah z účtu, který není bot, napsaný převážně nástrojem AI",
   "commentsReportSubmit": "Nahlásit komentář",
   "commentsReportError": "Nahlášení se nepodařilo odeslat. Zkuste to znovu.",
   "commentsMyPrediction": "Moje predikce",

@@ -117,7 +117,7 @@
   "commentsReportReasonViolation": "Viola las directrices de la comunidad",
   "commentsReportReasonViolationDescription": "Acoso, ataques personales u otras conductas que nuestras directrices no permiten",
   "commentsReportReasonAiGenerated": "Contenido generado por IA",
-  "commentsReportReasonAiGeneratedDescription": "Escrito con una herramienta de IA sin una aportación humana significativa",
+  "commentsReportReasonAiGeneratedDescription": "Contenido de una cuenta que no es un bot, escrito principalmente con una herramienta de IA",
   "commentsReportSubmit": "Reportar comentario",
   "commentsReportError": "No se pudo enviar el reporte. Inténtalo de nuevo.",
   "commentsMyPrediction": "Mi predicción",

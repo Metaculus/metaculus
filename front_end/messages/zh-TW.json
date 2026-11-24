@@ -155,7 +155,7 @@
   "commentsReportReasonViolation": "違反社群指導方針",
   "commentsReportReasonViolationDescription": "騷擾、人身攻擊或其他社群指導方針不允許的行為",
   "commentsReportReasonAiGenerated": "AI 生成的內容",
-  "commentsReportReasonAiGeneratedDescription": "由 AI 工具撰寫，缺乏實質的人工參與",
+  "commentsReportReasonAiGeneratedDescription": "來自非機器人帳號、主要由 AI 工具撰寫的內容",
   "commentsReportSubmit": "舉報評論",
   "commentsReportError": "舉報送出失敗，請再試一次。",
   "commentsMyPrediction": "我的預測",

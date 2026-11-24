@@ -115,7 +115,7 @@
   "commentsReportReasonViolation": "违反社区准则",
   "commentsReportReasonViolationDescription": "骚扰、人身攻击或其他社区准则不允许的行为",
   "commentsReportReasonAiGenerated": "AI 生成的内容",
-  "commentsReportReasonAiGeneratedDescription": "由 AI 工具撰写，缺少实质性的人工参与",
+  "commentsReportReasonAiGeneratedDescription": "来自非机器人账号、主要由 AI 工具撰写的内容",
   "commentsReportSubmit": "举报评论",
   "commentsReportError": "举报发送失败，请重试。",
   "commentsMyPrediction": "我的預測",

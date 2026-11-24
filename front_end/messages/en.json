@@ -284,7 +284,7 @@
   "commentsReportReasonViolation": "Breaks community guidelines",
   "commentsReportReasonViolationDescription": "Harassment, personal attacks, or other behavior our guidelines don't allow",
   "commentsReportReasonAiGenerated": "AI-generated content",
-  "commentsReportReasonAiGeneratedDescription": "Written by an AI tool without meaningful human input",
+  "commentsReportReasonAiGeneratedDescription": "Content from a non-bot account written mostly by an AI tool",
   "commentsReportSubmit": "Report comment",
   "commentsReportError": "Couldn't send your report. Try again.",
   "commentsMyPrediction": "My prediction",
