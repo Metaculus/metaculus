@@ -1,4 +1,5 @@
 import pytest
+from django.db.models import ProtectedError
 from django.urls import reverse
 
 from comments.models import (
@@ -17,6 +18,7 @@ from tests.unit.test_comments.factories import factory_comment, factory_key_fact
 from tests.unit.test_posts.factories import factory_post
 from tests.unit.test_projects.factories import factory_project
 from tests.unit.test_questions.factories import (
+    create_conditional,
     create_question,
     factory_group_of_questions,
 )
@@ -117,6 +119,31 @@ def test_deleting_a_project_deletes_key_factor_content(user1, create_client_for_
 
     assert response.status_code == 204
     assert remaining(content) == []
+
+
+def test_failed_project_delete_keeps_key_factor_content(user1, create_client_for_user):
+    staff = factory_user(is_staff=True, is_superuser=True)
+    project = factory_project()
+    question = create_question(question_type=Question.QuestionType.BINARY)
+    post = factory_post(author=user1, default_project=project, question=question)
+    content = create_key_factors(
+        factory_comment(author=user1, on_post=post, text="Comment")
+    )
+
+    # A conditional elsewhere protects the question, so deleting it fails
+    create_conditional(
+        condition=question,
+        condition_child=create_question(question_type=Question.QuestionType.BINARY),
+        question_yes=create_question(question_type=Question.QuestionType.BINARY),
+        question_no=create_question(question_type=Question.QuestionType.BINARY),
+    )
+
+    with pytest.raises(ProtectedError):
+        create_client_for_user(staff).post(
+            reverse("project-delete", kwargs={"project_id": project.pk})
+        )
+
+    assert remaining(content) == content
 
 
 def test_removing_a_group_question_deletes_its_key_factor_content(comment):

@@ -14,10 +14,16 @@ def delete_key_factors(key_factors: QuerySet[KeyFactor]) -> None:
     row behind with the text the user wrote. Call this before any such deletion.
     """
 
-    links = list(key_factors.values_list("driver_id", "base_rate_id", "news_id"))
-    key_factors.delete()
+    # Read the ids and links in one query and delete exactly those key factors,
+    # so one committed concurrently can't be deleted without its content.
+    rows = list(key_factors.values_list("pk", "driver_id", "base_rate_id", "news_id"))
+    if not rows:
+        return
+
+    pks, *content_ids = zip(*rows)
+    KeyFactor.objects.filter(pk__in=pks).delete()
 
     for model, ids in zip(
-        (KeyFactorDriver, KeyFactorBaseRate, KeyFactorNews), zip(*links)
+        (KeyFactorDriver, KeyFactorBaseRate, KeyFactorNews), content_ids
     ):
         model.objects.filter(pk__in=[pk for pk in ids if pk]).delete()
