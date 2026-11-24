@@ -3,6 +3,7 @@ import { sanitizeHtmlContent } from "@/utils/markdown";
 import { EMBEDDED_QUESTION_COMPONENT_NAME } from "./embedded_question";
 import { EMBEDDED_TWITTER_COMPONENT_NAME } from "./embedded_twitter";
 import { transformTwitterLinks } from "./embedded_twitter/helpers";
+import type { LegacyEntityDecoding } from "./plugins/literal_entities";
 
 // match block math: $$...$$
 const BLOCK_MATH_REGEX = /\$\$(?:[^$]|\\\$)*?\$\$/g;
@@ -28,7 +29,12 @@ const preProcessMarkdownContent = (
   {
     search,
     placeholderName,
-  }: { search: string | RegExp; placeholderName: string }
+    createPlaceholder = (id) => `___${placeholderName}_${id}___`,
+  }: {
+    search: string | RegExp;
+    placeholderName: string;
+    createPlaceholder?: (id: number) => string;
+  }
 ) => {
   const placeholders: {
     placeholder: string;
@@ -37,7 +43,7 @@ const preProcessMarkdownContent = (
 
   let placeholderId = 0;
   markdown = markdown.replace(search, (match) => {
-    const placeholder = `___${placeholderName}_${placeholderId++}___`;
+    const placeholder = createPlaceholder(placeholderId++);
     placeholders.push({ placeholder, original: match });
     return placeholder;
   });
@@ -226,85 +232,91 @@ const escapeRawDollarSigns = (markdown: string): string => {
   );
 };
 
-function sanitizeHtml(markdown: string) {
-  // Pre-process blockquote spaces to protect them from sanitization
-  const blockquoteSpaceRegex = /^>\s*&#x20;\n/gm;
-  const {
-    markdown: blockquoteProcessed,
-    placeholders: blockquotePlaceholders,
-  } = preProcessMarkdownContent(markdown, {
-    search: blockquoteSpaceRegex,
-    placeholderName: "BLOCKQUOTE_SPACE",
-  });
-  markdown = blockquoteProcessed;
+const MARKER_START = String.fromCharCode(0xe000);
+const MARKER_END = String.fromCharCode(0xe001);
 
-  // pre-process embedded JSX as otherwise it will be removed by DOMPurify
-  const supportedComponents = [
-    EMBEDDED_QUESTION_COMPONENT_NAME,
-    EMBEDDED_TWITTER_COMPONENT_NAME,
-  ];
-  const componentPatternString = supportedComponents.join("|");
-  const jsxComponentRegex = new RegExp(
-    `<(${componentPatternString})\\s+([^>]*)\\s*(?:\\/>|>(.*?)<\\/\\1>)`,
-    "gs"
-  );
-  const { markdown: jsxProcessedMarkdown, placeholders: jsxComponents } =
-    preProcessMarkdownContent(markdown, {
-      search: jsxComponentRegex,
-      placeholderName: "JSX_COMPONENT",
-    });
-  markdown = jsxProcessedMarkdown;
-
-  // pre-process self-closing tags as otherwise DOMPurify will remove or mess them up by converting to HTML5 syntax
-  // also MDXEditor renderer expects images to have self-closing syntax
-  const defaultSelfClosingTags = ["hr", "br", "img"];
-  const selfClosingTagsPattern = defaultSelfClosingTags.join("|");
-  const selfClosingTagsRegex = new RegExp(
-    `<(${selfClosingTagsPattern})\\s+([^>]*)\\s*(?:\\/>|>(.*?)<\\/\\1>)`,
-    "gs"
-  );
-  const {
-    markdown: selfClosingProcessedMarkdown,
-    placeholders: selfClosingTags,
-  } = preProcessMarkdownContent(markdown, {
-    search: selfClosingTagsRegex,
-    placeholderName: "SELF_CLOSING_TAG",
-  });
-  markdown = selfClosingProcessedMarkdown;
-
-  // sanitize html content
-  markdown = sanitizeHtmlContent(markdown);
-
-  // restore JSX components
-  jsxComponents.forEach(({ placeholder, original }) => {
-    markdown = markdown.replace(placeholder, () => original);
-  });
-  // restore native self-closing tags
-  selfClosingTags.forEach(({ placeholder, original }) => {
-    // ensure self-closing syntax
-    let nativeTag = original;
-    if (!nativeTag.endsWith("/>") && !nativeTag.endsWith("/ >")) {
-      nativeTag = nativeTag.replace(/>$/, " />");
-    }
-    markdown = markdown.replace(placeholder, () => nativeTag);
-  });
-  blockquotePlaceholders.forEach(({ placeholder, original }) => {
-    markdown = markdown.replace(placeholder, () => original);
-  });
-
-  // decode gt and lt to < and >, so MDXEditor can render it properly
-  markdown = markdown.replace(/&lt;/g, "<");
-  markdown = markdown.replace(/&gt;/g, ">");
-  // also decode &amp; to &
-  markdown = markdown.replace(/&amp;/g, "&");
-  return markdown;
+// Private-use delimiters plus a nonce absent from the input, so no literal
+// user text can be mistaken for (or turned into) a placeholder.
+function createMarkerFactory(markdown: string) {
+  let nonce = 0;
+  while (markdown.includes(`${MARKER_START}${nonce}`)) nonce++;
+  return (name: string) => `${MARKER_START}${nonce}${name}${MARKER_END}`;
 }
 
-export function processMarkdown(
+// Only the canonical `<Name id=… />` form skips DOMPurify
+const EMBEDDED_COMPONENT_REGEX = new RegExp(
+  `<(?:${EMBEDDED_QUESTION_COMPONENT_NAME}|${EMBEDDED_TWITTER_COMPONENT_NAME})\\s+id=(?:\\{\\d+\\}|"\\d+"|'\\d+')\\s*\\/>`,
+  "g"
+);
+const VOID_TAG_REGEX =
+  /<(?:hr|br|img)\s+(?:[^\s>][^>]*?)?(?:\/>|>.*?<\/(?:hr|br|img)>)/gs;
+
+const toSelfClosingVoidTags = (html: string) =>
+  html.replace(/<(hr|br|img)\b([^>]*?)\s*\/?>/g, "<$1$2 />");
+
+function sanitizeHtml(markdown: string) {
+  const marker = createMarkerFactory(markdown);
+  const ampersand = marker("amp");
+
+  // User-authored entities must stay encoded: only text DOMPurify itself
+  // escaped is decoded below, otherwise `&lt;img onerror=…&gt;` becomes markup.
+  markdown = markdown.replace(/&/g, ampersand);
+
+  const { markdown: withoutEmbeds, placeholders: embeds } =
+    preProcessMarkdownContent(markdown, {
+      search: EMBEDDED_COMPONENT_REGEX,
+      placeholderName: "JSX_COMPONENT",
+      createPlaceholder: (id) => marker(`jsx${id}`),
+    });
+
+  // DOMPurify rewrites void tags to HTML5 syntax, but MDX needs `<img />`
+  const { markdown: withoutVoidTags, placeholders: voidTags } =
+    preProcessMarkdownContent(withoutEmbeds, {
+      search: VOID_TAG_REGEX,
+      placeholderName: "SELF_CLOSING_TAG",
+      createPlaceholder: (id) => marker(`void${id}`),
+    });
+
+  markdown = sanitizeHtmlContent(withoutVoidTags);
+
+  // Void-tag chunks can contain embed placeholders, so restore them first
+  voidTags.forEach(({ placeholder, original }) => {
+    const sanitized = toSelfClosingVoidTags(sanitizeHtmlContent(original));
+    markdown = markdown.replace(placeholder, () => sanitized);
+  });
+  embeds.forEach(({ placeholder, original }) => {
+    markdown = markdown.replace(placeholder, () => original);
+  });
+
+  // MDXEditor needs the plain characters DOMPurify escaped in text nodes
+  markdown = markdown.replace(/&lt;/g, "<").replace(/&gt;/g, ">");
+
+  return markdown.replaceAll(ampersand, "&");
+}
+
+// The pre-fix sanitizer pulled these out before DOMPurify, and DOMPurify skips
+// parsing (and so entity decoding) when no `<` remains in its input.
+const LEGACY_EMBED_REGEX = new RegExp(
+  `<(${EMBEDDED_QUESTION_COMPONENT_NAME}|${EMBEDDED_TWITTER_COMPONENT_NAME})\\s+(?:[^\\s>][^>]*)?(?:\\/>|>.*?<\\/\\1>)`,
+  "gs"
+);
+const LEGACY_VOID_TAG_REGEX =
+  /<(hr|br|img)\s+(?:[^\s>][^>]*)?(?:\/>|>.*?<\/\1>)/gs;
+
+const getLegacyEntityDecoding = (prepared: string): LegacyEntityDecoding =>
+  prepared
+    .replace(LEGACY_EMBED_REGEX, "")
+    .replace(LEGACY_VOID_TAG_REGEX, "")
+    .includes("<")
+    ? "full"
+    : "basic";
+
+type ProcessMarkdownConfig = { revert?: boolean; withTwitterPreview?: boolean };
+
+function prepareMarkdown(
   markdown: string,
-  config?: { revert?: boolean; withTwitterPreview?: boolean }
-): string {
-  const { revert, withTwitterPreview } = config ?? {};
+  { revert, withTwitterPreview }: ProcessMarkdownConfig
+) {
   markdown = formatBlockquoteNewlines(markdown);
   if (!revert) {
     markdown = transformMathJaxToLatex(markdown);
@@ -314,8 +326,25 @@ export function processMarkdown(
   if (withTwitterPreview) {
     markdown = transformTwitterLinks(markdown);
   }
-
-  markdown = sanitizeHtml(markdown);
-
   return markdown;
+}
+
+// Returns MDX source for MDXEditor, not HTML-safe output: decoded `<`/`>` can
+// still form markup, which the editor's safe HTML import visitor then filters.
+export function processMarkdown(
+  markdown: string,
+  config?: ProcessMarkdownConfig
+): string {
+  return sanitizeHtml(prepareMarkdown(markdown, config ?? {}));
+}
+
+export function processMarkdownForDisplay(
+  markdown: string,
+  config?: ProcessMarkdownConfig
+) {
+  const prepared = prepareMarkdown(markdown, config ?? {});
+  return {
+    markdown: sanitizeHtml(prepared),
+    legacyEntityDecoding: getLegacyEntityDecoding(prepared),
+  };
 }

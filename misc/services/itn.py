@@ -7,6 +7,7 @@ import stat
 import tempfile
 import threading
 from datetime import UTC, timedelta
+from itertools import batched
 
 import mysql.connector
 import numpy as np
@@ -25,6 +26,7 @@ MAX_RELEVANT_DISTANCE = 0.5
 # same story and grouped into one cluster, so repeated coverage of an event does
 # not add up multiple times in the news hotness score.
 ARTICLE_CLUSTER_MAX_DISTANCE = 0.1
+ARTICLE_CLUSTER_CHUNK_SIZE = 500
 SSH_CONNECT_TIMEOUT_S = 10
 SSH_KEEPALIVE_S = 30
 MYSQL_CONNECT_TIMEOUT_S = 10
@@ -289,6 +291,43 @@ def generate_related_articles_for_post(post: Post):
     )
 
 
+def _iter_unit_vector_chunks(articles, id_field: str):
+    """Yields (ids, unit-length float32 matrix) per chunk, oldest article first."""
+    rows = (
+        articles
+        # Same-batch articles share created_at
+        .order_by("created_at", "id")
+        .values_list(id_field, "embedding_vector")
+        .iterator(chunk_size=ARTICLE_CLUSTER_CHUNK_SIZE)
+    )
+    for chunk in batched(rows, ARTICLE_CLUSTER_CHUNK_SIZE):
+        ids, vectors = zip(*chunk)
+        vectors = np.stack(vectors)
+        vectors /= np.maximum(np.linalg.norm(vectors, axis=1, keepdims=True), 1e-12)
+        yield np.array(ids), vectors
+
+
+def _load_unit_vectors(articles):
+    """Returns (pks, unit-length float32 matrix), oldest article first."""
+    count = articles.count()
+    pks = np.empty(count, dtype=np.int64)
+    vectors = None
+    size = 0
+
+    for chunk_pks, chunk_vectors in _iter_unit_vector_chunks(articles, "pk"):
+        # Rows can appear between the count and the read
+        chunk_pks = chunk_pks[: count - size]
+        if vectors is None:
+            vectors = np.empty((count, chunk_vectors.shape[1]), dtype=np.float32)
+
+        end = size + len(chunk_pks)
+        pks[size:end] = chunk_pks
+        vectors[size:end] = chunk_vectors[: len(chunk_pks)]
+        size = end
+
+    return pks[:size], vectors[:size] if size else None
+
+
 def assign_article_clusters():
     """Group near-duplicate articles (same story, different outlets/rewrites) so
     that repeated coverage counts only once towards a post's news hotness.
@@ -298,47 +337,46 @@ def assign_article_clusters():
     ARTICLE_CLUSTER_MAX_DISTANCE, or starts its own cluster otherwise. Processed
     oldest-first so earlier articles act as cluster representatives.
 
-    Distances are computed in memory: embeddings are 3072-dimensional, above
-    pgvector's index limit, so in SQL every neighbour lookup is a sequential scan
-    of the whole table.
+    Embeddings (3072-dim) exceed pgvector's index limit. Only unclustered
+    articles are held in memory.
     """
-    articles = list(
-        ITNArticle.objects.filter(embedding_vector__isnull=False)
-        # Articles synced in the same batch share a timestamp, so break ties on id
-        # to keep cluster representatives stable between runs
-        .order_by("created_at", "id")
-        .values_list("pk", "cluster_id", "embedding_vector")
-        # Streamed: buffering every 3072-dim vector client-side costs a few hundred
-        # MB more than the vectors themselves
-        .iterator(chunk_size=500)
-    )
-    if not articles:
+    embedded = ITNArticle.objects.filter(embedding_vector__isnull=False)
+
+    pks, vectors = _load_unit_vectors(embedded.filter(cluster_id__isnull=True))
+    if not len(pks):
         return
 
-    pks = [pk for pk, _, _ in articles]
-    # 0 marks an article that has no cluster yet, so it can't represent one either
-    cluster_ids = np.array([cluster_id or 0 for _, cluster_id, _ in articles])
-    # Cosine distance is 1 - dot product once the vectors are normalised
-    vectors = np.stack([vector for _, _, vector in articles])
-    vectors /= np.maximum(np.linalg.norm(vectors, axis=1, keepdims=True), 1e-12)
+    # Cosine similarity to, and cluster of, the nearest clustered article so far
+    best_similarity = np.full(len(pks), -np.inf, dtype=np.float32)
+    cluster_ids = np.zeros(len(pks), dtype=np.int64)
+    rows = np.arange(len(pks))
 
-    unclustered = np.flatnonzero(cluster_ids == 0)
-    for idx in unclustered:
-        # Nearest neighbour among the articles clustered so far, which includes the
-        # ones assigned by earlier iterations
-        candidates = np.where(cluster_ids > 0, vectors @ vectors[idx], -np.inf)
-        nearest = candidates.argmax()
+    for chunk_cluster_ids, chunk_vectors in _iter_unit_vector_chunks(
+        embedded.filter(cluster_id__isnull=False), "cluster_id"
+    ):
+        similarities = vectors @ chunk_vectors.T
+        nearest = similarities.argmax(axis=1)
+        nearest_similarity = similarities[rows, nearest]
+        closer = nearest_similarity > best_similarity
+        best_similarity[closer] = nearest_similarity[closer]
+        cluster_ids[closer] = chunk_cluster_ids[nearest[closer]]
 
-        cluster_ids[idx] = (
-            cluster_ids[nearest]
-            if candidates[nearest] >= 1 - ARTICLE_CLUSTER_MAX_DISTANCE
-            else pks[idx]
-        )
+    for idx in range(len(pks)):
+        # Articles assigned by earlier iterations are candidates too
+        if idx:
+            similarities = vectors[:idx] @ vectors[idx]
+            nearest = similarities.argmax()
+            if similarities[nearest] > best_similarity[idx]:
+                best_similarity[idx] = similarities[nearest]
+                cluster_ids[idx] = cluster_ids[nearest]
+
+        if best_similarity[idx] < 1 - ARTICLE_CLUSTER_MAX_DISTANCE:
+            cluster_ids[idx] = pks[idx]
 
     ITNArticle.objects.bulk_update(
         [
-            ITNArticle(pk=pks[idx], cluster_id=int(cluster_ids[idx]))
-            for idx in unclustered
+            ITNArticle(pk=int(pk), cluster_id=int(cluster_id))
+            for pk, cluster_id in zip(pks, cluster_ids)
         ],
         fields=["cluster_id"],
         batch_size=1000,

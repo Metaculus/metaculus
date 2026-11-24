@@ -23,6 +23,10 @@ import { ErrorBoundary } from "react-error-boundary";
 
 import EquationEditor from "./equation_editor";
 import KatexRenderer from "../../../../katex_renderer";
+import {
+  decodeLiteralEntities,
+  literalEntityDecoding$,
+} from "../../literal_entities";
 import { $isEquationNode } from "../equation_node";
 
 type EquationComponentProps = {
@@ -41,6 +45,7 @@ const EquationComponent: FC<EquationComponentProps> = ({
   focusEmitter,
 }) => {
   const isReadOnly = useCellValue(readOnly$);
+  const entityDecoding = useCellValue(literalEntityDecoding$);
   const isEditable = !isReadOnly;
   const [equationValue, setEquationValue] = useState(equation);
   const [showEquationEditor, setShowEquationEditor] = useState<boolean>(false);
@@ -152,7 +157,11 @@ const EquationComponent: FC<EquationComponentProps> = ({
           fallback={null}
         >
           <KatexRenderer
-            equation={equationValue}
+            equation={
+              entityDecoding
+                ? decodeLiteralEntities(equationValue, entityDecoding)
+                : equationValue
+            }
             inline={inline}
             onClick={
               isEditable

@@ -19,6 +19,7 @@ from tests.unit.test_posts.factories import factory_post
 from tests.unit.test_projects.factories import factory_project
 from tests.unit.test_questions.conftest import *  # noqa
 from tests.unit.test_questions.factories import (
+    create_conditional,
     create_question,
     factory_group_of_questions,
 )
@@ -741,6 +742,91 @@ def test_approve_post(user1, user1_client, question_binary):
         },
     )
     assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+@freeze_time("2024-11-17T12:00Z")
+@pytest.mark.parametrize(
+    "approval_open_time,expected_open_time,expected_status",
+    [
+        # Future approval open time must be respected
+        (
+            "2024-11-18T18:00Z",
+            make_aware(datetime(2024, 11, 18, 18)),
+            Post.CurationStatus.APPROVED,
+        ),
+        # Approval open time earlier than inherited one does not override it
+        (
+            "2024-11-01T00:00Z",
+            make_aware(datetime(2024, 11, 10)),
+            Post.PostStatusChange.OPEN,
+        ),
+    ],
+)
+def test_approve_post__conditional(
+    user1, user1_client, approval_open_time, expected_open_time, expected_status
+):
+    tournament = factory_project(
+        type=Project.ProjectTypes.TOURNAMENT,
+        override_permissions={user1.pk: ObjectPermission.ADMIN},
+    )
+    # Parent questions are already open
+    dates = {
+        "open_time": make_aware(datetime(2024, 11, 10)),
+        "cp_reveal_time": make_aware(datetime(2024, 11, 10)),
+        "scheduled_close_time": make_aware(datetime(2025, 1, 1)),
+        "scheduled_resolve_time": make_aware(datetime(2025, 1, 1)),
+    }
+    condition = create_question(question_type=Question.QuestionType.BINARY, **dates)
+    factory_post(question=condition)
+    condition_child = create_question(
+        question_type=Question.QuestionType.BINARY, **dates
+    )
+    factory_post(question=condition_child)
+
+    post = factory_post(
+        author=user1,
+        curation_status=Post.CurationStatus.PENDING,
+        default_project=tournament,
+        conditional=create_conditional(
+            condition=condition,
+            condition_child=condition_child,
+            # Sub-questions inherit dates (except cp_reveal_time)
+            # from condition_child, see clone_question
+            question_yes=create_question(
+                question_type=Question.QuestionType.BINARY,
+                **{**dates, "cp_reveal_time": None},
+            ),
+            question_no=create_question(
+                question_type=Question.QuestionType.BINARY,
+                **{**dates, "cp_reveal_time": None},
+            ),
+        ),
+    )
+
+    response = user1_client.post(
+        reverse("post-approve", kwargs={"pk": post.pk}),
+        {
+            "published_at": "2024-11-17T12:00Z",
+            "open_time": approval_open_time,
+            "cp_reveal_time": "2024-11-19T18:00Z",
+            "scheduled_close_time": "2024-12-01T00:00Z",
+            "scheduled_resolve_time": "2024-12-01T00:00Z",
+        },
+    )
+    assert response.status_code == status.HTTP_204_NO_CONTENT
+
+    post.refresh_from_db()
+    conditional = post.conditional
+
+    for question in (conditional.question_yes, conditional.question_no):
+        question.refresh_from_db()
+        assert question.open_time == expected_open_time
+        assert question.cp_reveal_time == make_aware(datetime(2024, 11, 19, 18))
+        # Pre-filled close/resolve times are kept
+        assert question.scheduled_close_time == make_aware(datetime(2025, 1, 1))
+
+    assert post.open_time == expected_open_time
+    assert post.status == expected_status
 
 
 def test_repost(user1, user1_client, user2, user2_client, question_binary):
