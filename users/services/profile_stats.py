@@ -273,7 +273,7 @@ def get_calibration_curve_data(
             if p_min <= value < p_max:
                 resolutions_for_bucket.append(resolution)
                 weights_for_bucket.append(weight)
-        count = max(len(resolutions_for_bucket), 1)
+        count = max(round(sum(weights_for_bucket)), 1)
         average_resolution = (
             np.average(resolutions_for_bucket, weights=weights_for_bucket)
             if sum(weights_for_bucket) > 0
