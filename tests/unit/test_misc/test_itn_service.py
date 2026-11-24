@@ -1,10 +1,16 @@
 import datetime
 
 import pytest
+from django.db import connection
+from django.test.utils import CaptureQueriesContext
+from django.utils import timezone
 from django.utils.timezone import make_aware
 
-from misc.services.itn import assign_article_clusters
+from comments.models import KeyFactorNews
+from misc.models import ITNArticle, PostArticle
+from misc.services.itn import assign_article_clusters, clear_old_itn_news
 from tests.unit.test_misc.factories import factory_itn_article
+from tests.unit.test_posts.factories import factory_post
 
 
 def _article(vector, created_at, **kwargs):
@@ -97,3 +103,26 @@ def test_assign_article_clusters_prefers_nearest_across_new_and_existing():
     assert a.cluster_id == a.pk
     assert b.cluster_id == a.pk
     assert c.cluster_id == 999
+
+
+def test_clear_old_itn_news_deletes_without_reading_text_or_embeddings(user1):
+    old = _article([1, 0, 0], (2025, 4, 1))
+    fresh = factory_itn_article(embedding_vector=[0, 1, 0], created_at=timezone.now())
+    PostArticle.objects.create(
+        article=old, post=factory_post(author=user1), distance=0.1
+    )
+    news = KeyFactorNews.objects.create(itn_article=old)
+
+    with CaptureQueriesContext(connection) as ctx:
+        clear_old_itn_news()
+
+    assert list(ITNArticle.objects.values_list("pk", flat=True)) == [fresh.pk]
+    assert not PostArticle.objects.exists()
+    news.refresh_from_db()
+    assert news.itn_article is None
+    select_lists = [
+        q["sql"].split(" FROM ")[0]
+        for q in ctx.captured_queries
+        if q["sql"].startswith("SELECT")
+    ]
+    assert not any('."text"' in s or "embedding_vector" in s for s in select_lists)
