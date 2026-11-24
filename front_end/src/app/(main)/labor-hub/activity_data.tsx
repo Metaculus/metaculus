@@ -389,4 +389,37 @@ export const RAW_ACTIVITY_MONITOR_DATA: RawActivityMonitorEntry[] = [
       </>
     ),
   },
+  {
+    date: "2026-11-16",
+    type: "news",
+    content: (
+      <>
+        California sues OpenAI over the Hugging Face security incident. -{" "}
+        <a
+          href="https://oag.ca.gov/news/press-releases/it%E2%80%99s-golden-state-not-wild-west-attorney-general-bonta-sues-openai-over"
+          target="_blank"
+          rel="noreferrer noopener"
+        >
+          California Attorney General
+        </a>
+      </>
+    ),
+  },
+  {
+    date: "2026-11-21",
+    type: "news",
+    content: (
+      <>
+        A researcher at Anthropic claims to have solved the Riemann hypothesis,
+        confirmed by independent mathematicians. -{" "}
+        <a
+          href="https://www.theguardian.com/technology/2026/nov/21/anthropic-riemann-hypothesis-solved-claude-ai"
+          target="_blank"
+          rel="noreferrer noopener"
+        >
+          The Guardian
+        </a>
+      </>
+    ),
+  },
 ];
