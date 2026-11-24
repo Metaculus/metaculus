@@ -325,6 +325,49 @@ class TestCommentDelete:
         assert comment.is_soft_deleted is False
 
 
+class TestCommentReport:
+    @pytest.fixture()
+    def comment(self, user1):
+        return factory_comment(author=user1, on_post=factory_post(author=user1))
+
+    @pytest.mark.parametrize(
+        "reason,expected_label",
+        [
+            ("spam", "Spam"),
+            ("violation", "Community guidelines violation"),
+            ("ai_generated", "AI-generated content"),
+        ],
+    )
+    def test_report_reasons(
+        self, mocker, comment, user2_client, reason, expected_label
+    ):
+        send_email = mocker.patch(
+            "notifications.services.send_notification_email_with_template"
+        )
+
+        response = user2_client.post(
+            reverse("comment-report", kwargs={"pk": comment.pk}), {"reason": reason}
+        )
+
+        assert response.status_code == 204
+        send_email.assert_called_once()
+        params = send_email.call_args.kwargs["context"]["params"]
+        assert params["reason"] == expected_label
+
+    def test_invalid_reason(self, mocker, comment, user2_client):
+        send_email = mocker.patch(
+            "notifications.services.send_notification_email_with_template"
+        )
+
+        response = user2_client.post(
+            reverse("comment-report", kwargs={"pk": comment.pk}),
+            {"reason": "not_a_reason"},
+        )
+
+        assert response.status_code == 400
+        send_email.assert_not_called()
+
+
 class TestCommentCreation:
     url = reverse("comment-create")
 
