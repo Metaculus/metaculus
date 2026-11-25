@@ -771,7 +771,7 @@ def send_comment_report_notification_to_staff(
                 )[0],
                 "comment_url": build_post_comment_url(comment.on_post, comment.id),
                 "reporter": reporter,
-                "reason": reason,
+                "reason": CommentReportType(reason).label,
             },
         },
     )
@@ -801,7 +801,7 @@ def send_key_factor_report_notification_to_staff(
                 "key_factor": key_factor,
                 "comment_url": build_post_comment_url(comment.on_post, comment.id),
                 "reporter": reporter,
-                "reason": reason,
+                "reason": CommentReportType(reason).label,
             },
         },
     )

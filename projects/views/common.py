@@ -1,3 +1,5 @@
+from django.db import transaction
+from django.db.models import Q
 from django.http import HttpResponse
 from django.views.decorators.cache import cache_page
 from rest_framework import serializers, status
@@ -7,6 +9,8 @@ from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
 from rest_framework.request import Request
 from rest_framework.response import Response
 
+from comments.models import KeyFactor
+from comments.services.key_factors.deletion import delete_key_factors
 from posts.models import Post
 from posts.serializers import serialize_posts_many_forecast_flow, serialize_post
 from projects.models import Project
@@ -315,9 +319,19 @@ def project_delete_api_view(request: Request, project_id: int):
     permission = get_project_permission_for_user(obj, user=request.user)
     ObjectPermission.can_edit_project(permission, raise_exception=True)
 
-    Question.objects.filter(post__default_project=obj).delete()
-    Post.objects.filter(default_project=obj).delete()
-    obj.delete()
+    # One transaction, so a protected question rolls back the key factor cleanup
+    with transaction.atomic():
+        delete_key_factors(
+            KeyFactor.objects.filter(
+                Q(comment__on_post__default_project=obj)
+                | Q(comment__on_project=obj)
+                | Q(question__post__default_project=obj)
+            )
+        )
+        Question.objects.filter(post__default_project=obj).delete()
+        Post.objects.filter(default_project=obj).delete()
+        obj.delete()
+
     return Response(status=status.HTTP_204_NO_CONTENT)
 
 

@@ -31,7 +31,8 @@ def run_on_post_forecast(post_id):
 
     post = Post.objects.get(pk=post_id)
 
-    # Update counters
+    # Update counters; project totals below sum these post counters.
+    post.update_forecasts_count()
     post.update_forecasters_count()
 
     compute_post_sorting_divergence_and_update_snapshots(post)

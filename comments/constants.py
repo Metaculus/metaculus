@@ -1,9 +1,11 @@
 from django.db import models
+from django.utils.translation import gettext_lazy as _
 
 
 class CommentReportType(models.TextChoices):
-    SPAM = "spam"
-    VIOLATION = "violation"
+    SPAM = "spam", _("Spam")
+    VIOLATION = "violation", _("Community guidelines violation")
+    AI_GENERATED = "ai_generated", _("AI-generated content")
 
 
 class TimeWindow(models.TextChoices):

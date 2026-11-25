@@ -12,8 +12,9 @@ from social_django.models import UserSocialAuth
 
 from authentication.jwt_session import credential_lock, revoke_all_user_tokens
 from authentication.models import ApiKey
-from comments.models import Comment
+from comments.models import Comment, KeyFactor
 from comments.services.common import soft_delete_comment
+from comments.services.key_factors.deletion import delete_key_factors
 from notifications.constants import MailingTags
 from posts.models import Post
 from posts.services.common import get_post_permission_for_user
@@ -310,7 +311,9 @@ def clean_user_data_delete(user: User) -> None:
     user.save()
 
     # Comments
-    user.comment_set.filter(is_private=True).delete()
+    private_comments = user.comment_set.filter(is_private=True)
+    delete_key_factors(KeyFactor.objects.filter(comment__in=private_comments))
+    private_comments.delete()
     # don't touch public comments
 
     # Token
@@ -320,6 +323,9 @@ def clean_user_data_delete(user: User) -> None:
     UserSocialAuth.objects.filter(user=user).delete()
 
     def hard_delete_post(post: Post):
+        delete_key_factors(
+            KeyFactor.objects.filter(Q(comment__on_post=post) | Q(question__post=post))
+        )
         if question := post.question:
             question.delete()
         if group_of_questions := post.group_of_questions:

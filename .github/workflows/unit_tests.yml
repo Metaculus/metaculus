@@ -93,6 +93,8 @@ jobs:
           node-version-file: front_end/.nvmrc
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: front_end/package.json
       # Keep this version in sync with ARG MJML_VERSION in the Dockerfile.
       - name: Install mjml
         run: bun add -g mjml@5.4.0
@@ -117,6 +119,8 @@ jobs:
           node-version-file: front_end/.nvmrc
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: front_end/package.json
       - name: Cache node_modules
         id: cache-node-modules
         uses: actions/cache@v5
