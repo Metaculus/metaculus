@@ -340,8 +340,8 @@ const MultipleChoiceChart: FC<Props> = ({
             ]}
             containerComponent={
               onCursorChange &&
-              !hideCP &&
-              !forecastAvailability?.cpRevealsOn ? (
+              ((!hideCP && !forecastAvailability?.cpRevealsOn) ||
+                hasUserForecasts) ? (
                 CursorContainer
               ) : (
                 <VictoryContainer
@@ -558,7 +558,8 @@ const MultipleChoiceChart: FC<Props> = ({
       </ChartContainer>
       <ForecastAvailabilityChartOverflow
         forecastAvailability={forecastAvailability}
-        className="pl-0 text-xs lg:text-sm"
+        // pointer-events-none: let hover reach the chart under the overlay
+        className="pointer-events-none pl-0 text-xs lg:text-sm"
         textClassName="!max-w-[300px] pl-0 text-gray-700 dark:text-gray-700-dark"
       />
     </div>
