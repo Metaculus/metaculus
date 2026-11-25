@@ -10,7 +10,17 @@ export type OobBreakMarkerDatum = {
   y?: number;
   trueValue: number;
   formatValue: (value: number) => string;
+  // Text color, matched to the series whose bar this labels.
+  color?: string;
+  // Position in the stack of labels sharing this bar's side (0 = lowest).
+  // Each step lifts the label one line so overlapping series stay readable.
+  stackIndex?: number;
 };
+
+const LABEL_BASELINE_OFFSET = 8;
+// Vertical spacing between stacked labels; the chart also adds this much
+// top padding per extra label.
+export const OOB_BREAK_LABEL_LINE_HEIGHT = 12;
 
 type Props = {
   x?: number;
@@ -27,17 +37,21 @@ const OobBreakMarker: FC<Props> = ({ x, y, datum }) => {
   const d = datum as OobBreakMarkerDatum | undefined;
   if (x == null || y == null || !d) return null;
 
-  const strokeColor = getThemeColor(METAC_COLORS.gray["600"]);
+  const textColor = d.color ?? getThemeColor(METAC_COLORS.gray["600"]);
   const label = d.formatValue(d.trueValue);
 
   return (
     <text
       x={x}
-      y={y - 8}
+      y={
+        y -
+        LABEL_BASELINE_OFFSET -
+        (d.stackIndex ?? 0) * OOB_BREAK_LABEL_LINE_HEIGHT
+      }
       textAnchor="middle"
       style={{
         ...CHART_FONT_STYLE.tick,
-        fill: strokeColor,
+        fill: textColor,
       }}
       aria-label="True value of an out-of-bounds bar clamped to the axis top"
     >

@@ -67,6 +67,7 @@ import {
 import ChartValueBox from "./primitives/chart_value_box";
 import LineCursorPoints from "./primitives/line_cursor_points";
 import OobBreakMarker, {
+  OOB_BREAK_LABEL_LINE_HEIGHT,
   OobBreakMarkerDatum,
 } from "./primitives/oob_break_marker";
 import ResolutionDiamond from "./primitives/resolution_diamond";
@@ -93,6 +94,10 @@ const TOP_PADDING = 10;
 // (below-lower / above-upper) is clamped to the axis top, so the break's
 // value label has room to render without being clipped.
 const OOB_BREAK_TOP_PADDING = 28;
+// Below this chart height (e.g. 90px feed tiles) the OOB break value labels
+// are hidden: their reserved top padding would squash the distribution too
+// much to be worth it. The break notch itself still renders.
+const OOB_BREAK_LABEL_MIN_HEIGHT = 150;
 // Y-axis headroom above the tallest in-bounds bar, as a multiple of its
 // value. The larger ratio only kicks in when a bar needs to be broken, so
 // there's enough room above the tallest in-bounds bar for the notch (see
@@ -223,13 +228,6 @@ const ContinuousAreaChart: FC<Props> = ({
     };
   }, [data, question.type, graphType]);
 
-  const paddingTop =
-    graphType === "cdf" || discrete
-      ? discrete && hasOobOverflow
-        ? OOB_BREAK_TOP_PADDING
-        : TOP_PADDING
-      : 0;
-
   const hasUserData = useMemo(
     () => data.some((d) => d.type === "user"),
     [data]
@@ -293,6 +291,91 @@ const ContinuousAreaChart: FC<Props> = ({
     }
     return chartData;
   }, [data, graphType, hideCP, question, globalScaling, variant, oobAxisTop]);
+
+  // Text color for a series' OOB break label: a darker shade of the series'
+  // own hue, so each label maps to its bar while staying legible against the
+  // translucent bar fills.
+  const getOobLabelColor = useCallback(
+    (chart: NumericPredictionGraph) => {
+      if (colorOverride && chart.type !== "user") return colorOverride;
+      switch (chart.color) {
+        case "orange":
+          return getThemeColor(
+            METAC_COLORS.orange[chart.type === "user_previous" ? "500" : "700"]
+          );
+        case "green":
+          return getThemeColor(METAC_COLORS.olive["800"]);
+        case "gray":
+          return getThemeColor(METAC_COLORS.gray["700"]);
+        case "purple":
+          return getThemeColor(METAC_COLORS.purple["700"]);
+        default:
+          return getThemeColor(METAC_COLORS.gray["600"]);
+      }
+    },
+    [colorOverride, getThemeColor]
+  );
+
+  // Every clamped OOB bar on a given side is cut at the same axis top, so
+  // their value labels would all land on the same spot. Stack them instead:
+  // largest value on top, each label one line above the previous.
+  const showOobBreakLabels = height >= OOB_BREAK_LABEL_MIN_HEIGHT;
+  const oobBreakLabels = useMemo(() => {
+    if (!discrete || !showOobBreakLabels) return [];
+    const labels: Array<{
+      key: string;
+      x: number;
+      y: number;
+      datum: OobBreakMarkerDatum;
+    }> = [];
+    for (const side of ["left", "right"] as const) {
+      const sideLabels = charts
+        .map((chart, chartIndex) => ({ chart, chartIndex }))
+        // Component bars aren't drawn in discrete mode, so neither are
+        // their labels.
+        .filter(
+          ({ chart }) =>
+            chart.type !== "user_components" && !!chart.oobClamped?.[side]
+        )
+        .map(({ chart, chartIndex }) => ({
+          chart,
+          chartIndex,
+          clamp: chart.oobClamped?.[side] as OobClampedBar,
+        }))
+        .sort((a, b) => a.clamp.trueY - b.clamp.trueY);
+      sideLabels.forEach(({ chart, chartIndex, clamp }, stackIndex) => {
+        labels.push({
+          key: `${chartIndex}-${side}`,
+          x: clamp.x,
+          y: clamp.clampedY,
+          datum: {
+            trueValue: clamp.trueY,
+            formatValue: (v: number) => `${(v * 100).toFixed(1)}%`,
+            color: getOobLabelColor(chart),
+            stackIndex,
+          },
+        });
+      });
+    }
+    return labels;
+  }, [charts, discrete, showOobBreakLabels, getOobLabelColor]);
+
+  const oobMaxStack = useMemo(
+    () =>
+      oobBreakLabels.reduce(
+        (max, l) => Math.max(max, (l.datum.stackIndex ?? 0) + 1),
+        0
+      ),
+    [oobBreakLabels]
+  );
+
+  const paddingTop =
+    graphType === "cdf" || discrete
+      ? discrete && hasOobOverflow && showOobBreakLabels
+        ? OOB_BREAK_TOP_PADDING +
+          Math.max(0, oobMaxStack - 1) * OOB_BREAK_LABEL_LINE_HEIGHT
+        : TOP_PADDING
+      : 0;
 
   const { xDomain, yDomain } = useMemo<{
     xDomain: Tuple<number>;
@@ -397,6 +480,15 @@ const ContinuousAreaChart: FC<Props> = ({
       }),
     [height, yDomain, paddingTop]
   );
+
+  // A clamped OOB bar reaches the axis top, so its pixel height is the full
+  // plot height.
+  const hasRightOobBreak =
+    discrete &&
+    charts.some(
+      (chart) => chart.type !== "user_components" && !!chart.oobClamped?.right
+    ) &&
+    oobBreakFits(height - BOTTOM_PADDING - paddingTop);
 
   // When a bar is broken, ticks above the break sit in headroom reserved for
   // the notch rather than a real linear continuation of the axis, so regular
@@ -533,9 +625,9 @@ const ContinuousAreaChart: FC<Props> = ({
                 el.graphType === "pmf" ||
                 question.type === QuestionType.Discrete
               ) {
-                acc.yData[el.type] = getClosestYValue(
+                acc.yData[el.type] = getClosestHoverYValue(
                   normalizedX as number,
-                  el.graphLine
+                  el
                 );
                 return acc;
               }
@@ -715,7 +807,7 @@ const ContinuousAreaChart: FC<Props> = ({
                 acc.yData[el.type] = interpolateYValue(x, el.graphLine);
               }
             } else {
-              acc.yData[el.type] = getClosestYValue(x, el.graphLine);
+              acc.yData[el.type] = getClosestHoverYValue(x, el);
               acc.x = getClosestXValue(x, el.graphLine);
             }
             return acc;
@@ -877,40 +969,17 @@ const ContinuousAreaChart: FC<Props> = ({
                 />
               );
             })}
-          {discrete &&
-            charts.flatMap((chart, chartIndex) => {
-              if (!chart.oobClamped) return [];
-              const points: Array<{
-                key: string;
-                x: number;
-                y: number;
-                datum: OobBreakMarkerDatum;
-              }> = [];
-              for (const side of ["left", "right"] as const) {
-                const clamp = chart.oobClamped[side];
-                if (!clamp) continue;
-                points.push({
-                  key: `${chartIndex}-${side}`,
-                  x: clamp.x,
-                  y: clamp.clampedY,
-                  datum: {
-                    trueValue: clamp.trueY,
-                    formatValue: (v: number) => `${(v * 100).toFixed(1)}%`,
-                  },
-                });
+          {oobBreakLabels.map((p) => (
+            <VictoryScatter
+              key={`oob-break-${p.key}`}
+              data={[{ x: p.x, y: p.y, ...p.datum }]}
+              dataComponent={
+                <VictoryPortal>
+                  <OobBreakMarker />
+                </VictoryPortal>
               }
-              return points.map((p) => (
-                <VictoryScatter
-                  key={`oob-break-${p.key}`}
-                  data={[{ x: p.x, y: p.y, ...p.datum }]}
-                  dataComponent={
-                    <VictoryPortal>
-                      <OobBreakMarker />
-                    </VictoryPortal>
-                  }
-                />
-              ));
-            })}
+            />
+          ))}
           {!discrete
             ? charts.map((chart, index) => (
                 <VictoryLine
@@ -971,7 +1040,13 @@ const ContinuousAreaChart: FC<Props> = ({
                   },
                   ticks: { stroke: "transparent" },
                   axis: {
-                    stroke: getThemeColor(METAC_COLORS.gray["300"]),
+                    // The axis sits at xDomain[1], flush with the outer edge
+                    // of a discrete chart's last bar. When that bar is a
+                    // broken OOB bar, the stroke reads as a stray 1px line
+                    // beside it that shows through the break gaps, so hide it.
+                    stroke: hasRightOobBreak
+                      ? "transparent"
+                      : getThemeColor(METAC_COLORS.gray["300"]),
                     strokeWidth: 1,
                   },
                 }}
@@ -1360,6 +1435,22 @@ type NumericPredictionGraph = {
   };
 };
 
+// Value to report for the hovered point. A clamped OOB bar's graphLine y is
+// its drawn (capped) height, so report its true mass instead.
+function getClosestHoverYValue(
+  x: number,
+  chart: NumericPredictionGraph
+): number {
+  const { oobClamped, graphLine } = chart;
+  if (oobClamped) {
+    const closestX = getClosestXValue(x, graphLine);
+    for (const clamp of [oobClamped.left, oobClamped.right]) {
+      if (clamp && clamp.x === closestX) return clamp.trueY;
+    }
+  }
+  return getClosestYValue(x, graphLine);
+}
+
 type BarPathProps = {
   x0: number;
   x1: number;
@@ -1368,18 +1459,33 @@ type BarPathProps = {
   datum?: { x?: number };
 };
 
-// The notch cut into a clamped OOB bar is anchored to the tallest in-bounds
+// The break cut into a clamped OOB bar is anchored to the tallest in-bounds
 // bar's height (not an arbitrary fraction of the OOB bar's own height): the
-// solid lower segment rises to just above that neighboring bar, then a real
-// gap (a hole in the path — nothing painted, so the actual background shows
-// through) separates it from the cap, which fills the rest of the way up to
-// the axis top. Since the axis top is BREAK_AXIS_HEADROOM_RATIO × the
-// tallest in-bounds bar's value whenever a break is needed, the tallest
-// in-bounds bar's pixel height is `barHeight / BREAK_AXIS_HEADROOM_RATIO`.
+// solid lower segment rises to just above that neighboring bar, then a band
+// of OOB_BREAK_COUNT thin diagonal gaps (holes in the path — nothing painted,
+// so the actual background shows through), separated by short slivers of
+// bar, leads up to the cap, which fills the rest of the way to the axis top.
+// Since the axis top is BREAK_AXIS_HEADROOM_RATIO × the tallest in-bounds
+// bar's value whenever a break is needed, the tallest in-bounds bar's pixel
+// height is `barHeight / BREAK_AXIS_HEADROOM_RATIO`.
 const OOB_NEIGHBOR_CLEARANCE = 4;
-const OOB_GAP_HEIGHT = 18;
+const OOB_BREAK_COUNT = 3;
+const OOB_GAP_HEIGHT = 6;
+const OOB_SLIVER_HEIGHT = 9;
 const OOB_GAP_SLANT = 6;
 const OOB_MIN_CAP_HEIGHT = 10;
+const OOB_BREAK_BAND_HEIGHT =
+  OOB_BREAK_COUNT * OOB_GAP_HEIGHT + (OOB_BREAK_COUNT - 1) * OOB_SLIVER_HEIGHT;
+
+// Whether a clamped OOB bar this tall has room for a legible break above the
+// tallest in-bounds bar; if not, it's drawn as a plain, un-broken rect.
+function oobBreakFits(barHeight: number): boolean {
+  const bandTop =
+    barHeight / BREAK_AXIS_HEADROOM_RATIO +
+    OOB_NEIGHBOR_CLEARANCE +
+    OOB_BREAK_BAND_HEIGHT;
+  return barHeight - bandTop >= OOB_MIN_CAP_HEIGHT;
+}
 
 function getDiscreteBarPath(
   props: BarPathProps,
@@ -1397,22 +1503,33 @@ function getDiscreteBarPath(
 
   const barHeight = y0 - y1;
   const neighborTop = y0 - barHeight / BREAK_AXIS_HEADROOM_RATIO;
-  const gapBottom = neighborTop - OOB_NEIGHBOR_CLEARANCE;
-  const gapTop = gapBottom - OOB_GAP_HEIGHT;
-  const capHeight = gapTop - y1;
+  const bandBottom = neighborTop - OOB_NEIGHBOR_CLEARANCE;
 
-  // Not enough headroom above the neighboring bar for a legible notch (very
+  // Not enough headroom above the neighboring bar for a legible break (very
   // short bar): fall back to a plain, un-broken rect rather than a cramped one.
-  if (capHeight < OOB_MIN_CAP_HEIGHT) {
+  if (!oobBreakFits(barHeight)) {
     return plainRect;
   }
 
   const slant = Math.min(OOB_GAP_SLANT, (x1 - x0) / 2);
 
-  return (
-    `M ${x0},${y0} L ${x0},${gapBottom} L ${x1},${gapBottom - slant} L ${x1},${y0} Z ` +
-    `M ${x0},${gapTop} L ${x0},${y1} L ${x1},${y1} L ${x1},${gapTop - slant} Z`
-  );
+  // Painted pieces from the bottom up: the lower segment (flat bottom at y0),
+  // the slivers between gaps, and the cap (flat top at y1). Every cut edge
+  // rises left-to-right by `slant`, so all gaps are parallel.
+  const quad = (bl: number, br: number, tl: number, tr: number) =>
+    `M ${x0},${bl} L ${x0},${tl} L ${x1},${tr} L ${x1},${br} Z`;
+  const pieces: string[] = [];
+  let bottomL = y0;
+  let bottomR = y0;
+  let cut = bandBottom;
+  for (let i = 0; i < OOB_BREAK_COUNT; i++) {
+    pieces.push(quad(bottomL, bottomR, cut, cut - slant));
+    bottomL = cut - OOB_GAP_HEIGHT;
+    bottomR = bottomL - slant;
+    cut = bottomL - OOB_SLIVER_HEIGHT;
+  }
+  pieces.push(quad(bottomL, bottomR, y1, y1));
+  return pieces.join(" ");
 }
 
 function generateNumericAreaGraph(data: {
