@@ -227,8 +227,6 @@ const DetailedContinuousChartCard: FC<Props> = ({
   }, [isContinuous, cursorTimestamp, question.my_forecasts]);
 
   const activeForecast = useMemo<NumericAggregateForecast | null>(() => {
-    // hideCP: the cursor stays on for the user's own forecasts, so keep CP
-    // at the cursor out of the header and the shared cursor context.
     if (
       isCpHidden ||
       hideCP ||

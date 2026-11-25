@@ -254,7 +254,6 @@ const NumericChart: FC<Props> = ({
     return Math.max(rightPadding, MIN_RIGHT_PADDING);
   }, [rightPadding, MIN_RIGHT_PADDING]);
 
-  // When CP is hidden, keep the cursor if the user has their own forecasts.
   const isCursorEnabled =
     !nonInteractive &&
     !forecastAvailability?.isEmpty &&

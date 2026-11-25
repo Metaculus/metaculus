@@ -221,7 +221,6 @@ const MultiChoicesChartView: FC<Props> = ({
     [choiceItems]
   );
 
-  // tooltipUserChoices is filled for any logged-in user, so check the data.
   const hasUserForecasts = useMemo(
     () => choiceItems.some(({ userTimestamps }) => userTimestamps.length > 0),
     [choiceItems]
