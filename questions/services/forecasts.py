@@ -179,7 +179,6 @@ def after_forecast_actions(question: Question, user: User):
 
     # Update cache
     PostUserSnapshot.update_last_forecast_date(post, user)
-    post.update_forecasts_count()
 
     # Auto-subscribe user to CP changes
     if (
