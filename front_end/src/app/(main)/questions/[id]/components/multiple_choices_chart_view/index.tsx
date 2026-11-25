@@ -395,8 +395,7 @@ const MultiChoicesChartView: FC<Props> = ({
       {isTooltipActive &&
         !hideTooltip &&
         !isCursorOverLegend &&
-        ((!hideCP && !forecastAvailability?.cpRevealsOn) ||
-          hasUserForecasts) &&
+        ((!hideCP && !forecastAvailability?.cpRevealsOn) || hasUserForecasts) &&
         !activeTimelineMarkerId &&
         (tooltipChoices.length > 0 ||
           !!tooltipUserChoices?.length ||
