@@ -51,7 +51,7 @@ def question_detail_api_view(request, pk: int):
     permission = get_post_permission_for_user(question.get_post(), user=request.user)
     ObjectPermission.can_view(permission, raise_exception=True)
 
-    with_cp = request.GET.get("with_cp", False)
+    with_cp = BooleanField(allow_null=True).run_validation(request.GET.get("with_cp"))
 
     # minimize the aggregation data by default
     minimize = str(request.GET.get("minimize", "true")).lower() == "true"

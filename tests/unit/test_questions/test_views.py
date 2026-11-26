@@ -10,7 +10,12 @@ from rest_framework.reverse import reverse
 
 from posts.models import Post
 from projects.models import Project
-from questions.models import Forecast, Question, UserForecastNotification
+from questions.models import (
+    AggregateForecast,
+    Forecast,
+    Question,
+    UserForecastNotification,
+)
 from questions.types import OptionsHistoryType
 from questions.tasks import check_and_schedule_forecast_widrawal_due_notifications
 from tests.unit.test_posts.conftest import *  # noqa
@@ -1089,3 +1094,24 @@ class TestQuestionForecastAutoWithdrawal:
             assert not UserForecastNotification.objects.filter(
                 user=user2, question=question2
             ).exists()
+
+
+def test_question_detail_with_cp_false_omits_aggregations(
+    user1_client, question_binary
+):
+    factory_post(question=question_binary)
+    method = question_binary.default_aggregation_method
+    AggregateForecast.objects.create(
+        question=question_binary,
+        method=method,
+        start_time=timezone.now() - timedelta(days=1),
+        forecast_values=[0.4, 0.6],
+        forecaster_count=1,
+    )
+    url = reverse("question-details", kwargs={"pk": question_binary.pk})
+
+    with_cp = user1_client.get(url, {"with_cp": "true"}).data
+    without_cp = user1_client.get(url, {"with_cp": "false"}).data
+
+    assert with_cp["aggregations"][method]["latest"] is not None
+    assert without_cp["aggregations"][method]["latest"] is None
