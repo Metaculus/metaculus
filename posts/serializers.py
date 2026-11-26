@@ -2,7 +2,7 @@ import logging
 from typing import Union, Iterable
 
 from django.db import models
-from django.db.models import F, Prefetch, QuerySet
+from django.db.models import Case, F, Prefetch, QuerySet, When
 from django.template.defaultfilters import slugify
 from django.utils import timezone
 from rest_framework import serializers
@@ -48,6 +48,7 @@ from questions.services.movement import (
 from users.models import User
 from utils.dtypes import flatten, generate_map_from_list
 from utils.serializers import SerializerKeyLookupMixin
+from utils.translation import get_translated_field_expression
 from .models import Notebook, Post, PostSubscription, PostUserSnapshot
 from .utils import get_post_slug
 
@@ -478,6 +479,35 @@ def serialize_post(
     return serialized_data
 
 
+def get_default_projects_queryset() -> QuerySet[Project]:
+    """
+    Columns serialize_projects() reads, with descriptions resolved in SQL
+    """
+
+    return (
+        Project.objects.select_related("primary_leaderboard")
+        .defer(
+            "description",
+            "subtitle",
+            "sign_up_fields",
+            "primary_leaderboard__display_config",
+        )
+        .annotate_description_preview()
+        .annotate_is_current_content_translated()
+        .annotate(
+            _description=Case(
+                When(
+                    type__in=[
+                        Project.ProjectTypes.CATEGORY,
+                        Project.ProjectTypes.COMMUNITY,
+                    ],
+                    then=get_translated_field_expression(Project, "description"),
+                )
+            )
+        )
+    )
+
+
 def serialize_post_many(
     posts: Union[QuerySet[Post], list[Post], list[int] | set[int]],
     with_cp: bool = False,
@@ -501,9 +531,9 @@ def serialize_post_many(
     qs = (
         qs.annotate_user_permission(user=current_user)
         .prefetch_questions(with_condition_posts=True)
-        .select_related("default_project__primary_leaderboard")
         .annotate(_author_username=F("author__username"))
         .prefetch_related(
+            Prefetch("default_project", queryset=get_default_projects_queryset()),
             "notebook",
             Prefetch("coauthors", queryset=User.objects.only("id", "username")),
         )

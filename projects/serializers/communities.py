@@ -61,6 +61,7 @@ class CommunityUpdateSerializer(serializers.ModelSerializer):
 
 class CommunitySerializer(serializers.ModelSerializer):
     created_by = BaseUserSerializer()
+    description = serializers.CharField(source="get_description", read_only=True)
 
     class Meta:
         model = Project
