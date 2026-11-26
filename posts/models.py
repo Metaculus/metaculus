@@ -35,6 +35,7 @@ from scoring.models import Score, ArchivedScore
 from users.models import User
 from utils.db_backend import DeferredByDefaultMixin, deferred_by_default
 from utils.models import TimeStampedModel, TranslatedModel
+from utils.translation import defer_unused_translations
 
 
 def projects_q(p: list[Project] | Project) -> Q:
@@ -87,7 +88,9 @@ class PostQuerySet(models.QuerySet):
 
         return self.prefetch_related(*prefetches)
 
-    def prefetch_questions(self, with_condition_posts: bool = False):
+    def prefetch_questions(
+        self, with_condition_posts: bool = False, include_descriptions: bool = True
+    ):
         conditionals = Conditional.objects.select_related(
             "condition", "condition_child", "question_yes", "question_no"
         )
@@ -97,11 +100,19 @@ class PostQuerySet(models.QuerySet):
                 "condition__post", "condition_child__post"
             )
 
+        groups = defer_unused_translations(GroupOfQuestions.objects.all())
+        subquestions = defer_unused_translations(Question.objects.all())
+
+        if not include_descriptions:
+            descriptions = ("description", "resolution_criteria", "fine_print")
+            groups = groups.defer(*descriptions)
+            subquestions = subquestions.defer(*descriptions)
+
         return self.select_related("question").prefetch_related(
-            # Must precede every other conditional__* lookup
+            # Must precede every other lookup through these relations
             Prefetch("conditional", queryset=conditionals),
-            # Group Of Questions
-            "group_of_questions__questions__group",
+            Prefetch("group_of_questions", queryset=groups),
+            Prefetch("group_of_questions__questions", queryset=subquestions),
         )
 
     def prefetch_questions_scores(self, include_shadow_aggregations: bool = False):

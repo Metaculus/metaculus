@@ -533,7 +533,9 @@ def serialize_post_many(
 
     qs = (
         qs.annotate_user_permission(user=current_user)
-        .prefetch_questions(with_condition_posts=True)
+        .prefetch_questions(
+            with_condition_posts=True, include_descriptions=include_descriptions
+        )
         .annotate(_author_username=F("author__username"))
         .prefetch_related(
             Prefetch("default_project", queryset=get_default_projects_queryset()),

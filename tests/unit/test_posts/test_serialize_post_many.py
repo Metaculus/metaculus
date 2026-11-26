@@ -8,7 +8,10 @@ from projects.models import Project
 from questions.models import Question
 from tests.unit.test_posts.factories import factory_notebook, factory_post
 from tests.unit.test_projects.factories import factory_project
-from tests.unit.test_questions.factories import create_question
+from tests.unit.test_questions.factories import (
+    create_question,
+    factory_group_of_questions,
+)
 
 
 def test_author_username_without_user_row(post_binary_public):
@@ -120,3 +123,38 @@ def test_post_query_skips_unused_translation_columns(
 
     assert data == expected
     assert len(ctx.captured_queries) == len(full_ctx.captured_queries)
+
+
+def test_group_prefetch_skips_unused_description_columns(
+    user1, django_assert_num_queries
+):
+    questions = [
+        create_question(
+            question_type=Question.QuestionType.BINARY, description_original="Q"
+        )
+        for _ in range(2)
+    ]
+    group = factory_group_of_questions(questions=questions, description_original="G")
+    post = factory_post(author=user1, group_of_questions=group)
+
+    def group_queries(ctx):
+        return [
+            q["sql"]
+            for q in ctx.captured_queries
+            if 'FROM "questions_groupofquestions"' in q["sql"]
+            or '"questions_question"."group_id" IN' in q["sql"]
+        ]
+
+    with translation.override("original"):
+        with django_assert_num_queries(6) as ctx:
+            data = serialize_post_many([post.id], include_descriptions=True)
+
+        group_data = data[0]["group_of_questions"]
+        assert group_data["description"] == "G"
+        assert [q["description"] for q in group_data["questions"]] == ["Q", "Q"]
+        assert not [sql for sql in group_queries(ctx) if '_cs"' in sql]
+
+        with django_assert_num_queries(6) as ctx:
+            serialize_post_many([post.id])
+
+        assert not [sql for sql in group_queries(ctx) if "description" in sql]
