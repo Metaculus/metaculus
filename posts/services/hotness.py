@@ -266,8 +266,24 @@ def compute_feed_hotness():
     # so we can safely ignore them for performance reasons
     min_creation_date = timezone.now() - datetime.timedelta(days=70)
 
-    qs = Post.objects.filter_published().prefetch_related(
-        "questions",
+    qs = Post.objects.filter_published().only("id", "notebook_id")
+    qs = qs.prefetch_related(
+        Prefetch(
+            "questions",
+            queryset=Question.objects.only(
+                "id",
+                "post_id",
+                "title",
+                "movement",
+                "open_time",
+                "cp_reveal_time",
+                "scheduled_close_time",
+                "actual_close_time",
+                "actual_resolve_time",
+                "resolution",
+                "resolution_set_time",
+            ),
+        ),
         Prefetch(
             "votes",
             queryset=Vote.objects.filter(created_at__gte=min_creation_date).only(
