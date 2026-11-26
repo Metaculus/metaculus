@@ -2,7 +2,9 @@ import datetime
 import math
 
 import pytest
+from django.db import connection
 from django.db.models import Prefetch
+from django.test.utils import CaptureQueriesContext
 from django.utils.timezone import make_aware
 from freezegun import freeze_time
 
@@ -257,6 +259,31 @@ def test_compute_feed_hotness_applies_breadth_penalty(post_binary_public, user1)
 
     post_binary_public.refresh_from_db()
     assert post_binary_public.news_hotness == pytest.approx(0.32 / math.log(math.e + 4))
+
+
+@freeze_time("2025-04-18")
+def test_compute_feed_hotness_loads_only_scored_columns(user1):
+    for _ in range(2):
+        factory_post(
+            author=user1,
+            question=create_question(
+                question_type=Question.QuestionType.BINARY,
+                open_time=make_aware(datetime.datetime(2025, 4, 11)),
+                scheduled_close_time=make_aware(datetime.datetime(2025, 4, 25)),
+                movement=0.4,
+            ),
+        )
+
+    with CaptureQueriesContext(connection) as ctx:
+        compute_feed_hotness()
+
+    assert {post.hotness for post in Post.objects.all()} == {10.5}
+    sqls = [q["sql"] for q in ctx.captured_queries]
+    question_sqls = [s for s in sqls if 'FROM "questions_question"' in s]
+    assert len(question_sqls) == 1
+    assert '"questions_question"."description' not in question_sqls[0]
+    assert not [s for s in sqls if 'FROM "posts_post" WHERE "posts_post"."id" =' in s]
+    assert not [s for s in sqls if '"posts_post"."html_metadata_json"' in s]
 
 
 @freeze_time("2025-04-18")

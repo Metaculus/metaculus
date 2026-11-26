@@ -258,18 +258,6 @@ def _calculate_timeline_data(project: Project, questions: Iterable[Question]) ->
     }
 
 
-def get_project_timeline_data(project: Project):
-    questions = Question.objects.filter(
-        post_id__in=list(
-            Post.objects.filter_projects(project)
-            .filter(curation_status=Post.CurationStatus.APPROVED)
-            .values_list("id", flat=True)
-        )
-    )
-
-    return _calculate_timeline_data(project, questions)
-
-
 @cache_per_object(timeout=60 * 15)
 def get_timeline_data_for_projects(project_ids: list[int]) -> dict[int, dict]:
     projects = Project.objects.in_bulk(project_ids)

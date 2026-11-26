@@ -3,17 +3,14 @@ from datetime import timedelta
 from django.utils import timezone
 
 from posts.models import Post
-from projects.services.common import (
-    get_project_timeline_data,
-    get_timeline_data_for_projects,
-)
+from projects.services.common import get_timeline_data_for_projects
 from questions.models import Question
 from tests.unit.test_posts.factories import factory_post
 from tests.unit.test_projects.factories import factory_project
 from tests.unit.test_questions.factories import create_question
 
 
-def test_get_project_timeline_data(user1):
+def test_get_timeline_data_for_projects_skips_unapproved_posts(user1):
     project = factory_project()
     now = timezone.now()
 
@@ -47,7 +44,7 @@ def test_get_project_timeline_data(user1):
         question=create_question(question_type=Question.QuestionType.BINARY),
     )
 
-    data = get_project_timeline_data(project=project)
+    data = get_timeline_data_for_projects([project.pk])[project.pk]
 
     assert data["latest_actual_resolve_time"] == post2.question.actual_resolve_time
     assert data["all_questions_resolved"]
