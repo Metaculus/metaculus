@@ -74,6 +74,11 @@ on:
         required: false
         type: boolean
         default: false
+      update_comment:
+        description: "Update the preview comment on the PR (PR Preview Maintenance turns this off)"
+        required: false
+        type: boolean
+        default: true
 
 concurrency:
   group: pr-preview-${{ github.event.number || inputs.pr_number }}
@@ -244,6 +249,10 @@ jobs:
     environment:
       name: Preview
       url: ${{ steps.deploy.outputs.url }}
+      # Record a deployment only for runs on the PR's own branch. GitHub ties a
+      # deployment to its run's ref, so one from a dispatch on main never shows
+      # on the PR, and cleanup (which deletes by PR branch) never removes it.
+      deployment: ${{ github.event_name == 'pull_request' || github.ref_name == needs.setup.outputs.pr_head_ref }}
     outputs:
       url: ${{ steps.deploy.outputs.url }}
       app_name: ${{ steps.deploy.outputs.app_name }}
@@ -402,13 +411,16 @@ jobs:
   # ===========================================================================
   # Post Deployment Comment - Add comment to PR with preview URLs
   # ===========================================================================
+  # Editing the comment bumps the PR's updated_at, which the stale job reads as
+  # activity, so weekly maintenance redeploys skip it.
   comment-on-pr:
     name: Comment on PR
     needs: [fork-check, setup, build-image, deploy-preview]
     if: |
       github.event.action != 'closed' &&
       inputs.action != 'cleanup' &&
-      needs.fork-check.outputs.is_fork != 'true'
+      needs.fork-check.outputs.is_fork != 'true' &&
+      (github.event_name != 'workflow_dispatch' || inputs.update_comment == true || inputs.update_comment == 'true')
     runs-on: ubuntu-latest
     steps:
       - name: Find existing comment
