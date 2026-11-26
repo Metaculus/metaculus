@@ -129,30 +129,13 @@ jobs:
       heroku_targets: ${{ inputs.heroku_targets }}
 
     steps:
-      - name: Checkout code
+      # Take scripts from the commit this workflow file came from, not the one
+      # being built: a PR branch can predate a script. The code checkout below
+      # turns sparse mode off and replaces these files.
+      - name: Checkout workflow scripts
         uses: actions/checkout@v6
         with:
-          # Use PR branch HEAD (not merge commit) for consistent caching
-          # Falls back to github.sha for non-PR events (push, workflow_dispatch)
-          ref: ${{ inputs.commit_sha || github.event.pull_request.head.sha || github.sha }}
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Login to Heroku Container Registry
-        if: inputs.heroku_app != ''
-        uses: docker/login-action@v3
-        with:
-          registry: registry.heroku.com
-          username: _
-          password: ${{ secrets.HEROKU_API_KEY }}
+          sparse-checkout: .github/scripts
 
       - name: Compute image name and branch prefix
         id: vars
@@ -177,6 +160,31 @@ jobs:
           SHORT_SHA="${COMMIT_SHA:0:7}"
           echo "short_sha=${SHORT_SHA}" >> $GITHUB_OUTPUT
           echo "commit_sha=${COMMIT_SHA}" >> $GITHUB_OUTPUT
+
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          # Use PR branch HEAD (not merge commit) for consistent caching
+          # Falls back to github.sha for non-PR events (push, workflow_dispatch)
+          ref: ${{ inputs.commit_sha || github.event.pull_request.head.sha || github.sha }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Login to Heroku Container Registry
+        if: inputs.heroku_app != ''
+        uses: docker/login-action@v3
+        with:
+          registry: registry.heroku.com
+          username: _
+          password: ${{ secrets.HEROKU_API_KEY }}
 
       # Use docker/metadata-action for tag generation and OCI labels
       # See: https://github.com/docker/metadata-action
