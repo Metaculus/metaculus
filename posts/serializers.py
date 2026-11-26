@@ -48,7 +48,10 @@ from questions.services.movement import (
 from users.models import User
 from utils.dtypes import flatten, generate_map_from_list
 from utils.serializers import SerializerKeyLookupMixin
-from utils.translation import get_translated_field_expression
+from utils.translation import (
+    defer_unused_translations,
+    get_translated_field_expression,
+)
 from .models import Notebook, Post, PostSubscription, PostUserSnapshot
 from .utils import get_post_slug
 
@@ -531,10 +534,13 @@ def serialize_post_many(
         .select_related("author")
         .prefetch_related(
             Prefetch("default_project", queryset=get_default_projects_queryset()),
-            "notebook",
+            Prefetch(
+                "notebook", queryset=defer_unused_translations(Notebook.objects.all())
+            ),
             Prefetch("coauthors", queryset=User.objects.only("id", "username")),
         )
     )
+    qs = defer_unused_translations(qs, "question")
 
     if current_user:
         qs = qs.annotate_user_vote(current_user)
