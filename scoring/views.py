@@ -1,6 +1,6 @@
 from collections import defaultdict
 
-from django.db.models import Count, F, Q
+from django.db.models import Count, F, Prefetch, Q
 from django.views.decorators.cache import cache_page
 import numpy as np
 from rest_framework import status, serializers
@@ -31,7 +31,12 @@ from scoring.serializers import (
 )
 from scoring.utils import get_contributions, update_project_leaderboard
 from users.models import User
+from users.serializers import BaseUserSerializer
 from scoring.utils import get_cached_metaculus_stats
+
+
+def prefetch_public_user() -> Prefetch:
+    return Prefetch("user", queryset=User.objects.only(*BaseUserSerializer.Meta.fields))
 
 
 def show_shadow_entries_to_staff(entries, user) -> None:
@@ -82,7 +87,9 @@ def global_leaderboard_view(
     leaderboard_data = LeaderboardSerializer(leaderboard).data
 
     user = request.user
-    entries = leaderboard.entries.select_related("user").order_by("rank", "-score")
+    entries = leaderboard.entries.prefetch_related(prefetch_public_user()).order_by(
+        "rank", "-score"
+    )
     if leaderboard.score_type != LeaderboardScoreTypes.MANUAL:
         entries = entries.filter(
             Q(medal__isnull=False)
@@ -172,7 +179,7 @@ def project_leaderboard_view(
         entries = (
             LeaderboardEntry.objects.filter(leaderboard__in=leaderboards)
             .order_by("rank", "-score")
-            .select_related("user")
+            .prefetch_related(prefetch_public_user())
         )
     else:
         entries = LeaderboardEntry.objects.none()
@@ -285,11 +292,15 @@ def user_medals(
             status=status.HTTP_400_BAD_REQUEST,
         )
 
-    entries_with_medals = LeaderboardEntry.objects.filter(
-        user_id=user_id,
-        medal__isnull=False,
-        leaderboard__project__default_permission=ObjectPermission.FORECASTER,
-    ).select_related("leaderboard__project", "user")
+    entries_with_medals = (
+        LeaderboardEntry.objects.filter(
+            user_id=user_id,
+            medal__isnull=False,
+            leaderboard__project__default_permission=ObjectPermission.FORECASTER,
+        )
+        .select_related("leaderboard__project")
+        .prefetch_related(prefetch_public_user())
+    )
 
     # Fetch counts of non-excluded entries for each leaderboard and create a mapping
     leaderboard_entries_mapping = {

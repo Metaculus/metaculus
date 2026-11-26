@@ -237,7 +237,11 @@ def post_detail(request: Request, pk):
         request.query_params.get("with_cp", True)
     )
 
-    qs = Post.objects.filter_permission(user=user).filter(pk=pk)
+    qs = (
+        Post.objects.filter_permission(user=user)
+        .filter(pk=pk)
+        .values_list("pk", flat=True)
+    )
     posts = serialize_post_many(
         qs,
         current_user=acting_user,

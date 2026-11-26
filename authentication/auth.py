@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from django.utils import timezone
 from rest_framework.authentication import TokenAuthentication, get_authorization_header
 from rest_framework.exceptions import AuthenticationFailed
@@ -7,6 +9,8 @@ from rest_framework_simplejwt.exceptions import (
 )
 
 from .models import ApiKey
+
+LAST_USED_AT_RESOLUTION = timedelta(minutes=10)
 
 
 class SessionJWTAuthentication(JWTAuthentication):
@@ -61,6 +65,11 @@ class FallbackTokenAuthentication(TokenAuthentication):
 
     def authenticate_credentials(self, key):
         user, token = super().authenticate_credentials(key)
-        ApiKey.objects.filter(key=key).update(last_used_at=timezone.now())
+        now = timezone.now()
+        if (
+            not token.last_used_at
+            or now - token.last_used_at >= LAST_USED_AT_RESOLUTION
+        ):
+            ApiKey.objects.filter(key=key).update(last_used_at=now)
 
         return user, token

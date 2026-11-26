@@ -1,4 +1,9 @@
+from datetime import timedelta
+
 import pytest
+from django.db import connection
+from django.test.utils import CaptureQueriesContext
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.reverse import reverse
 from rest_framework.test import APIClient
@@ -6,8 +11,11 @@ from rest_framework.test import APIClient
 from projects.models import Project
 from projects.permissions import ObjectPermission
 from projects.services.common import get_project_permission_for_user
+from questions.models import Question
 from scoring.constants import ExclusionStatuses
+from tests.unit.test_posts.factories import factory_post
 from tests.unit.test_projects.factories import factory_project
+from tests.unit.test_questions.factories import create_question
 from tests.unit.test_users.factories import factory_user
 
 
@@ -132,3 +140,26 @@ class TestInviteUsersToPrivateProject:
             format="json",
         )
         assert response.status_code == status.HTTP_403_FORBIDDEN
+
+
+def test_tournament_detail_timeline_skips_full_question_rows(anon_client, user1):
+    project = factory_project(type=Project.ProjectTypes.TOURNAMENT, slug="egress-cup")
+    factory_post(
+        author=user1,
+        default_project=project,
+        question=create_question(
+            question_type=Question.QuestionType.BINARY,
+            scheduled_close_time=timezone.now() + timedelta(days=1),
+            scheduled_resolve_time=timezone.now() + timedelta(days=2),
+        ),
+    )
+
+    with CaptureQueriesContext(connection) as ctx:
+        response = anon_client.get(f"/api/projects/tournaments/{project.slug}/")
+
+    assert response.data["timeline"]["all_questions_closed"] is False
+    assert not [
+        q
+        for q in ctx.captured_queries
+        if '"questions_question"."description' in q["sql"]
+    ]
