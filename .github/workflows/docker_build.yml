@@ -71,6 +71,20 @@ on:
         type: string
         default: "release dramatiq_worker django_cron web"
 
+      # Build a commit other than the triggering one. PR previews pass the
+      # PR's head here, because PR Preview Maintenance dispatches from main.
+      commit_sha:
+        description: "Commit to build (defaults to the triggering commit)"
+        required: false
+        type: string
+        default: ""
+
+      branch:
+        description: "Branch for tags and cache scope (defaults to the triggering branch)"
+        required: false
+        type: string
+        default: ""
+
     outputs:
       image_name:
         description: "Full image name (without tag)"
@@ -120,7 +134,7 @@ jobs:
         with:
           # Use PR branch HEAD (not merge commit) for consistent caching
           # Falls back to github.sha for non-PR events (push, workflow_dispatch)
-          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          ref: ${{ inputs.commit_sha || github.event.pull_request.head.sha || github.sha }}
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -143,9 +157,9 @@ jobs:
       - name: Compute image name and branch prefix
         id: vars
         env:
-          BRANCH_REF: ${{ github.head_ref || github.ref_name }}
+          BRANCH_REF: ${{ inputs.branch || github.head_ref || github.ref_name }}
           # Use PR branch HEAD for PRs, otherwise default SHA
-          COMMIT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          COMMIT_SHA: ${{ inputs.commit_sha || github.event.pull_request.head.sha || github.sha }}
         run: |
           # Image name must be lowercase for ghcr.io
           IMAGE_NAME="ghcr.io/${{ github.repository }}"
@@ -188,11 +202,14 @@ jobs:
 
       - name: Compute cache scope
         id: cache
+        env:
+          # A preview dispatched from main must not write the main cache
+          TARGET_BRANCH: ${{ inputs.branch || github.ref_name }}
         run: |
           BRANCH_SLUG="${{ steps.vars.outputs.branch_slug }}"
 
           # Determine if this is the main branch (writes to main cache)
-          if [ "${{ github.ref_name }}" = "main" ] || [ "${{ github.ref_name }}" = "master" ]; then
+          if [ "${TARGET_BRANCH}" = "main" ] || [ "${TARGET_BRANCH}" = "master" ]; then
             echo "cache_write_tag=buildcache-main" >> $GITHUB_OUTPUT
           else
             echo "cache_write_tag=buildcache-${BRANCH_SLUG}" >> $GITHUB_OUTPUT
