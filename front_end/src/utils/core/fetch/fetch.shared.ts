@@ -6,7 +6,7 @@ import {
   Fetcher,
   FetchOptions,
 } from "@/types/fetch";
-import { ApiError, logError } from "@/utils/core/errors";
+import { ApiError, isCloudflareChallenge, logError } from "@/utils/core/errors";
 
 export const defaultOptions: FetchOptions = {
   headers: {
@@ -39,7 +39,9 @@ export const handleResponse = async <T>(
     }
 
     const apiError = new ApiError(response, errorData);
-    logError(apiError);
+    if (!isCloudflareChallenge(apiError)) {
+      logError(apiError);
+    }
 
     throw apiError;
   }
