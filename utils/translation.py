@@ -10,7 +10,7 @@ import time
 import aiohttp
 from django.conf import settings
 from django.core.cache import cache
-from django.db.models import Case, F, Q, TextField, Value, When
+from django.db.models import Case, F, Q, QuerySet, TextField, Value, When
 from django.db.models.functions import MD5, Coalesce, Concat, NullIf
 from django.utils.translation import get_language
 from google.auth.transport.requests import Request
@@ -158,6 +158,44 @@ def get_translated_field_expression(model, field_name: str):
         values = [NullIf(value, Value(default)) for value in values]
 
     return Coalesce(*values, Value(default), output_field=TextField())
+
+
+def get_unused_translation_columns(model, prefix: str = "") -> list[str]:
+    """
+    Base and localized columns outside the active and original languages'
+    fallback chains, which is_current_content_translated() also stays within
+    """
+
+    language = get_translation_language()
+    columns = []
+
+    for field_name, fields in translator.get_options_for_model(
+        model
+    ).all_fields.items():
+        fallback_languages = getattr(model, field_name).fallback_languages
+        used = {
+            build_localized_fieldname(field_name, lang)
+            for lang in resolution_order(language, fallback_languages)
+            + resolution_order(settings.ORIGINAL_LANGUAGE_CODE, fallback_languages)
+        }
+        columns += [field_name] + [f.name for f in fields if f.name not in used]
+
+    return [prefix + column for column in columns]
+
+
+def defer_unused_translations(queryset: QuerySet, *related: str) -> QuerySet:
+    """
+    Defers get_unused_translation_columns() of the model and of select_related fields
+    """
+
+    columns = get_unused_translation_columns(queryset.model)
+
+    for name in related:
+        model = queryset.model._meta.get_field(name).related_model
+        columns += get_unused_translation_columns(model, prefix=f"{name}__")
+
+    # Plain QuerySet.defer: the multilingual one widens base names to every language
+    return QuerySet.defer(queryset, *columns)
 
 
 def get_is_current_content_translated_expression(model):
