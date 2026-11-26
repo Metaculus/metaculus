@@ -155,6 +155,8 @@ def serialize_aggregate_coherence_link_many(
         qs = qs.annotate_user_vote(current_user)
 
     aggregate_links = list(qs.all())
+    if not aggregate_links:
+        return []
     aggregate_links.sort(key=lambda obj: ids.index(obj.id))
 
     # Prefetching can't work because AggregateCoherenceLink share no relation with CoherenceLink
