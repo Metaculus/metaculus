@@ -1,8 +1,9 @@
+from django.utils import timezone
 from freezegun import freeze_time
 
 from posts.tasks import run_on_post_forecast
 from projects.models import Project
-from questions.models import Question
+from questions.models import Forecast, Question
 from questions.services.forecasts import create_forecast_bulk
 from tests.unit.test_posts.factories import factory_post
 from tests.unit.test_projects.factories import factory_project
@@ -61,3 +62,32 @@ def test_run_on_post_forecast__project_counters(user1):
 
     assert tournament_secondary.forecasts_count == 2
     assert tournament_secondary.forecasters_count == 1
+
+
+@freeze_time("2025-05-01", auto_tick_seconds=1)
+def test_run_on_post_forecast__refreshes_post_forecasts_count(user1):
+    tournament = factory_project(type=Project.ProjectTypes.TOURNAMENT)
+    post = factory_post(
+        author=user1,
+        question=create_question(
+            question_type=Question.QuestionType.BINARY,
+            open_time=datetime_aware(2025, 1, 1),
+            scheduled_close_time=datetime_aware(2025, 6, 1),
+        ),
+        default_project=tournament,
+    )
+    # Bypasses the forecast services, so no counter is refreshed before the task.
+    for probability in (0.3, 0.6):
+        Forecast.objects.create(
+            question=post.question,
+            author=user1,
+            probability_yes=probability,
+            start_time=timezone.now(),
+        )
+
+    run_on_post_forecast(post.id)
+
+    post.refresh_from_db()
+    tournament.refresh_from_db()
+    assert post.forecasts_count == 2
+    assert tournament.forecasts_count == 2

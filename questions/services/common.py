@@ -7,6 +7,8 @@ from django.db.models import F, Q
 from django.utils import timezone
 
 from coherence.models import CoherenceLink
+from comments.models import KeyFactor
+from comments.services.key_factors.deletion import delete_key_factors
 from posts.models import Notebook
 from projects.models import Project
 from questions.models import (
@@ -87,7 +89,9 @@ def update_group_of_questions(
 
     # Deleting questions
     if delete:
-        group.questions.filter(id__in=delete).delete()
+        deleted_questions = group.questions.filter(id__in=delete)
+        delete_key_factors(KeyFactor.objects.filter(question__in=deleted_questions))
+        deleted_questions.delete()
 
     for question_data in questions:
         question_id = question_data.get("id")

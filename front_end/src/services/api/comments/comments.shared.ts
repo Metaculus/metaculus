@@ -70,7 +70,7 @@ export type PaginatedResponse<T> = {
   total_count: number;
 };
 
-export type CommentReportReason = "spam" | "violation";
+export type CommentReportReason = "spam" | "violation" | "ai_generated";
 
 class CommentsApi extends ApiService {
   async getComments(

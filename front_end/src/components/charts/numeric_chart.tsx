@@ -257,8 +257,7 @@ const NumericChart: FC<Props> = ({
   const isCursorEnabled =
     !nonInteractive &&
     !forecastAvailability?.isEmpty &&
-    !hideCP &&
-    !forecastAvailability?.cpRevealsOn;
+    ((!hideCP && !forecastAvailability?.cpRevealsOn) || points.length > 0);
   // Do not memoize: VictoryPortal pushes its child into the portal context
   // only when its `children` reference changes, so a stable element would
   // freeze the cursor label at its initial empty state on mouse move.

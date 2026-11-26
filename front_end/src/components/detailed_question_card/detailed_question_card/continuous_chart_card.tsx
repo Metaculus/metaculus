@@ -229,6 +229,7 @@ const DetailedContinuousChartCard: FC<Props> = ({
   const activeForecast = useMemo<NumericAggregateForecast | null>(() => {
     if (
       isCpHidden ||
+      hideCP ||
       cursorTimestamp === null ||
       !isContinuousQuestion(question)
     )
@@ -237,12 +238,18 @@ const DetailedContinuousChartCard: FC<Props> = ({
       cursorTimestamp,
       effectiveAggregation
     ) as NumericAggregateForecast | null;
-  }, [isCpHidden, cursorTimestamp, effectiveAggregation, question]);
+  }, [isCpHidden, hideCP, cursorTimestamp, effectiveAggregation, question]);
 
   // CP probability at the cursor position, pushed to context so the binary
   // gauge on the left updates in sync with timeline hover.
   const activeBinaryValue = useMemo<number | null>(() => {
-    if (!isBinary || !isConsumerView || isCpHidden || cursorTimestamp === null)
+    if (
+      !isBinary ||
+      !isConsumerView ||
+      isCpHidden ||
+      hideCP ||
+      cursorTimestamp === null
+    )
       return null;
     const forecast = getCursorForecast(cursorTimestamp, effectiveAggregation);
     return forecast?.centers?.[0] ?? null;
@@ -250,6 +257,7 @@ const DetailedContinuousChartCard: FC<Props> = ({
     isBinary,
     isConsumerView,
     isCpHidden,
+    hideCP,
     cursorTimestamp,
     effectiveAggregation,
   ]);

@@ -221,6 +221,11 @@ const MultiChoicesChartView: FC<Props> = ({
     [choiceItems]
   );
 
+  const hasUserForecasts = useMemo(
+    () => choiceItems.some(({ userTimestamps }) => userTimestamps.length > 0),
+    [choiceItems]
+  );
+
   const canTimeline = isMC && totalActiveCount === 1;
 
   const [timelineMode, setTimelineMode] = useState(false);
@@ -389,8 +394,7 @@ const MultiChoicesChartView: FC<Props> = ({
       {isTooltipActive &&
         !hideTooltip &&
         !isCursorOverLegend &&
-        !hideCP &&
-        !forecastAvailability?.cpRevealsOn &&
+        ((!hideCP && !forecastAvailability?.cpRevealsOn) || hasUserForecasts) &&
         !activeTimelineMarkerId &&
         (tooltipChoices.length > 0 ||
           !!tooltipUserChoices?.length ||

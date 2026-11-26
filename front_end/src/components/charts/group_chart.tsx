@@ -373,7 +373,8 @@ const GroupChart: FC<Props> = ({
   }, [onChartReady, prevWidth, chartWidth, onCursorChange, xDomain, xScale]);
 
   const canUseCursor =
-    !!onCursorChange && !hideCP && !forecastAvailability?.cpRevealsOn;
+    !!onCursorChange &&
+    ((!hideCP && !forecastAvailability?.cpRevealsOn) || hasUserForecasts);
 
   const CursorContainer = (
     <VictoryCursorContainer
@@ -957,7 +958,7 @@ const GroupChart: FC<Props> = ({
       </ChartContainer>
       <ForecastAvailabilityChartOverflow
         forecastAvailability={forecastAvailability}
-        className="pl-0 text-xs lg:text-sm"
+        className="pointer-events-none pl-0 text-xs lg:text-sm"
         textClassName="!max-w-[300px] pl-0 text-gray-700 dark:text-gray-700-dark"
       />
     </div>

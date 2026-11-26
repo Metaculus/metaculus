@@ -15,6 +15,7 @@ from comments.models import (
     KeyFactorBaseRate,
     KeyFactorNews,
 )
+from comments.services.key_factors.deletion import delete_key_factors
 from misc.models import ITNArticle
 from posts.services.common import get_post_permission_for_user
 from projects.permissions import ObjectPermission
@@ -257,7 +258,7 @@ def calculate_votes_strength(scores: list[int]):
 @transaction.atomic
 def delete_key_factor(key_factor: KeyFactor):
     comment = key_factor.comment
-    key_factor.delete()
+    delete_key_factors(KeyFactor.objects.filter(pk=key_factor.pk))
     comment.update_key_factor_votes_score()
 
     # Delete comment without text if it was the last key factor
