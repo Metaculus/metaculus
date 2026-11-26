@@ -100,10 +100,20 @@ jobs:
     steps:
       - name: Check if PR is from a fork
         id: check
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ inputs.pr_number }}
         run: |
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            # A dispatch builds the PR's head commit whichever ref it runs
+            # from, so look the PR up instead of trusting the dispatch.
+            IS_CROSS_REPO="$(gh pr view "${PR_NUMBER}" --repo "${{ github.repository }}" --json isCrossRepository --jq .isCrossRepository)"
+            if [ "${IS_CROSS_REPO}" != "false" ]; then
+              echo "❌ PR #${PR_NUMBER} is from a fork or could not be read - previews only run for same-repository PRs"
+              exit 1
+            fi
             echo "is_fork=false" >> $GITHUB_OUTPUT
-            echo "✅ Triggered via workflow_dispatch (always internal)"
+            echo "✅ PR #${PR_NUMBER} is from the same repository"
           elif [ "${{ github.event.pull_request.head.repo.full_name }}" != "${{ github.repository }}" ]; then
             echo "is_fork=true" >> $GITHUB_OUTPUT
             echo "⚠️ This PR is from a fork - preview deployments are not available"
@@ -151,6 +161,7 @@ jobs:
       neon_branch: ${{ steps.names.outputs.neon_branch }}
       redis_name: ${{ steps.names.outputs.redis_name }}
       pr_head_ref: ${{ steps.pr_head_ref.outputs.pr_head_ref }}
+      pr_head_sha: ${{ steps.pr_head_ref.outputs.pr_head_sha }}
     steps:
       - name: Checkout scripts
         uses: actions/checkout@v6
@@ -166,6 +177,7 @@ jobs:
 
             if (context.payload.pull_request?.head?.ref) {
               core.setOutput('pr_head_ref', context.payload.pull_request.head.ref);
+              core.setOutput('pr_head_sha', context.payload.pull_request.head.sha);
               return;
             }
 
@@ -176,10 +188,12 @@ jobs:
                 pull_number: Number(inputPrNumber),
               });
               core.setOutput('pr_head_ref', pr.data.head.ref);
+              core.setOutput('pr_head_sha', pr.data.head.sha);
               return;
             }
 
             core.setOutput('pr_head_ref', context.ref.replace('refs/heads/', ''));
+            core.setOutput('pr_head_sha', context.sha);
 
       - name: Generate resource names
         id: names
@@ -210,6 +224,10 @@ jobs:
       inputs.action != 'cleanup' &&
       needs.fork-check.outputs.is_fork != 'true'
     uses: ./.github/workflows/docker_build.yml
+    with:
+      # The PR's head, also when dispatched from main by PR Preview Maintenance
+      commit_sha: ${{ needs.setup.outputs.pr_head_sha }}
+      branch: ${{ needs.setup.outputs.pr_head_ref }}
     secrets: inherit
 
   # ===========================================================================
@@ -230,8 +248,11 @@ jobs:
       url: ${{ steps.deploy.outputs.url }}
       app_name: ${{ steps.deploy.outputs.app_name }}
     steps:
+      # Only fly.preview.toml is read from it; match the commit in the image.
       - name: Checkout code
         uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.setup.outputs.pr_head_sha }}
 
       - name: Setup Fly.io CLI
         uses: superfly/flyctl-actions/setup-flyctl@master
@@ -245,7 +266,10 @@ jobs:
           project_id: ${{ secrets.NEON_PROJECT_ID }}
           branch_name: ${{ needs.setup.outputs.neon_branch }}
           api_key: ${{ secrets.NEON_API_KEY }}
-          username: neondb_owner
+          # The daily sync in Metaculus/infra restores anonymized production
+          # into this database and role on the parent branch. Keep them in step.
+          database: metaculus
+          username: metaculus_owner
 
       - name: Reset NeonDB Branch to parent
         if: github.event_name == 'workflow_dispatch' && (inputs.reset_db == true || inputs.reset_db == 'true')
@@ -254,8 +278,8 @@ jobs:
         with:
           project_id: ${{ secrets.NEON_PROJECT_ID }}
           branch: ${{ needs.setup.outputs.neon_branch }}
-          cs_role_name: neondb_owner
-          cs_database: neondb
+          cs_role_name: metaculus_owner
+          cs_database: metaculus
           parent: true
           api_key: ${{ secrets.NEON_API_KEY }}
 
@@ -414,7 +438,7 @@ jobs:
             | ⚡ **Redis** | Fly Redis `${{ needs.setup.outputs.redis_name }}` |
 
             ### Details
-            - **Commit:** `${{ github.sha }}`
+            - **Commit:** `${{ needs.setup.outputs.pr_head_sha || github.sha }}`
             - **Branch:** `${{ needs.setup.outputs.pr_head_ref || github.head_ref }}`
             - **Fly App:** `${{ needs.deploy-preview.outputs.app_name }}`
 

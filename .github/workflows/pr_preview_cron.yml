@@ -116,10 +116,11 @@ jobs:
     steps:
       - name: Trigger redeploy for active PR
         if: matrix.is_stale == false
+        # Runs main's pr_preview.yml, so every preview gets the current deploy
+        # settings. pr_preview.yml still builds the PR's own head commit.
         run: |
           gh workflow run pr_preview.yml \
             --repo "${{ github.repository }}" \
-            --ref "${{ matrix.head_ref }}" \
             -f pr_number=${{ matrix.pr_number }} \
             -f action=deploy \
             -f reset_db=true
