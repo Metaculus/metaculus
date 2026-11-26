@@ -27,7 +27,9 @@ class Command(BaseCommand):
         min_created_at_str = options["min_created_at"]
         min_created_at = datetime.strptime(min_created_at_str, "%Y-%m-%d")
 
-        articles = ITNArticle.objects.filter(created_at__gt=make_aware(min_created_at))
+        articles = ITNArticle.objects.filter(
+            created_at__gt=make_aware(min_created_at)
+        ).only("id", "embedding_vector")
         articles_count = articles.count()
         tm = time.time()
 

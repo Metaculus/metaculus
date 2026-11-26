@@ -9,10 +9,11 @@ from posts.models import Post
 from projects.models import Project
 from users.constants import ApiAccessTier
 from users.models import User
+from utils.db_backend import DeferredByDefaultMixin, deferred_by_default
 from utils.models import TimeStampedModel
 
 
-class ITNArticle(TimeStampedModel):
+class ITNArticle(DeferredByDefaultMixin, TimeStampedModel):
     aid = models.BigIntegerField(unique=True)
     title = models.CharField()
     text = models.CharField()
@@ -22,10 +23,12 @@ class ITNArticle(TimeStampedModel):
     media_name = models.CharField(default="")
     media_label = models.CharField(default="")
 
-    embedding_vector = VectorField(
-        help_text="Vector embeddings of the ITN Article content",
-        null=True,
-        blank=True,
+    embedding_vector = deferred_by_default(
+        VectorField(
+            help_text="Vector embeddings of the ITN Article content",
+            null=True,
+            blank=True,
+        )
     )
     is_removed = models.BooleanField(default=False)
 

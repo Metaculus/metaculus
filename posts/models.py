@@ -33,6 +33,7 @@ from questions.models import (
 from questions.types import SHADOW_AGGREGATION_METHODS
 from scoring.models import Score, ArchivedScore
 from users.models import User
+from utils.db_backend import DeferredByDefaultMixin, deferred_by_default
 from utils.models import TimeStampedModel, TranslatedModel
 
 
@@ -500,9 +501,7 @@ class PostQuerySet(models.QuerySet):
         )
 
 
-class PostManager(models.Manager.from_queryset(PostQuerySet)):
-    def get_queryset(self) -> PostQuerySet:
-        return super().get_queryset().defer("embedding_vector")
+PostManager = models.Manager.from_queryset(PostQuerySet)
 
 
 class Notebook(TranslatedModel):
@@ -519,7 +518,7 @@ class Notebook(TranslatedModel):
         return f"Notebook for {self.post} by {self.post.author}"
 
 
-class Post(TimeStampedModel, TranslatedModel):  # type: ignore
+class Post(DeferredByDefaultMixin, TimeStampedModel, TranslatedModel):  # type: ignore
     # typing
     id: int
     votes: QuerySet["Vote"]
@@ -607,11 +606,13 @@ class Post(TimeStampedModel, TranslatedModel):  # type: ignore
     )
     resolved = models.BooleanField(default=False, editable=False)
 
-    embedding_vector = VectorField(
-        help_text="Vector embeddings of the Post content",
-        null=True,
-        blank=True,
-        editable=False,
+    embedding_vector = deferred_by_default(
+        VectorField(
+            help_text="Vector embeddings of the Post content",
+            null=True,
+            blank=True,
+            editable=False,
+        )
     )
 
     preview_image_generated_at = models.DateTimeField(null=True, blank=True)
