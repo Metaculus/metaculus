@@ -114,6 +114,9 @@ def run_build_question_shadow_aggregations(question_id: int):
         return
     question = Question.objects.get(id=question_id)
     for method in SHADOW_AGGREGATION_METHODS:
+        # as the default method, it was built right before this task was queued
+        if method == question.default_aggregation_method:
+            continue
         start = time.monotonic()
         try:
             build_question_forecasts(question, method)

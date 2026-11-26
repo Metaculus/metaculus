@@ -19,6 +19,7 @@ from typing import Any, Iterable, Sequence
 
 import numpy as np
 import sentry_sdk
+from django.db import connection
 from django.db.models import F, Q, QuerySet
 from django.utils import timezone
 
@@ -690,6 +691,7 @@ class DecayReputationWeighted(ReputationWeighted):
     ):
         # read by get_reputation_arrays, which super().__init__ calls
         self.reputation_type = reputation_type
+        self.forecast_history = kwargs.get("forecast_history")
         super().__init__(question, all_forecaster_ids, **kwargs)
         self.reputation_formula = REPUTATION_FORMULAS[reputation_formula]
         self.rho = rho
@@ -726,25 +728,44 @@ class DecayReputationWeighted(ReputationWeighted):
         all_forecaster_ids: list[int] | set[int],
         time_range: tuple[datetime, datetime] | None,
     ) -> ReputationArrays:
-        reputations = Reputation.objects.filter(
-            user_id__in=all_forecaster_ids, type=self.reputation_type
-        )
-        fields = ("user_id", "time", "value", "contribution")
         if time_range is None:
-            return _reputation_arrays(reputations.values_list(*fields))
-        earliest, latest = time_range
-        # each user's reputation as of the earliest lookup, then every change
-        # until the latest one
-        starting = (
-            reputations.filter(time__lte=earliest)
-            .order_by("user_id", "-time")
-            .distinct("user_id")
-            .values_list(*fields)
-        )
-        changes = reputations.filter(time__gt=earliest, time__lte=latest).values_list(
-            *fields
-        )
-        return _reputation_arrays(chain(starting, changes))
+            return _reputation_arrays(
+                Reputation.objects.filter(
+                    user_id__in=all_forecaster_ids, type=self.reputation_type
+                ).values_list("user_id", "time", "value", "contribution")
+            )
+        # time_range implies forecast_history, whose forecasts' starts are the
+        # only lookups: each reads its forecaster's latest row at or before it
+        forecaster_ids = set(all_forecaster_ids)
+        lookups = {
+            (user_id, start)
+            for forecast_set in self.forecast_history
+            for user_id, start in zip(
+                forecast_set.forecaster_ids, forecast_set.timesteps
+            )
+            if user_id in forecaster_ids
+        }
+        if not lookups:
+            return {}
+        user_ids, starts = zip(*lookups)
+        with connection.cursor() as cursor:
+            cursor.execute(
+                """
+                SELECT DISTINCT r.user_id, r."time", r.value, r.contribution
+                FROM unnest(%s::bigint[], %s::timestamptz[]) AS lookup(user_id, start)
+                CROSS JOIN LATERAL (
+                    SELECT rep.user_id, rep."time", rep.value, rep.contribution
+                    FROM scoring_reputation rep
+                    WHERE rep.user_id = lookup.user_id
+                        AND rep."type" = %s
+                        AND rep."time" <= lookup.start
+                    ORDER BY rep."time" DESC
+                    LIMIT 1
+                ) r
+                """,
+                [list(user_ids), list(starts), self.reputation_type],
+            )
+            return _reputation_arrays(cursor.fetchall())
 
     def calculate_weights(self, forecast_set: ForecastSet) -> Weights:
         values, contributions = self.get_reputations(forecast_set)

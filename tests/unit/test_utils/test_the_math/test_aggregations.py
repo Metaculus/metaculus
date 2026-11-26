@@ -1,6 +1,7 @@
 import pytest
 import numpy as np
-from datetime import datetime, timezone as dt_timezone
+from datetime import datetime, timedelta, timezone as dt_timezone
+from itertools import chain
 
 from django.db import connection
 from django.test.utils import CaptureQueriesContext
@@ -26,7 +27,10 @@ from utils.the_math.aggregations import (
     GoldMedalistsAggregation,
     JoinedBeforeDateAggregation,
     ReputationWeightedAggregation,
+    DecayReputationWeighted,
+    _reputation_arrays,
     compute_weighted_semi_standard_deviations,
+    get_user_forecast_history,
 )
 from utils.typing import (
     ForecastValues,
@@ -1062,3 +1066,108 @@ def test_aggregation_forecast_loads_skip_unused_columns(question_binary):
     ]
     assert len(selects) == 2
     assert not [s for s in selects if '"users_user".' in s or "distribution" in s]
+
+
+class _PreLateralDecayReputationWeighted(DecayReputationWeighted):
+    """DecayReputationWeighted.get_reputation_arrays before the LATERAL lookup"""
+
+    def get_reputation_arrays(self, all_forecaster_ids, time_range):
+        reputations = Reputation.objects.filter(
+            user_id__in=all_forecaster_ids, type=self.reputation_type
+        )
+        fields = ("user_id", "time", "value", "contribution")
+        if time_range is None:
+            return _reputation_arrays(reputations.values_list(*fields))
+        earliest, latest = time_range
+        starting = (
+            reputations.filter(time__lte=earliest)
+            .order_by("user_id", "-time")
+            .distinct("user_id")
+            .values_list(*fields)
+        )
+        changes = reputations.filter(time__gt=earliest, time__lte=latest).values_list(
+            *fields
+        )
+        return _reputation_arrays(chain(starting, changes))
+
+
+def test_decay_reputation_lookups_match_pre_lateral_reading_one_row_per_forecast(
+    question_binary,
+):
+    t0 = datetime(2024, 1, 1, tzinfo=dt_timezone.utc)
+    hour = timedelta(hours=1)
+    users = [User.objects.create(username=f"rep_user_{i}") for i in range(4)]
+    rows_by_user = {
+        # before, at and between forecasts, and after the last one
+        users[0]: [
+            (-240 * hour, 1.0),
+            (hour, 2.0),
+            (2 * hour, 3.0),
+            (5 * hour, 4.0),
+            (100 * hour, 99.0),
+        ],
+        # first row only after the first forecast
+        users[1]: [(3 * hour, 7.0)],
+        # users[2] has none; users[3] changes every 10 minutes
+        users[3]: [(i * timedelta(minutes=10), float(i)) for i in range(60)],
+    }
+    for user, user_rows in rows_by_user.items():
+        for offset, value in user_rows:
+            Reputation.objects.create(
+                user=user,
+                type=Reputation.ReputationTypes.AVERAGE_PEER_SCORE,
+                time=t0 + offset,
+                value=value,
+                contribution=value / 2,
+            )
+    Reputation.objects.create(
+        user=users[0], type="other", time=t0 + 3 * hour, value=-50.0
+    )
+    forecast_starts = {
+        users[0]: [t0, t0 + 2 * hour, t0 + 5 * hour - timedelta(microseconds=1)],
+        users[1]: [t0 + hour, t0 + 4 * hour],
+        users[2]: [t0 + 2 * hour],
+        users[3]: [t0 + timedelta(minutes=30), t0 + timedelta(hours=9, minutes=55)],
+    }
+    forecasts = []
+    for user, starts in forecast_starts.items():
+        for start, end in zip(starts, [*starts[1:], None]):
+            forecasts.append(
+                Forecast(
+                    id=len(forecasts) + 1,
+                    author_id=user.id,
+                    question_id=question_binary.id,
+                    start_time=start,
+                    end_time=end,
+                    probability_yes=0.5,
+                )
+            )
+    history = get_user_forecast_history(forecasts)
+    kwargs = dict(
+        question=question_binary,
+        all_forecaster_ids={user.id for user in users},
+        forecast_history=history,
+    )
+    rows = []
+
+    def count_rows(execute, sql, params, many, context):
+        result = execute(sql, params, many, context)
+        if "scoring_reputation" in sql:
+            rows.append(context["cursor"].rowcount)
+        return result
+
+    with connection.execute_wrapper(count_rows):
+        weighting = DecayReputationWeighted(**kwargs)
+    reference = _PreLateralDecayReputationWeighted(**kwargs)
+
+    looked_up = set()
+    for forecast_set in history:
+        values, contributions = weighting.get_reputations(forecast_set)
+        expected_values, expected_contributions = reference.get_reputations(
+            forecast_set
+        )
+        assert np.array_equal(values, expected_values)
+        assert np.array_equal(contributions, expected_contributions)
+        looked_up.update(values)
+    assert looked_up == {0.0, 1.0, 3.0, 7.0, 59.0}
+    assert sum(rows) <= len(forecasts)
