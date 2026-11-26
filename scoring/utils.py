@@ -165,10 +165,9 @@ def retrieve_question_scores(
     if user_list:
         qs_filters["user__in"] = user_list.values_list("id", flat=True)
 
-    archived_scores = ArchivedScore.objects.filter(**qs_filters).prefetch_related(
-        "question"
-    )
-    calculated_scores = Score.objects.filter(**qs_filters).prefetch_related("question")
+    score_fields = ("user_id", "aggregation_method", "question_id", "score", "coverage")
+    archived_scores = ArchivedScore.objects.filter(**qs_filters).only(*score_fields)
+    calculated_scores = Score.objects.filter(**qs_filters).only(*score_fields)
 
     archived_scores_subquery = ArchivedScore.objects.filter(
         question_id=OuterRef("question_id"),
@@ -188,6 +187,9 @@ def retrieve_question_scores(
 
     scores = list(archived_scores) + list(calculated_scores)
     scores = sorted(scores, key=lambda x: x.user_id or x.score)
+    questions_by_id = {question.id: question for question in questions}
+    for score in scores:
+        score.question = questions_by_id[score.question_id]
 
     return scores
 
@@ -918,8 +920,10 @@ def process_entries_for_leaderboard_(
 
     # save entries
     previous_entries_map = {
-        (entry.user_id, entry.aggregation_method): entry.id
-        for entry in leaderboard.entries.all()
+        (user_id, aggregation_method): entry_id
+        for user_id, aggregation_method, entry_id in leaderboard.entries.values_list(
+            "user_id", "aggregation_method", "id"
+        )
     }
 
     for entry in entries:

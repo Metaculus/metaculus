@@ -1,6 +1,8 @@
 from datetime import timedelta
 
 import pytest  # noqa
+from django.db import connection
+from django.test.utils import CaptureQueriesContext
 from django.utils import timezone
 
 from comments.models import CommentVote
@@ -318,6 +320,48 @@ def test_update_project_leaderboard_saves_confidence_intervals():
         assert entry.ci_lower <= entry.score <= entry.ci_upper
         assert entry.rank_ci_lower <= entry.rank <= entry.rank_ci_upper
     assert saved_entries[0].rank_ci_lower == saved_entries[0].rank_ci_upper == 1
+
+
+@pytest.mark.django_db
+def test_update_project_leaderboard_loads_only_used_columns():
+    project = factory_project(type=Project.ProjectTypes.TOURNAMENT)
+    leaderboard = Leaderboard.objects.create(
+        project=project,
+        score_type=LeaderboardScoreTypes.PEER_TOURNAMENT,
+        finalize_time=timezone.now() + timedelta(days=30),
+    )
+    users = [factory_user() for _ in range(3)]
+    for question_index in range(2):
+        question = create_question(
+            title=f"Question {question_index}",
+            type=Question.QuestionType.BINARY,
+            open_time=timezone.now() - timedelta(days=10),
+            scheduled_close_time=timezone.now() - timedelta(days=2),
+            actual_close_time=timezone.now() - timedelta(days=2),
+            resolution="yes",
+            resolution_set_time=timezone.now() - timedelta(days=1),
+        )
+        factory_post(question=question, default_project=project)
+        for user in users:
+            factory_score(
+                question=question,
+                user=user,
+                score_type=ScoreTypes.PEER,
+                score=user.id,
+                coverage=1,
+            )
+    update_project_leaderboard(project, leaderboard)
+
+    with CaptureQueriesContext(connection) as ctx:
+        update_project_leaderboard(project, leaderboard)
+
+    assert not [
+        q
+        for q in ctx.captured_queries
+        if '"scoring_score"."edited_at"' in q["sql"]
+        or '"scoring_leaderboardentry"."score"' in q["sql"]
+    ]
+    assert len(ctx.captured_queries) == 13
 
 
 def _binary_question(**kwargs) -> Question:
