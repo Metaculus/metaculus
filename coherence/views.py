@@ -84,7 +84,7 @@ def get_links_for_question_api_view(request, pk):
         Q(question1=question) | Q(question2=question), user=request.user
     )
 
-    links_to_data = serialize_coherence_link_many(links)
+    links_to_data = serialize_coherence_link_many(links, known_questions=[question])
 
     return Response({"data": links_to_data})
 

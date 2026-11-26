@@ -81,16 +81,50 @@ def serialize_coherence_link(
     return serialized_data
 
 
+def attach_linked_questions(
+    links: list[CoherenceLink | AggregateCoherenceLink],
+    known_questions: Iterable[Question | None],
+) -> list[CoherenceLink | AggregateCoherenceLink]:
+    questions = {q.id: q for q in known_questions if q}
+    missing_ids = {
+        question_id
+        for link in links
+        for question_id in (link.question1_id, link.question2_id)
+    } - questions.keys()
+
+    if missing_ids:
+        questions.update(
+            (q.id, q)
+            for q in Question.objects.filter(id__in=missing_ids).defer(
+                "description", "resolution_criteria", "fine_print"
+            )
+        )
+
+    links = [
+        link
+        for link in links
+        if link.question1_id in questions and link.question2_id in questions
+    ]
+    for link in links:
+        link.question1 = questions[link.question1_id]
+        link.question2 = questions[link.question2_id]
+
+    return links
+
+
 def serialize_coherence_link_many(
-    links: Iterable[CoherenceLink], serialize_questions: bool = True
+    links: Iterable[CoherenceLink],
+    serialize_questions: bool = True,
+    known_questions: Iterable[Question] = (),
 ):
     ids = [link.pk for link in links]
-    qs = CoherenceLink.objects.filter(pk__in=[c.pk for c in links]).select_related(
-        "question1__post", "question2__post", "user"
-    )
+    qs = CoherenceLink.objects.filter(pk__in=ids).select_related("user")
 
     objects = list(qs.all())
     objects.sort(key=lambda obj: ids.index(obj.id))
+
+    if serialize_questions:
+        objects = attach_linked_questions(objects, known_questions)
 
     result = [
         serialize_coherence_link(
@@ -145,11 +179,10 @@ def serialize_aggregate_coherence_link_many(
     links: Iterable[AggregateCoherenceLink],
     current_user: User = None,
     current_question: Question = None,
+    known_questions: Iterable[Question] = (),
 ):
     ids = [link.pk for link in links]
-    qs = AggregateCoherenceLink.objects.filter(
-        pk__in=[c.pk for c in links]
-    ).select_related("question1__post", "question2__post")
+    qs = AggregateCoherenceLink.objects.filter(pk__in=ids)
 
     if current_user:
         qs = qs.annotate_user_vote(current_user)
@@ -158,6 +191,9 @@ def serialize_aggregate_coherence_link_many(
     if not aggregate_links:
         return []
     aggregate_links.sort(key=lambda obj: ids.index(obj.id))
+    aggregate_links = attach_linked_questions(
+        aggregate_links, [current_question, *known_questions]
+    )
 
     # Prefetching can't work because AggregateCoherenceLink share no relation with CoherenceLink
     all_matching_links = get_aggregations_links(aggregate_links)
@@ -196,7 +232,7 @@ def serialize_aggregate_coherence_links_questions_map(
     questions_map = {q.id: q for q in questions}
 
     serialized_data = serialize_aggregate_coherence_link_many(
-        qs, current_user=current_user
+        qs, current_user=current_user, known_questions=questions
     )
     links_map = defaultdict(list)
 
@@ -218,7 +254,7 @@ def serialize_coherence_links_questions_map(
     )
     questions_map = {q.id: q for q in questions}
 
-    serialized_data = serialize_coherence_link_many(qs)
+    serialized_data = serialize_coherence_link_many(qs, known_questions=questions)
     links_map = defaultdict(list)
 
     for link in serialized_data:
