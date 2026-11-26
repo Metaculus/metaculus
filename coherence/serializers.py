@@ -85,8 +85,10 @@ def serialize_coherence_link_many(
     links: Iterable[CoherenceLink], serialize_questions: bool = True
 ):
     ids = [link.pk for link in links]
-    qs = CoherenceLink.objects.filter(pk__in=[c.pk for c in links]).select_related(
-        "question1__post", "question2__post", "user"
+    qs = (
+        CoherenceLink.objects.filter(pk__in=[c.pk for c in links])
+        .select_related("question1__post", "question2__post", "user")
+        .defer("question1__post__embedding_vector", "question2__post__embedding_vector")
     )
 
     objects = list(qs.all())
@@ -147,9 +149,11 @@ def serialize_aggregate_coherence_link_many(
     current_question: Question = None,
 ):
     ids = [link.pk for link in links]
-    qs = AggregateCoherenceLink.objects.filter(
-        pk__in=[c.pk for c in links]
-    ).select_related("question1__post", "question2__post")
+    qs = (
+        AggregateCoherenceLink.objects.filter(pk__in=[c.pk for c in links])
+        .select_related("question1__post", "question2__post")
+        .defer("question1__post__embedding_vector", "question2__post__embedding_vector")
+    )
 
     if current_user:
         qs = qs.annotate_user_vote(current_user)

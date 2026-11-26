@@ -110,6 +110,7 @@ def serialize_key_factors_many(
             "base_rate",
             "news",
         )
+        .defer("comment__on_post__embedding_vector")
     )
 
     if current_user:
