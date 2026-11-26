@@ -1,6 +1,9 @@
+from datetime import datetime
+
 from django.db.models import Q
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.exceptions import ValidationError, NotFound
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -13,13 +16,62 @@ from posts.services.common import get_post_permission_for_user
 from projects.models import Project
 from projects.permissions import ObjectPermission
 from projects.services.common import get_project_permission_for_user
-from questions.models import Question
+from questions.models import QUESTION_CONTINUOUS_TYPES, AggregateForecast, Question
 from questions.serializers.common import serialize_question
+from questions.types import AggregationMethod
 from users.models import User
 from utils.csv_utils import export_data_for_questions
 from utils.serializers import DataGetRequestSerializer, DataPostRequestSerializer
 from utils.tasks import email_data_task
-from utils.the_math.aggregations import get_aggregation_history
+from utils.the_math.aggregations import (
+    METHODS_ALWAYS_INCLUDING_BOTS,
+    get_aggregation_history,
+)
+
+
+def _stored_aggregation_history(
+    question: Question,
+    aggregation_methods: list[str],
+    only_include_user_ids: list[int] | None,
+    include_bots: bool | None,
+    only_bots: bool,
+    minimize: bool,
+    joined_before: datetime | None,
+) -> list[AggregateForecast] | None:
+    """The explorer's history from the stored aggregates, when they were built with
+    the same parameters (minimized at their last build), else None"""
+    method = question.default_aggregation_method
+    stored_include_bots = (
+        question.include_bots_in_aggregates or method in METHODS_ALWAYS_INCLUDING_BOTS
+    )
+    if (
+        # binary and MC entries need histograms, which stored rows mostly lack
+        question.type not in QUESTION_CONTINUOUS_TYPES
+        or aggregation_methods != [method]
+        # served unfiltered by get_aggregation_history
+        or method == AggregationMethod.METACULUS_PREDICTION
+        or only_include_user_ids
+        or only_bots
+        or joined_before
+        or minimize is not True
+        or include_bots not in (None, stored_include_bots)
+    ):
+        return None
+
+    now = timezone.now()
+    # get_aggregation_history's latest_time without include_future
+    latest_time = min(
+        now, question.scheduled_close_time or now, question.actual_close_time or now
+    )
+    aggregate_forecasts = list(
+        question.aggregate_forecasts.filter(
+            method=method, start_time__lte=latest_time
+        ).order_by("start_time")
+    )
+    for aggregate_forecast in aggregate_forecasts:
+        if aggregate_forecast.end_time and aggregate_forecast.end_time > latest_time:
+            aggregate_forecast.end_time = None
+    return aggregate_forecasts
 
 
 @api_view(["GET"])
@@ -78,21 +130,31 @@ def aggregation_explorer_api_view(request) -> Response:
     minimize = params.get("minimize", True)
     joined_before = params.get("joined_before_date")
 
-    aggregations = get_aggregation_history(
+    aggregate_forecasts = _stored_aggregation_history(
         question,
-        aggregation_methods=aggregation_methods,
-        only_include_user_ids=only_include_user_ids,
-        minimize=minimize,
-        include_stats=True,
-        include_bots=include_bots,
-        only_bots=only_bots,
-        histogram=True,
-        include_future=False,
-        joined_before=joined_before,
+        aggregation_methods,
+        only_include_user_ids,
+        include_bots,
+        only_bots,
+        minimize,
+        joined_before,
     )
-    aggregate_forecasts = []
-    for aggregation in aggregations.values():
-        aggregate_forecasts.extend(aggregation)
+    if aggregate_forecasts is None:
+        aggregations = get_aggregation_history(
+            question,
+            aggregation_methods=aggregation_methods,
+            only_include_user_ids=only_include_user_ids,
+            minimize=minimize,
+            include_stats=True,
+            include_bots=include_bots,
+            only_bots=only_bots,
+            histogram=True,
+            include_future=False,
+            joined_before=joined_before,
+        )
+        aggregate_forecasts = []
+        for aggregation in aggregations.values():
+            aggregate_forecasts.extend(aggregation)
 
     data: dict = serialize_question(
         question,

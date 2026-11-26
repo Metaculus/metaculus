@@ -1,12 +1,15 @@
 import io
 import zipfile
 
+from django.db import connection
+from django.test.utils import CaptureQueriesContext
 from rest_framework import status
 from rest_framework.reverse import reverse
 
 from posts.models import Post
 from projects.models import Project
 from questions.models import Question
+from questions.services.forecasts import build_question_forecasts
 from questions.types import AggregationMethod
 from tests.unit.test_posts.factories import factory_post
 from tests.unit.test_projects.factories import factory_project
@@ -143,6 +146,40 @@ class TestAggregationExplorer:
         )
 
         assert response.status_code == status.HTTP_200_OK
+
+    def test_default_method_continuous_request_serves_stored_aggregates(
+        self, anon_client, user1, user2, question_numeric: Question
+    ):
+        self._post_for(question_numeric)
+        for user, cdf, month in [
+            (user1, [0.0, 0.2, 0.5, 0.8, 1.0], 2),
+            (user2, [0.0, 0.4, 0.6, 0.9, 1.0], 3),
+        ]:
+            question_numeric.user_forecasts.create(
+                author=user,
+                continuous_cdf=cdf,
+                start_time=datetime_aware(2024, month, 1),
+            )
+        build_question_forecasts(question_numeric)
+
+        with CaptureQueriesContext(connection) as ctx:
+            response = anon_client.get(
+                self.url,
+                {
+                    "question_id": question_numeric.id,
+                    "aggregation_methods": "recency_weighted",
+                    "include_bots": "false",
+                },
+            )
+
+        assert response.status_code == status.HTTP_200_OK
+        history = response.data["aggregations"]["recency_weighted"]["history"]
+        assert len(history) == 2
+        assert not [
+            q
+            for q in ctx.captured_queries
+            if '"questions_forecast"."continuous_cdf"' in q["sql"]
+        ]
 
 
 class TestDownloadData:
