@@ -1,6 +1,7 @@
 from collections import defaultdict
 
-from django.db.models import Count, F, Prefetch, Q
+from django.core.cache import cache
+from django.db.models import Count, F, Max, Prefetch, Q
 from django.views.decorators.cache import cache_page
 import numpy as np
 from rest_framework import status, serializers
@@ -26,6 +27,7 @@ from scoring.models import (
 from scoring.serializers import (
     LeaderboardSerializer,
     LeaderboardEntrySerializer,
+    LeaderboardEntryWithoutUserSerializer,
     ContributionSerializer,
     GetLeaderboardSerializer,
 )
@@ -35,8 +37,90 @@ from users.serializers import BaseUserSerializer
 from scoring.utils import get_cached_metaculus_stats
 
 
+LEADERBOARD_ENTRIES_CACHE_TIMEOUT = 60 * 30
+LEADERBOARD_ENTRIES_CACHE_MAX_COUNT = 5000
+
+
 def prefetch_public_user() -> Prefetch:
     return Prefetch("user", queryset=User.objects.only(*BaseUserSerializer.Meta.fields))
+
+
+def get_entries_data_by_leaderboard(
+    leaderboards,
+) -> dict[int, list[tuple[int | None, dict]]]:
+    versions = list(
+        LeaderboardEntry.objects.filter(leaderboard__in=leaderboards)
+        .values("leaderboard_id")
+        .annotate(count=Count("id"), calculated_on=Max("calculated_on"))
+        .order_by()
+    )
+    # Ids survive recalculations; save() and bulk_create() bump calculated_on (auto_now)
+    cache_keys = {
+        v["leaderboard_id"]: (
+            f"leaderboard_entries:v1:{v['leaderboard_id']}:{v['count']}:"
+            f"{v['calculated_on'].timestamp()}"
+        )
+        for v in versions
+        if v["count"] <= LEADERBOARD_ENTRIES_CACHE_MAX_COUNT
+    }
+    cached = cache.get_many(list(cache_keys.values()))
+    entries_data = {
+        lb_id: cached[key] for lb_id, key in cache_keys.items() if key in cached
+    }
+
+    missing = [
+        v["leaderboard_id"] for v in versions if v["leaderboard_id"] not in entries_data
+    ]
+    if missing:
+        entries = list(
+            LeaderboardEntry.objects.filter(leaderboard_id__in=missing).order_by(
+                "rank", "-score"
+            )
+        )
+        serialized = LeaderboardEntryWithoutUserSerializer(entries, many=True).data
+        for entry, data in zip(entries, serialized):
+            entries_data.setdefault(entry.leaderboard_id, []).append(
+                (entry.user_id, data)
+            )
+        cache.set_many(
+            {
+                cache_keys[lb_id]: entries_data.get(lb_id, [])
+                for lb_id in missing
+                if lb_id in cache_keys
+            },
+            LEADERBOARD_ENTRIES_CACHE_TIMEOUT,
+        )
+
+    return entries_data
+
+
+def add_cached_entries(leaderboard_data: list[dict], leaderboards, user) -> None:
+    visible_entries = {
+        lb_id: [
+            (user_id, data)
+            for user_id, data in entries
+            if data["exclusion_status"] <= ExclusionStatuses.EXCLUDE
+            or (user and user_id == user.id)
+        ]
+        for lb_id, entries in get_entries_data_by_leaderboard(leaderboards).items()
+    }
+    users = User.objects.filter(
+        id__in={
+            user_id
+            for entries in visible_entries.values()
+            for user_id, _ in entries
+            if user_id
+        }
+    ).only(*BaseUserSerializer.Meta.fields)
+    users_data = {u["id"]: u for u in BaseUserSerializer(users, many=True).data}
+
+    for lb_data in leaderboard_data:
+        lb_data["entries"] = []
+        for user_id, data in visible_entries.get(lb_data["id"], []):
+            entry = {"user": users_data.get(user_id), **data}
+            lb_data["entries"].append(entry)
+            if user and user_id == user.id:
+                lb_data["userEntry"] = entry
 
 
 def show_shadow_entries_to_staff(entries, user) -> None:
@@ -175,6 +259,11 @@ def project_leaderboard_view(
     leaderboard_data = LeaderboardSerializer(
         leaderboards, context={"include_max_coverage": True}, many=True
     ).data
+    user = request.user if request.user.is_authenticated else None
+    if with_entries and not (user and user.is_staff):
+        add_cached_entries(leaderboard_data, leaderboards, user)
+        return Response(leaderboard_data)
+
     if with_entries:
         entries = (
             LeaderboardEntry.objects.filter(leaderboard__in=leaderboards)
@@ -183,7 +272,6 @@ def project_leaderboard_view(
         )
     else:
         entries = LeaderboardEntry.objects.none()
-    user = request.user if request.user.is_authenticated else None
     entries = entries.filter(
         Q(exclusion_status__lte=ExclusionStatuses.EXCLUDE)
         | (Q(user_id=user.id) if user else Q())

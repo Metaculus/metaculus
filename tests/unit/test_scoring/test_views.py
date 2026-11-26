@@ -28,3 +28,31 @@ def test_leaderboard_entries_skip_private_user_columns(anon_client, user1):
     assert not [
         q for q in ctx.captured_queries if '"users_user"."password"' in q["sql"]
     ]
+
+
+def test_leaderboard_entries_cached_until_recalculated(anon_client, user1):
+    project = factory_project()
+    project.primary_leaderboard = Leaderboard.objects.create(
+        project=project, score_type=LeaderboardScoreTypes.PEER_TOURNAMENT
+    )
+    project.save()
+    entry = LeaderboardEntry.objects.create(
+        leaderboard=project.primary_leaderboard, user=user1, score=1
+    )
+    url = reverse("project-leaderboard", kwargs={"project_id": project.id})
+
+    first = anon_client.get(url).data
+    with CaptureQueriesContext(connection) as ctx:
+        second = anon_client.get(url).data
+    entry_reads = [
+        q
+        for q in ctx.captured_queries
+        if '"scoring_leaderboardentry"."score"' in q["sql"]
+    ]
+    entry.score = 2
+    entry.save()
+    third = anon_client.get(url).data
+
+    assert second == first
+    assert not entry_reads
+    assert third[0]["entries"][0]["score"] == 2

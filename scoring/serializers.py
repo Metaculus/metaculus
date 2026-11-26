@@ -51,6 +51,11 @@ class LeaderboardEntrySerializer(serializers.ModelSerializer):
         ]
 
 
+class LeaderboardEntryWithoutUserSerializer(LeaderboardEntrySerializer):
+    class Meta(LeaderboardEntrySerializer.Meta):
+        fields = [f for f in LeaderboardEntrySerializer.Meta.fields if f != "user"]
+
+
 class LeaderboardSerializer(serializers.Serializer):
     id = serializers.IntegerField()
     project_id = serializers.IntegerField()
