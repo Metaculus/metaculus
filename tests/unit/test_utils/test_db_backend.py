@@ -1,4 +1,5 @@
 from django.db import connection
+from django.db.backends.postgresql import compiler as postgresql_compiler
 from django.test.utils import CaptureQueriesContext
 
 from posts.models import Post
@@ -25,3 +26,19 @@ def test_deferred_by_default_field__loaded_when_named(user1):
         Post.objects.only("embedding_vector").get(pk=post.pk)
 
     assert "embedding_vector" in ctx.captured_queries[0]["sql"]
+
+
+def test_deferred_by_default_field__reloaded_by_full_refresh(user1):
+    post = factory_post(author=user1)
+    Post.objects.filter(pk=post.pk).update(embedding_vector=[1.0, 2.0])
+
+    post.refresh_from_db()
+
+    assert list(post.embedding_vector) == [1.0, 2.0]
+
+
+def test_compiler_module__keeps_postgresql_compilers():
+    for name in postgresql_compiler.__all__:
+        assert issubclass(
+            connection.ops.compiler(name), getattr(postgresql_compiler, name)
+        )

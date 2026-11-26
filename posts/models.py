@@ -33,7 +33,7 @@ from questions.models import (
 from questions.types import SHADOW_AGGREGATION_METHODS
 from scoring.models import Score, ArchivedScore
 from users.models import User
-from utils.db_backend import deferred_by_default
+from utils.db_backend import DeferredByDefaultMixin, deferred_by_default
 from utils.models import TimeStampedModel, TranslatedModel
 
 
@@ -518,7 +518,7 @@ class Notebook(TranslatedModel):
         return f"Notebook for {self.post} by {self.post.author}"
 
 
-class Post(TimeStampedModel, TranslatedModel):  # type: ignore
+class Post(DeferredByDefaultMixin, TimeStampedModel, TranslatedModel):  # type: ignore
     # typing
     id: int
     votes: QuerySet["Vote"]

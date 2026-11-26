@@ -159,11 +159,9 @@ def explain_post_news_hotness(post: Post) -> dict:
         return {"news_hotness": 0.0, "articles": []}
 
     articles = []
-    for post_article in (
-        post.postarticle_set.annotate_article_post_count()
-        .select_related("article")
-        .defer("article__embedding_vector")
-    ):
+    for (
+        post_article
+    ) in post.postarticle_set.annotate_article_post_count().select_related("article"):
         article = post_article.article
         relevance = max(0.0, NEWS_RELEVANCE_THRESHOLD - post_article.distance)
         breadth_penalty = math.log(math.e + (post_article.article_post_count or 0))
@@ -299,8 +297,7 @@ def compute_feed_hotness():
                 "distance",
                 "created_at",
                 "post_id",
-                # Article fields needed for cluster dedup. Note we intentionally
-                # avoid loading the large `embedding_vector`.
+                # Article fields needed for cluster dedup
                 "article__id",
                 "article__cluster_id",
             ),
