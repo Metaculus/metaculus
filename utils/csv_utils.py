@@ -376,12 +376,19 @@ def generate_data(
     #     key_factor_data - Only if key_factors given
     #     question_link_data - Only if aggregate_question_links given
     #     README.md - Always
-    username_dict = dict(User.objects.values_list("id", "username"))
-    is_bot_dict = dict(User.objects.values_list("id", "is_bot"))
     questions = questions.select_related("post", "post__default_project")
     question_ids = questions.values_list("id", flat=True)
     if not question_ids:
         return
+    user_ids = (
+        {forecast.author_id for forecast in user_forecasts or []}
+        | {comment.author_id for comment in comments or []}
+        | {score.user_id for score in scores or [] if score.user_id}
+        | {kf.comment.author_id for kf in key_factors or []}
+    )
+    users = User.objects.filter(id__in=user_ids).values_list("id", "username", "is_bot")
+    username_dict = {user_id: username for user_id, username, _ in users}
+    is_bot_dict = {user_id: is_bot for user_id, _, is_bot in users}
     # README md file
     readme_output = io.StringIO()
     readme_output.write(
@@ -630,7 +637,11 @@ def generate_data(
         readme_output.write(REPUTATION_COLUMNS_README)
         headers.extend(["Reputation Value", "Reputation Contribution", "Reputation"])
     forecast_writer.writerow(headers)
+    questions_by_id = {question.id: question for question in questions}
     for forecast in user_forecasts or []:
+        forecast.question = (
+            questions_by_id.get(forecast.question_id) or forecast.question
+        )
         row = [forecast.question_id]
         if anonymized:
             row.append(hashlib.sha256(str(forecast.author_id).encode()).hexdigest())
@@ -688,6 +699,10 @@ def generate_data(
 
         forecast_writer.writerow(row)
     for aggregate_forecast in aggregate_forecasts or []:
+        aggregate_forecast.question = (
+            questions_by_id.get(aggregate_forecast.question_id)
+            or aggregate_forecast.question
+        )
         if aggregate_forecast.method == "geometric_mean":
             probability_yes = None
             probability_yes_per_category = aggregate_forecast.forecast_values
