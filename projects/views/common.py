@@ -34,7 +34,7 @@ from projects.services.common import (
     get_project_permission_for_user,
     invite_user_to_project,
     get_site_main_project,
-    get_project_timeline_data,
+    get_timeline_data_for_projects,
     get_feed_project_tiles,
 )
 from projects.services.subscriptions import subscribe_project, unsubscribe_project
@@ -236,7 +236,7 @@ def tournament_by_slug_api_view(request: Request, slug: str):
     data["questions_count_including_subquestions"] = (
         counts["questions_count_including_subquestions"] if counts else 0
     )
-    data["timeline"] = get_project_timeline_data(obj)
+    data["timeline"] = get_timeline_data_for_projects([obj.id]).get(obj.id)
     data["forecasts_count"] = obj.forecasts_count
     data["forecasters_count"] = obj.forecasters_count
     data["followers_count"] = obj.followers_count
