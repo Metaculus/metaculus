@@ -112,10 +112,14 @@ def serialize_question_aggregations(
                 serialized_data[method]  # ensure it exists for the score data
 
         # Appending score data
-        for suffix, scores in (
-            ("score", question.scores.all()),
-            ("archived_score", question.archived_scores.all()),
+        prefetched = getattr(question, "_prefetched_objects_cache", {})
+        for suffix, relation in (
+            ("score", "scores"),
+            ("archived_score", "archived_scores"),
         ):
+            scores = getattr(question, relation).all()
+            if relation not in prefetched:
+                scores = scores.filter(aggregation_method__in=list(serialized_data))
             for score in scores:
                 if score.aggregation_method not in serialized_data:
                     continue

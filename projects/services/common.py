@@ -333,6 +333,7 @@ def get_feed_project_tiles() -> list[dict]:
         )
         .exclude(visibility=Project.Visibility.UNLISTED)
         .filter(default_permission__isnull=False)
+        .only("id", "start_date", "close_date")
     )
 
     if not projects:
