@@ -10,12 +10,17 @@ import time
 import aiohttp
 from django.conf import settings
 from django.core.cache import cache
-from django.db.models import F, Q, TextField
-from django.db.models.functions import MD5, Concat
+from django.db.models import Case, F, Q, TextField, Value, When
+from django.db.models.functions import MD5, Coalesce, Concat, NullIf
+from django.utils.translation import get_language
 from google.auth.transport.requests import Request
 from google.oauth2 import service_account
 from modeltranslation.translator import translator
-from modeltranslation.utils import build_localized_fieldname
+from modeltranslation.utils import (
+    build_localized_fieldname,
+    get_language as get_translation_language,
+    resolution_order,
+)
 
 
 def migration_update_default_fields(model, translation_fields):
@@ -136,6 +141,51 @@ def build_supported_localized_fieldname(field_name, source_lang):
     ]:
         source_lang = default_lang
     return build_localized_fieldname(field_name, source_lang)
+
+
+def get_translated_field_expression(model, field_name: str):
+    """
+    SQL value of the modeltranslation descriptor in the active language
+    """
+
+    default = model._meta.get_field(field_name).get_default()
+    languages = resolution_order(
+        get_translation_language(), getattr(model, field_name).fallback_languages
+    )
+    values = [F(build_localized_fieldname(field_name, lang)) for lang in languages]
+
+    if default is not None:
+        values = [NullIf(value, Value(default)) for value in values]
+
+    return Coalesce(*values, Value(default), output_field=TextField())
+
+
+def get_is_current_content_translated_expression(model):
+    """
+    SQL value of TranslatedModel.is_current_content_translated()
+    """
+
+    language = get_language()
+
+    if language == settings.ORIGINAL_LANGUAGE_CODE:
+        return Value(False)
+
+    is_translated = Q(
+        content_original_lang__isnull=False, is_automatically_translated=True
+    )
+
+    if language is not None:
+        is_translated &= ~Q(content_original_lang=language)
+
+    has_translation = Q()
+
+    for field_name in get_translation_fields_for_model(model):
+        localized = build_supported_localized_fieldname(field_name, language)
+        has_translation |= Q(**{f"{localized}__gt": ""})
+
+    return Case(
+        When(is_translated & has_translation, then=Value(True)), default=Value(False)
+    )
 
 
 def batch_qs(queryset, batch_size):

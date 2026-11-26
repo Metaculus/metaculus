@@ -10,15 +10,21 @@ from django.db.models import (
     Q,
     Sum,
 )
-from django.db.models.functions import Coalesce
+from django.db.models.functions import Coalesce, Left
 from django.utils import timezone as django_timezone
 from sql_util.aggregates import SubqueryAggregate
 
+from projects.constants import DESCRIPTION_PREVIEW_LENGTH
 from projects.permissions import ObjectPermission
 from questions.constants import UnsuccessfulResolutionType
 from scoring.constants import LeaderboardScoreTypes
 from users.models import User
+from utils.db import LStrip, RStrip
 from utils.models import TimeStampedModel, TranslatedModel, validate_alpha_slug
+from utils.translation import (
+    get_is_current_content_translated_expression,
+    get_translated_field_expression,
+)
 
 
 class ProjectsQuerySet(models.QuerySet):
@@ -182,6 +188,22 @@ class ProjectsQuerySet(models.QuerySet):
                 ),
                 default=models.Value(False),
                 output_field=BooleanField(),
+            )
+        )
+
+    def annotate_description_preview(self):
+        description = get_translated_field_expression(self.model, "description")
+
+        return self.annotate(
+            _description_preview=RStrip(
+                Left(LStrip(description), DESCRIPTION_PREVIEW_LENGTH)
+            )
+        )
+
+    def annotate_is_current_content_translated(self):
+        return self.annotate(
+            _is_current_content_translated=get_is_current_content_translated_expression(
+                self.model
             )
         )
 
@@ -462,6 +484,12 @@ class Project(TimeStampedModel, TranslatedModel):  # type: ignore
                 score_type=LeaderboardScoreTypes.PEER_TOURNAMENT,
             )
             Project.objects.filter(pk=self.pk).update(primary_leaderboard=leaderboard)
+
+    def get_description(self) -> str:
+        # Annotated where the description columns are deferred
+        description = getattr(self, "_description", None)
+
+        return self.description if description is None else description
 
     @property
     def is_ongoing(self):

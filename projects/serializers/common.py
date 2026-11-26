@@ -6,6 +6,7 @@ from django.db.models import Q
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
+from projects.constants import DESCRIPTION_PREVIEW_LENGTH
 from projects.models import Project, ProjectUserPermission, ProjectIndex
 from projects.serializers.communities import CommunitySerializer
 from projects.services.cache import get_projects_questions_count_cached
@@ -64,6 +65,8 @@ class NewsCategorySerialize(serializers.ModelSerializer):
 
 
 class CategorySerializer(serializers.ModelSerializer):
+    description = serializers.CharField(source="get_description", read_only=True)
+
     class Meta:
         model = Project
         fields = ("id", "name", "slug", "emoji", "description", "type")
@@ -108,10 +111,13 @@ class TournamentShortSerializer(serializers.ModelSerializer):
         )
 
     def get_description_preview(self, project: Project) -> str:
+        if hasattr(project, "_description_preview"):
+            return project._description_preview
+
         raw = (project.description or "").strip()
         if not raw:
             return ""
-        return raw[:140].rstrip()
+        return raw[:DESCRIPTION_PREVIEW_LENGTH].rstrip()
 
     def get_score_type(self, project: Project) -> str | None:
         if not project.primary_leaderboard_id:
@@ -119,6 +125,9 @@ class TournamentShortSerializer(serializers.ModelSerializer):
         return project.primary_leaderboard.score_type
 
     def get_is_current_content_translated(self, project: Project) -> bool:
+        if hasattr(project, "_is_current_content_translated"):
+            return project._is_current_content_translated
+
         return project.is_current_content_translated()
 
 
