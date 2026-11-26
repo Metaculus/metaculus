@@ -87,17 +87,21 @@ class PostQuerySet(models.QuerySet):
 
         return self.prefetch_related(*prefetches)
 
-    def prefetch_questions(self):
-        return self.prefetch_related(
+    def prefetch_questions(self, with_condition_posts: bool = False):
+        conditionals = Conditional.objects.select_related(
+            "condition", "condition_child", "question_yes", "question_no"
+        )
+
+        if with_condition_posts:
+            conditionals = conditionals.select_related(
+                "condition__post", "condition_child__post"
+            )
+
+        return self.select_related("question").prefetch_related(
+            # Must precede every other conditional__* lookup
+            Prefetch("conditional", queryset=conditionals),
             # Group Of Questions
-            "group_of_questions__questions__group"
-        ).select_related(
-            "question",
-            # Conditional
-            "conditional__condition",
-            "conditional__condition_child",
-            "conditional__question_yes",
-            "conditional__question_no",
+            "group_of_questions__questions__group",
         )
 
     def prefetch_questions_scores(self, include_shadow_aggregations: bool = False):
