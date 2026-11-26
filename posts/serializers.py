@@ -500,16 +500,12 @@ def serialize_post_many(
 
     qs = (
         qs.annotate_user_permission(user=current_user)
-        .prefetch_questions()
-        .select_related(
-            "conditional__condition__post",
-            "conditional__condition_child__post",
-            "default_project__primary_leaderboard",
-            "notebook",
-        )
+        .prefetch_questions(with_condition_posts=True)
+        .select_related("default_project__primary_leaderboard")
         .annotate(_author_username=F("author__username"))
         .prefetch_related(
-            Prefetch("coauthors", queryset=User.objects.only("id", "username"))
+            "notebook",
+            Prefetch("coauthors", queryset=User.objects.only("id", "username")),
         )
     )
 
