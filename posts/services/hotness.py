@@ -159,11 +159,9 @@ def explain_post_news_hotness(post: Post) -> dict:
         return {"news_hotness": 0.0, "articles": []}
 
     articles = []
-    for post_article in (
-        post.postarticle_set.annotate_article_post_count()
-        .select_related("article")
-        .defer("article__embedding_vector")
-    ):
+    for (
+        post_article
+    ) in post.postarticle_set.annotate_article_post_count().select_related("article"):
         article = post_article.article
         relevance = max(0.0, NEWS_RELEVANCE_THRESHOLD - post_article.distance)
         breadth_penalty = math.log(math.e + (post_article.article_post_count or 0))
@@ -268,8 +266,24 @@ def compute_feed_hotness():
     # so we can safely ignore them for performance reasons
     min_creation_date = timezone.now() - datetime.timedelta(days=70)
 
-    qs = Post.objects.filter_published().prefetch_related(
-        "questions",
+    qs = Post.objects.filter_published().only("id", "notebook_id")
+    qs = qs.prefetch_related(
+        Prefetch(
+            "questions",
+            queryset=Question.objects.only(
+                "id",
+                "post_id",
+                "title",
+                "movement",
+                "open_time",
+                "cp_reveal_time",
+                "scheduled_close_time",
+                "actual_close_time",
+                "actual_resolve_time",
+                "resolution",
+                "resolution_set_time",
+            ),
+        ),
         Prefetch(
             "votes",
             queryset=Vote.objects.filter(created_at__gte=min_creation_date).only(
@@ -299,8 +313,7 @@ def compute_feed_hotness():
                 "distance",
                 "created_at",
                 "post_id",
-                # Article fields needed for cluster dedup. Note we intentionally
-                # avoid loading the large `embedding_vector`.
+                # Article fields needed for cluster dedup
                 "article__id",
                 "article__cluster_id",
             ),

@@ -53,6 +53,8 @@ def link_to_question_id_pair(link: CoherenceLink | AggregateCoherenceLink) -> st
 
 def get_aggregations_links(aggregations: list[AggregateCoherenceLink]):
     question_pairs = {(link.question1_id, link.question2_id) for link in aggregations}
+    if not question_pairs:
+        return CoherenceLink.objects.none()
 
     return CoherenceLink.objects.filter(
         Q(
@@ -62,4 +64,4 @@ def get_aggregations_links(aggregations: list[AggregateCoherenceLink]):
             ],
             _connector=OR,
         )
-    )
+    ).only("id", "question1_id", "question2_id", "direction", "strength")

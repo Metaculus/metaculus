@@ -124,6 +124,12 @@ class TestPostPermissions:
         data = Post.objects.annotate_user_permission(user=user1).first()
         assert data.user_permission == ObjectPermission.CURATOR
 
+    def test_annotate_user_permission__builds_without_queries(
+        self, django_assert_num_queries
+    ):
+        with django_assert_num_queries(0):
+            Post.objects.annotate_user_permission(user=None)
+
     def test_annotate_user_permission__creator(self, question_binary, user1, user2):
         factory_post(
             author=user1,

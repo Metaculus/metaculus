@@ -46,6 +46,18 @@ from utils.typing import (
 
 RangeValuesType = tuple[list[float], list[float], list[float]]
 
+# question_id lets question.user_forecasts attach the question without a query per row
+AGGREGATION_FORECAST_FIELDS = (
+    "id",
+    "author_id",
+    "question_id",
+    "start_time",
+    "end_time",
+    "probability_yes",
+    "probability_yes_per_category",
+    "continuous_cdf",
+)
+
 
 # Dataclasses ##########################################
 
@@ -1426,7 +1438,7 @@ def get_aggregations_at_time(
     forecasts = (
         question.user_forecasts.filter_active_at(time)
         .order_by("start_time")
-        .select_related("author")
+        .only(*AGGREGATION_FORECAST_FIELDS)
     )
     if only_include_user_ids:
         forecasts = forecasts.filter(author_id__in=only_include_user_ids)
@@ -1750,7 +1762,7 @@ def get_aggregation_history(
         forecasts = (
             Forecast.objects.filter(question_id=question.id)
             .order_by("start_time")
-            .select_related("author")
+            .only(*AGGREGATION_FORECAST_FIELDS)
         )
         if question.actual_close_time:
             forecasts = forecasts.filter(start_time__lte=question.actual_close_time)

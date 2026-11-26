@@ -2,7 +2,7 @@ import logging
 from typing import Union, Iterable
 
 from django.db import models
-from django.db.models import QuerySet
+from django.db.models import Prefetch, QuerySet
 from django.template.defaultfilters import slugify
 from django.utils import timezone
 from rest_framework import serializers
@@ -255,7 +255,11 @@ class PostFilterSerializer(SerializerKeyLookupMixin, serializers.Serializer):
             raise ValidationError("Project does not exist")
 
     def validate_news_type(self, values: list[str]):
-        news_types = Project.objects.filter_news_category().filter(slug__in=values)
+        news_types = (
+            Project.objects.filter_news_category()
+            .filter(slug__in=values)
+            .only("id", "slug")
+        )
         slugs = {obj.slug for obj in news_types}
 
         for value in values:
@@ -277,7 +281,11 @@ class PostFilterSerializer(SerializerKeyLookupMixin, serializers.Serializer):
             raise ValidationError("Community does not exist")
 
     def validate_leaderboard_tags(self, values: list[str]):
-        tags = Project.objects.filter_leaderboard_tags().filter(slug__in=values)
+        tags = (
+            Project.objects.filter_leaderboard_tags()
+            .filter(slug__in=values)
+            .only("id", "slug")
+        )
         slugs = {obj.slug for obj in tags}
 
         for value in values:
@@ -497,7 +505,9 @@ def serialize_post_many(
             "author",
             "notebook",
         )
-        .prefetch_related("coauthors")
+        .prefetch_related(
+            Prefetch("coauthors", queryset=User.objects.only("id", "username"))
+        )
     )
 
     if current_user:

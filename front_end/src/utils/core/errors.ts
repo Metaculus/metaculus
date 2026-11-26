@@ -73,6 +73,13 @@ export class ApiError extends Error {
   }
 }
 
+export function isCloudflareChallenge(err: unknown): boolean {
+  return (
+    ApiError.isApiError(err) &&
+    err.response?.headers?.get?.("cf-mitigated") === "challenge"
+  );
+}
+
 export function extractError(
   field_error: unknown,
   config?: { parentKey?: string; detached?: boolean }
