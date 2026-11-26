@@ -2,7 +2,7 @@ import logging
 from typing import Union, Iterable
 
 from django.db import models
-from django.db.models import Prefetch, QuerySet
+from django.db.models import F, Prefetch, QuerySet
 from django.template.defaultfilters import slugify
 from django.utils import timezone
 from rest_framework import serializers
@@ -104,6 +104,9 @@ class PostReadSerializer(serializers.ModelSerializer):
         )
 
     def get_author_username(self, obj: Post):
+        if hasattr(obj, "_author_username"):
+            return obj._author_username
+
         return obj.author.username
 
     def get_coauthors(self, obj: Post):
@@ -502,9 +505,9 @@ def serialize_post_many(
             "conditional__condition__post",
             "conditional__condition_child__post",
             "default_project__primary_leaderboard",
-            "author",
             "notebook",
         )
+        .annotate(_author_username=F("author__username"))
         .prefetch_related(
             Prefetch("coauthors", queryset=User.objects.only("id", "username"))
         )
