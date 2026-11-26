@@ -141,7 +141,11 @@ WSGI_APPLICATION = "metaculus_web.wsgi.application"
 
 DATABASES = {
     "default": {
-        **dj_database_url.config(conn_max_age=600, default="postgres:///metaculus"),
+        **dj_database_url.config(
+            conn_max_age=600,
+            default="postgres:///metaculus",
+            engine="utils.db_backend",
+        ),
     },
 }
 

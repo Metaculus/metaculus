@@ -497,10 +497,6 @@ def serialize_post_many(
             "author",
             "notebook",
         )
-        .defer(
-            "conditional__condition__post__embedding_vector",
-            "conditional__condition_child__post__embedding_vector",
-        )
         .prefetch_related("coauthors")
     )
 
