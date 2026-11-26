@@ -312,10 +312,7 @@ class PostQuerySet(models.QuerySet):
     # Permissions
     #
     def annotate_user_permission(self, user: User = None):
-        from projects.services.common import get_site_main_project
-
         user_id = user.id if user else None
-        site_main_project = get_site_main_project()
 
         # Annotate with user-specific permission or project's default permission
         qs = self.annotate(
@@ -369,7 +366,7 @@ class PostQuerySet(models.QuerySet):
                 Q(_user_permission__isnull=False)
                 & (
                     (
-                        Q(default_project_id=site_main_project.pk)
+                        Q(default_project__type=Project.ProjectTypes.SITE_MAIN)
                         & Q(curation_status=Post.CurationStatus.PENDING)
                     )
                     | Q(
