@@ -25,6 +25,7 @@ from questions.models import Question, Forecast, AggregateForecast
 from questions.types import Direction
 from questions.utils import get_last_forecast_in_the_past
 from users.models import User
+from utils.db import transaction_repeatable_read
 from utils.models import ArrayLength
 from utils.the_math.formulas import (
     unscaled_location_to_scaled_location,
@@ -119,16 +120,24 @@ def _get_question_data_for_cp_change_notification(
 
 
 def get_last_user_forecasts_for_questions(
-    question_ids: Iterable[int],
+    question_ids: Iterable[int], author_ids: Iterable[int]
 ) -> dict[int, dict[int, Forecast]]:
     """
     Generates last user forecasts for given question ids
     """
 
     qs = (
-        Forecast.objects.filter(question_id__in=question_ids)
+        Forecast.objects.filter(question_id__in=question_ids, author_id__in=author_ids)
         .order_by("question_id", "author_id", "-start_time")
         .distinct("question_id", "author_id")
+        .only(
+            "question_id",
+            "author_id",
+            "start_time",
+            "probability_yes",
+            "probability_yes_per_category",
+            "continuous_cdf",
+        )
     )
 
     forecasts_map = {}
@@ -166,71 +175,98 @@ def notify_post_cp_change(post: Post):
     TODO: write description and check over
     """
 
-    subscriptions = post.subscriptions.filter(
-        type=PostSubscription.SubscriptionType.CP_CHANGE
-    ).select_related("user")
-    questions = Question.objects.filter(Q(post=post) | Q(group__post=post)).filter(
-        # Don't send notifications before the CP is revealed
-        Q(cp_reveal_time__lte=timezone.now())
+    questions = list(
+        Question.objects.filter(Q(post=post) | Q(group__post=post)).filter(
+            # Don't send notifications before the CP is revealed
+            Q(cp_reveal_time__lte=timezone.now())
+        )
     )
 
     if not questions:
         return
+    question_ids = [q.pk for q in questions]
 
-    forecast_history = {
-        question: list(
-            AggregateForecast.objects.filter(
-                question=question,
-                method=question.default_aggregation_method,
-                start_time__gte=question.cp_reveal_time or question.created_at,
-            ).order_by("start_time")
+    # Skip users who have withdrawn from all questions in the post
+    subscriptions = list(
+        post.subscriptions.filter(
+            type=PostSubscription.SubscriptionType.CP_CHANGE,
+            user_id__in=get_users_with_active_forecasts_for_questions(question_ids),
         )
-        for question in questions
-    }
-    question_author_forecasts_map = get_last_user_forecasts_for_questions(
-        [q.pk for q in questions]
     )
 
-    # Get users who still have active forecasts on any question
-    users_with_active_forecasts = get_users_with_active_forecasts_for_questions(
-        [q.pk for q in questions]
-    )
+    if not subscriptions:
+        return
 
-    for subscription in subscriptions:
-        # Skip users who have withdrawn from all questions in the post
-        if subscription.user_id not in users_with_active_forecasts:
-            continue
+    comparisons: list[
+        tuple[PostSubscription, list[tuple[Question, int, int, Forecast | None]]]
+    ] = []
+    compared_ids: set[int] = set()
+    # Rebuilds reuse ids, so the light history and compared entries need one snapshot
+    with transaction_repeatable_read():
+        forecast_history = {
+            question: list(
+                AggregateForecast.objects.filter(
+                    question=question,
+                    method=question.default_aggregation_method,
+                    start_time__gte=question.cp_reveal_time or question.created_at,
+                )
+                .order_by("start_time")
+                .only("start_time", "end_time")
+            )
+            for question in questions
+        }
+        question_author_forecasts_map = get_last_user_forecasts_for_questions(
+            question_ids, [subscription.user_id for subscription in subscriptions]
+        )
+        current_entries = {
+            question: get_last_forecast_in_the_past(forecast_summary)
+            for question, forecast_summary in forecast_history.items()
+        }
 
-        last_sent = subscription.last_sent_at
+        for subscription in subscriptions:
+            last_sent = subscription.last_sent_at
+            question_entries = []
+            for question, forecast_summary in forecast_history.items():
+                user_pred = question_author_forecasts_map.get(question.pk, {}).get(
+                    subscription.user_id
+                )
+                if user_pred:
+                    comparison_time = max(last_sent, user_pred.start_time)
+                else:
+                    comparison_time = last_sent
+                entry: AggregateForecast | None = None
+                for forecast in forecast_summary:
+                    if forecast.start_time <= comparison_time and (
+                        forecast.end_time is None or forecast.end_time > comparison_time
+                    ):
+                        entry = forecast
+                        break
+                current_entry = current_entries[question]
+                if entry is None or not current_entry:
+                    continue
+                question_entries.append(
+                    (question, entry.id, current_entry.id, user_pred)
+                )
+                compared_ids.update((entry.id, current_entry.id))
+            comparisons.append((subscription, question_entries))
+
+        compared_entries = AggregateForecast.objects.only(
+            "forecast_values",
+            "interval_lower_bounds",
+            "centers",
+            "interval_upper_bounds",
+        ).in_bulk(compared_ids)
+
+    notified: list[tuple[PostSubscription, list[CPChangeData]]] = []
+    for subscription, question_entries in comparisons:
         max_sorting_diff = None
         question_data: list[CPChangeData] = []
-        for question, forecast_summary in forecast_history.items():
-            user_pred = question_author_forecasts_map.get(question.pk, {}).get(
-                subscription.user_id
-            )
-            if user_pred:
-                comparison_time = max(last_sent, user_pred.start_time)
-            else:
-                comparison_time = last_sent
-            entry: AggregateForecast | None = None
-            for forecast in forecast_summary:
-                if forecast.start_time <= comparison_time and (
-                    forecast.end_time is None or forecast.end_time > comparison_time
-                ):
-                    entry = forecast
-                    break
-            if entry is None:
-                continue
-            old_forecast_values = entry.get_prediction_values()
-            current_entry = get_last_forecast_in_the_past(forecast_summary)
-
-            if not current_entry:
-                continue
-
-            current_forecast_values = current_entry.get_prediction_values()
+        for question, entry_id, current_entry_id, user_pred in question_entries:
+            entry = compared_entries[entry_id]
+            current_entry = compared_entries[current_entry_id]
             difference = prediction_difference_for_sorting(
-                old_forecast_values,
-                current_forecast_values,
+                entry.get_prediction_values(),
+                current_entry.get_prediction_values(),
                 question_type=question.type,
             )
             if max_sorting_diff is None or difference > max_sorting_diff:
@@ -249,24 +285,29 @@ def notify_post_cp_change(post: Post):
             )
 
         if max_sorting_diff and max_sorting_diff >= subscription.cp_change_threshold:
-            NotificationPostCPChange.schedule(
-                subscription.user,
-                NotificationPostCPChange.ParamsType(
-                    post=NotificationPostParams.from_post(post),
-                    question_data=question_data,
-                    last_sent=last_sent.isoformat() if last_sent else None,
-                ),
-                # Send notifications to the users that subscribed to the post CP changes
-                # Or we automatically subscribed them for "Forecasted Questions CP change"
-                mailing_tag=(
-                    None
-                    if not subscription.is_global
-                    else MailingTags.FORECASTED_CP_CHANGE
-                ),
-            )
+            notified.append((subscription, question_data))
 
-            subscription.update_last_sent_at()
-            subscription.save()
+    recipients = User.objects.only(
+        "is_active", "email", "unsubscribed_mailing_tags"
+    ).in_bulk([subscription.user_id for subscription, _ in notified])
+    for subscription, question_data in notified:
+        last_sent = subscription.last_sent_at
+        NotificationPostCPChange.schedule(
+            recipients[subscription.user_id],
+            NotificationPostCPChange.ParamsType(
+                post=NotificationPostParams.from_post(post),
+                question_data=question_data,
+                last_sent=last_sent.isoformat() if last_sent else None,
+            ),
+            # Send notifications to the users that subscribed to the post CP changes
+            # Or we automatically subscribed them for "Forecasted Questions CP change"
+            mailing_tag=(
+                None if not subscription.is_global else MailingTags.FORECASTED_CP_CHANGE
+            ),
+        )
+
+        subscription.update_last_sent_at()
+        subscription.save()
 
 
 def notify_new_comments(post: Post):

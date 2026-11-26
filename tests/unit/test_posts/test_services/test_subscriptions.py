@@ -1,13 +1,17 @@
 from datetime import datetime, timedelta
 
+from django.db import connection
 from django.utils import timezone
 from django.utils.timezone import make_aware
 from freezegun import freeze_time
 
 from notifications.models import Notification
+from posts.models import PostSubscription
 from posts.services.subscriptions import (
+    create_subscription_cp_change,
     create_subscription_new_comments,
     notify_new_comments,
+    notify_post_cp_change,
     create_subscription_specific_time,
     notify_date,
     get_users_with_active_forecasts_for_questions,
@@ -15,7 +19,7 @@ from posts.services.subscriptions import (
 from tests.unit.test_comments.factories import factory_comment
 from tests.unit.test_posts.factories import factory_post
 from tests.unit.test_questions.factories import create_question, factory_forecast
-from questions.models import Question
+from questions.models import AggregateForecast, Question
 
 
 def test_notify_new_comments(user1, user2):
@@ -198,3 +202,59 @@ class TestGetUsersWithActiveForecasts:
         )
 
         assert user1.pk in result
+
+
+def test_notify_post_cp_change_loads_compared_entries_and_slim_users(
+    transactional_db, user1, user2
+):
+    now = timezone.now()
+    question = create_question(
+        question_type=Question.QuestionType.BINARY,
+        open_time=now - timedelta(days=30),
+        cp_reveal_time=now - timedelta(days=20),
+        scheduled_close_time=now + timedelta(days=30),
+    )
+    post = factory_post(question=question)
+    for user, probability_yes, days_ago in [(user1, 0.2, 10), (user2, 0.9, 5)]:
+        question.user_forecasts.create(
+            author=user,
+            probability_yes=probability_yes,
+            start_time=now - timedelta(days=days_ago),
+        )
+    for day in range(20, 0, -2):
+        probability_yes = 0.9 - day / 25
+        AggregateForecast.objects.create(
+            question=question,
+            method=question.default_aggregation_method,
+            start_time=now - timedelta(days=day),
+            end_time=now - timedelta(days=day - 2) if day > 2 else None,
+            forecast_values=[1 - probability_yes, probability_yes],
+            centers=[1 - probability_yes, probability_yes],
+        )
+    subscription = create_subscription_cp_change(
+        user=user1, post=post, cp_change_threshold=0.1, is_global=True
+    )
+    PostSubscription.objects.filter(pk=subscription.pk).update(
+        last_sent_at=now - timedelta(days=8)
+    )
+    statements = []
+
+    def record(execute, sql, params, many, context):
+        result = execute(sql, params, many, context)
+        statements.append((sql, context["cursor"].rowcount))
+        return result
+
+    with connection.execute_wrapper(record):
+        notify_post_cp_change(post)
+
+    assert Notification.objects.filter(recipient=user1).count() == 1
+    # The two compared entries only, and no full user rows
+    assert (
+        sum(
+            rows
+            for sql, rows in statements
+            if '"questions_aggregateforecast"."forecast_values"' in sql
+        )
+        == 2
+    )
+    assert not [sql for sql, _ in statements if '"users_user"."username"' in sql]
