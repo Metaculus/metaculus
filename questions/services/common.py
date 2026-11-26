@@ -1,5 +1,6 @@
 import logging
 from collections import defaultdict
+from datetime import datetime
 from typing import Iterable
 
 import sentry_sdk
@@ -293,6 +294,23 @@ def get_outbound_question_links(question: Question, user: User) -> list[Question
     )
     outbound_questions = [link.question2 for link in links]
     return outbound_questions
+
+
+def get_aggregate_forecast_at(
+    question: Question, time: datetime
+) -> AggregateForecast | None:
+    """The stored default aggregate active at `time`, with only forecast_values"""
+    return (
+        AggregateForecast.objects.filter(
+            question_id=question.id,
+            method=question.default_aggregation_method,
+            start_time__lte=time,
+        )
+        .filter(Q(end_time__isnull=True) | Q(end_time__gt=time))
+        .order_by("-start_time")
+        .only("forecast_values")
+        .first()
+    )
 
 
 @sentry_sdk.trace

@@ -26,6 +26,7 @@ from questions.services.common import (
     create_conditional,
     create_group_of_questions,
     create_question,
+    get_aggregate_forecast_at,
     update_conditional,
     update_group_of_questions,
     update_notebook,
@@ -37,7 +38,7 @@ from scoring.models import (
 )
 from users.models import User
 from utils.models import model_update
-from utils.the_math.aggregations import get_aggregations_at_time
+from utils.the_math.aggregations import AGGREGATION_FORECAST_FIELDS
 from utils.the_math.measures import prediction_difference_for_sorting
 from utils.translation import (
     automatic_translations_enabled,
@@ -369,13 +370,13 @@ def compute_sorting_divergence(post: Post) -> dict[int, float]:
     for question in questions:
         if question.cp_reveal_time and question.cp_reveal_time > now:
             continue
-        cp = get_aggregations_at_time(
-            question, now, [question.default_aggregation_method]
-        ).get(question.default_aggregation_method, None)
+        cp = get_aggregate_forecast_at(question, now)
         if cp is None:
             continue
 
-        active_forecasts = question.user_forecasts.filter_active_at(now)
+        active_forecasts = question.user_forecasts.filter_active_at(now).only(
+            *AGGREGATION_FORECAST_FIELDS
+        )
         for forecast in active_forecasts:
             difference = prediction_difference_for_sorting(
                 forecast.get_prediction_values(),

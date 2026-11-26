@@ -12,8 +12,8 @@ from questions.utils import get_question_movement_period, get_last_forecast_in_t
 from utils.cache import cache_per_object
 from utils.db import transaction_repeatable_read
 from utils.dtypes import flatten
-from utils.the_math.aggregations import get_aggregations_at_time
 from utils.the_math.measures import prediction_difference_for_sorting
+from .common import get_aggregate_forecast_at
 from .forecasts import get_aggregated_forecasts_for_questions
 
 logger = logging.getLogger(__name__)
@@ -22,12 +22,7 @@ logger = logging.getLogger(__name__)
 def compute_question_movement(question: Question) -> float | None:
     now = timezone.now()
 
-    cp_now = get_aggregations_at_time(
-        question,
-        now,
-        [question.default_aggregation_method],
-        include_bots=None,
-    ).get(question.default_aggregation_method)
+    cp_now = get_aggregate_forecast_at(question, now)
 
     if not cp_now:
         return
@@ -38,12 +33,9 @@ def compute_question_movement(question: Question) -> float | None:
         # questions that have resolved at least 7 days ago have no movement
         return 0.0
 
-    cp_previous = get_aggregations_at_time(
-        question,
-        now - get_question_movement_period(question),
-        [question.default_aggregation_method],
-        include_bots=None,
-    ).get(question.default_aggregation_method)
+    cp_previous = get_aggregate_forecast_at(
+        question, now - get_question_movement_period(question)
+    )
 
     if not cp_previous:
         return

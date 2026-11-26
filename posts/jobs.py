@@ -5,7 +5,7 @@ Module contains Cron Job handlers
 import logging
 
 import dramatiq
-from django.db.models import Q
+from django.db.models import Prefetch, Q
 from django.utils import timezone
 
 from projects.services.subscriptions import (
@@ -36,7 +36,23 @@ def job_subscription_notify_date():
 @dramatiq.actor
 def job_compute_movement():
     chunk_size = 100
-    base_qs = Post.objects.filter_questions().prefetch_related("questions")
+    base_qs = (
+        Post.objects.filter_questions()
+        .only("id", "movement")
+        .prefetch_related(
+            Prefetch(
+                "questions",
+                # every field compute_question_movement reads
+                queryset=Question.objects.only(
+                    "post_id",
+                    "type",
+                    "default_aggregation_method",
+                    "open_time",
+                    "resolution_set_time",
+                ),
+            )
+        )
+    )
     active = base_qs.filter_active()
     # Also include resolved posts that have non-zero movement as they will update to
     # having 0.0 movement 7 days after resolution to remove them from the movers feed
