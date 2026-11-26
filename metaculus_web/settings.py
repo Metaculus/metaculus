@@ -88,6 +88,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "utils.middlewares.HealthCheckMiddleware",
+    "utils.db_egress.DbEgressSamplingMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -526,6 +527,9 @@ SHELL_PLUS_IMPORTS = [
     "import numpy as np",
     "from datetime import datetime, timedelta, timezone as dt_timezone",
 ]
+
+# Fraction of requests logging DB wire bytes per query shape, see utils/db_egress.py
+DB_EGRESS_SAMPLE_RATE = float(os.environ.get("DB_EGRESS_SAMPLE_RATE", 0))
 
 # Sentry config
 SENTRY_DNS = os.environ.get("SENTRY_DNS")
