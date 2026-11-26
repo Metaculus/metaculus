@@ -163,3 +163,23 @@ def test_tournament_detail_timeline_skips_full_question_rows(anon_client, user1)
         for q in ctx.captured_queries
         if '"questions_question"."description' in q["sql"]
     ]
+
+
+def test_tournaments_list_previews_without_description_columns(
+    anon_client, settings, django_assert_num_queries
+):
+    settings.CACHES = {
+        "default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"}
+    }
+    for slug in ("cup", "series"):
+        factory_project(
+            type=Project.ProjectTypes.TOURNAMENT,
+            slug=slug,
+            description_original=" " + "x" * 200,
+        )
+
+    with django_assert_num_queries(5) as ctx:
+        response = anon_client.get("/api/projects/tournaments/")
+
+    assert [p["description_preview"] for p in response.data] == ["x" * 140] * 2
+    assert '"projects_project"."description_cs"' not in ctx.captured_queries[0]["sql"]

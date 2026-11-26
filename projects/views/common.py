@@ -173,6 +173,9 @@ def tournaments_list_api_view(request: Request):
         .exclude(visibility=Project.Visibility.UNLISTED)
         .filter_tournament()
         .select_related("primary_leaderboard")
+        .defer("description", "subtitle", "sign_up_fields")
+        .annotate_description_preview()
+        .annotate_is_current_content_translated()
     )
     projects = list(qs)
     data = serialize_tournaments_with_counts(
