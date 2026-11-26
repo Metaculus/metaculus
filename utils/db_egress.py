@@ -11,7 +11,6 @@ from contextlib import ExitStack, contextmanager, suppress
 from django.conf import settings
 from django.core.exceptions import MiddlewareNotUsed
 from django.db import connections
-from django.urls import Resolver404, resolve
 from django.utils.functional import SimpleLazyObject, empty
 
 logger = logging.getLogger("db_egress")
@@ -24,10 +23,8 @@ _IN_LIST = re.compile(r"\bIN\s*\(\s*%s(?:\s*,\s*%s)*\s*\)", re.IGNORECASE)
 _PAGING = re.compile(
     r"\b(?:LIMIT\s+\d+(?:\s+OFFSET\s+\d+)?|OFFSET\s+\d+)\b", re.IGNORECASE
 )
-_SAVEPOINT_ID = re.compile(r'"s\d+_x\d+"')
 _VERB = re.compile(r"[\s(]*(\w+)")
 _TABLE = re.compile(r'\b(?:FROM|INTO|UPDATE)\s+"?([A-Za-z_]\w*)', re.IGNORECASE)
-_DIGIT_SEGMENT = re.compile(r"/\d+(?=/|$)")
 _LOGGED_PARAMS = (
     "with_cp",
     "include_cp_history",
@@ -61,7 +58,6 @@ def tcp_bytes_received(connection) -> int | None:
 def query_fingerprint(sql: str) -> str:
     normalized = _IN_LIST.sub("IN (...)", sql)
     normalized = _PAGING.sub("LIMIT N", normalized)
-    normalized = _SAVEPOINT_ID.sub('"s"', normalized)
     return hashlib.blake2b(normalized.encode(), digest_size=6).hexdigest()
 
 
@@ -157,26 +153,15 @@ def _client(user_agent: str) -> str:
     return "other"
 
 
-def _resolve(request):
-    urlconf = getattr(request, "urlconf", None)
-    for path_info in (request.path_info, f"{request.path_info}/"):
-        with suppress(Resolver404):
-            return resolve(path_info, urlconf)
-    return None
-
-
 def _summary(request, response, collector: DbEgressCollector, ms: int) -> dict:
-    # resolver_match is None on APPEND_SLASH redirects and CORS preflights
-    match = request.resolver_match or _resolve(request)
+    match = request.resolver_match
     user = getattr(request, "user", None)
     # evaluating a lazy user here would run auth queries after the response
     if isinstance(user, SimpleLazyObject) and user._wrapped is empty:
         user = None
     authenticated = user is not None and user.is_authenticated
     return {
-        "route": (
-            match.route if match else _DIGIT_SEGMENT.sub("/{id}", request.path)[:200]
-        ),
+        "route": match.route if match else None,
         "view": match.view_name if match else None,
         "method": request.method,
         "status": response.status_code,
@@ -211,7 +196,7 @@ class DbEgressSamplingMiddleware:
         ms = round((time.perf_counter() - start) * 1000)
         try:
             summary = _summary(request, response, collector, ms)
-            logger.info(json.dumps(summary, separators=(",", ":")))
+            logger.info(json.dumps({"db_egress": summary}, separators=(",", ":")))
         except Exception:
             logger.exception("Failed to log DB egress sample")
         return response

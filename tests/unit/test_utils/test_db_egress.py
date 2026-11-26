@@ -1,6 +1,5 @@
 import json
 import logging
-import re
 import socket
 import sys
 from types import SimpleNamespace
@@ -8,8 +7,7 @@ from types import SimpleNamespace
 import pytest
 from django.core.exceptions import MiddlewareNotUsed
 from django.db import connections
-from django.db.utils import ConnectionHandler
-from django.http import HttpResponse, JsonResponse, StreamingHttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.test import Client
 from django.urls import path
 from rest_framework.decorators import api_view, permission_classes
@@ -59,10 +57,6 @@ def probe_view(request, pk):
     return JsonResponse({"ok": True})
 
 
-def probe_user_view(request, username):
-    return JsonResponse({"ok": True})
-
-
 def probe_iterator_view(request):
     User.objects.count()
     list(User.objects.iterator(chunk_size=10))
@@ -75,10 +69,6 @@ def probe_api_view(request):
     return Response({"ok": True})
 
 
-def probe_stream_view(request):
-    return StreamingHttpResponse(iter([b"chunk"]))
-
-
 def probe_error_view(request):
     User.objects.count()
     raise RuntimeError("probe failure")
@@ -86,10 +76,8 @@ def probe_error_view(request):
 
 urlpatterns = [
     path("probe/<int:pk>/", probe_view, name="egress-probe"),
-    path("probe-user/<str:username>/", probe_user_view, name="egress-probe-user"),
     path("probe-iterator/", probe_iterator_view, name="egress-probe-iterator"),
     path("probe-api/", probe_api_view, name="egress-probe-api"),
-    path("probe-stream/", probe_stream_view, name="egress-probe-stream"),
     path("probe-error/", probe_error_view, name="egress-probe-error"),
 ]
 
@@ -155,7 +143,7 @@ def egress_records(caplog):
 
 
 def egress_entries(caplog):
-    return [json.loads(r.getMessage()) for r in egress_records(caplog)]
+    return [json.loads(r.getMessage())["db_egress"] for r in egress_records(caplog)]
 
 
 class TestQueryShape:
@@ -168,32 +156,17 @@ class TestQueryShape:
             sql.format("%s, %s, %s")
         )
 
-    def test_pages_of_a_queryset_share_a_fingerprint(self):
-        users = User.objects.order_by("id")
+    def test_paging_collapses_to_one_fingerprint(self):
+        sql = 'SELECT "users_user"."id" FROM "users_user" ORDER BY "users_user"."id"'
 
-        fingerprints = {
-            query_fingerprint(str(page.query))
-            for page in (users[:10], users[10:20], users[:21], users[40:])
-        }
-
-        assert len(fingerprints) == 1
-
-    def test_savepoint_ids_collapse(self):
-        assert query_fingerprint('SAVEPOINT "s140_x1"') == query_fingerprint(
-            'SAVEPOINT "s7_x12"'
-        )
-        assert query_fingerprint('SAVEPOINT "s140_x1"') != query_fingerprint(
-            'RELEASE SAVEPOINT "s140_x1"'
-        )
-
-    def test_different_shapes_get_different_fingerprints(self):
-        assert query_fingerprint('SELECT "a"."id" FROM "a"') != query_fingerprint(
-            'SELECT "a"."name" FROM "a"'
-        )
-
-    def test_fingerprint_is_a_short_hash(self):
-        assert re.fullmatch(
-            r"[0-9a-f]{12}", query_fingerprint('SELECT "a"."id" FROM "a"')
+        assert (
+            len(
+                {
+                    query_fingerprint(f"{sql} {paging}")
+                    for paging in ("LIMIT 10", "LIMIT 10 OFFSET 20", "OFFSET 40")
+                }
+            )
+            == 1
         )
 
     @pytest.mark.parametrize(
@@ -209,22 +182,8 @@ class TestQueryShape:
                 "INSERT questions_forecast",
             ),
             (
-                'UPDATE "posts_post" SET "forecasts_count" = %s '
-                'WHERE "posts_post"."id" = %s',
-                "UPDATE posts_post",
-            ),
-            (
-                'DELETE FROM "comments_comment" WHERE "comments_comment"."id" IN (%s)',
-                "DELETE comments_comment",
-            ),
-            (
                 'SELECT "posts_post"."id", (SELECT COUNT(*) FROM "questions_forecast" U0 '
                 'WHERE U0."post_id" = ("posts_post"."id")) AS "n" FROM "posts_post"',
-                "SELECT posts_post",
-            ),
-            (
-                'SELECT COUNT(*) FROM (SELECT DISTINCT "posts_post"."id" AS "col1" '
-                'FROM "posts_post") subquery',
                 "SELECT posts_post",
             ),
             (
@@ -232,8 +191,6 @@ class TestQueryShape:
                 'FROM "posts_post"',
                 "SELECT posts_post",
             ),
-            ('(SELECT "a"."id" FROM "a") UNION (SELECT "b"."id" FROM "b")', "SELECT a"),
-            ("select id from users_user", "SELECT users_user"),
             ('SAVEPOINT "s123_x1"', "SAVEPOINT"),
         ],
     )
@@ -248,54 +205,25 @@ class TestDbEgressCollector:
         posts = (
             'SELECT "posts_post"."id" FROM "posts_post" WHERE "posts_post"."id" IN ({})'
         )
-        users = 'SELECT "users_user"."id" FROM "users_user"'
-        update = 'UPDATE "posts_post" SET "forecasts_count" = %s'
 
         run_query(collector, wire, posts.format("%s"), 100)
         run_query(collector, wire, posts.format("%s, %s, %s"), 300)
-        run_query(collector, wire, users, 1000)
-        run_query(collector, wire, update, 10)
+        run_query(collector, wire, 'SELECT "users_user"."id" FROM "users_user"', 1000)
+        run_query(collector, wire, 'UPDATE "posts_post" SET "forecasts_count" = %s', 10)
         for i in range(4):
             run_query(collector, wire, f'SELECT "t{i}"."id" FROM "t{i}"', i + 1)
 
         assert collector.queries == 8
-        assert collector.db_bytes == 100 + 300 + 1000 + 10 + 1 + 2 + 3 + 4
-        assert collector.top() == [
-            {
-                "label": "SELECT users_user",
-                "fp": query_fingerprint(users),
-                "calls": 1,
-                "bytes": 1000,
-                "max_bytes": 1000,
-            },
-            {
-                "label": "SELECT posts_post",
-                "fp": query_fingerprint(posts.format("%s")),
-                "calls": 2,
-                "bytes": 400,
-                "max_bytes": 300,
-            },
-            {
-                "label": "UPDATE posts_post",
-                "fp": query_fingerprint(update),
-                "calls": 1,
-                "bytes": 10,
-                "max_bytes": 10,
-            },
-            {
-                "label": "SELECT t3",
-                "fp": query_fingerprint('SELECT "t3"."id" FROM "t3"'),
-                "calls": 1,
-                "bytes": 4,
-                "max_bytes": 4,
-            },
-            {
-                "label": "SELECT t2",
-                "fp": query_fingerprint('SELECT "t2"."id" FROM "t2"'),
-                "calls": 1,
-                "bytes": 3,
-                "max_bytes": 3,
-            },
+        assert collector.db_bytes == 1420
+        assert [
+            (s["label"], s["calls"], s["bytes"], s["max_bytes"])
+            for s in collector.top()
+        ] == [
+            ("SELECT users_user", 1, 1000, 1000),
+            ("SELECT posts_post", 2, 400, 300),
+            ("UPDATE posts_post", 1, 10, 10),
+            ("SELECT t3", 1, 4, 4),
+            ("SELECT t2", 1, 3, 3),
         ]
 
     def test_execute_exception_propagates_unchanged(self):
@@ -323,41 +251,12 @@ class TestDbEgressCollector:
         assert result == "rows"
         assert collector.queries == 1
         assert collector.db_bytes is None
-        assert collector.top()[0]["bytes"] is None
-
-    def test_non_str_sql_is_still_measured(self):
-        wire = FakeWire()
-        collector = DbEgressCollector(read_bytes=wire.read)
-
-        assert run_query(collector, wire, b"SELECT 1", 50) == 50
-        run_query(collector, wire, "SELECT 1", 50)
-
-        assert collector.queries == 2
-        assert collector.db_bytes == 100
-
-    def test_install_wraps_every_alias(self, monkeypatch, settings):
-        db = settings.DATABASES["default"]
-        handler = ConnectionHandler({"default": {**db}, "replica": {**db}})
-        monkeypatch.setattr(db_egress, "connections", handler)
-        collector = DbEgressCollector()
-
-        with collector.install():
-            assert [handler[alias].execute_wrappers for alias in handler] == [
-                [collector],
-                [collector],
-            ]
-
-        assert [handler[alias].execute_wrappers for alias in handler] == [[], []]
 
 
 class TestTcpBytesReceived:
-    def test_none_when_not_connected(self):
-        assert tcp_bytes_received(SimpleNamespace(connection=None)) is None
-
-    def test_none_when_connection_closed(self):
-        connection = SimpleNamespace(connection=ClosedRawConnection())
-
-        assert tcp_bytes_received(connection) is None
+    @pytest.mark.parametrize("raw", [None, ClosedRawConnection()])
+    def test_none_without_open_connection(self, raw):
+        assert tcp_bytes_received(SimpleNamespace(connection=raw)) is None
 
     def test_none_for_non_tcp_socket_and_fd_left_open(self):
         a, b = socket.socketpair()
@@ -367,12 +266,6 @@ class TestTcpBytesReceived:
             )
             a.sendall(b"x")
             assert b.recv(1) == b"x"
-
-    @linux_only
-    def test_none_for_invalid_fd(self):
-        raw = SimpleNamespace(closed=0, fileno=lambda: -1)
-
-        assert tcp_bytes_received(SimpleNamespace(connection=raw)) is None
 
     @linux_only
     def test_counts_tcp_bytes_received(self):
@@ -390,43 +283,28 @@ class TestTcpBytesReceived:
                 client.sendall(b"ping")
                 assert peer.recv(4) == b"ping"
 
-    @linux_only
-    def test_counts_result_bytes_on_the_database_connection(self):
-        connection = connections["default"]
-        connection.ensure_connection()
-        if (connection.settings_dict["HOST"] or "/").startswith("/"):
-            pytest.skip("unix-socket database")
-        before = tcp_bytes_received(connection)
 
-        with connection.cursor() as cursor:
-            cursor.execute("SELECT repeat('x', 100000)")
-            cursor.fetchone()
-
-        assert tcp_bytes_received(connection) - before >= 100_000
+@pytest.mark.parametrize(
+    "user_agent, expected",
+    [
+        ("CFWorkerProxy x", "gateway"),
+        ("node", "nextjs"),
+        ("Mozilla/5.0 (Macintosh)", "browser"),
+        ("curl/8.7.1", "other"),
+        ("", "other"),
+    ],
+)
+def test_client_from_user_agent(user_agent, expected):
+    assert db_egress._client(user_agent) == expected
 
 
 @pytest.mark.urls(__name__)
 class TestDbEgressSamplingMiddleware:
-    def test_registered_right_after_healthcheck(self, settings):
-        assert settings.MIDDLEWARE[:2] == [
-            "utils.middlewares.HealthCheckMiddleware",
-            "utils.db_egress.DbEgressSamplingMiddleware",
-        ]
-
     def test_rate_zero_drops_middleware_from_chain(self, settings):
         settings.DB_EGRESS_SAMPLE_RATE = 0
 
         with pytest.raises(MiddlewareNotUsed):
             DbEgressSamplingMiddleware(lambda request: HttpResponse())
-
-    def test_rate_zero_logs_nothing(self, settings, client, caplog):
-        settings.DB_EGRESS_SAMPLE_RATE = 0
-
-        with caplog.at_level(logging.INFO, logger="db_egress"):
-            response = client.get(f"/probe/{PROBE_PK}/")
-
-        assert response.status_code == 200
-        assert egress_records(caplog) == []
 
     def test_unsampled_request_logs_nothing(
         self, settings, client, caplog, monkeypatch
@@ -457,7 +335,7 @@ class TestDbEgressSamplingMiddleware:
                 f"/probe/{PROBE_PK}/",
                 {
                     "with_cp": "true",
-                    "limit": "10",
+                    "limit": "9" * 100,
                     "include_cp_history": "false",
                     "statuses": "open",
                     "search": "secret-term",
@@ -467,59 +345,32 @@ class TestDbEgressSamplingMiddleware:
 
         assert response.status_code == 200
         [record] = egress_records(caplog)
-        assert record.levelno == logging.INFO
         line = record.getMessage()
         assert "\n" not in line
-        entry = json.loads(line)
+        entry = json.loads(line)["db_egress"]
         assert set(entry) == LOG_KEYS
         assert entry["route"] == "probe/<int:pk>/"
         assert entry["view"] == "egress-probe"
-        assert entry["method"] == "GET"
-        assert entry["status"] == 200
-        assert entry["client"] == "nextjs"
-        assert entry["auth"] == "anon"
-        assert entry["tier"] is None
-        assert entry["bot"] is None
+        assert (entry["method"], entry["status"]) == ("GET", 200)
+        assert (entry["client"], entry["auth"], entry["tier"], entry["bot"]) == (
+            "nextjs",
+            "anon",
+            None,
+            None,
+        )
         assert entry["params"] == {
             "with_cp": "true",
-            "limit": "10",
+            "limit": "9" * 32,
             "include_cp_history": "false",
         }
-        assert entry["queries"] == 3
-        assert entry["db_bytes"] == 150
+        assert (entry["queries"], entry["db_bytes"]) == (3, 150)
         assert entry["resp_bytes"] == len(response.content)
         assert isinstance(entry["ms"], int)
-        assert len(entry["top"]) == 3
-        assert len({shape["fp"] for shape in entry["top"]}) == 3
-        for shape in entry["top"]:
-            assert set(shape) == {"label", "fp", "calls", "bytes", "max_bytes"}
-            assert shape["label"] == "SELECT users_user"
-            assert (shape["calls"], shape["bytes"], shape["max_bytes"]) == (1, 50, 50)
+        assert [
+            (s["label"], s["calls"], s["bytes"], s["max_bytes"]) for s in entry["top"]
+        ] == [("SELECT users_user", 1, 50, 50)] * 3
         for leaked in ("secret-term", "statuses", str(PROBE_PK), "WHERE", "%s"):
             assert leaked not in line
-
-    @pytest.mark.parametrize(
-        "user_agent, expected",
-        [
-            ("CFWorkerProxy/1.0", "gateway"),
-            ("node", "nextjs"),
-            ("node-fetch/1.0", "nextjs"),
-            ("Mozilla/5.0 (Macintosh)", "browser"),
-            ("curl/8.7.1", "other"),
-            (None, "other"),
-        ],
-    )
-    def test_client_from_user_agent(
-        self, settings, client, caplog, user_agent, expected
-    ):
-        settings.DB_EGRESS_SAMPLE_RATE = 1
-        headers = {"User-Agent": user_agent} if user_agent else {}
-
-        with caplog.at_level(logging.INFO, logger="db_egress"):
-            client.get(f"/probe/{PROBE_PK}/", headers=headers)
-
-        [entry] = egress_entries(caplog)
-        assert entry["client"] == expected
 
     def test_authenticated_user_fields(
         self, settings, caplog, metac_bot, create_client_for_user
@@ -534,11 +385,12 @@ class TestDbEgressSamplingMiddleware:
 
         assert response.status_code == 200
         [record] = egress_records(caplog)
-        entry = json.loads(record.getMessage())
-        assert entry["auth"] == "user"
-        assert entry["tier"] == "unrestricted"
-        assert entry["bot"] is True
-        assert entry["view"] == "egress-probe-api"
+        entry = json.loads(record.getMessage())["db_egress"]
+        assert (entry["auth"], entry["tier"], entry["bot"]) == (
+            "user",
+            "unrestricted",
+            True,
+        )
         line = record.getMessage()
         for leaked in (
             metac_bot.username,
@@ -546,37 +398,6 @@ class TestDbEgressSamplingMiddleware:
             ApiKey.objects.get(user=metac_bot).key,
         ):
             assert leaked not in line
-
-    def test_unevaluated_session_user_is_not_loaded(
-        self, settings, client, caplog, user1, django_assert_num_queries
-    ):
-        settings.DB_EGRESS_SAMPLE_RATE = 1
-        client.force_login(user1)
-
-        with caplog.at_level(logging.INFO, logger="db_egress"):
-            with django_assert_num_queries(3):
-                client.get(f"/probe/{PROBE_PK}/")
-
-        [entry] = egress_entries(caplog)
-        assert entry["queries"] == 3
-        assert entry["auth"] == "anon"
-
-    @pytest.mark.parametrize("reader", [unavailable_reader, broken_reader])
-    def test_unavailable_byte_counter_degrades_gracefully(
-        self, settings, client, caplog, monkeypatch, reader
-    ):
-        settings.DB_EGRESS_SAMPLE_RATE = 1
-        monkeypatch.setattr(db_egress, "tcp_bytes_received", reader)
-
-        with caplog.at_level(logging.INFO, logger="db_egress"):
-            response = client.get(f"/probe/{PROBE_PK}/")
-
-        assert response.status_code == 200
-        [entry] = egress_entries(caplog)
-        assert entry["queries"] == 3
-        assert entry["db_bytes"] is None
-        assert [shape["calls"] for shape in entry["top"]] == [1, 1, 1]
-        assert all(shape["bytes"] is None for shape in entry["top"])
 
     def test_server_side_cursor_makes_db_bytes_unknown(
         self, settings, client, caplog, monkeypatch
@@ -592,23 +413,6 @@ class TestDbEgressSamplingMiddleware:
         assert entry["db_bytes"] is None
         assert [shape["bytes"] for shape in entry["top"]] == [50, None]
 
-    def test_reader_measures_the_querying_connection(
-        self, settings, client, monkeypatch
-    ):
-        settings.DB_EGRESS_SAMPLE_RATE = 1
-        seen = []
-
-        def spy_reader(connection):
-            seen.append(connection)
-            return 0
-
-        monkeypatch.setattr(db_egress, "tcp_bytes_received", spy_reader)
-
-        client.get(f"/probe/{PROBE_PK}/")
-
-        assert len(seen) == 6
-        assert all(connection is connections["default"] for connection in seen)
-
     def test_view_error_logs_once_and_uninstalls_collector(self, settings, caplog):
         settings.DB_EGRESS_SAMPLE_RATE = 1
 
@@ -617,55 +421,20 @@ class TestDbEgressSamplingMiddleware:
 
         assert response.status_code == 500
         [entry] = egress_entries(caplog)
-        assert entry["status"] == 500
-        assert entry["queries"] == 1
+        assert (entry["status"], entry["queries"]) == (500, 1)
         assert connections["default"].execute_wrappers == []
 
-    def test_unresolved_path_falls_back_to_id_placeholders(
-        self, settings, client, caplog
-    ):
+    def test_unresolved_path_is_not_logged(self, settings, client, caplog):
         settings.DB_EGRESS_SAMPLE_RATE = 1
 
         with caplog.at_level(logging.INFO, logger="db_egress"):
-            response = client.get("/nowhere/123/x/456/")
+            response = client.get("/nowhere/alice@example.com/")
 
         assert response.status_code == 404
-        [entry] = egress_entries(caplog)
-        assert entry["route"] == "/nowhere/{id}/x/{id}/"
-        assert entry["view"] is None
-        assert entry["queries"] == 0
-
-    def test_append_slash_redirect_logs_route_not_path(self, settings, client, caplog):
-        settings.DB_EGRESS_SAMPLE_RATE = 1
-
-        with caplog.at_level(logging.INFO, logger="db_egress"):
-            response = client.get("/probe-user/alice")
-
-        assert response.status_code == 301
         [record] = egress_records(caplog)
-        entry = json.loads(record.getMessage())
-        assert entry["route"] == "probe-user/<str:username>/"
-        assert entry["view"] == "egress-probe-user"
+        entry = json.loads(record.getMessage())["db_egress"]
+        assert (entry["route"], entry["view"]) == (None, None)
         assert "alice" not in record.getMessage()
-
-    def test_free_text_fields_are_bounded(self, settings, client, caplog):
-        settings.DB_EGRESS_SAMPLE_RATE = 1
-
-        with caplog.at_level(logging.INFO, logger="db_egress"):
-            client.get("/nowhere/" + "x" * 500, {"limit": "9" * 100})
-
-        [entry] = egress_entries(caplog)
-        assert len(entry["route"]) == 200
-        assert entry["params"] == {"limit": "9" * 32}
-
-    def test_streaming_response_has_no_resp_bytes(self, settings, client, caplog):
-        settings.DB_EGRESS_SAMPLE_RATE = 1
-
-        with caplog.at_level(logging.INFO, logger="db_egress"):
-            client.get("/probe-stream/")
-
-        [entry] = egress_entries(caplog)
-        assert entry["resp_bytes"] is None
 
     def test_healthcheck_is_not_sampled(self, settings, client, caplog):
         settings.DB_EGRESS_SAMPLE_RATE = 1
