@@ -2,10 +2,13 @@ import pytest
 import numpy as np
 from datetime import datetime, timezone as dt_timezone
 
+from django.db import connection
+from django.test.utils import CaptureQueriesContext
+
 from projects.models import Project
 from projects.permissions import ObjectPermission
 from questions.types import AggregationMethod
-from questions.models import Question, AggregateForecast
+from questions.models import Question, AggregateForecast, Forecast
 from scoring.models import Leaderboard, LeaderboardEntry, Reputation
 from users.models import User
 from utils.the_math.aggregations import (
@@ -13,6 +16,8 @@ from utils.the_math.aggregations import (
     summarize_array,
     ForecastSet,
     get_aggregation_by_name,
+    get_aggregation_history,
+    get_aggregations_at_time,
     UnweightedAggregation,
     RecencyWeightedAggregation,
     ProAggregation,
@@ -1032,3 +1037,28 @@ class TestGetAggregationHistoryCutoff:
         assert len(aggregations) == 1
         assert aggregations[0].end_time is None
         assert aggregations[0].forecaster_count == 2
+
+
+def test_aggregation_forecast_loads_skip_unused_columns(question_binary):
+    forecast_time = datetime(2025, 2, 1, tzinfo=dt_timezone.utc)
+    for username in ["loader_a", "loader_b"]:
+        Forecast.objects.create(
+            question=question_binary,
+            author=User.objects.create(username=username),
+            probability_yes=0.4,
+            start_time=forecast_time,
+        )
+
+    with CaptureQueriesContext(connection) as ctx:
+        get_aggregation_history(question_binary, [AggregationMethod.RECENCY_WEIGHTED])
+        get_aggregations_at_time(
+            question_binary, forecast_time, [AggregationMethod.RECENCY_WEIGHTED]
+        )
+
+    selects = [
+        q["sql"].split(" FROM ")[0]
+        for q in ctx.captured_queries
+        if 'FROM "questions_forecast"' in q["sql"]
+    ]
+    assert len(selects) == 2
+    assert not [s for s in selects if '"users_user".' in s or "distribution" in s]
