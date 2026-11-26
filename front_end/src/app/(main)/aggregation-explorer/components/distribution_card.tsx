@@ -7,18 +7,21 @@ import {
   faUsers,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { Turnstile } from "@marsidev/react-turnstile";
 import { saveAs } from "file-saver";
 import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 import toast from "react-hot-toast";
 
+import { usePublicSettings } from "@/contexts/public_settings_context";
 import ClientPostsApi from "@/services/api/posts/posts.client";
 import { ContinuousAreaGraphType } from "@/types/charts";
 import {
   AggregateForecastHistory,
   NumericAggregateForecastHistory,
 } from "@/types/question";
+import { isCloudflareChallenge } from "@/utils/core/errors";
 import { getPredictionDisplayValue } from "@/utils/formatters/prediction";
 
 import AggregationLabel from "./aggregation_label";
@@ -64,7 +67,9 @@ export default function DistributionCard({
   isDefault,
 }: Props) {
   const t = useTranslations();
+  const { PUBLIC_TURNSTILE_SITE_KEY } = usePublicSettings();
   const [isDownloading, setIsDownloading] = useState(false);
+  const [needsClearance, setNeedsClearance] = useState(false);
 
   const aggregation = (
     mergedData.aggregations as Record<
@@ -102,7 +107,7 @@ export default function DistributionCard({
         : null,
   });
 
-  const handleDownload = async () => {
+  const handleDownload = async (isRetry = false) => {
     setIsDownloading(true);
     try {
       const blob = await ClientPostsApi.getAggregationsPostZipData(
@@ -120,6 +125,14 @@ export default function DistributionCard({
         .replace(/_+/g, "_");
       saveAs(blob, `${safeName}.zip`);
     } catch (error) {
+      if (
+        !isRetry &&
+        PUBLIC_TURNSTILE_SITE_KEY &&
+        isCloudflareChallenge(error)
+      ) {
+        setNeedsClearance(true);
+        return;
+      }
       toast.error(
         t("downloadQuestionDataError") +
           (error instanceof Error ? error.message : String(error))
@@ -149,8 +162,8 @@ export default function DistributionCard({
           />
           <span className="font-medium tabular-nums">{forecasterCount}</span>
           <button
-            onClick={handleDownload}
-            disabled={isDownloading}
+            onClick={() => handleDownload()}
+            disabled={isDownloading || needsClearance}
             className="text-gray-400 transition-colors hover:text-blue-600 disabled:opacity-50 dark:text-gray-400-dark dark:hover:text-blue-400"
             aria-label={t("downloadQuestionData")}
             title={t("downloadQuestionData")}
@@ -159,6 +172,23 @@ export default function DistributionCard({
           </button>
         </span>
       </div>
+
+      {needsClearance && (
+        // Widget needs pre-clearance enabled so solving it sets cf_clearance
+        <Turnstile
+          siteKey={PUBLIC_TURNSTILE_SITE_KEY}
+          options={{ appearance: "interaction-only" }}
+          className="mt-2"
+          onSuccess={() => {
+            setNeedsClearance(false);
+            void handleDownload(true);
+          }}
+          onError={() => {
+            setNeedsClearance(false);
+            toast.error(t("downloadQuestionDataError"));
+          }}
+        />
+      )}
 
       <div className="mt-2 flex flex-col gap-0.5 text-xs font-semibold text-olive-700 dark:text-olive-700-dark">
         {predictionLabel.split("\n").map((line, i) => (
