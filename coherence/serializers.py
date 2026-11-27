@@ -2,7 +2,7 @@ from collections import Counter, defaultdict
 from typing import Iterable
 
 import numpy as np
-from django.db.models import Q
+from django.db.models import Prefetch, Q
 from multidict import MultiDict
 from rest_framework import serializers
 
@@ -147,9 +147,13 @@ def serialize_aggregate_coherence_link_many(
     current_question: Question = None,
 ):
     ids = [link.pk for link in links]
+    questions = Question.objects.select_related("post")
     qs = AggregateCoherenceLink.objects.filter(
         pk__in=[c.pk for c in links]
-    ).select_related("question1__post", "question2__post")
+    ).prefetch_related(
+        Prefetch("question1", queryset=questions),
+        Prefetch("question2", queryset=questions),
+    )
 
     if current_user:
         qs = qs.annotate_user_vote(current_user)
