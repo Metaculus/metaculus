@@ -1,10 +1,12 @@
 from collections import Counter
 from typing import Iterable
 
+from django.db.models import Prefetch
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
 from comments.models import (
+    Comment,
     KeyFactor,
     KeyFactorDriver,
     ImpactDirection,
@@ -102,13 +104,12 @@ def serialize_key_factors_many(
     qs = (
         KeyFactor.objects.filter(pk__in=ids)
         .filter_active()
-        .select_related(
-            "comment__author",
-            "comment__on_post",
-            "question",
-            "driver",
-            "base_rate",
-            "news",
+        .select_related("question", "driver", "base_rate", "news")
+        .prefetch_related(
+            Prefetch(
+                "comment",
+                queryset=Comment.objects.select_related("author", "on_post"),
+            )
         )
     )
 
