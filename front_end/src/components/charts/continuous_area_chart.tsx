@@ -240,7 +240,15 @@ const ContinuousAreaChart: FC<Props> = ({
 
     const scaledPerDatum = parsedData.map((datum) => {
       const { pmf, cdf, componentCdfs } = datum;
-      const useRescaled = globalScaling && !isNil(question.scaling.zero_point);
+      // Discrete questions are never rescaled. They have no zero point (the
+      // backend nulls it on save for every type but numeric/date), and the
+      // discrete axis cap / OOB break above is computed from the raw PMF, so
+      // rescaled bars could overflow it. The explicit check is a failsafe in
+      // case a non-null zero point ever reaches a discrete question.
+      const useRescaled =
+        question.type !== QuestionType.Discrete &&
+        globalScaling &&
+        !isNil(question.scaling.zero_point);
       const scaled = useRescaled
         ? (() => {
             const cdfRescaled = rescaleCdf(cdf, question.scaling, {
