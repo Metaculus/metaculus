@@ -339,11 +339,28 @@ async function downloadAsDataUrl(
   }
 }
 
-export async function getPostZipData(params: DataParams) {
-  return downloadAsDataUrl(() => ServerPostsApi.getPostZipData(params));
-}
-
 const positiveInt = z.number().int().positive();
+
+const dataParamsSchema = z.object({
+  post_id: positiveInt.optional(),
+  post_ids: z.array(positiveInt).optional(),
+  question_id: positiveInt.optional(),
+  sub_question: positiveInt.optional(),
+  aggregation_methods: z.array(z.string()).optional(),
+  minimize: z.boolean().optional(),
+  user_ids: z.array(positiveInt).optional(),
+  include_comments: z.boolean().optional(),
+  include_scores: z.boolean().optional(),
+  include_bots: z.boolean().optional(),
+  include_user_data: z.boolean().optional(),
+  include_key_factors: z.boolean().optional(),
+  anonymized: z.boolean().optional(),
+}) satisfies z.ZodType<DataParams>;
+
+export async function getPostZipData(params: DataParams) {
+  const validated = dataParamsSchema.parse(params);
+  return downloadAsDataUrl(() => ServerPostsApi.getPostZipData(validated));
+}
 
 const aggregationsZipSchema = z.object({
   postId: positiveInt,
