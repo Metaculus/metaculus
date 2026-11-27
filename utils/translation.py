@@ -1,5 +1,6 @@
 import asyncio
 import base64
+import functools
 import hashlib
 import html
 import json
@@ -14,8 +15,13 @@ from django.db.models import F, Q, TextField
 from django.db.models.functions import MD5, Concat
 from google.auth.transport.requests import Request
 from google.oauth2 import service_account
+from django.db.models.query import QuerySet
 from modeltranslation.translator import translator
-from modeltranslation.utils import build_localized_fieldname
+from modeltranslation.utils import (
+    build_localized_fieldname,
+    get_language as get_translation_language,
+    resolution_order,
+)
 
 
 def migration_update_default_fields(model, translation_fields):
@@ -409,3 +415,38 @@ def update_translations_for_model(
     logging.info(f"Updated translations for {total_objects} objects")
 
     return processed_count
+
+
+@functools.cache
+def get_unused_translation_columns(model, language: str) -> tuple[str, ...]:
+    """
+    Base and localized columns outside the language's and the original language's
+    fallback chains; is_current_content_translated() reads within them too
+    """
+
+    columns = []
+    for name, fields in translator.get_options_for_model(model).all_fields.items():
+        fallbacks = getattr(model, name).fallback_languages
+        used = {
+            *resolution_order(language, fallbacks),
+            *resolution_order(settings.ORIGINAL_LANGUAGE_CODE, fallbacks),
+        }
+        columns += [name, *(f.name for f in fields if f.language not in used)]
+
+    return tuple(columns)
+
+
+def defer_unused_translations(queryset: QuerySet, *related: str) -> QuerySet:
+    language = get_translation_language()
+    models = [("", queryset.model)] + [
+        (f"{name}__", queryset.model._meta.get_field(name).related_model)
+        for name in related
+    ]
+    columns = [
+        prefix + column
+        for prefix, model in models
+        for column in get_unused_translation_columns(model, language)
+    ]
+
+    # Plain QuerySet.defer: the multilingual one widens base names to every language
+    return QuerySet.defer(queryset, *columns)
