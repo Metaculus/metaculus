@@ -242,10 +242,8 @@ def export_data_for_questions(
     if include_key_factors and question_ids:
         key_factors = (
             KeyFactor.objects.filter_active()
-            .filter(
-                comment__on_post__questions__id__in=question_ids,
-                comment__is_soft_deleted=False,
-            )
+            .filter_public_comments()
+            .filter(comment__on_post__questions__id__in=question_ids)
             .select_related(
                 "driver",
                 "base_rate",
@@ -256,9 +254,14 @@ def export_data_for_questions(
             )
             .order_by("created_at")
         )
-        aggregate_question_links = AggregateCoherenceLink.objects.filter(
-            Q(question1_id__in=question_ids) | Q(question2_id__in=question_ids)
-        ).select_related("question1__post", "question2__post")
+        # The other side of a link may be a question the user can't view
+        aggregate_question_links = (
+            AggregateCoherenceLink.objects.filter(
+                Q(question1_id__in=question_ids) | Q(question2_id__in=question_ids)
+            )
+            .filter_permission(user=user)
+            .select_related("question1__post", "question2__post")
+        )
     else:
         key_factors = None
         aggregate_question_links = None

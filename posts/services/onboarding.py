@@ -38,9 +38,9 @@ def _base_queryset():
         )
         .annotate(
             has_key_factors=Exists(
-                KeyFactor.objects.filter_active().filter(
-                    comment__on_post_id=OuterRef("pk"),
-                )
+                KeyFactor.objects.filter_active()
+                .filter_public_comments()
+                .filter(comment__on_post_id=OuterRef("pk"))
             )
         )
         .prefetch_related("projects")

@@ -110,7 +110,9 @@ def get_aggregate_links_for_question_api_view(request: Request, pk: int):
 
 @api_view(["POST"])
 def aggregate_links_vote_view(request: Request, pk: int):
-    aggregation = get_object_or_404(AggregateCoherenceLink, pk=pk)
+    aggregation = get_object_or_404(
+        AggregateCoherenceLink.objects.filter_permission(user=request.user), pk=pk
+    )
 
     vote = serializers.ChoiceField(
         required=False,
