@@ -23,6 +23,7 @@ from comments.services.key_factors.common import (
     calculate_freshness_votes_decay,
     calculate_freshness_base_rate,
 )
+from comments.services.feed import get_comments_feed
 from comments.services.notifications import notify_mentioned_users
 from posts.models import Post, PostUserSnapshot
 from projects.permissions import ObjectPermission
@@ -478,3 +479,17 @@ def test_update_comment__edit_shown_in_every_language(
         "en": "New text",
         "es": "New text",
     }
+
+
+def test_comments_feed_search_leaves_search_vector_unloaded(user1, post):
+    match = factory_comment(
+        author=user1, on_post=post, text_original="Inflation will rise"
+    )
+    factory_comment(author=user1, on_post=post, text_original="Unrelated")
+
+    found = list(
+        get_comments_feed(Comment.objects.all(), search="inflation", sort="relevance")
+    )
+
+    assert found == [match]
+    assert "text_original_search_vector" in found[0].get_deferred_fields()

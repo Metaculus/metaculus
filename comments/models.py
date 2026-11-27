@@ -24,6 +24,7 @@ from posts.models import Post
 from projects.models import Project
 from questions.models import Forecast
 from users.models import User
+from utils.db_backend import DeferredByDefaultMixin, deferred_by_default
 from utils.models import TimeStampedModel, TranslatedModel
 
 
@@ -75,7 +76,7 @@ class CommentQuerySet(models.QuerySet):
         )
 
 
-class Comment(TimeStampedModel, TranslatedModel):
+class Comment(DeferredByDefaultMixin, TimeStampedModel, TranslatedModel):
     comment_votes: QuerySet["CommentVote"]
     key_factors: QuerySet["KeyFactor"]
 
@@ -130,7 +131,9 @@ class Comment(TimeStampedModel, TranslatedModel):
     vote_score = models.IntegerField(default=0, db_index=True, editable=False)
     cmm_count = models.IntegerField(default=0, db_index=True, editable=False)
     key_factor_votes_score = models.FloatField(default=0, db_index=True, editable=False)
-    text_original_search_vector = SearchVectorField(null=True, editable=False)
+    text_original_search_vector = deferred_by_default(
+        SearchVectorField(null=True, editable=False)
+    )
 
     # annotated fields
     user_vote: int = 0
