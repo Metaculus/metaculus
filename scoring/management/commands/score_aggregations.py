@@ -11,7 +11,7 @@ from questions.models import Question
 from questions.types import AggregationMethod
 from scoring.constants import ScoreTypes
 from scoring.models import Score
-from scoring.utils import get_question_scores
+from scoring.utils import get_question_scores, invalidate_clipped_scores_cache
 
 logger = logging.getLogger(__name__)
 
@@ -64,6 +64,7 @@ def score_question_aggregations(
         ).delete()
         Score.objects.bulk_create(new_scores, batch_size=500)
     invalidate_average_coverage_cache([question])
+    invalidate_clipped_scores_cache(question)
     return len(new_scores)
 
 
