@@ -66,6 +66,10 @@ import {
 
 import ChartValueBox from "./primitives/chart_value_box";
 import LineCursorPoints from "./primitives/line_cursor_points";
+import OobBreakMarker, {
+  OOB_BREAK_LABEL_LINE_HEIGHT,
+  OobBreakMarkerDatum,
+} from "./primitives/oob_break_marker";
 import ResolutionDiamond from "./primitives/resolution_diamond";
 
 type ContinuousAreaColor = "orange" | "green" | "gray" | "purple";
@@ -86,6 +90,10 @@ export type ContinuousAreaGraphInput = Array<{
 }>;
 
 const TOP_PADDING = 10;
+const OOB_BREAK_TOP_PADDING = 28;
+const OOB_BREAK_LABEL_MIN_HEIGHT = 150;
+const BASE_AXIS_HEADROOM_RATIO = 1.2;
+const BREAK_AXIS_HEADROOM_RATIO = 1.5;
 const BOTTOM_PADDING = 20;
 const HORIZONTAL_PADDING = 10;
 const CURSOR_POINT_OFFSET = 5;
@@ -168,7 +176,34 @@ const ContinuousAreaChart: FC<Props> = ({
   const showYAxis =
     graphType === "cdf" ||
     (question.type === QuestionType.Discrete && !hideYAxis);
-  const paddingTop = graphType === "cdf" || discrete ? TOP_PADDING : 0;
+
+  const { oobAxisTop, hasOobOverflow, oobBreakThreshold } = useMemo(() => {
+    if (question.type !== QuestionType.Discrete || graphType === "cdf") {
+      return {
+        oobAxisTop: undefined,
+        hasOobOverflow: false,
+        oobBreakThreshold: undefined,
+      };
+    }
+    const inboundMax = Math.max(
+      0,
+      ...data.map((x) => x.pmf.slice(1, -1)).flat()
+    );
+    const base = inboundMax <= 0 ? 1 : inboundMax;
+    const needsBreak = data.some(
+      (x) =>
+        (x.pmf.at(0) ?? 0) > BASE_AXIS_HEADROOM_RATIO * base ||
+        (x.pmf.at(-1) ?? 0) > BASE_AXIS_HEADROOM_RATIO * base
+    );
+    const ratio = needsBreak
+      ? BREAK_AXIS_HEADROOM_RATIO
+      : BASE_AXIS_HEADROOM_RATIO;
+    return {
+      oobAxisTop: Math.min(1, ratio * base),
+      hasOobOverflow: needsBreak,
+      oobBreakThreshold: base,
+    };
+  }, [data, question.type, graphType]);
 
   const hasUserData = useMemo(
     () => data.some((d) => d.type === "user"),
@@ -180,10 +215,14 @@ const ContinuousAreaChart: FC<Props> = ({
       ? [...data].filter((el) => el.type === "user")
       : data;
 
-    const chartData: NumericPredictionGraph[] = [];
-    for (const datum of parsedData) {
+    const scaledPerDatum = parsedData.map((datum) => {
       const { pmf, cdf, componentCdfs } = datum;
-      const useRescaled = globalScaling && !isNil(question.scaling.zero_point);
+      // Failsafe: discrete questions have no zero point, and the OOB axis cap
+      // is computed from the raw PMF.
+      const useRescaled =
+        question.type !== QuestionType.Discrete &&
+        globalScaling &&
+        !isNil(question.scaling.zero_point);
       const scaled = useRescaled
         ? (() => {
             const cdfRescaled = rescaleCdf(cdf, question.scaling, {
@@ -193,13 +232,20 @@ const ContinuousAreaChart: FC<Props> = ({
             return { cdf: cdfRescaled, pmf: cdfToPmf(cdfRescaled) };
           })()
         : { cdf, pmf };
+      return { datum, scaled, componentCdfs };
+    });
 
+    const oobCap = oobAxisTop;
+
+    const chartData: NumericPredictionGraph[] = [];
+    for (const { datum, scaled, componentCdfs } of scaledPerDatum) {
       chartData.push(
         generateNumericAreaGraph({
           ...scaled,
           graphType,
           type: datum.type,
           question,
+          oobCap,
         })
       );
       if (componentCdfs && componentCdfs.length > 1) {
@@ -211,6 +257,7 @@ const ContinuousAreaChart: FC<Props> = ({
               graphType,
               type: "user_components",
               question,
+              oobCap,
             })
           );
         }
@@ -223,7 +270,84 @@ const ContinuousAreaChart: FC<Props> = ({
       }));
     }
     return chartData;
-  }, [data, graphType, hideCP, question, globalScaling, variant]);
+  }, [data, graphType, hideCP, question, globalScaling, variant, oobAxisTop]);
+
+  const getOobLabelColor = useCallback(
+    (chart: NumericPredictionGraph) => {
+      if (colorOverride && chart.type !== "user") return colorOverride;
+      switch (chart.color) {
+        case "orange":
+          return getThemeColor(
+            METAC_COLORS.orange[chart.type === "user_previous" ? "500" : "700"]
+          );
+        case "green":
+          return getThemeColor(METAC_COLORS.olive["800"]);
+        case "gray":
+          return getThemeColor(METAC_COLORS.gray["700"]);
+        case "purple":
+          return getThemeColor(METAC_COLORS.purple["700"]);
+        default:
+          return getThemeColor(METAC_COLORS.gray["600"]);
+      }
+    },
+    [colorOverride, getThemeColor]
+  );
+
+  const showOobBreakLabels = height >= OOB_BREAK_LABEL_MIN_HEIGHT;
+  const oobBreakLabels = useMemo(() => {
+    if (!discrete || !showOobBreakLabels) return [];
+    const labels: Array<{
+      key: string;
+      x: number;
+      y: number;
+      datum: OobBreakMarkerDatum;
+    }> = [];
+    for (const side of ["left", "right"] as const) {
+      const sideLabels = charts
+        .map((chart, chartIndex) => ({ chart, chartIndex }))
+        .filter(
+          ({ chart }) =>
+            chart.type !== "user_components" && !!chart.oobClamped?.[side]
+        )
+        .map(({ chart, chartIndex }) => ({
+          chart,
+          chartIndex,
+          clamp: chart.oobClamped?.[side] as OobClampedBar,
+        }))
+        .sort((a, b) => a.clamp.trueY - b.clamp.trueY);
+      sideLabels.forEach(({ chart, chartIndex, clamp }, stackIndex) => {
+        labels.push({
+          key: `${chartIndex}-${side}`,
+          x: clamp.x,
+          y: clamp.clampedY,
+          datum: {
+            trueValue: clamp.trueY,
+            formatValue: (v: number) => `${(v * 100).toFixed(1)}%`,
+            color: getOobLabelColor(chart),
+            stackIndex,
+          },
+        });
+      });
+    }
+    return labels;
+  }, [charts, discrete, showOobBreakLabels, getOobLabelColor]);
+
+  const oobMaxStack = useMemo(
+    () =>
+      oobBreakLabels.reduce(
+        (max, l) => Math.max(max, (l.datum.stackIndex ?? 0) + 1),
+        0
+      ),
+    [oobBreakLabels]
+  );
+
+  const paddingTop =
+    graphType === "cdf" || discrete
+      ? discrete && hasOobOverflow && showOobBreakLabels
+        ? OOB_BREAK_TOP_PADDING +
+          Math.max(0, oobMaxStack - 1) * OOB_BREAK_LABEL_LINE_HEIGHT
+        : TOP_PADDING
+      : 0;
 
   const { xDomain, yDomain } = useMemo<{
     xDomain: Tuple<number>;
@@ -282,10 +406,9 @@ const ContinuousAreaChart: FC<Props> = ({
     const xDomain: Tuple<number> = [xMin, xMax];
     if (graphType === "cdf") return { xDomain, yDomain: [0, 1] };
 
-    const maxValue = Math.max(...data.map((x) => x.pmf).flat());
     return {
       xDomain,
-      yDomain: [0, Math.min(1, 1.2 * (maxValue <= 0 ? 1 : maxValue))],
+      yDomain: [0, oobAxisTop ?? 1],
     };
   }, [
     data,
@@ -296,6 +419,7 @@ const ContinuousAreaChart: FC<Props> = ({
     globalScaling,
     question.inbound_outcome_count,
     question.scaling,
+    oobAxisTop,
   ]);
 
   const xScale = useMemo(
@@ -325,6 +449,20 @@ const ContinuousAreaChart: FC<Props> = ({
       }),
     [height, yDomain, paddingTop]
   );
+
+  const hasRightOobBreak =
+    discrete &&
+    charts.some(
+      (chart) => chart.type !== "user_components" && !!chart.oobClamped?.right
+    ) &&
+    getOobBreakScale(height - BOTTOM_PADDING - paddingTop) > 0;
+
+  const visibleYTicks = useMemo(() => {
+    if (!hasOobOverflow || oobBreakThreshold === undefined) {
+      return yScale.ticks;
+    }
+    return yScale.ticks.filter((tick) => tick <= oobBreakThreshold);
+  }, [yScale, hasOobOverflow, oobBreakThreshold]);
 
   const resolutionPoint =
     !isNil(question.resolution) && question.resolution !== ""
@@ -450,9 +588,9 @@ const ContinuousAreaChart: FC<Props> = ({
                 el.graphType === "pmf" ||
                 question.type === QuestionType.Discrete
               ) {
-                acc.yData[el.type] = getClosestYValue(
+                acc.yData[el.type] = getClosestHoverYValue(
                   normalizedX as number,
-                  el.graphLine
+                  el
                 );
                 return acc;
               }
@@ -632,7 +770,7 @@ const ContinuousAreaChart: FC<Props> = ({
                 acc.yData[el.type] = interpolateYValue(x, el.graphLine);
               }
             } else {
-              acc.yData[el.type] = getClosestYValue(x, el.graphLine);
+              acc.yData[el.type] = getClosestHoverYValue(x, el);
               acc.x = getClosestXValue(x, el.graphLine);
             }
             return acc;
@@ -782,9 +920,29 @@ const ContinuousAreaChart: FC<Props> = ({
                     },
                   }}
                   barWidth={barWidth}
+                  getPath={
+                    chart.oobClamped
+                      ? (props) =>
+                          getDiscreteBarPath(
+                            props as unknown as BarPathProps,
+                            chart.oobClamped
+                          )
+                      : undefined
+                  }
                 />
               );
             })}
+          {oobBreakLabels.map((p) => (
+            <VictoryScatter
+              key={`oob-break-${p.key}`}
+              data={[{ x: p.x, y: p.y, ...p.datum }]}
+              dataComponent={
+                <VictoryPortal>
+                  <OobBreakMarker />
+                </VictoryPortal>
+              }
+            />
+          ))}
           {!discrete
             ? charts.map((chart, index) => (
                 <VictoryLine
@@ -845,11 +1003,15 @@ const ContinuousAreaChart: FC<Props> = ({
                   },
                   ticks: { stroke: "transparent" },
                   axis: {
-                    stroke: getThemeColor(METAC_COLORS.gray["300"]),
+                    // Would show as a stray line through the right OOB
+                    // bar's break gaps.
+                    stroke: hasRightOobBreak
+                      ? "transparent"
+                      : getThemeColor(METAC_COLORS.gray["300"]),
                     strokeWidth: 1,
                   },
                 }}
-                tickValues={yScale.ticks}
+                tickValues={visibleYTicks}
                 tickFormat={yScale.tickFormat}
                 axisValue={xDomain[1]}
               />
@@ -1216,13 +1378,111 @@ const ContinuousAreaChart: FC<Props> = ({
   );
 };
 
+type OobClampedBar = {
+  x: number;
+  clampedY: number;
+  trueY: number;
+};
+
 type NumericPredictionGraph = {
   graphLine: Line;
   verticalLines: Line;
   color: ContinuousAreaColor;
   type: ContinuousAreaType;
   graphType: ContinuousAreaGraphType;
+  oobClamped?: {
+    left?: OobClampedBar;
+    right?: OobClampedBar;
+  };
 };
+
+// A clamped OOB bar's graphLine y is its drawn height; report the true mass.
+function getClosestHoverYValue(
+  x: number,
+  chart: NumericPredictionGraph
+): number {
+  const { oobClamped, graphLine } = chart;
+  if (oobClamped) {
+    const closestX = getClosestXValue(x, graphLine);
+    for (const clamp of [oobClamped.left, oobClamped.right]) {
+      if (clamp && clamp.x === closestX) return clamp.trueY;
+    }
+  }
+  return getClosestYValue(x, graphLine);
+}
+
+type BarPathProps = {
+  x0: number;
+  x1: number;
+  y0: number;
+  y1: number;
+  datum?: { x?: number };
+};
+
+// The axis top is BREAK_AXIS_HEADROOM_RATIO × the tallest in-bounds bar
+// whenever a break is needed, so that bar's pixel height is
+// barHeight / BREAK_AXIS_HEADROOM_RATIO.
+const OOB_NEIGHBOR_CLEARANCE = 4;
+const OOB_BREAK_COUNT = 3;
+const OOB_GAP_HEIGHT = 6;
+const OOB_SLIVER_HEIGHT = 9;
+const OOB_GAP_SLANT = 6;
+const OOB_MIN_CAP_HEIGHT = 10;
+const OOB_BREAK_BAND_HEIGHT =
+  OOB_BREAK_COUNT * OOB_GAP_HEIGHT + (OOB_BREAK_COUNT - 1) * OOB_SLIVER_HEIGHT;
+
+const OOB_MIN_SCALED_GAP_HEIGHT = 1.5;
+
+// Shrinks the break to fit short charts; 0 means draw a plain rect.
+function getOobBreakScale(barHeight: number): number {
+  const headroom = barHeight - barHeight / BREAK_AXIS_HEADROOM_RATIO;
+  const fullSize =
+    OOB_NEIGHBOR_CLEARANCE + OOB_BREAK_BAND_HEIGHT + OOB_MIN_CAP_HEIGHT;
+  const scale = Math.min(1, headroom / fullSize);
+  return scale * OOB_GAP_HEIGHT >= OOB_MIN_SCALED_GAP_HEIGHT ? scale : 0;
+}
+
+function getDiscreteBarPath(
+  props: BarPathProps,
+  oobClamped: NumericPredictionGraph["oobClamped"]
+): string {
+  const { x0, x1, y0, y1, datum } = props;
+  const isOobEdge =
+    !!oobClamped &&
+    (oobClamped.left?.x === datum?.x || oobClamped.right?.x === datum?.x);
+
+  const plainRect = `M ${x0},${y0} L ${x0},${y1} L ${x1},${y1} L ${x1},${y0} Z`;
+  if (!isOobEdge) {
+    return plainRect;
+  }
+
+  const barHeight = y0 - y1;
+  const scale = getOobBreakScale(barHeight);
+  if (scale === 0) {
+    return plainRect;
+  }
+
+  const neighborTop = y0 - barHeight / BREAK_AXIS_HEADROOM_RATIO;
+  const bandBottom = neighborTop - OOB_NEIGHBOR_CLEARANCE * scale;
+  const gapHeight = OOB_GAP_HEIGHT * scale;
+  const sliverHeight = OOB_SLIVER_HEIGHT * scale;
+  const slant = Math.min(OOB_GAP_SLANT * scale, (x1 - x0) / 2);
+
+  const quad = (bl: number, br: number, tl: number, tr: number) =>
+    `M ${x0},${bl} L ${x0},${tl} L ${x1},${tr} L ${x1},${br} Z`;
+  const pieces: string[] = [];
+  let bottomL = y0;
+  let bottomR = y0;
+  let cut = bandBottom;
+  for (let i = 0; i < OOB_BREAK_COUNT; i++) {
+    pieces.push(quad(bottomL, bottomR, cut, cut - slant));
+    bottomL = cut - gapHeight;
+    bottomR = bottomL - slant;
+    cut = bottomL - sliverHeight;
+  }
+  pieces.push(quad(bottomL, bottomR, y1, y1));
+  return pieces.join(" ");
+}
 
 function generateNumericAreaGraph(data: {
   pmf: number[];
@@ -1230,10 +1490,12 @@ function generateNumericAreaGraph(data: {
   graphType: ContinuousAreaGraphType;
   type: ContinuousAreaType;
   question: Question | GraphingQuestionProps;
+  oobCap?: number;
 }): NumericPredictionGraph {
-  const { pmf, cdf, graphType, type, question } = data;
+  const { pmf, cdf, graphType, type, question, oobCap } = data;
 
   const graph: Line = [];
+  const oobClamped: { left?: OobClampedBar; right?: OobClampedBar } = {};
   if (question.type === QuestionType.Discrete) {
     if (graphType === "cdf") {
       if (question.open_lower_bound) {
@@ -1253,16 +1515,27 @@ function generateNumericAreaGraph(data: {
       }
     } else {
       if (question.open_lower_bound) {
-        graph.push({ x: -0.5 / (cdf.length - 1), y: pmf.at(0) ?? 0 });
+        const trueY = pmf.at(0) ?? 0;
+        const x = -0.5 / (cdf.length - 1);
+        const clampedY =
+          oobCap !== undefined && trueY > oobCap ? oobCap : trueY;
+        if (clampedY !== trueY) {
+          oobClamped.left = { x, clampedY, trueY };
+        }
+        graph.push({ x, y: clampedY });
       }
       pmf.slice(1, -1).forEach((value, index) => {
         graph.push({ x: (index + 0.5) / (cdf.length - 1), y: value });
       });
       if (question.open_upper_bound) {
-        graph.push({
-          x: (cdf.length - 0.5) / (cdf.length - 1),
-          y: pmf.at(-1) ?? 0,
-        });
+        const trueY = pmf.at(-1) ?? 0;
+        const x = (cdf.length - 0.5) / (cdf.length - 1);
+        const clampedY =
+          oobCap !== undefined && trueY > oobCap ? oobCap : trueY;
+        if (clampedY !== trueY) {
+          oobClamped.right = { x, clampedY, trueY };
+        }
+        graph.push({ x, y: clampedY });
       }
     }
   } else {
@@ -1297,6 +1570,7 @@ function generateNumericAreaGraph(data: {
     }
   }
 
+  const hasOobClamp = !!(oobClamped.left || oobClamped.right);
   if (type === "user_components") {
     return {
       graphLine: graph,
@@ -1304,6 +1578,7 @@ function generateNumericAreaGraph(data: {
       color: CHART_COLOR_MAP[type],
       type,
       graphType,
+      ...(hasOobClamp ? { oobClamped } : {}),
     };
   }
 
@@ -1348,6 +1623,7 @@ function generateNumericAreaGraph(data: {
     color: CHART_COLOR_MAP[type],
     type,
     graphType,
+    ...(hasOobClamp ? { oobClamped } : {}),
   };
 }
 
