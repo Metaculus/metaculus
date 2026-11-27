@@ -4,9 +4,25 @@ import type {
   FetchedAggregateCoherenceLinks,
   FetchedCoherenceLinks,
 } from "@/types/coherence";
+import { PostWithForecasts } from "@/types/post";
 import { Question } from "@/types/question";
 
 export type AggregateLinkVoteValue = 1 | -1 | null;
+
+export type SuggestedLinkEntry = {
+  post: PostWithForecasts;
+  // Which sub-question of `post` the suggestion actually points at.
+  // For non-group posts this is just the post's question id.
+  suggested_question_id: number;
+  // The suggested link's configuration, as a CoherenceLink stores it.
+  target_is_cause: boolean;
+  direction: 1 | -1;
+  strength: number;
+};
+
+export type FetchedSuggestedLinks = {
+  data: SuggestedLinkEntry[];
+};
 
 class CoherenceLinksApi extends ApiService {
   static readonly clientRoutes = {
@@ -43,6 +59,17 @@ class CoherenceLinksApi extends ApiService {
     return await this.get(
       `/coherence/question/links/${questionId}/needs-update/`
     );
+  }
+
+  /**
+   * Retrieves AI-driven question-link suggestions for a question. The first
+   * request for a question computes them, which takes several seconds.
+   * Returns an empty list when the feature is off or unavailable.
+   */
+  async getSuggestedLinksForQuestion(
+    questionId: number
+  ): Promise<FetchedSuggestedLinks> {
+    return await this.get(`/coherence/question/${questionId}/suggested-links/`);
   }
 }
 

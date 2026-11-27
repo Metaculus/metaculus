@@ -472,6 +472,11 @@ GENERAL_LLM_MODEL = _llm_model("openai/gpt-6-luna")
 # Stored Post/ITNArticle embedding vectors depend on it; changing requires re-embedding
 LLM_EMBEDDING_MODEL = _llm_model("openai/text-embedding-3-large")
 
+# AI question-link suggestions; they also need OPENROUTER_API_KEY
+QUESTION_LINK_SUGGESTIONS_ENABLED = (
+    os.environ.get("QUESTION_LINK_SUGGESTIONS_ENABLED", "false").lower() == "true"
+)
+
 # Serper Google API key
 SERPER_API_KEY = os.environ.get("SERPER_API_KEY")
 

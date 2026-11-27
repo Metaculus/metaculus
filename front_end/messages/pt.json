@@ -1548,6 +1548,7 @@
   "configureRelationship": "Configurar Relação",
   "coherenceSearchPlaceholder": "Buscar por palavra-chave ou ID da pergunta…",
   "suggestedQuestions": "Perguntas Sugeridas",
+  "findingQuestionLinks": "Procurando links de perguntas... Isso pode levar alguns segundos.",
   "noSuggestions": "Nenhuma sugestão disponível",
   "swapCausality": "Inverter Causalidade",
   "linkCreateGenericError": "Não foi possível criar o link. Tente novamente.",

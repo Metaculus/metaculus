@@ -8,6 +8,7 @@ from coherence.models import (
     AggregateCoherenceLink,
     AggregateCoherenceLinkVote,
     CoherenceLink,
+    CoherenceLinkSuggestion,
 )
 
 
@@ -153,6 +154,52 @@ class AggregateCoherenceLinkAdmin(admin.ModelAdmin):
         return obj.votes_total
 
     votes_count.short_description = "Votes"
+
+
+@admin.register(CoherenceLinkSuggestion)
+class CoherenceLinkSuggestionAdmin(admin.ModelAdmin):
+    """Read-only: rows are written when someone opens the link modal. Deleting
+    a row makes the next open recompute it."""
+
+    list_display = [
+        "id",
+        "target_question_link",
+        "n_suggestions",
+        "degraded",
+        "computed_at",
+    ]
+    list_filter = ["degraded"]
+    search_fields = [
+        "id",
+        "target_question__id",
+        "target_question__title_original",
+        "target_question__post__id",
+        "target_question__post__title_original",
+    ]
+    list_select_related = ["target_question"]
+    ordering = ["-computed_at"]
+    readonly_fields = [
+        "target_question",
+        "suggestions",
+        "degraded",
+        "computed_at",
+        "created_at",
+        "edited_at",
+    ]
+
+    def has_add_permission(self, request):
+        return False
+
+    def target_question_link(self, obj):
+        url = reverse("admin:questions_question_change", args=[obj.target_question_id])
+        return format_html('<a href="{}">{}</a>', url, obj.target_question)
+
+    target_question_link.short_description = "Target"
+
+    def n_suggestions(self, obj):
+        return len(obj.suggestions)
+
+    n_suggestions.short_description = "# suggestions"
 
 
 @admin.register(AggregateCoherenceLinkVote)

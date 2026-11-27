@@ -115,3 +115,21 @@ class AggregateCoherenceLinkVote(TimeStampedModel):
                 fields=["user_id", "aggregation_id"],
             ),
         ]
+
+
+class CoherenceLinkSuggestion(TimeStampedModel):
+    """
+    AI-suggested links for one target question. Computed the first time someone
+    opens the Add Question Link modal on the question, then reused until stale
+    (see coherence/services/suggestions/service.py).
+    """
+
+    target_question = models.OneToOneField(
+        Question, models.CASCADE, related_name="ai_suggestions"
+    )
+    # Best first: [{"question_id", "grade", "target_is_cause", "direction",
+    # "strength"}, ...], with direction and strength in CoherenceLink's units.
+    suggestions = models.JSONField(default=list)
+    computed_at = models.DateTimeField()
+    # A model was unavailable and a fallback produced these; refreshed sooner.
+    degraded = models.BooleanField(default=False)

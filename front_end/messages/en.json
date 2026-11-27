@@ -1810,6 +1810,7 @@
   "configureRelationship": "Configure Relationship",
   "coherenceSearchPlaceholder": "Search by keyword or question ID…",
   "suggestedQuestions": "Suggested Questions",
+  "findingQuestionLinks": "Finding question links... This can take a few seconds.",
   "noSuggestions": "No suggestions available",
   "swapCausality": "Swap Causality",
   "linkCreateGenericError": "Could not create the link. Please try again.",

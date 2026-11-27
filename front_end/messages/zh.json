@@ -1552,6 +1552,7 @@
   "configureRelationship": "配置关系",
   "coherenceSearchPlaceholder": "按关键词或问题 ID 搜索…",
   "suggestedQuestions": "建议的问题",
+  "findingQuestionLinks": "正在查找问题链接...可能需要几秒钟。",
   "noSuggestions": "没有可用的建议",
   "swapCausality": "交换因果关系",
   "linkCreateGenericError": "无法创建链接。请重试。",

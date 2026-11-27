@@ -27,7 +27,10 @@ from coherence.services import (
     update_coherence_link,
     aggregate_coherence_link_vote,
 )
+from coherence.services.suggestions.service import get_suggestions_for_question
 from coherence.utils import get_aggregation_results, get_aggregations_links
+from posts.models import Post
+from posts.serializers import serialize_post_many
 from posts.services.common import get_post_permission_for_user
 from projects.models import Project
 from projects.permissions import ObjectPermission
@@ -248,6 +251,56 @@ class CoherenceBotForecastSerializer(serializers.Serializer):
 
     class Meta:
         fields = ("coherence_user_id", "forecasts", "comments")
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def get_suggested_links_for_question_api_view(request: Request, pk: int):
+    """
+    AI-suggested links for a question, best first, computed on first request.
+
+    Response shape:
+        {"data": [{"post": {...}, "suggested_question_id": <int>,
+                   "target_is_cause": <bool>, "direction": <1|-1>,
+                   "strength": <1|2|5>}, ...]}
+
+    The frontend uses `suggested_question_id` to pick the subquestion to
+    display from group posts, and the rest to pre-fill the link.
+    """
+    target = get_object_or_404(Question, pk=pk)
+    # The target may be private: only users who can see it get its
+    # suggestions, which never include private questions themselves.
+    target_permission = get_post_permission_for_user(target.post, user=request.user)
+    ObjectPermission.can_view(target_permission, raise_exception=True)
+    # Bots can't open the modal, and each computation costs money.
+    if request.user.is_bot:
+        return Response({"data": []})
+
+    suggestions = get_suggestions_for_question(target)
+    if not suggestions:
+        return Response({"data": []})
+
+    # Public again here, in case a post went private since they were picked.
+    posts = Post.objects.filter_public().filter(
+        pk__in={s.question.post_id for s in suggestions}
+    )
+    serialized_posts = serialize_post_many(
+        posts, with_cp=True, current_user=request.user
+    )
+    by_post_id = {p["id"]: p for p in serialized_posts}
+
+    data = [
+        {
+            "post": by_post_id[s.question.post_id],
+            "suggested_question_id": s.question.id,
+            "target_is_cause": s.target_is_cause,
+            "direction": s.direction,
+            "strength": s.strength,
+        }
+        for s in suggestions
+        if s.question.post_id in by_post_id
+    ]
+    return Response({"data": data})
 
 
 @api_view(["POST"])
