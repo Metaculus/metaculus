@@ -47,6 +47,7 @@ from questions.services.movement import (
 )
 from users.models import User
 from utils.dtypes import flatten, generate_map_from_list
+from utils.translation import defer_unused_translations
 from utils.serializers import SerializerKeyLookupMixin
 from .models import Notebook, Post, PostSubscription, PostUserSnapshot
 from .utils import get_post_slug
@@ -500,10 +501,13 @@ def serialize_post_many(
         .prefetch_questions(with_condition_posts=True)
         .select_related("default_project__primary_leaderboard", "author")
         .prefetch_related(
-            "notebook",
+            Prefetch(
+                "notebook", queryset=defer_unused_translations(Notebook.objects.all())
+            ),
             Prefetch("coauthors", queryset=User.objects.only("id", "username")),
         )
     )
+    qs = defer_unused_translations(qs, "question")
 
     if current_user:
         qs = qs.annotate_user_vote(current_user)
