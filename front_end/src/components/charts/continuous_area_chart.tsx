@@ -488,7 +488,7 @@ const ContinuousAreaChart: FC<Props> = ({
     charts.some(
       (chart) => chart.type !== "user_components" && !!chart.oobClamped?.right
     ) &&
-    oobBreakFits(height - BOTTOM_PADDING - paddingTop);
+    getOobBreakScale(height - BOTTOM_PADDING - paddingTop) > 0;
 
   // When a bar is broken, ticks above the break sit in headroom reserved for
   // the notch rather than a real linear continuation of the axis, so regular
@@ -1477,14 +1477,22 @@ const OOB_MIN_CAP_HEIGHT = 10;
 const OOB_BREAK_BAND_HEIGHT =
   OOB_BREAK_COUNT * OOB_GAP_HEIGHT + (OOB_BREAK_COUNT - 1) * OOB_SLIVER_HEIGHT;
 
-// Whether a clamped OOB bar this tall has room for a legible break above the
-// tallest in-bounds bar; if not, it's drawn as a plain, un-broken rect.
-function oobBreakFits(barHeight: number): boolean {
-  const bandTop =
-    barHeight / BREAK_AXIS_HEADROOM_RATIO +
-    OOB_NEIGHBOR_CLEARANCE +
-    OOB_BREAK_BAND_HEIGHT;
-  return barHeight - bandTop >= OOB_MIN_CAP_HEIGHT;
+// Smallest gap still legible once the break is scaled down; below this the
+// bar is drawn as a plain rect.
+const OOB_MIN_SCALED_GAP_HEIGHT = 1.5;
+
+// Scale factor (0–1] for the break's dimensions on a clamped OOB bar this
+// tall, or 0 if even a scaled-down break wouldn't be legible. On short charts
+// (e.g. feed tiles, where value labels are hidden) the full-size break doesn't
+// fit in the headroom above the tallest in-bounds bar, so the clearance, band
+// and minimum cap shrink together rather than dropping the break entirely —
+// otherwise the truncated bar would carry no truncation indicator at all.
+function getOobBreakScale(barHeight: number): number {
+  const headroom = barHeight - barHeight / BREAK_AXIS_HEADROOM_RATIO;
+  const fullSize =
+    OOB_NEIGHBOR_CLEARANCE + OOB_BREAK_BAND_HEIGHT + OOB_MIN_CAP_HEIGHT;
+  const scale = Math.min(1, headroom / fullSize);
+  return scale * OOB_GAP_HEIGHT >= OOB_MIN_SCALED_GAP_HEIGHT ? scale : 0;
 }
 
 function getDiscreteBarPath(
@@ -1502,16 +1510,18 @@ function getDiscreteBarPath(
   }
 
   const barHeight = y0 - y1;
-  const neighborTop = y0 - barHeight / BREAK_AXIS_HEADROOM_RATIO;
-  const bandBottom = neighborTop - OOB_NEIGHBOR_CLEARANCE;
-
-  // Not enough headroom above the neighboring bar for a legible break (very
-  // short bar): fall back to a plain, un-broken rect rather than a cramped one.
-  if (!oobBreakFits(barHeight)) {
+  const scale = getOobBreakScale(barHeight);
+  // Not enough headroom above the neighboring bar for even a scaled-down
+  // break (very short bar): fall back to a plain, un-broken rect.
+  if (scale === 0) {
     return plainRect;
   }
 
-  const slant = Math.min(OOB_GAP_SLANT, (x1 - x0) / 2);
+  const neighborTop = y0 - barHeight / BREAK_AXIS_HEADROOM_RATIO;
+  const bandBottom = neighborTop - OOB_NEIGHBOR_CLEARANCE * scale;
+  const gapHeight = OOB_GAP_HEIGHT * scale;
+  const sliverHeight = OOB_SLIVER_HEIGHT * scale;
+  const slant = Math.min(OOB_GAP_SLANT * scale, (x1 - x0) / 2);
 
   // Painted pieces from the bottom up: the lower segment (flat bottom at y0),
   // the slivers between gaps, and the cap (flat top at y1). Every cut edge
@@ -1524,9 +1534,9 @@ function getDiscreteBarPath(
   let cut = bandBottom;
   for (let i = 0; i < OOB_BREAK_COUNT; i++) {
     pieces.push(quad(bottomL, bottomR, cut, cut - slant));
-    bottomL = cut - OOB_GAP_HEIGHT;
+    bottomL = cut - gapHeight;
     bottomR = bottomL - slant;
-    cut = bottomL - OOB_SLIVER_HEIGHT;
+    cut = bottomL - sliverHeight;
   }
   pieces.push(quad(bottomL, bottomR, y1, y1));
   return pieces.join(" ");
