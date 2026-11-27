@@ -2,9 +2,12 @@
 # PR Preview Maintenance
 # =============================================================================
 #
-# Runs weekly to:
-# - Cleanup stale previews (closed PRs or PRs labeled "Stale")
-# - Redeploy active previews with a fresh database reset
+# Runs daily to cleanup stale previews (closed, archived, or labeled "Stale").
+# Archiving a PR closes it without firing any workflow event, so this is the
+# only cleanup an archived PR gets.
+#
+# Runs weekly (and on manual dispatch) to redeploy active previews with a
+# fresh database reset.
 #
 # =============================================================================
 
@@ -12,7 +15,8 @@ name: PR Preview Maintenance
 
 on:
   schedule:
-    - cron: "0 7 * * 0" # Every Sunday at 07:00 UTC
+    - cron: "0 7 * * 0" # Sunday 07:00 UTC: cleanup + redeploy
+    - cron: "0 7 * * 1-6" # Monday-Saturday 07:00 UTC: cleanup only
   workflow_dispatch:
 
 permissions:
@@ -59,14 +63,23 @@ jobs:
             PR_NUM=$(echo "$PREVIEW_ID" | sed -n 's/^pr-\([0-9]*\)-.*/\1/p')
             [ -z "$PR_NUM" ] && continue
 
-            PR_JSON=$(gh pr view "$PR_NUM" --repo "${{ github.repository }}" --json headRefName,labels,state 2>/dev/null || echo '{}')
-            HEAD_REF=$(echo "$PR_JSON" | jq -r '.headRefName // ""')
-            [ -z "$HEAD_REF" ] && continue
-            PR_STATE=$(echo "$PR_JSON" | jq -r '.state // ""')
-            LABELS=$(echo "$PR_JSON" | jq -r '[.labels[].name] | join(" ") // ""')
             IS_STALE="false"
-            if [ "$PR_STATE" != "OPEN" ] || echo "$LABELS" | grep -qw "Stale"; then
+            if PR_JSON=$(gh api "repos/${{ github.repository }}/pulls/${PR_NUM}" 2>/tmp/pr_err); then
+              HEAD_REF=$(echo "$PR_JSON" | jq -r '.head.ref')
+              PR_STATE=$(echo "$PR_JSON" | jq -r '.state')
+              HAS_STALE_LABEL=$(echo "$PR_JSON" | jq -r 'any(.labels[]; .name == "Stale")')
+              if [ "$PR_STATE" != "open" ] || [ "$HAS_STALE_LABEL" = "true" ]; then
+                IS_STALE="true"
+              fi
+            elif grep -q "HTTP 404" /tmp/pr_err; then
+              # Archived PRs are closed and 404 for GITHUB_TOKEN.
+              echo "PR #${PR_NUM} not found (archived?) - marking ${APP_NAME} stale"
+              HEAD_REF=""
               IS_STALE="true"
+            else
+              # Transient API errors must not destroy an active preview.
+              echo "⚠️ Could not read PR #${PR_NUM}, skipping ${APP_NAME}: $(cat /tmp/pr_err)"
+              continue
             fi
 
             ENTRY=$(jq -n \
@@ -107,7 +120,7 @@ jobs:
   redeploy-active:
     name: Redeploy Active Previews
     needs: list-previews
-    if: needs.list-previews.outputs.previews != '[]'
+    if: needs.list-previews.outputs.previews != '[]' && github.event.schedule != '0 7 * * 1-6'
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false

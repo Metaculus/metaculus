@@ -108,13 +108,24 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           PR_NUMBER: ${{ inputs.pr_number }}
+          ACTION: ${{ inputs.action }}
         run: |
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             # A dispatch builds the PR's head commit whichever ref it runs
             # from, so look the PR up instead of trusting the dispatch.
-            IS_CROSS_REPO="$(gh pr view "${PR_NUMBER}" --repo "${{ github.repository }}" --json isCrossRepository --jq .isCrossRepository)"
-            if [ "${IS_CROSS_REPO}" != "false" ]; then
-              echo "❌ PR #${PR_NUMBER} is from a fork or could not be read - previews only run for same-repository PRs"
+            if ! HEAD_REPO="$(gh api "repos/${{ github.repository }}/pulls/${PR_NUMBER}" --jq '.head.repo.full_name // ""' 2>/tmp/pr_err)"; then
+              # Archived PRs 404 for GITHUB_TOKEN. Cleanup matches resources by
+              # PR number, which forks never have, so it can go on.
+              if [ "${ACTION}" = "cleanup" ] && grep -q "HTTP 404" /tmp/pr_err; then
+                echo "is_fork=false" >> "$GITHUB_OUTPUT"
+                echo "⚠️ PR #${PR_NUMBER} not found (archived?) - cleaning up by PR number"
+                exit 0
+              fi
+              echo "❌ PR #${PR_NUMBER} could not be read: $(cat /tmp/pr_err)"
+              exit 1
+            fi
+            if [ "${HEAD_REPO}" != "${{ github.repository }}" ]; then
+              echo "❌ PR #${PR_NUMBER} is from a fork - previews only run for same-repository PRs"
               exit 1
             fi
             echo "is_fork=false" >> $GITHUB_OUTPUT
@@ -187,11 +198,22 @@ jobs:
             }
 
             if (inputPrNumber) {
-              const pr = await github.rest.pulls.get({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                pull_number: Number(inputPrNumber),
-              });
+              let pr;
+              try {
+                pr = await github.rest.pulls.get({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  pull_number: Number(inputPrNumber),
+                });
+              } catch (error) {
+                // Archived PRs 404 for GITHUB_TOKEN. An empty head ref makes
+                // cleanup skip the steps that need the PR.
+                if (error.status !== 404 || `${{ inputs.action }}` !== 'cleanup') throw error;
+                core.warning(`PR #${inputPrNumber} not found (archived?) - cleaning up by PR number only`);
+                core.setOutput('pr_head_ref', '');
+                core.setOutput('pr_head_sha', '');
+                return;
+              }
               core.setOutput('pr_head_ref', pr.data.head.ref);
               core.setOutput('pr_head_sha', pr.data.head.sha);
               return;
@@ -613,17 +635,24 @@ jobs:
 
           echo "status=${STATUS}" >> "$GITHUB_OUTPUT"
 
+      # Skipped when the PR could not be read (archived): an empty ref makes
+      # this action delete every deployment in the Preview environment.
       - name: Delete PR Deployments from Preview Environment
         id: deployments
+        if: needs.setup.outputs.pr_head_ref != ''
         continue-on-error: true
         uses: strumwolf/delete-deployment-environment@v3
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           environment: Preview
           onlyRemoveDeployments: true
-          ref: ${{ needs.setup.outputs.pr_head_ref || github.head_ref }}
+          ref: ${{ needs.setup.outputs.pr_head_ref }}
 
+      # Archived PRs can't be read or commented on, and a PR can be archived
+      # while this runs, so the comment never fails the cleanup.
       - name: Find existing comment
+        if: needs.setup.outputs.pr_head_ref != ''
+        continue-on-error: true
         uses: peter-evans/find-comment@v3
         id: find_comment
         with:
@@ -633,6 +662,7 @@ jobs:
 
       - name: Update comment to show cleanup
         if: steps.find_comment.outputs.comment-id != ''
+        continue-on-error: true
         uses: actions/github-script@v7
         with:
           script: |
@@ -694,7 +724,7 @@ jobs:
             Push a new commit to this PR to recreate the preview environment.
 
             ---
-            *Automated cleanup by weekly maintenance*`;
+            *Automated cleanup by scheduled maintenance*`;
             } else {
               body = `## ${heading}
             ${warning}
