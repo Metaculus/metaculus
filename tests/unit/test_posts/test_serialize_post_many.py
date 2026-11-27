@@ -19,19 +19,19 @@ def test_conditionals_and_notebooks_load_outside_main_query(
     )
     ids = [post_binary_public.id, conditional_post.id, notebook_post.id]
 
-    with django_assert_num_queries(4) as ctx:
+    with django_assert_num_queries(5) as ctx:
         serialize_post_many([post_binary_public.id])
 
     assert '"questions_conditional"' not in ctx.captured_queries[0]["sql"]
     assert '"posts_notebook"' not in ctx.captured_queries[0]["sql"]
 
-    with django_assert_num_queries(7):
+    with django_assert_num_queries(8):
         data = serialize_post_many(ids)
 
     assert data[1]["conditional"]["question_yes"]["id"] == conditional_1.question_yes_id
     assert data[2]["notebook"]["markdown"] == "Notebook"
 
-    with django_assert_num_queries(30):
+    with django_assert_num_queries(31):
         serialize_post_many(
             ids, current_user=user1, with_cp=True, include_user_forecasts=True
         )
@@ -46,3 +46,23 @@ def test_default_project_loads_outside_main_query(user1):
 
     assert '"projects_project"."description' not in ctx.captured_queries[0]["sql"]
     assert {post["projects"]["default_project"]["id"] for post in data} == {project.id}
+
+
+def test_authors_load_outside_main_query_with_id_and_username_only(user1, user2):
+    ids = [factory_post(author=author).id for author in (user1, user2, user1)]
+
+    with CaptureQueriesContext(connection) as ctx:
+        data = serialize_post_many(ids)
+
+    assert '"users_user"' not in ctx.captured_queries[0]["sql"]
+    author_select = (
+        'SELECT "users_user"."id", "users_user"."username" FROM "users_user"'
+    )
+    assert [q["sql"].startswith(author_select) for q in ctx.captured_queries].count(
+        True
+    ) == 1
+    assert [post["author_username"] for post in data] == [
+        user1.username,
+        user2.username,
+        user1.username,
+    ]

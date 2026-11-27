@@ -536,11 +536,11 @@ def serialize_post_many(
     qs = (
         qs.annotate_user_permission(user=current_user)
         .prefetch_questions(with_condition_posts=True)
-        .select_related("author")
         .prefetch_related(
             Prefetch(
                 "notebook", queryset=defer_unused_translations(Notebook.objects.all())
             ),
+            Prefetch("author", queryset=User.objects.only("id", "username")),
             Prefetch("coauthors", queryset=User.objects.only("id", "username")),
             Prefetch(
                 "default_project",
