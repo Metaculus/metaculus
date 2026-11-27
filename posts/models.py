@@ -121,6 +121,13 @@ class PostQuerySet(models.QuerySet):
             "conditional__question_no",
             "group_of_questions__questions",
         ]
+        if empty:
+            # Conditional serialization also reads these questions' scores, which
+            # the default path loads lazily
+            question_relations += [
+                "conditional__condition",
+                "conditional__condition_child",
+            ]
 
         return self.prefetch_related(
             *chain.from_iterable(

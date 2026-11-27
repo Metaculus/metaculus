@@ -598,7 +598,9 @@ def test_posts_list_include_coherence_false(user1_client, post_with_coherence_li
     "url",
     ["/api/posts/", "/api/posts/{pk}/", "/api2/questions/", "/api2/questions/{pk}/"],
 )
-def test_include_cp_scores_false(mocker, anon_client, post_binary_public, url):
+def test_include_cp_scores_false(
+    mocker, anon_client, post_binary_public, conditional_1, url
+):
     mocker.patch("posts.serializers.calculate_movement_for_questions", return_value={})
     question = post_binary_public.question
     method = question.default_aggregation_method
@@ -614,11 +616,14 @@ def test_include_cp_scores_false(mocker, anon_client, post_binary_public, url):
         score_type=ScoreTypes.PEER,
         score=1.5,
     )
+    # Its condition is `question`, so list pages also serialize condition scores
+    factory_post(author=post_binary_public.author, conditional=conditional_1)
     url = url.format(pk=post_binary_public.pk)
 
     def get_score_data(params: dict) -> dict:
         data = anon_client.get(url, {"with_cp": "true", **params}).data
-        post = data["results"][0] if "results" in data else data
+        posts = data["results"] if "results" in data else [data]
+        post = next(p for p in posts if p["id"] == post_binary_public.pk)
         return post["question"]["aggregations"][method]["score_data"]
 
     assert get_score_data({})["peer_score"] == 1.5
@@ -626,6 +631,7 @@ def test_include_cp_scores_false(mocker, anon_client, post_binary_public, url):
     with CaptureQueriesContext(connection) as ctx:
         assert get_score_data({"include_cp_scores": "false"}) == {}
     assert _count_queries(ctx, "scoring_score") == 0
+    assert _count_queries(ctx, "scoring_archivedscore") == 0
 
 
 def test_delete_post(user1_client, user1, user2_client):
