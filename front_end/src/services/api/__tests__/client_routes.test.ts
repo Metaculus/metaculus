@@ -2,11 +2,13 @@ import { describe, expect, it, mock } from "bun:test";
 import { readdirSync, readFileSync } from "fs";
 import { join } from "path";
 
+import { clientPath } from "@/services/api/client_path";
 import {
-  CLIENT_ROUTES,
-  clientPath,
+  CLIENT_APIS,
   matchClientRoute,
+  routePattern,
 } from "@/services/api/client_routes";
+import PostsApi from "@/services/api/posts/posts.shared";
 
 const requestedUrls: string[] = [];
 
@@ -59,12 +61,22 @@ const ANY_ARG: unknown = new Proxy(function () {}, {
   apply: () => ANY_ARG,
 });
 
-async function requestedPaths(call: string): Promise<string[]> {
-  const [api = "", method = ""] = call.split(".");
+async function loadClient(api: string): Promise<ClientApi> {
   const modulePath = CLIENT_API_MODULES.get(api);
   if (!modulePath) throw new Error(`No client module for ${api}`);
+  return (await import(modulePath)).default as ClientApi;
+}
 
-  const client = (await import(modulePath)).default as ClientApi;
+function routesOf(client: ClientApi): string[] {
+  const api = client.constructor as unknown as {
+    clientRoutes?: Record<string, string>;
+  };
+  return Object.values(api.clientRoutes ?? {});
+}
+
+async function requestedPaths(call: string): Promise<string[]> {
+  const [api = "", method = ""] = call.split(".");
+  const client = await loadClient(api);
   requestedUrls.length = 0;
   try {
     await client[method]?.(...Array(6).fill(ANY_ARG));
@@ -78,12 +90,26 @@ describe("client routes", () => {
     expect(CLIENT_API_CALLS.size).toBeGreaterThan(0);
   });
 
+  it.each([...CLIENT_API_MODULES.keys()].sort())(
+    "%s is backed by a class in CLIENT_APIS",
+    async (api) => {
+      const client = await loadClient(api);
+      expect(CLIENT_APIS as unknown[]).toContain(client.constructor);
+    }
+  );
+
   it.each([...CLIENT_API_CALLS].sort())(
-    "%s requests a declared route",
+    "%s requests one of its class's clientRoutes",
     async (call) => {
+      const routes = routesOf(await loadClient(call.split(".")[0] ?? ""));
       const paths = await requestedPaths(call);
+
       expect(paths.length).toBeGreaterThan(0);
-      expect(paths.filter((path) => !matchClientRoute(path))).toEqual([]);
+      expect(
+        paths.filter(
+          (path) => !routes.some((route) => routePattern(route).test(path))
+        )
+      ).toEqual([]);
     }
   );
 
@@ -95,13 +121,16 @@ describe("client routes", () => {
         if (route) used.add(route);
       }
     }
-    expect(Object.values(CLIENT_ROUTES).filter((r) => !used.has(r))).toEqual(
-      []
+    const declared = CLIENT_APIS.flatMap((api) =>
+      Object.values(api.clientRoutes)
     );
+    expect(declared.filter((route) => !used.has(route))).toEqual([]);
   });
 
   it("encodes route params", () => {
-    const path = clientPath(CLIENT_ROUTES.forecastFlowPosts, { slug: "a/b" });
+    const path = clientPath(PostsApi.clientRoutes.forecastFlowPosts, {
+      slug: "a/b",
+    });
     expect(path).toBe("/projects/tournaments/a%2Fb/forecast-flow-posts/");
     expect(matchClientRoute(path)).toBeUndefined();
   });

@@ -1,5 +1,5 @@
 import { ApiService } from "@/services/api/api_service";
-import { CLIENT_ROUTES, clientPath } from "@/services/api/client_routes";
+import { clientPath } from "@/services/api/client_path";
 import {
   FetchOptions,
   PaginatedPayload,
@@ -40,6 +40,12 @@ export type CommunityUpdateParams = {
 };
 
 class ProjectsApi extends ApiService {
+  static readonly clientRoutes = {
+    siteMain: "/projects/site_main/",
+    tournaments: "/projects/tournaments/",
+    communities: "/projects/communities/",
+  } as const;
+
   async getCategories(): Promise<Category[]> {
     return await this.get<Category[]>("/projects/categories/");
   }
@@ -59,9 +65,12 @@ class ProjectsApi extends ApiService {
   }
 
   async getSiteMain(): Promise<Tournament> {
-    return await this.get<Tournament>(clientPath(CLIENT_ROUTES.siteMain), {
-      next: { revalidate: 3600 },
-    });
+    return await this.get<Tournament>(
+      clientPath(ProjectsApi.clientRoutes.siteMain),
+      {
+        next: { revalidate: 3600 },
+      }
+    );
   }
 
   async getTournaments(
@@ -70,7 +79,7 @@ class ProjectsApi extends ApiService {
     const queryParams = encodeQueryParams(params ?? {});
 
     return await this.get<TournamentPreview[]>(
-      `${clientPath(CLIENT_ROUTES.tournaments)}${queryParams}`
+      `${clientPath(ProjectsApi.clientRoutes.tournaments)}${queryParams}`
     );
   }
 
@@ -102,7 +111,7 @@ class ProjectsApi extends ApiService {
     const queryParams = encodeQueryParams(params ?? {});
 
     return await this.get<PaginatedPayload<Community>>(
-      `${clientPath(CLIENT_ROUTES.communities)}${queryParams}`
+      `${clientPath(ProjectsApi.clientRoutes.communities)}${queryParams}`
     );
   }
 

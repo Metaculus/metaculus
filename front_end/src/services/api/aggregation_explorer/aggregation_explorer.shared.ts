@@ -1,6 +1,6 @@
 import { AggregationExtraQuestion } from "@/app/(main)/aggregation-explorer/types";
 import { ApiService } from "@/services/api/api_service";
-import { CLIENT_ROUTES, clientPath } from "@/services/api/client_routes";
+import { clientPath } from "@/services/api/client_path";
 import { FetchOptions } from "@/types/fetch";
 import { encodeQueryParams } from "@/utils/navigation";
 
@@ -15,6 +15,10 @@ type AggregationExplorerParams = {
 };
 
 class AggregationExplorerApi extends ApiService {
+  static readonly clientRoutes = {
+    aggregationExplorer: "/aggregation_explorer/",
+  } as const;
+
   async getAggregations(
     params: AggregationExplorerParams,
     options?: FetchOptions
@@ -30,7 +34,7 @@ class AggregationExplorerApi extends ApiService {
     });
 
     return await this.get<AggregationExtraQuestion>(
-      `${clientPath(CLIENT_ROUTES.aggregationExplorer)}${queryParams}`,
+      `${clientPath(AggregationExplorerApi.clientRoutes.aggregationExplorer)}${queryParams}`,
       options
     );
   }

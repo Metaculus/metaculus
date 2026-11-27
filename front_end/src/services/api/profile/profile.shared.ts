@@ -1,5 +1,5 @@
 import { ApiService } from "@/services/api/api_service";
-import { CLIENT_ROUTES, clientPath } from "@/services/api/client_routes";
+import { clientPath } from "@/services/api/client_path";
 import {
   CurrentBot,
   User,
@@ -9,6 +9,10 @@ import {
 import { encodeQueryParams } from "@/utils/navigation";
 
 class ProfileApi extends ApiService {
+  static readonly clientRoutes = {
+    users: "/users/",
+  } as const;
+
   async getProfileById(
     id: number,
     options: { includeStats: true }
@@ -40,7 +44,7 @@ class ProfileApi extends ApiService {
       params.post_id = postId;
     }
     return await this.get<User[]>(
-      `${clientPath(CLIENT_ROUTES.users)}${encodeQueryParams(params)}`
+      `${clientPath(ProfileApi.clientRoutes.users)}${encodeQueryParams(params)}`
     );
   }
 

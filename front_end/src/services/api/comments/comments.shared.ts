@@ -1,5 +1,5 @@
 import { ApiService } from "@/services/api/api_service";
-import { CLIENT_ROUTES, clientPath } from "@/services/api/client_routes";
+import { clientPath } from "@/services/api/client_path";
 import {
   CommentOfWeekEntry,
   CommentType,
@@ -74,12 +74,19 @@ export type PaginatedResponse<T> = {
 export type CommentReportReason = "spam" | "violation" | "ai_generated";
 
 class CommentsApi extends ApiService {
+  static readonly clientRoutes = {
+    comments: "/comments/",
+    comment: "/comments/:commentId/",
+    commentsOfWeek: "/comments/comments-of-week/",
+    suggestedKeyFactors: "/comments/:commentId/suggested-key-factors/",
+  } as const;
+
   async getComments(
     params?: getCommentsParams
   ): Promise<PaginatedResponse<CommentType>> {
     const queryParams = encodeQueryParams(params ?? {});
     const response = await this.get<PaginatedResponse<CommentType>>(
-      `${clientPath(CLIENT_ROUTES.comments)}${queryParams}`
+      `${clientPath(CommentsApi.clientRoutes.comments)}${queryParams}`
     );
     response.results = response.results.map((comment) => {
       if (comment.included_forecast) {
@@ -94,13 +101,13 @@ class CommentsApi extends ApiService {
 
   async getComment(id: number): Promise<CommentType> {
     return await this.get<CommentType>(
-      clientPath(CLIENT_ROUTES.comment, { commentId: id })
+      clientPath(CommentsApi.clientRoutes.comment, { commentId: id })
     );
   }
 
   async getCommentsOfWeek(start_date: string): Promise<CommentOfWeekEntry[]> {
     return await this.get<CommentOfWeekEntry[]>(
-      `${clientPath(CLIENT_ROUTES.commentsOfWeek)}?start_date=${start_date}`
+      `${clientPath(CommentsApi.clientRoutes.commentsOfWeek)}?start_date=${start_date}`
     );
   }
 
@@ -108,7 +115,7 @@ class CommentsApi extends ApiService {
     commentId: number
   ): Promise<KeyFactorWritePayload[]> {
     return await this.get<KeyFactorWritePayload[]>(
-      clientPath(CLIENT_ROUTES.suggestedKeyFactors, { commentId })
+      clientPath(CommentsApi.clientRoutes.suggestedKeyFactors, { commentId })
     );
   }
 }
