@@ -2,6 +2,8 @@ from collections.abc import Callable
 from datetime import datetime, timedelta
 
 import pytest
+from django.db import connection
+from django.test.utils import CaptureQueriesContext
 from django.utils import timezone
 from django.utils.timezone import make_aware
 from freezegun import freeze_time
@@ -13,10 +15,13 @@ from posts.models import Post, PostUserSnapshot, PostSubscription
 from projects.models import Project
 from projects.permissions import ObjectPermission
 from projects.services.common import get_site_main_project
-from questions.models import Question
+from questions.models import AggregateForecast, Question
+from scoring.constants import ScoreTypes
+from tests.unit.test_coherence.factories import factory_aggregate_coherence_link
 from tests.unit.test_comments.factories import factory_comment
 from tests.unit.test_posts.factories import factory_post
 from tests.unit.test_projects.factories import factory_project
+from tests.unit.test_scoring.factories import factory_score
 from tests.unit.test_questions.conftest import *  # noqa
 from tests.unit.test_questions.factories import (
     create_conditional,
@@ -531,6 +536,102 @@ def test_post_detail(anon_client, user1, user1_client):
         "Project: Forecaster",
         "Project: Private",
     }
+
+
+def _count_queries(ctx, table: str) -> int:
+    return sum(f'"{table}"' in q["sql"] for q in ctx.captured_queries)
+
+
+@pytest.fixture()
+def post_with_coherence_link(user1, post_binary_public):
+    linked = factory_post(
+        author=user1,
+        question=create_question(question_type=Question.QuestionType.BINARY),
+    )
+    factory_aggregate_coherence_link(
+        question1=post_binary_public.question, question2=linked.question
+    )
+    return post_binary_public
+
+
+def test_post_detail_optional_sections(mocker, user1_client, post_with_coherence_link):
+    # Movement runs a REPEATABLE READ block, which can't start inside a test transaction
+    movement = mocker.patch(
+        "posts.serializers.calculate_movement_for_questions", return_value={}
+    )
+    url = f"/api/posts/{post_with_coherence_link.pk}/"
+
+    with CaptureQueriesContext(connection) as full_ctx:
+        full = user1_client.get(url).data
+    assert movement.call_count == 1
+
+    with CaptureQueriesContext(connection) as slim_ctx:
+        slim = user1_client.get(
+            url,
+            {
+                "include_cp_history": "false",
+                "include_movements": "false",
+                "include_coherence": "false",
+            },
+        ).data
+    assert movement.call_count == 1
+
+    assert full["question"]["coherence_link_aggregations"]
+    assert slim["question"]["coherence_link_aggregations"] is None
+    assert not any("coherence" in q["sql"] for q in slim_ctx.captured_queries)
+    # The history query is skipped, the latest-aggregate query remains
+    assert _count_queries(full_ctx, "questions_aggregateforecast") == 2
+    assert _count_queries(slim_ctx, "questions_aggregateforecast") == 1
+
+
+def test_posts_list_include_coherence_false(user1_client, post_with_coherence_link):
+    with CaptureQueriesContext(connection) as ctx:
+        response = user1_client.get("/api/posts/", {"include_coherence": "false"})
+
+    assert (
+        response.data["results"][0]["question"]["coherence_link_aggregations"] is None
+    )
+    assert not any("coherence" in q["sql"] for q in ctx.captured_queries)
+
+
+@pytest.mark.parametrize(
+    "url",
+    ["/api/posts/", "/api/posts/{pk}/", "/api2/questions/", "/api2/questions/{pk}/"],
+)
+def test_include_cp_scores_false(
+    mocker, anon_client, post_binary_public, conditional_1, url
+):
+    mocker.patch("posts.serializers.calculate_movement_for_questions", return_value={})
+    question = post_binary_public.question
+    method = question.default_aggregation_method
+    AggregateForecast.objects.create(
+        question=question,
+        method=method,
+        start_time=timezone.now() - timedelta(days=1),
+        forecast_values=[0.4, 0.6],
+    )
+    factory_score(
+        question=question,
+        aggregation_method=method,
+        score_type=ScoreTypes.PEER,
+        score=1.5,
+    )
+    # Its condition is `question`, so list pages also serialize condition scores
+    factory_post(author=post_binary_public.author, conditional=conditional_1)
+    url = url.format(pk=post_binary_public.pk)
+
+    def get_score_data(params: dict) -> dict:
+        data = anon_client.get(url, {"with_cp": "true", **params}).data
+        posts = data["results"] if "results" in data else [data]
+        post = next(p for p in posts if p["id"] == post_binary_public.pk)
+        return post["question"]["aggregations"][method]["score_data"]
+
+    assert get_score_data({})["peer_score"] == 1.5
+
+    with CaptureQueriesContext(connection) as ctx:
+        assert get_score_data({"include_cp_scores": "false"}) == {}
+    assert _count_queries(ctx, "scoring_score") == 0
+    assert _count_queries(ctx, "scoring_archivedscore") == 0
 
 
 def test_delete_post(user1_client, user1, user2_client):
