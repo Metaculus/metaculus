@@ -1,4 +1,5 @@
 import { ApiService } from "@/services/api/api_service";
+import { CLIENT_ROUTES, clientPath } from "@/services/api/client_routes";
 import type {
   FetchedAggregateCoherenceLinks,
   FetchedCoherenceLinks,
@@ -17,13 +18,17 @@ class CoherenceLinksApi extends ApiService {
   async getCoherenceLinksForPost(
     question: Question
   ): Promise<FetchedCoherenceLinks> {
-    return await this.get(`/coherence/question/${question.id}/links/`);
+    return await this.get(
+      clientPath(CLIENT_ROUTES.coherenceLinks, { questionId: question.id })
+    );
   }
   async getAggregateCoherenceLinksForPost(
     question: Question
   ): Promise<FetchedAggregateCoherenceLinks> {
     return await this.get(
-      `/coherence/question/${question.id}/aggregate-links/`
+      clientPath(CLIENT_ROUTES.coherenceAggregateLinks, {
+        questionId: question.id,
+      })
     );
   }
 

@@ -1,4 +1,5 @@
 import { ApiService } from "@/services/api/api_service";
+import { CLIENT_ROUTES, clientPath } from "@/services/api/client_routes";
 import {
   CommentOfWeekEntry,
   CommentType,
@@ -78,7 +79,7 @@ class CommentsApi extends ApiService {
   ): Promise<PaginatedResponse<CommentType>> {
     const queryParams = encodeQueryParams(params ?? {});
     const response = await this.get<PaginatedResponse<CommentType>>(
-      `/comments/${queryParams}`
+      `${clientPath(CLIENT_ROUTES.comments)}${queryParams}`
     );
     response.results = response.results.map((comment) => {
       if (comment.included_forecast) {
@@ -92,12 +93,14 @@ class CommentsApi extends ApiService {
   }
 
   async getComment(id: number): Promise<CommentType> {
-    return await this.get<CommentType>(`/comments/${id}/`);
+    return await this.get<CommentType>(
+      clientPath(CLIENT_ROUTES.comment, { commentId: id })
+    );
   }
 
   async getCommentsOfWeek(start_date: string): Promise<CommentOfWeekEntry[]> {
     return await this.get<CommentOfWeekEntry[]>(
-      `/comments/comments-of-week/?start_date=${start_date}`
+      `${clientPath(CLIENT_ROUTES.commentsOfWeek)}?start_date=${start_date}`
     );
   }
 
@@ -105,7 +108,7 @@ class CommentsApi extends ApiService {
     commentId: number
   ): Promise<KeyFactorWritePayload[]> {
     return await this.get<KeyFactorWritePayload[]>(
-      `/comments/${commentId}/suggested-key-factors/`
+      clientPath(CLIENT_ROUTES.suggestedKeyFactors, { commentId })
     );
   }
 }

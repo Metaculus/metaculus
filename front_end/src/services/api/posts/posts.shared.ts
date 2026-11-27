@@ -1,4 +1,5 @@
 import { ApiService } from "@/services/api/api_service";
+import { CLIENT_ROUTES, clientPath } from "@/services/api/client_routes";
 import {
   CountlessPaginatedPayload,
   FetchOptions,
@@ -75,7 +76,7 @@ class PostsApi extends ApiService {
     fetchOptions?: FetchOptions
   ): Promise<PostWithForecasts> {
     return await this.get<PostWithForecasts>(
-      `/posts/${id}/${encodeQueryParams({ with_cp })}`,
+      `${clientPath(CLIENT_ROUTES.post, { postId: id })}${encodeQueryParams({ with_cp })}`,
       fetchOptions
     );
   }
@@ -98,7 +99,7 @@ class PostsApi extends ApiService {
     with_cp = true
   ): Promise<QuestionWithForecasts> {
     return await this.get<QuestionWithForecasts>(
-      `/questions/${id}/${encodeQueryParams({ with_cp })}`
+      `${clientPath(CLIENT_ROUTES.question, { questionId: id })}${encodeQueryParams({ with_cp })}`
     );
   }
 
@@ -125,7 +126,7 @@ class PostsApi extends ApiService {
     });
 
     return await this.get<CountlessPaginatedPayload<PostWithForecasts>>(
-      `/posts/${queryParams}`
+      `${clientPath(CLIENT_ROUTES.posts)}${queryParams}`
     );
   }
 
@@ -190,7 +191,7 @@ class PostsApi extends ApiService {
     tournamentSlug: string
   ): Promise<PredictionFlowPost[]> {
     return await this.get(
-      `/projects/tournaments/${tournamentSlug}/forecast-flow-posts/`
+      clientPath(CLIENT_ROUTES.forecastFlowPosts, { slug: tournamentSlug })
     );
   }
 
@@ -203,23 +204,28 @@ class PostsApi extends ApiService {
 
   async getSimilarPosts(postId: number): Promise<PostWithForecasts[]> {
     return await this.get<PostWithForecasts[]>(
-      `/posts/${postId}/similar-posts/`,
+      clientPath(CLIENT_ROUTES.similarPosts, { postId }),
       { next: { revalidate: 1800 } }
     );
   }
 
   async getRelatedNews(postId: number) {
-    return this.get<NewsArticle[]>(`/posts/${postId}/related-articles/`, {
-      next: { revalidate: 3600, tags: ["related-articles"] },
-    });
+    return this.get<NewsArticle[]>(
+      clientPath(CLIENT_ROUTES.postRelatedArticles, { postId }),
+      { next: { revalidate: 3600, tags: ["related-articles"] } }
+    );
   }
 
   async getNewsHotnessBreakdown(postId: number): Promise<NewsHotnessBreakdown> {
-    return this.get<NewsHotnessBreakdown>(`/posts/${postId}/news-hotness/`);
+    return this.get<NewsHotnessBreakdown>(
+      clientPath(CLIENT_ROUTES.postNewsHotness, { postId })
+    );
   }
 
   async getRandomPostId(): Promise<{ id: number; post_slug: string }> {
-    return await this.get<{ id: number; post_slug: string }>("/posts/random/");
+    return await this.get<{ id: number; post_slug: string }>(
+      clientPath(CLIENT_ROUTES.randomPost)
+    );
   }
 
   async getPostZipData(params: DataParams): Promise<Blob> {
@@ -271,7 +277,7 @@ class PostsApi extends ApiService {
   ): Promise<PaginatedPayload<PrivateNoteWithPost>> {
     const queryParams = encodeQueryParams(params ?? {});
     return await this.get<PaginatedPayload<PrivateNoteWithPost>>(
-      `/posts/private-notes/${queryParams}`
+      `${clientPath(CLIENT_ROUTES.privateNotes)}${queryParams}`
     );
   }
 
@@ -282,7 +288,7 @@ class PostsApi extends ApiService {
     return await this.get<{
       topics: OnboardingTopic[];
       posts: PostWithForecasts[];
-    }>(`/posts/onboarding-feed/`);
+    }>(clientPath(CLIENT_ROUTES.onboardingFeed));
   }
 }
 

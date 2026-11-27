@@ -2,7 +2,11 @@ import { describe, expect, it, mock } from "bun:test";
 import { readdirSync, readFileSync } from "fs";
 import { join } from "path";
 
-import { isApiProxyPathAllowed } from "@/services/api_proxy_allowlist";
+import {
+  CLIENT_ROUTES,
+  clientPath,
+  matchClientRoute,
+} from "@/services/api/client_routes";
 
 const requestedUrls: string[] = [];
 
@@ -24,7 +28,7 @@ mock.module("@/utils/core/fetch/fetch.client", () => {
 
 type ClientApi = Record<string, (...args: unknown[]) => unknown>;
 
-const SRC_DIR = join(import.meta.dir, "..", "..");
+const SRC_DIR = join(import.meta.dir, "..", "..", "..");
 const SOURCE_FILES = (readdirSync(SRC_DIR, { recursive: true }) as string[])
   .filter((file) => /\.tsx?$/.test(file) && !file.includes("__tests__"))
   .map((file) => join(SRC_DIR, file));
@@ -55,32 +59,52 @@ const ANY_ARG: unknown = new Proxy(function () {}, {
   apply: () => ANY_ARG,
 });
 
-describe("api-proxy allowlist", () => {
+async function requestedPaths(call: string): Promise<string[]> {
+  const [api = "", method = ""] = call.split(".");
+  const modulePath = CLIENT_API_MODULES.get(api);
+  if (!modulePath) throw new Error(`No client module for ${api}`);
+
+  const client = (await import(modulePath)).default as ClientApi;
+  requestedUrls.length = 0;
+  try {
+    await client[method]?.(...Array(6).fill(ANY_ARG));
+  } catch {}
+  return requestedUrls.map((url) => new URL(url, "http://x").pathname);
+}
+
+describe("client routes", () => {
   it("discovers client API modules and calls", () => {
     expect(CLIENT_API_MODULES.size).toBeGreaterThan(0);
     expect(CLIENT_API_CALLS.size).toBeGreaterThan(0);
   });
 
   it.each([...CLIENT_API_CALLS].sort())(
-    "%s requests an allowlisted path",
+    "%s requests a declared route",
     async (call) => {
-      const [api = "", method = ""] = call.split(".");
-      const modulePath = CLIENT_API_MODULES.get(api);
-      expect(modulePath).toBeDefined();
-
-      const client = (await import(modulePath as string)).default as ClientApi;
-      requestedUrls.length = 0;
-      try {
-        await client[method]?.(...Array(6).fill(ANY_ARG));
-      } catch {}
-
-      expect(requestedUrls.length).toBeGreaterThan(0);
-      const blocked = requestedUrls.filter(
-        (url) => !isApiProxyPathAllowed(new URL(url, "http://x").pathname)
-      );
-      expect(blocked).toEqual([]);
+      const paths = await requestedPaths(call);
+      expect(paths.length).toBeGreaterThan(0);
+      expect(paths.filter((path) => !matchClientRoute(path))).toEqual([]);
     }
   );
+
+  it("declares only routes that client calls request", async () => {
+    const used = new Set<string>();
+    for (const call of CLIENT_API_CALLS) {
+      for (const path of await requestedPaths(call)) {
+        const route = matchClientRoute(path);
+        if (route) used.add(route);
+      }
+    }
+    expect(Object.values(CLIENT_ROUTES).filter((r) => !used.has(r))).toEqual(
+      []
+    );
+  });
+
+  it("encodes route params", () => {
+    const path = clientPath(CLIENT_ROUTES.forecastFlowPosts, { slug: "a/b" });
+    expect(path).toBe("/projects/tournaments/a%2Fb/forecast-flow-posts/");
+    expect(matchClientRoute(path)).toBeUndefined();
+  });
 
   it.each([
     "/users/me/",
@@ -88,6 +112,6 @@ describe("api-proxy allowlist", () => {
     "/get-data-access-status/",
     "/data/download/",
   ])("rejects %s", (path) => {
-    expect(isApiProxyPathAllowed(path)).toBe(false);
+    expect(matchClientRoute(path)).toBeUndefined();
   });
 });

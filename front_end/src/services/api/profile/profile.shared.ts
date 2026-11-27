@@ -1,4 +1,5 @@
 import { ApiService } from "@/services/api/api_service";
+import { CLIENT_ROUTES, clientPath } from "@/services/api/client_routes";
 import {
   CurrentBot,
   User,
@@ -38,7 +39,9 @@ class ProfileApi extends ApiService {
     if (postId) {
       params.post_id = postId;
     }
-    return await this.get<User[]>(`/users/${encodeQueryParams(params)}`);
+    return await this.get<User[]>(
+      `${clientPath(CLIENT_ROUTES.users)}${encodeQueryParams(params)}`
+    );
   }
 
   async getMyBots() {

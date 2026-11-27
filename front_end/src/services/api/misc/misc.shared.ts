@@ -1,5 +1,6 @@
 import { ContactSubjectType } from "@/constants/contact";
 import { ApiService } from "@/services/api/api_service";
+import { CLIENT_ROUTES, clientPath } from "@/services/api/client_routes";
 import { FetchOptions } from "@/types/fetch";
 import { SitemapPost } from "@/types/post";
 import { CombinedFeedTile, SitemapProject } from "@/types/projects";
@@ -46,7 +47,7 @@ class MiscApi extends ApiService {
   async getBulletins(): Promise<BulletinItem[]> {
     const resp = await this.get<{
       bulletins: BulletinItem[];
-    }>("/get-bulletins/", undefined, {
+    }>(clientPath(CLIENT_ROUTES.bulletins), undefined, {
       passAuthHeader: false,
     });
     return resp.bulletins;
@@ -68,7 +69,9 @@ class MiscApi extends ApiService {
   }
 
   async getCombinedFeedTiles(): Promise<CombinedFeedTile[]> {
-    return await this.get<CombinedFeedTile[]>("/ad-tiles/");
+    return await this.get<CombinedFeedTile[]>(
+      clientPath(CLIENT_ROUTES.adTiles)
+    );
   }
 
   async dismissFeedTile(dismissId: string): Promise<void> {

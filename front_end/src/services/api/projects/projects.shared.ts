@@ -1,4 +1,5 @@
 import { ApiService } from "@/services/api/api_service";
+import { CLIENT_ROUTES, clientPath } from "@/services/api/client_routes";
 import {
   FetchOptions,
   PaginatedPayload,
@@ -58,7 +59,7 @@ class ProjectsApi extends ApiService {
   }
 
   async getSiteMain(): Promise<Tournament> {
-    return await this.get<Tournament>("/projects/site_main/", {
+    return await this.get<Tournament>(clientPath(CLIENT_ROUTES.siteMain), {
       next: { revalidate: 3600 },
     });
   }
@@ -69,7 +70,7 @@ class ProjectsApi extends ApiService {
     const queryParams = encodeQueryParams(params ?? {});
 
     return await this.get<TournamentPreview[]>(
-      `/projects/tournaments/${queryParams}`
+      `${clientPath(CLIENT_ROUTES.tournaments)}${queryParams}`
     );
   }
 
@@ -101,7 +102,7 @@ class ProjectsApi extends ApiService {
     const queryParams = encodeQueryParams(params ?? {});
 
     return await this.get<PaginatedPayload<Community>>(
-      `/projects/communities/${queryParams}`
+      `${clientPath(CLIENT_ROUTES.communities)}${queryParams}`
     );
   }
 
