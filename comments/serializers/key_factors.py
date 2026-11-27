@@ -108,7 +108,14 @@ def serialize_key_factors_many(
         .prefetch_related(
             Prefetch(
                 "comment",
-                queryset=Comment.objects.select_related("author", "on_post"),
+                queryset=Comment.objects.select_related("author", "on_post").only(
+                    "on_post__open_time",
+                    "author__id",
+                    "author__username",
+                    "author__is_bot",
+                    "author__is_staff",
+                    "author__metadata",
+                ),
             )
         )
     )

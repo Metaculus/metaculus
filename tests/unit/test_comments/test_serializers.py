@@ -8,6 +8,7 @@ from tests.unit.test_comments.factories import factory_comment, factory_key_fact
 from tests.unit.test_posts.factories import factory_post
 from tests.unit.test_questions.conftest import *  # noqa
 from tests.unit.test_users.factories import factory_user
+from users.serializers import BaseUserSerializer
 
 
 def test_serialize_key_factors_many(user1, user2):
@@ -36,25 +37,34 @@ def test_serialize_key_factors_many(user1, user2):
     assert data[0]["author"]["id"] == user1.id
 
 
-def test_key_factor_comments_load_outside_main_query(user1):
-    comment = factory_comment(
-        author=user1, on_post=factory_post(author=user1), text_original="x" * 300
-    )
+def test_key_factor_comments_load_only_serialized_columns(user1, user2):
+    post = factory_post(author=user1)
+    user2.metadata = {"bot_details": {"model": "m"}, "private": "p"}
+    user2.save()
     key_factors = [
         factory_key_factor(
-            comment=comment,
+            comment=factory_comment(
+                author=author, on_post=post, text_original="x" * 300
+            ),
             driver=KeyFactorDriver.objects.create(text_en=f"Key factor {i}"),
         )
-        for i in range(3)
+        for i, author in enumerate([user1, user2, user2])
     ]
 
     with CaptureQueriesContext(connection) as ctx:
         data = serialize_key_factors_many(key_factors)
 
-    key_factor_sql = next(
-        q["sql"]
+    comment_sql = [
+        q["sql"] for q in ctx.captured_queries if '"comments_comment"' in q["sql"]
+    ]
+    assert len(comment_sql) == 1
+    assert '"comments_comment"."text' not in comment_sql[0]
+    assert '"posts_post"."title' not in comment_sql[0]
+    assert not any(
+        'FROM "users_user"' in q["sql"] or 'FROM "posts_post"' in q["sql"]
         for q in ctx.captured_queries
-        if q["sql"].startswith('SELECT "comments_keyfactor"."id"')
     )
-    assert '"comments_comment"."text' not in key_factor_sql
-    assert [key_factor["author"]["id"] for key_factor in data] == [user1.id] * 3
+    assert [key_factor["author"] for key_factor in data] == [
+        BaseUserSerializer(user).data for user in (user1, user2, user2)
+    ]
+    assert [key_factor["post"]["id"] for key_factor in data] == [post.id] * 3
