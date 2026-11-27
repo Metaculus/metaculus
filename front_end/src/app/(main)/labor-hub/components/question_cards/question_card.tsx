@@ -136,7 +136,7 @@ export function MoreButton({
     );
 
     try {
-      const base64 = await getPostZipData({
+      const result = await getPostZipData({
         ...(postIds.length === 1
           ? { post_id: postIds[0] }
           : { post_ids: postIds }),
@@ -147,10 +147,11 @@ export function MoreButton({
         include_user_data: false,
         include_key_factors: false,
       });
+      if ("error" in result) throw new Error(result.error);
       const defaultTitle =
         postIds.length > 1 ? `metaculus_data_${postIds.length}_posts` : "data";
       const filename = `${(postTitle || defaultTitle).replaceAll(" ", "_")}.zip`;
-      saveAs(base64ToBlob(base64), filename);
+      saveAs(base64ToBlob(result.dataUrl), filename);
       toast.dismiss(loadingToastId);
       toast.success("CSV download started.");
     } catch (error) {

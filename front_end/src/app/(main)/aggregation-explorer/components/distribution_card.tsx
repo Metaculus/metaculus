@@ -106,7 +106,7 @@ export default function DistributionCard({
   const handleDownload = async () => {
     setIsDownloading(true);
     try {
-      const base64 = await getAggregationsPostZipData(
+      const result = await getAggregationsPostZipData(
         postId,
         typeof selectedSubQuestionOption === "number"
           ? selectedSubQuestionOption
@@ -116,10 +116,11 @@ export default function DistributionCard({
         method.userIds,
         method.joinedBeforeDate
       );
+      if ("error" in result) throw new Error(result.error);
       const safeName = `${questionTitle}-${method.id}`
         .replace(/[^A-Za-z0-9_.\-]/g, "_")
         .replace(/_+/g, "_");
-      saveAs(base64ToBlob(base64), `${safeName}.zip`);
+      saveAs(base64ToBlob(result.dataUrl), `${safeName}.zip`);
     } catch (error) {
       toast.error(
         t("downloadQuestionDataError") +

@@ -199,8 +199,9 @@ const DataRequestModal: FC<Props> = ({
     } else {
       // type === "download"
       try {
-        const base64 = await getPostZipData(params);
-        const blob = base64ToBlob(base64);
+        const result = await getPostZipData(params);
+        if ("error" in result) throw new Error(result.error);
+        const blob = base64ToBlob(result.dataUrl);
         const defaultTitle = isMultiplePosts
           ? `metaculus_data_${postIds.length}_posts`
           : "data";

@@ -323,13 +323,24 @@ export async function changePostSubscriptions(
   return response;
 }
 
-async function blobToDataUrl(blob: Blob) {
-  const base64String = Buffer.from(await blob.arrayBuffer()).toString("base64");
-  return `data:application/octet-stream;base64,${base64String}`;
+// Errors are returned as values: Next.js hides thrown server action messages in production
+async function downloadAsDataUrl(
+  download: () => Promise<Blob>
+): Promise<{ dataUrl: string } | { error: string }> {
+  try {
+    const blob = await download();
+    const base64String = Buffer.from(await blob.arrayBuffer()).toString(
+      "base64"
+    );
+    return { dataUrl: `data:application/octet-stream;base64,${base64String}` };
+  } catch (err) {
+    if (ApiError.isApiError(err)) return { error: err.message };
+    throw err;
+  }
 }
 
 export async function getPostZipData(params: DataParams) {
-  return blobToDataUrl(await ServerPostsApi.getPostZipData(params));
+  return downloadAsDataUrl(() => ServerPostsApi.getPostZipData(params));
 }
 
 const positiveInt = z.number().int().positive();
@@ -359,8 +370,8 @@ export async function getAggregationsPostZipData(
     userIds,
     joinedBeforeDate,
   });
-  return blobToDataUrl(
-    await ServerPostsApi.getAggregationsPostZipData(
+  return downloadAsDataUrl(() =>
+    ServerPostsApi.getAggregationsPostZipData(
       args.postId,
       args.subQuestionId,
       args.aggregationMethods,
