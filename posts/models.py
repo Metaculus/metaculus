@@ -104,13 +104,17 @@ class PostQuerySet(models.QuerySet):
             "group_of_questions__questions__group",
         )
 
-    def prefetch_questions_scores(self, include_shadow_aggregations: bool = False):
+    def prefetch_questions_scores(
+        self, include_shadow_aggregations: bool = False, empty: bool = False
+    ):
         """Prefetches the questions' scores for their default aggregation method,
         and for the shadow aggregation methods if `include_shadow_aggregations`
-        (staff only, so the question page can show either)."""
+        (staff only, so the question page can show either).
+        `empty` caches no scores without a query, so serializers skip them."""
         scores_filter = Q(aggregation_method=F("question__default_aggregation_method"))
         if include_shadow_aggregations:
             scores_filter |= Q(aggregation_method__in=SHADOW_AGGREGATION_METHODS)
+        scores = Score.objects.none() if empty else Score.objects.all()
         question_relations = [
             "question",
             "conditional__question_yes",
@@ -124,11 +128,11 @@ class PostQuerySet(models.QuerySet):
                     [
                         Prefetch(
                             f"{rel}__scores",
-                            Score.objects.filter(scores_filter),
+                            scores.filter(scores_filter),
                         ),
                         Prefetch(
                             f"{rel}__archived_scores",
-                            Score.objects.filter(
+                            scores.filter(
                                 aggregation_method=F(
                                     "question__default_aggregation_method"
                                 )

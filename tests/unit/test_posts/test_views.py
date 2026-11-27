@@ -15,11 +15,13 @@ from posts.models import Post, PostUserSnapshot, PostSubscription
 from projects.models import Project
 from projects.permissions import ObjectPermission
 from projects.services.common import get_site_main_project
-from questions.models import Question
+from questions.models import AggregateForecast, Question
+from scoring.constants import ScoreTypes
 from tests.unit.test_coherence.factories import factory_aggregate_coherence_link
 from tests.unit.test_comments.factories import factory_comment
 from tests.unit.test_posts.factories import factory_post
 from tests.unit.test_projects.factories import factory_project
+from tests.unit.test_scoring.factories import factory_score
 from tests.unit.test_questions.conftest import *  # noqa
 from tests.unit.test_questions.factories import (
     create_conditional,
@@ -590,6 +592,40 @@ def test_posts_list_include_coherence_false(user1_client, post_with_coherence_li
         response.data["results"][0]["question"]["coherence_link_aggregations"] is None
     )
     assert not any("coherence" in q["sql"] for q in ctx.captured_queries)
+
+
+@pytest.mark.parametrize(
+    "url",
+    ["/api/posts/", "/api/posts/{pk}/", "/api2/questions/", "/api2/questions/{pk}/"],
+)
+def test_include_cp_scores_false(mocker, anon_client, post_binary_public, url):
+    mocker.patch("posts.serializers.calculate_movement_for_questions", return_value={})
+    question = post_binary_public.question
+    method = question.default_aggregation_method
+    AggregateForecast.objects.create(
+        question=question,
+        method=method,
+        start_time=timezone.now() - timedelta(days=1),
+        forecast_values=[0.4, 0.6],
+    )
+    factory_score(
+        question=question,
+        aggregation_method=method,
+        score_type=ScoreTypes.PEER,
+        score=1.5,
+    )
+    url = url.format(pk=post_binary_public.pk)
+
+    def get_score_data(params: dict) -> dict:
+        data = anon_client.get(url, {"with_cp": "true", **params}).data
+        post = data["results"][0] if "results" in data else data
+        return post["question"]["aggregations"][method]["score_data"]
+
+    assert get_score_data({})["peer_score"] == 1.5
+
+    with CaptureQueriesContext(connection) as ctx:
+        assert get_score_data({"include_cp_scores": "false"}) == {}
+    assert _count_queries(ctx, "scoring_score") == 0
 
 
 def test_delete_post(user1_client, user1, user2_client):

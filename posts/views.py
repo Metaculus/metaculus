@@ -94,6 +94,9 @@ def posts_list_api_view(request):
     include_coherence = serializers.BooleanField(allow_null=True).run_validation(
         request.query_params.get("include_coherence", True)
     )
+    include_cp_scores = serializers.BooleanField(allow_null=True).run_validation(
+        request.query_params.get("include_cp_scores", True)
+    )
     group_cutoff = (
         serializers.IntegerField(
             allow_null=True, default=3, max_value=3, min_value=0
@@ -122,6 +125,7 @@ def posts_list_api_view(request):
         include_average_scores=True,
         include_user_forecasts=True,
         include_coherence=include_coherence,
+        include_cp_scores=include_cp_scores,
     )
 
     return paginator.get_paginated_response(data)
@@ -172,6 +176,9 @@ def posts_list_oldapi_view(request):
 
     paginator = LimitOffsetPagination()
     qs = Post.objects.all()
+    include_cp_scores = serializers.BooleanField(allow_null=True).run_validation(
+        request.query_params.get("include_cp_scores", True)
+    )
 
     # Apply filtering
     filters_serializer = OldQuestionFilterSerializer(data=request.query_params)
@@ -200,6 +207,7 @@ def posts_list_oldapi_view(request):
         current_user=request.user,
         include_descriptions=True,
         include_user_forecasts=True,
+        include_cp_scores=include_cp_scores,
     )
 
     # Given we limit the feed to binary questions, we expect each post to have a question with a description
@@ -211,6 +219,9 @@ def posts_list_oldapi_view(request):
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def post_detail_oldapi_view(request: Request, pk):
+    include_cp_scores = serializers.BooleanField(allow_null=True).run_validation(
+        request.query_params.get("include_cp_scores", True)
+    )
     qs = get_posts_feed(qs=Post.objects.all(), ids=[pk], user=request.user)
     posts = serialize_post_many(
         qs,
@@ -218,6 +229,7 @@ def post_detail_oldapi_view(request: Request, pk):
         with_cp=True,
         with_subscriptions=True,
         include_user_forecasts=True,
+        include_cp_scores=include_cp_scores,
     )
 
     if not posts:
@@ -249,6 +261,9 @@ def post_detail(request: Request, pk):
     include_coherence = serializers.BooleanField(allow_null=True).run_validation(
         request.query_params.get("include_coherence", True)
     )
+    include_cp_scores = serializers.BooleanField(allow_null=True).run_validation(
+        request.query_params.get("include_cp_scores", True)
+    )
 
     qs = (
         Post.objects.filter_permission(user=user)
@@ -267,6 +282,7 @@ def post_detail(request: Request, pk):
         include_average_scores=True,
         include_user_forecasts=True,
         include_coherence=include_coherence,
+        include_cp_scores=include_cp_scores,
     )
 
     if not posts:
