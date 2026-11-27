@@ -1,13 +1,13 @@
-/**
- * @jest-environment jsdom
- * @jest-environment-options {"url": "https://www.metaculus.com/"}
- */
 import {
   assertValidCsrfNonce,
   CSRF_COOKIE_NAME,
   getOrMintCsrfToken,
   rotateCsrfToken,
 } from "../csrf";
+
+beforeAll(() => {
+  $jsdom.reconfigure({ url: "https://www.metaculus.com/" });
+});
 
 describe("getOrMintCsrfToken", () => {
   beforeEach(() => {

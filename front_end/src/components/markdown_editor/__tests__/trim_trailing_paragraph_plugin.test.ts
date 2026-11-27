@@ -1,333 +1,258 @@
-type NodeLike = {
-  getType?: () => string;
-  getPreviousSibling?: () => NodeLike | null;
-  getChildren?: () => NodeLike[];
-  getChildrenSize?: () => number;
-  getTextContent?: () => string;
-  remove?: () => void;
-  __isParagraph?: boolean;
-};
-
-type EditorLike = {
-  update(cb: () => void): void;
-  registerUpdateListener(cb: () => void): () => void;
-  __emitUpdate(): void;
-};
-
-type Realm = {
-  pub: (channel: symbol, cb: (editor: EditorLike) => unknown) => void;
-};
-
-const subs = new Map<symbol, (editor: EditorLike) => void>();
-
-let rootChildren: NodeLike[] = [];
-
-const $getRoot = jest.fn(() => ({
-  getChildren: () => rootChildren,
-}));
-
-const $isParagraphNode = (n: NodeLike | null | undefined): boolean =>
-  Boolean(n && n.__isParagraph === true);
-
-jest.mock("@mdxeditor/editor", () => {
-  const CREATE_ROOT_SUB$ = Symbol("createRootEditorSubscription$");
-  return {
-    realmPlugin: (spec: { init: (realm: Realm) => void }) => spec,
-    createRootEditorSubscription$: CREATE_ROOT_SUB$,
-  };
-});
-jest.mock("lexical", () => {
-  class MockDecoratorNode {}
-  return {
-    $getRoot: () => $getRoot(),
-    $isParagraphNode: (n: unknown) => $isParagraphNode(n as NodeLike),
-    DecoratorNode: MockDecoratorNode,
-  };
-});
-
-import { createRootEditorSubscription$ } from "@mdxeditor/editor";
-import { DecoratorNode } from "lexical";
+import { createRootEditorSubscription$, type Realm } from "@mdxeditor/editor";
+import {
+  $createLineBreakNode,
+  $createParagraphNode,
+  $createTextNode,
+  $getRoot,
+  createEditor,
+  DecoratorNode,
+  ElementNode,
+  type LexicalEditor,
+  type LexicalNode,
+} from "lexical";
 
 import { trimTrailingParagraphPlugin } from "@/components/markdown_editor/plugins/trim_trailing_plugin";
 
-function makeEditor(): EditorLike {
-  const listeners: Array<() => void> = [];
-  return {
-    update(cb) {
-      cb();
-    },
-    registerUpdateListener(cb) {
-      listeners.push(cb);
-      return () => {};
-    },
-    __emitUpdate() {
-      listeners.forEach((cb) => cb());
-    },
-  };
+class EmbedNode extends DecoratorNode<null> {
+  static getType() {
+    return "test-embed";
+  }
+  static clone(node: EmbedNode) {
+    return new EmbedNode(node.__key);
+  }
+  isInline() {
+    return false;
+  }
+  createDOM() {
+    return document.createElement("div");
+  }
+  updateDOM() {
+    return false;
+  }
+  decorate() {
+    return null;
+  }
 }
 
-function wirePlugin(): EditorLike {
-  const realm: Realm = {
-    pub: (channel, cb) => {
-      subs.set(channel, cb);
+class InlineEmbedNode extends EmbedNode {
+  static getType() {
+    return "test-inline-embed";
+  }
+  static clone(node: InlineEmbedNode) {
+    return new InlineEmbedNode(node.__key);
+  }
+  isInline() {
+    return true;
+  }
+}
+
+class BlockNode extends ElementNode {
+  static getType() {
+    return "test-block";
+  }
+  static clone(node: BlockNode) {
+    return new BlockNode(node.__key);
+  }
+  createDOM() {
+    return document.createElement("div");
+  }
+  updateDOM() {
+    return false;
+  }
+}
+
+const paragraph = (...children: LexicalNode[]) =>
+  $createParagraphNode().append(...children);
+const text = (content: string) => $createTextNode(content);
+
+// The plugin's editor.update() calls are not discrete, so Lexical commits them
+// (and the update listeners they trigger) on a later tick.
+const flush = () => new Promise((resolve) => setTimeout(resolve, 0));
+
+async function initPlugin(build: () => LexicalNode[]): Promise<LexicalEditor> {
+  const editor = createEditor({
+    nodes: [EmbedNode, InlineEmbedNode, BlockNode],
+    onError: (error) => {
+      throw error;
     },
-  };
-  (trimTrailingParagraphPlugin as unknown as { init: (r: Realm) => void }).init(
-    realm
+  });
+  editor.update(
+    () =>
+      $getRoot()
+        .clear()
+        .append(...build()),
+    {
+      discrete: true,
+    }
   );
 
-  const editor = makeEditor();
-  const handler = subs.get(createRootEditorSubscription$ as unknown as symbol);
-  if (!handler) {
+  let subscribed = false;
+  const realm = {
+    pub: (channel: unknown, subscription: (editor: LexicalEditor) => void) => {
+      if (channel !== createRootEditorSubscription$) return;
+      subscribed = true;
+      subscription(editor);
+    },
+  } as unknown as Realm;
+  trimTrailingParagraphPlugin().init?.(realm);
+  if (!subscribed) {
     throw new Error("createRootEditorSubscription$ handler was not registered");
   }
-  handler(editor);
+
+  await flush();
   return editor;
 }
 
-class BlockNode implements NodeLike {
-  getType() {
-    return "block";
-  }
-}
-
-class TextNode implements NodeLike {
-  constructor(public text = "") {}
-  getType(): string {
-    return "text";
-  }
-}
-
-class ParagraphNode implements NodeLike {
-  __isParagraph = true as const;
-  private prev: NodeLike | null = null;
-  removed = false;
-
-  constructor(
-    private children: NodeLike[] = [],
-    private textOverride?: string
-  ) {}
-
-  setPreviousSibling(prev: NodeLike | null): void {
-    this.prev = prev;
-  }
-  getPreviousSibling(): NodeLike | null {
-    return this.prev;
-  }
-
-  getChildren(): NodeLike[] {
-    return this.children;
-  }
-  getChildrenSize(): number {
-    return this.children.length;
-  }
-
-  getTextContent(): string {
-    if (typeof this.textOverride === "string") return this.textOverride;
-    return this.children
-      .filter((c) => c.getType?.() === "text")
-      .map((c) => (c as TextNode).text)
-      .join("");
-  }
-  remove(): void {
-    this.removed = true;
-  }
-}
-
-function makeNonTextChild(type = "image"): NodeLike {
-  return {
-    getType: () => type,
-  };
-}
-
-function makeDecoratorPrev(): NodeLike {
-  type Ctor = new () => object;
-  const inst = new (DecoratorNode as unknown as Ctor)();
-  return inst as NodeLike;
-}
+const rootTypes = (editor: LexicalEditor) =>
+  editor.getEditorState().read(() =>
+    $getRoot()
+      .getChildren()
+      .map((node) => node.getType())
+  );
 
 describe("trimTrailingParagraphPlugin", () => {
-  beforeEach(() => {
-    rootChildren = [];
-    subs.clear();
-    jest.clearAllMocks();
-  });
-
-  it("trims a trailing empty text-only paragraph", () => {
+  it("trims a trailing empty paragraph added by a later update", async () => {
     // Given
-    const p1 = new ParagraphNode([new TextNode("hello")]);
-    const p2 = new ParagraphNode([new TextNode("")], "\u200B   ");
-    p2.setPreviousSibling(p1);
-    rootChildren = [p1, p2];
+    const editor = await initPlugin(() => [paragraph(text("hello"))]);
 
     // When
-    const editor = wirePlugin();
-    editor.__emitUpdate();
+    editor.update(() => $getRoot().append(paragraph(text("​   "))));
+    await flush();
 
     // Then
-    expect(p2.removed).toBe(true);
+    expect(rootTypes(editor)).toEqual(["paragraph"]);
   });
 
-  it("does NOT trim when the last paragraph contains a non-text child (e.g., image)", () => {
+  it("does NOT trim when the last paragraph contains a non-text child (e.g., image)", async () => {
     // Given
-    const p1 = new ParagraphNode([new TextNode("hello")]);
-    const p2 = new ParagraphNode([makeNonTextChild("image")], "");
-    p2.setPreviousSibling(p1);
-    rootChildren = [p1, p2];
+    const build = () => [
+      paragraph(text("hello")),
+      paragraph(new InlineEmbedNode()),
+    ];
 
     // When
-    const editor = wirePlugin();
-    editor.__emitUpdate();
+    const editor = await initPlugin(build);
 
     // Then
-    expect(p2.removed).toBe(false);
+    expect(rootTypes(editor)).toEqual(["paragraph", "paragraph"]);
   });
 
-  it("does NOT trim when previous sibling is a DecoratorNode (embed block before blank paragraph)", () => {
+  it("does NOT trim when previous sibling is a DecoratorNode (embed block before blank paragraph)", async () => {
     // Given
-    const prev = makeDecoratorPrev();
-    const p2 = new ParagraphNode([new TextNode("")], "   ");
-    p2.setPreviousSibling(prev);
-    rootChildren = [prev, p2];
+    const build = () => [new EmbedNode(), paragraph(text("   "))];
 
     // When
-    const editor = wirePlugin();
-    editor.__emitUpdate();
+    const editor = await initPlugin(build);
 
     // Then
-    expect(p2.removed).toBe(false);
+    expect(rootTypes(editor)).toEqual(["test-embed", "paragraph"]);
   });
 
-  it("is a no-op when root has <= 1 child", () => {
+  it("is a no-op when root has <= 1 child", async () => {
     // Given
-    const only = new ParagraphNode([new TextNode("")], "");
-    rootChildren = [only];
+    const build = () => [paragraph()];
 
     // When
-    const editor = wirePlugin();
-    editor.__emitUpdate();
+    const editor = await initPlugin(build);
 
     // Then
-    expect(only.removed).toBe(false);
+    expect(rootTypes(editor)).toEqual(["paragraph"]);
   });
 
-  it("does NOT trim when last paragraph has non-empty text", () => {
+  it("does NOT trim when last paragraph has non-empty text", async () => {
     // Given
-    const p1 = new ParagraphNode([new TextNode("hello")]);
-    const p2 = new ParagraphNode([new TextNode("world")], "world");
-    p2.setPreviousSibling(p1);
-    rootChildren = [p1, p2];
+    const build = () => [paragraph(text("hello")), paragraph(text("world"))];
 
     // When
-    const editor = wirePlugin();
-    editor.__emitUpdate();
+    const editor = await initPlugin(build);
 
     // Then
-    expect(p2.removed).toBe(false);
+    expect(rootTypes(editor)).toEqual(["paragraph", "paragraph"]);
   });
 
-  it("trims when previous sibling is a non-Decorator block", () => {
+  it("trims when previous sibling is a non-Decorator block", async () => {
     // Given
-    const prev = new BlockNode();
-    const p2 = new ParagraphNode([new TextNode("")], "   ");
-    p2.setPreviousSibling(prev);
-    rootChildren = [prev, p2];
+    const build = () => [
+      new BlockNode().append(text("block")),
+      paragraph(text("   ")),
+    ];
 
     // When
-    const editor = wirePlugin();
-    editor.__emitUpdate();
+    const editor = await initPlugin(build);
 
     // Then
-    expect(p2.removed).toBe(true);
+    expect(rootTypes(editor)).toEqual(["test-block"]);
   });
 
-  it("does NOT trim when last paragraph mixes empty text and non-text child", () => {
+  it("does NOT trim when last paragraph mixes blank text and non-text child", async () => {
     // Given
-    const p1 = new ParagraphNode([new TextNode("hello")]);
-    const p2 = new ParagraphNode(
-      [new TextNode(""), makeNonTextChild("image")],
-      ""
-    );
-    p2.setPreviousSibling(p1);
-    rootChildren = [p1, p2];
+    const build = () => [
+      paragraph(text("hello")),
+      paragraph(text(" "), new InlineEmbedNode()),
+    ];
 
     // When
-    const editor = wirePlugin();
-    editor.__emitUpdate();
+    const editor = await initPlugin(build);
 
     // Then
-    expect(p2.removed).toBe(false);
+    expect(rootTypes(editor)).toEqual(["paragraph", "paragraph"]);
   });
 
-  it("is a no-op when last child is not a paragraph", () => {
+  it("is a no-op when last child is not a paragraph", async () => {
     // Given
-    const p1 = new ParagraphNode([new TextNode("hello")]);
-    const last = new BlockNode();
-    rootChildren = [p1, last];
+    const build = () => [paragraph(text("hello")), new BlockNode()];
 
     // When
-    const editor = wirePlugin();
-    editor.__emitUpdate();
+    const editor = await initPlugin(build);
 
     // Then
-    expect((p1 as ParagraphNode).removed).toBe(false);
+    expect(rootTypes(editor)).toEqual(["paragraph", "test-block"]);
   });
 
-  it("performs an immediate trim on init (no update event)", () => {
+  it("performs a trim on init without any further update", async () => {
     // Given
-    const p1 = new ParagraphNode([new TextNode("x")]);
-    const p2 = new ParagraphNode([new TextNode("")], "\u200B");
-    p2.setPreviousSibling(p1);
-    rootChildren = [p1, p2];
+    const build = () => [paragraph(text("x")), paragraph(text("​"))];
 
     // When
-    wirePlugin();
+    const editor = await initPlugin(build);
 
     // Then
-    expect(p2.removed).toBe(true);
+    expect(rootTypes(editor)).toEqual(["paragraph"]);
   });
 
-  it("trims whitespace-only trailing paragraph (spaces/newlines/tabs)", () => {
+  it("trims whitespace-only trailing paragraph (spaces/newlines/tabs)", async () => {
     // Given
-    const p1 = new ParagraphNode([new TextNode("x")]);
-    const p2 = new ParagraphNode([new TextNode("")], " \n\t ");
-    p2.setPreviousSibling(p1);
-    rootChildren = [p1, p2];
+    const build = () => [paragraph(text("x")), paragraph(text(" \n\t "))];
 
     // When
-    const editor = wirePlugin();
-    editor.__emitUpdate();
+    const editor = await initPlugin(build);
 
     // Then
-    expect(p2.removed).toBe(true);
+    expect(rootTypes(editor)).toEqual(["paragraph"]);
   });
 
-  it("does NOT trim when last paragraph contains a non-text inline (e.g., link node)", () => {
+  it("does NOT trim when last paragraph contains a non-text inline (e.g., line break)", async () => {
     // Given
-    const p1 = new ParagraphNode([new TextNode("x")]);
-    const p2 = new ParagraphNode([makeNonTextChild("link")], "");
-    p2.setPreviousSibling(p1);
-    rootChildren = [p1, p2];
+    const build = () => [
+      paragraph(text("x")),
+      paragraph($createLineBreakNode()),
+    ];
 
     // When
-    const editor = wirePlugin();
-    editor.__emitUpdate();
+    const editor = await initPlugin(build);
 
     // Then
-    expect(p2.removed).toBe(false);
+    expect(rootTypes(editor)).toEqual(["paragraph", "paragraph"]);
   });
 
-  it("trims when prev is null but last is empty", () => {
+  it("trims a trailing paragraph with no children", async () => {
     // Given
-    const p1 = new ParagraphNode([new TextNode("x")]);
-    const p2 = new ParagraphNode([new TextNode("")], "");
-    rootChildren = [p1, p2];
+    const build = () => [paragraph(text("x")), paragraph()];
 
     // When
-    const editor = wirePlugin();
-    editor.__emitUpdate();
+    const editor = await initPlugin(build);
 
     // Then
-    expect(p2.removed).toBe(true);
+    expect(rootTypes(editor)).toEqual(["paragraph"]);
   });
 });

@@ -7,3 +7,9 @@ minimumReleaseAgeExcludes = []
 
 [install.security]
 scanner = "@socketsecurity/bun-security-scanner"
+
+[test]
+# Two files because imports are hoisted: Testing Library binds `screen` to
+# document.body on import, so jsdom must be registered by an earlier preload.
+# Isolation can't be set here; the `test` script passes --parallel instead.
+preload = ["./test.dom.ts", "./test.setup.ts"]

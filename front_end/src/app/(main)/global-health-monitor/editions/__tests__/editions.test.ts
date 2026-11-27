@@ -39,7 +39,7 @@ describe("editions", () => {
         expect(typeof frozen?.value).toBe("number");
       });
       Object.keys(edition.sections).forEach((disease) =>
-        expect(DISEASE_IDS).toContain(disease)
+        expect<readonly string[]>(DISEASE_IDS).toContain(disease)
       );
     });
   });
