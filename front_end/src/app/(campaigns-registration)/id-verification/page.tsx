@@ -13,7 +13,7 @@ export const metadata = {
 
 export default async function Page() {
   const currentUser = await ServerProfileApi.getMyProfile();
-  const verificationSession = await getVerificationSession(currentUser);
+  const verificationSession = await getVerificationSession();
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -32,10 +32,7 @@ export default async function Page() {
               <div className=" w-full max-w-lg rounded text-sm text-blue-800 dark:text-blue-800-dark">
                 <StatusView verificationSession={verificationSession} />
               </div>
-              <VerifyView
-                currentUser={currentUser}
-                verificationSession={verificationSession}
-              />
+              <VerifyView verificationSession={verificationSession} />
             </>
           )}
         </div>
