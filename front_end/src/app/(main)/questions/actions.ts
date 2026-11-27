@@ -2,6 +2,7 @@
 
 import { revalidatePath, revalidateTag } from "next/cache";
 import { redirect } from "next/navigation";
+import { z } from "zod";
 
 import { CoherenceLinksApiClass } from "@/services/api/coherence_links/coherence_links.server";
 import { AggregateLinkVoteValue } from "@/services/api/coherence_links/coherence_links.shared";
@@ -322,12 +323,65 @@ export async function changePostSubscriptions(
   return response;
 }
 
-export async function getPostZipData(params: DataParams) {
-  const blob = await ServerPostsApi.getPostZipData(params);
-  const arrayBuffer = await blob.arrayBuffer();
-  const base64String = Buffer.from(arrayBuffer).toString("base64");
-
+async function blobToDataUrl(blob: Blob) {
+  const base64String = Buffer.from(await blob.arrayBuffer()).toString("base64");
   return `data:application/octet-stream;base64,${base64String}`;
+}
+
+export async function getPostZipData(params: DataParams) {
+  return blobToDataUrl(await ServerPostsApi.getPostZipData(params));
+}
+
+const positiveInt = z.number().int().positive();
+
+const aggregationsZipSchema = z.object({
+  postId: positiveInt,
+  subQuestionId: positiveInt.optional(),
+  aggregationMethods: z.string().optional(),
+  includeBots: z.boolean().optional(),
+  userIds: z.array(positiveInt).optional(),
+  joinedBeforeDate: z.string().optional(),
+});
+
+export async function getAggregationsPostZipData(
+  postId: number,
+  subQuestionId?: number,
+  aggregationMethods?: string,
+  includeBots?: boolean,
+  userIds?: number[],
+  joinedBeforeDate?: string
+) {
+  const args = aggregationsZipSchema.parse({
+    postId,
+    subQuestionId,
+    aggregationMethods,
+    includeBots,
+    userIds,
+    joinedBeforeDate,
+  });
+  return blobToDataUrl(
+    await ServerPostsApi.getAggregationsPostZipData(
+      args.postId,
+      args.subQuestionId,
+      args.aggregationMethods,
+      args.includeBots,
+      args.userIds,
+      args.joinedBeforeDate
+    )
+  );
+}
+
+const dataAccessStatusSchema = z.object({
+  post_id: positiveInt.optional(),
+  project_id: positiveInt.optional(),
+});
+
+export async function getDataAccessStatus(
+  params: z.infer<typeof dataAccessStatusSchema>
+) {
+  return await ServerPostsApi.getDataAccessStatus(
+    dataAccessStatusSchema.parse(params)
+  );
 }
 
 export async function emailData(params: DataParams) {
