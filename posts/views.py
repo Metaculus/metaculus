@@ -91,6 +91,9 @@ def posts_list_api_view(request):
     include_conditional_cps = serializers.BooleanField(allow_null=True).run_validation(
         request.query_params.get("include_conditional_cps")
     )
+    include_coherence = serializers.BooleanField(allow_null=True).run_validation(
+        request.query_params.get("include_coherence", True)
+    )
     group_cutoff = (
         serializers.IntegerField(
             allow_null=True, default=3, max_value=3, min_value=0
@@ -118,6 +121,7 @@ def posts_list_api_view(request):
         include_conditional_cps=include_conditional_cps,
         include_average_scores=True,
         include_user_forecasts=True,
+        include_coherence=include_coherence,
     )
 
     return paginator.get_paginated_response(data)
@@ -236,6 +240,15 @@ def post_detail(request: Request, pk):
     with_cp = serializers.BooleanField(allow_null=True).run_validation(
         request.query_params.get("with_cp", True)
     )
+    include_cp_history = serializers.BooleanField(allow_null=True).run_validation(
+        request.query_params.get("include_cp_history", True)
+    )
+    include_movements = serializers.BooleanField(allow_null=True).run_validation(
+        request.query_params.get("include_movements", True)
+    )
+    include_coherence = serializers.BooleanField(allow_null=True).run_validation(
+        request.query_params.get("include_coherence", True)
+    )
 
     qs = (
         Post.objects.filter_permission(user=user)
@@ -249,10 +262,11 @@ def post_detail(request: Request, pk):
         with_subscriptions=True,
         with_key_factors=True,
         include_descriptions=True,
-        include_cp_history=True,
-        include_movements=True,
+        include_cp_history=include_cp_history,
+        include_movements=include_movements,
         include_average_scores=True,
         include_user_forecasts=True,
+        include_coherence=include_coherence,
     )
 
     if not posts:

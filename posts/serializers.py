@@ -489,6 +489,7 @@ def serialize_post_many(
     include_conditional_cps: bool = False,
     include_average_scores: bool = False,
     include_user_forecasts: bool = False,
+    include_coherence: bool = True,
 ) -> list[dict]:
     current_user = (
         current_user if current_user and not current_user.is_anonymous else None
@@ -575,14 +576,15 @@ def serialize_post_many(
             key=lambda x: x["post"]["id"],
         )
 
-        if current_user:
-            coherence_links_map = serialize_coherence_links_questions_map(
+        if include_coherence:
+            if current_user:
+                coherence_links_map = serialize_coherence_links_questions_map(
+                    questions, current_user
+                )
+
+            coherence_link_aggs_map = serialize_aggregate_coherence_links_questions_map(
                 questions, current_user
             )
-
-        coherence_link_aggs_map = serialize_aggregate_coherence_links_questions_map(
-            questions, current_user
-        )
 
     question_movements = {}
     if include_movements:

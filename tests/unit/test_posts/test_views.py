@@ -2,6 +2,8 @@ from collections.abc import Callable
 from datetime import datetime, timedelta
 
 import pytest
+from django.db import connection
+from django.test.utils import CaptureQueriesContext
 from django.utils import timezone
 from django.utils.timezone import make_aware
 from freezegun import freeze_time
@@ -14,6 +16,7 @@ from projects.models import Project
 from projects.permissions import ObjectPermission
 from projects.services.common import get_site_main_project
 from questions.models import Question
+from tests.unit.test_coherence.factories import factory_aggregate_coherence_link
 from tests.unit.test_comments.factories import factory_comment
 from tests.unit.test_posts.factories import factory_post
 from tests.unit.test_projects.factories import factory_project
@@ -531,6 +534,62 @@ def test_post_detail(anon_client, user1, user1_client):
         "Project: Forecaster",
         "Project: Private",
     }
+
+
+def _count_queries(ctx, table: str) -> int:
+    return sum(f'"{table}"' in q["sql"] for q in ctx.captured_queries)
+
+
+@pytest.fixture()
+def post_with_coherence_link(user1, post_binary_public):
+    linked = factory_post(
+        author=user1,
+        question=create_question(question_type=Question.QuestionType.BINARY),
+    )
+    factory_aggregate_coherence_link(
+        question1=post_binary_public.question, question2=linked.question
+    )
+    return post_binary_public
+
+
+def test_post_detail_optional_sections(mocker, user1_client, post_with_coherence_link):
+    # Movement runs a REPEATABLE READ block, which can't start inside a test transaction
+    movement = mocker.patch(
+        "posts.serializers.calculate_movement_for_questions", return_value={}
+    )
+    url = f"/api/posts/{post_with_coherence_link.pk}/"
+
+    with CaptureQueriesContext(connection) as full_ctx:
+        full = user1_client.get(url).data
+    assert movement.call_count == 1
+
+    with CaptureQueriesContext(connection) as slim_ctx:
+        slim = user1_client.get(
+            url,
+            {
+                "include_cp_history": "false",
+                "include_movements": "false",
+                "include_coherence": "false",
+            },
+        ).data
+    assert movement.call_count == 1
+
+    assert full["question"]["coherence_link_aggregations"]
+    assert slim["question"]["coherence_link_aggregations"] is None
+    assert not any("coherence" in q["sql"] for q in slim_ctx.captured_queries)
+    # The history query is skipped, the latest-aggregate query remains
+    assert _count_queries(full_ctx, "questions_aggregateforecast") == 2
+    assert _count_queries(slim_ctx, "questions_aggregateforecast") == 1
+
+
+def test_posts_list_include_coherence_false(user1_client, post_with_coherence_link):
+    with CaptureQueriesContext(connection) as ctx:
+        response = user1_client.get("/api/posts/", {"include_coherence": "false"})
+
+    assert (
+        response.data["results"][0]["question"]["coherence_link_aggregations"] is None
+    )
+    assert not any("coherence" in q["sql"] for q in ctx.captured_queries)
 
 
 def test_delete_post(user1_client, user1, user2_client):
