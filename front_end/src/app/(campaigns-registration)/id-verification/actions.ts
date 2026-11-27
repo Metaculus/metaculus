@@ -1,6 +1,6 @@
 "use server";
 
-import { CurrentUser } from "@/types/users";
+import ServerProfileApi from "@/services/api/profile/profile.server";
 
 import { getLastVerificationSession, saveVerificationSession } from "./utils";
 
@@ -21,9 +21,10 @@ export type VerificationSession = {
   url: string;
 };
 
-export async function getVerificationSession(
-  user: CurrentUser | null
-): Promise<VerificationSession | undefined> {
+export async function getVerificationSession(): Promise<
+  VerificationSession | undefined
+> {
+  const user = await ServerProfileApi.getMyProfile();
   if (!user) {
     return undefined;
   }
@@ -51,9 +52,12 @@ export async function getVerificationSession(
   return verificationSession;
 }
 
-export async function initiateStripeVerification(
-  user: CurrentUser
-): Promise<StripeVerificationResponse> {
+export async function initiateStripeVerification(): Promise<StripeVerificationResponse> {
+  const user = await ServerProfileApi.getMyProfile();
+  if (!user) {
+    return { error: "Failed to initiate verification" };
+  }
+
   try {
     const stripeClient = stripe(process.env.STRIPE_SECRET_KEY);
     const verificationSession =

@@ -3,16 +3,13 @@
 import { useState } from "react";
 
 import Button from "@/components/ui/button";
-import { CurrentUser } from "@/types/users";
 import cn from "@/utils/core/cn";
 
 import { initiateStripeVerification, VerificationSession } from "../actions";
 
 const VerifyView = ({
-  currentUser,
   verificationSession,
 }: {
-  currentUser: CurrentUser;
   verificationSession?: VerificationSession;
 }) => {
   const [registrationStatus, setRegistrationStatus] = useState<
@@ -20,10 +17,10 @@ const VerifyView = ({
   >("initial");
   const [isLoading, setIsLoading] = useState(false);
   const [verificationUrl, setVerificationUrl] = useState<string | null>(null);
-  const handleVerification = async (user: CurrentUser) => {
+  const handleVerification = async () => {
     setIsLoading(true);
     setRegistrationStatus("initial");
-    const response = await initiateStripeVerification(user);
+    const response = await initiateStripeVerification();
     if (response.url) {
       window.open(response.url, "_blank");
       setVerificationUrl(response.url);
@@ -39,7 +36,7 @@ const VerifyView = ({
       {registrationStatus === "initial" && (
         <Button
           variant="link"
-          onClick={() => handleVerification(currentUser)}
+          onClick={handleVerification}
           disabled={isLoading}
           className={cn(verificationSession?.status === "verified" && "hidden")}
         >
