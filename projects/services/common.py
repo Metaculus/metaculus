@@ -18,6 +18,7 @@ from questions.models import Question
 from users.models import User
 from utils.cache import cache_per_object, cached_singleton
 from utils.dtypes import generate_map_from_list
+from utils.translation import defer_unused_translations
 
 
 def get_projects_qs(
@@ -123,9 +124,11 @@ def get_projects_for_posts(
     # Fetching projects available for the given user
     available_projects_map = {
         obj.id: obj
-        for obj in Project.objects.filter(id__in=[x.project_id for x in post_projects])
-        .filter_permission(user=user)
-        .select_related("primary_leaderboard")
+        for obj in defer_unused_translations(
+            Project.objects.filter(id__in=[x.project_id for x in post_projects])
+            .filter_permission(user=user)
+            .select_related("primary_leaderboard")
+        )
     }
 
     post_projects_map = defaultdict(list)
