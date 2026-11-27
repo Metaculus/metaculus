@@ -89,7 +89,8 @@ describe("api-proxy allowlist", () => {
     "/medals/contributions/",
     "/leaderboards/global/",
     "/projects/tournaments/fall-futureeval-2026/",
-    "/posts/1/download-data",
+    "/posts/1/download-data/",
+    "/get-data-access-status/",
     "/questions/1/predictions/",
   ])("rejects %s", (path) => {
     expect(isApiProxyPathAllowed(path)).toBe(false);

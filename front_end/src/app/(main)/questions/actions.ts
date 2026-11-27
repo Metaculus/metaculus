@@ -322,12 +322,27 @@ export async function changePostSubscriptions(
   return response;
 }
 
-export async function getPostZipData(params: DataParams) {
-  const blob = await ServerPostsApi.getPostZipData(params);
-  const arrayBuffer = await blob.arrayBuffer();
-  const base64String = Buffer.from(arrayBuffer).toString("base64");
-
+async function blobToDataUrl(blob: Blob) {
+  const base64String = Buffer.from(await blob.arrayBuffer()).toString("base64");
   return `data:application/octet-stream;base64,${base64String}`;
+}
+
+export async function getPostZipData(params: DataParams) {
+  return blobToDataUrl(await ServerPostsApi.getPostZipData(params));
+}
+
+export async function getAggregationsPostZipData(
+  ...args: Parameters<typeof ServerPostsApi.getAggregationsPostZipData>
+) {
+  return blobToDataUrl(
+    await ServerPostsApi.getAggregationsPostZipData(...args)
+  );
+}
+
+export async function getDataAccessStatus(
+  params: Parameters<typeof ServerPostsApi.getDataAccessStatus>[0]
+) {
+  return await ServerPostsApi.getDataAccessStatus(params);
 }
 
 export async function emailData(params: DataParams) {

@@ -15,14 +15,17 @@ import { Controller, useForm } from "react-hook-form";
 import toast from "react-hot-toast";
 import { z } from "zod";
 
-import { emailData, getPostZipData } from "@/app/(main)/questions/actions";
+import {
+  emailData,
+  getDataAccessStatus,
+  getPostZipData,
+} from "@/app/(main)/questions/actions";
 import BaseModal from "@/components/base_modal";
 import Button from "@/components/ui/button";
 import { CheckboxField } from "@/components/ui/form_field";
 import LoadingSpinner from "@/components/ui/loading_spiner";
 import { Tabs, TabsSection, useTabsContext } from "@/components/ui/tabs";
 import { useAuth } from "@/contexts/auth_context";
-import ClientPostsApi from "@/services/api/posts/posts.client";
 import { Post, PostWithForecasts } from "@/types/post";
 import { DownloadAggregationMethod } from "@/types/question";
 import { DataParams } from "@/types/utils";
@@ -107,7 +110,7 @@ const DataRequestModal: FC<Props> = ({
     }
     const fetchDataAccessStatus = async () => {
       try {
-        const status = await ClientPostsApi.getDataAccessStatus({
+        const status = await getDataAccessStatus({
           post_id: primaryPostId,
         });
         setDataAccessStatus({ ...status, isLoaded: true });
