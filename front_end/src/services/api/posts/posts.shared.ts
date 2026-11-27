@@ -1,4 +1,5 @@
 import { ApiService } from "@/services/api/api_service";
+import { clientPath } from "@/services/api/client_path";
 import {
   CountlessPaginatedPayload,
   FetchOptions,
@@ -69,13 +70,26 @@ export type PrivateNoteWithPost = {
 export type BoostDirection = 1 | -1;
 
 class PostsApi extends ApiService {
+  static readonly clientRoutes = {
+    posts: "/posts/",
+    post: "/posts/:postId/",
+    question: "/questions/:questionId/",
+    similarPosts: "/posts/:postId/similar-posts/",
+    relatedArticles: "/posts/:postId/related-articles/",
+    newsHotness: "/posts/:postId/news-hotness/",
+    randomPost: "/posts/random/",
+    privateNotes: "/posts/private-notes/",
+    onboardingFeed: "/posts/onboarding-feed/",
+    forecastFlowPosts: "/projects/tournaments/:slug/forecast-flow-posts/",
+  } as const;
+
   async getPost(
     id: number,
     with_cp = true,
     fetchOptions?: FetchOptions
   ): Promise<PostWithForecasts> {
     return await this.get<PostWithForecasts>(
-      `/posts/${id}/${encodeQueryParams({ with_cp })}`,
+      `${clientPath(PostsApi.clientRoutes.post, { postId: id })}${encodeQueryParams({ with_cp })}`,
       fetchOptions
     );
   }
@@ -98,7 +112,7 @@ class PostsApi extends ApiService {
     with_cp = true
   ): Promise<QuestionWithForecasts> {
     return await this.get<QuestionWithForecasts>(
-      `/questions/${id}/${encodeQueryParams({ with_cp })}`
+      `${clientPath(PostsApi.clientRoutes.question, { questionId: id })}${encodeQueryParams({ with_cp })}`
     );
   }
 
@@ -125,7 +139,7 @@ class PostsApi extends ApiService {
     });
 
     return await this.get<CountlessPaginatedPayload<PostWithForecasts>>(
-      `/posts/${queryParams}`
+      `${clientPath(PostsApi.clientRoutes.posts)}${queryParams}`
     );
   }
 
@@ -190,7 +204,9 @@ class PostsApi extends ApiService {
     tournamentSlug: string
   ): Promise<PredictionFlowPost[]> {
     return await this.get(
-      `/projects/tournaments/${tournamentSlug}/forecast-flow-posts/`
+      clientPath(PostsApi.clientRoutes.forecastFlowPosts, {
+        slug: tournamentSlug,
+      })
     );
   }
 
@@ -203,23 +219,28 @@ class PostsApi extends ApiService {
 
   async getSimilarPosts(postId: number): Promise<PostWithForecasts[]> {
     return await this.get<PostWithForecasts[]>(
-      `/posts/${postId}/similar-posts/`,
+      clientPath(PostsApi.clientRoutes.similarPosts, { postId }),
       { next: { revalidate: 1800 } }
     );
   }
 
   async getRelatedNews(postId: number) {
-    return this.get<NewsArticle[]>(`/posts/${postId}/related-articles/`, {
-      next: { revalidate: 3600, tags: ["related-articles"] },
-    });
+    return this.get<NewsArticle[]>(
+      clientPath(PostsApi.clientRoutes.relatedArticles, { postId }),
+      { next: { revalidate: 3600, tags: ["related-articles"] } }
+    );
   }
 
   async getNewsHotnessBreakdown(postId: number): Promise<NewsHotnessBreakdown> {
-    return this.get<NewsHotnessBreakdown>(`/posts/${postId}/news-hotness/`);
+    return this.get<NewsHotnessBreakdown>(
+      clientPath(PostsApi.clientRoutes.newsHotness, { postId })
+    );
   }
 
   async getRandomPostId(): Promise<{ id: number; post_slug: string }> {
-    return await this.get<{ id: number; post_slug: string }>("/posts/random/");
+    return await this.get<{ id: number; post_slug: string }>(
+      clientPath(PostsApi.clientRoutes.randomPost)
+    );
   }
 
   async getPostZipData(params: DataParams): Promise<Blob> {
@@ -271,7 +292,7 @@ class PostsApi extends ApiService {
   ): Promise<PaginatedPayload<PrivateNoteWithPost>> {
     const queryParams = encodeQueryParams(params ?? {});
     return await this.get<PaginatedPayload<PrivateNoteWithPost>>(
-      `/posts/private-notes/${queryParams}`
+      `${clientPath(PostsApi.clientRoutes.privateNotes)}${queryParams}`
     );
   }
 
@@ -282,7 +303,7 @@ class PostsApi extends ApiService {
     return await this.get<{
       topics: OnboardingTopic[];
       posts: PostWithForecasts[];
-    }>(`/posts/onboarding-feed/`);
+    }>(clientPath(PostsApi.clientRoutes.onboardingFeed));
   }
 }
 

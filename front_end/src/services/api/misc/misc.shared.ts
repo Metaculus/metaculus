@@ -1,5 +1,6 @@
 import { ContactSubjectType } from "@/constants/contact";
 import { ApiService } from "@/services/api/api_service";
+import { clientPath } from "@/services/api/client_path";
 import { FetchOptions } from "@/types/fetch";
 import { SitemapPost } from "@/types/post";
 import { CombinedFeedTile, SitemapProject } from "@/types/projects";
@@ -37,6 +38,11 @@ export type BulletinItem = {
 };
 
 class MiscApi extends ApiService {
+  static readonly clientRoutes = {
+    adTiles: "/ad-tiles/",
+    bulletins: "/get-bulletins/",
+  } as const;
+
   async getSitemap(fetchOptions?: FetchOptions): Promise<SitemapPayload> {
     return await this.get<SitemapPayload>("/sitemap/", fetchOptions, {
       forceLocale: "original",
@@ -46,7 +52,7 @@ class MiscApi extends ApiService {
   async getBulletins(): Promise<BulletinItem[]> {
     const resp = await this.get<{
       bulletins: BulletinItem[];
-    }>("/get-bulletins/", undefined, {
+    }>(clientPath(MiscApi.clientRoutes.bulletins), undefined, {
       passAuthHeader: false,
     });
     return resp.bulletins;
@@ -68,7 +74,9 @@ class MiscApi extends ApiService {
   }
 
   async getCombinedFeedTiles(): Promise<CombinedFeedTile[]> {
-    return await this.get<CombinedFeedTile[]>("/ad-tiles/");
+    return await this.get<CombinedFeedTile[]>(
+      clientPath(MiscApi.clientRoutes.adTiles)
+    );
   }
 
   async dismissFeedTile(dismissId: string): Promise<void> {

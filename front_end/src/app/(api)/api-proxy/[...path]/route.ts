@@ -5,6 +5,7 @@ import {
   SHADOW_AGGREGATIONS_COOKIE,
   SHADOW_AGGREGATIONS_HEADER,
 } from "@/constants/questions";
+import { matchClientRoute } from "@/services/api/client_routes";
 import { refreshWithSingleFlight } from "@/services/auth_refresh";
 import {
   AuthCookieManager,
@@ -20,6 +21,10 @@ const NULL_BODY_STATUSES = new Set([204, 205, 304]);
 const NULL_BODY_HEADERS = new Set(["content-length", "content-type"]);
 
 export async function GET(request: NextRequest) {
+  const proxiedPath = new URL(request.url).pathname.replace(/^\/api-proxy/, "");
+  if (!matchClientRoute(proxiedPath)) {
+    return NextResponse.json({ detail: "Not found." }, { status: 404 });
+  }
   return handleProxyRequest(request, "GET");
 }
 

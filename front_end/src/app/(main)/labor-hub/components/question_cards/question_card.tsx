@@ -13,14 +13,15 @@ import { ReactNode } from "react";
 import { ComponentProps, useCallback, useMemo, useRef, useState } from "react";
 import toast from "react-hot-toast";
 
+import { getPostZipData } from "@/app/(main)/questions/actions";
 import { MetaculusWordmark } from "@/components/logos";
 import Button from "@/components/ui/button";
 import DropdownMenu, { MenuItemProps } from "@/components/ui/dropdown_menu";
 import { METAC_COLORS } from "@/constants/colors";
 import useAppTheme from "@/hooks/use_app_theme";
-import ClientPostsApi from "@/services/api/posts/posts.client";
 import { DownloadAggregationMethod } from "@/types/question";
 import cn from "@/utils/core/cn";
+import { base64ToBlob } from "@/utils/files";
 
 import { reactNodeToText } from "./helpers";
 
@@ -135,7 +136,7 @@ export function MoreButton({
     );
 
     try {
-      const blob = await ClientPostsApi.getPostZipData({
+      const result = await getPostZipData({
         ...(postIds.length === 1
           ? { post_id: postIds[0] }
           : { post_ids: postIds }),
@@ -146,10 +147,11 @@ export function MoreButton({
         include_user_data: false,
         include_key_factors: false,
       });
+      if ("error" in result) throw new Error(result.error);
       const defaultTitle =
         postIds.length > 1 ? `metaculus_data_${postIds.length}_posts` : "data";
       const filename = `${(postTitle || defaultTitle).replaceAll(" ", "_")}.zip`;
-      saveAs(blob, filename);
+      saveAs(base64ToBlob(result.dataUrl), filename);
       toast.dismiss(loadingToastId);
       toast.success("CSV download started.");
     } catch (error) {

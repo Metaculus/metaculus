@@ -1,4 +1,5 @@
 import { ApiService } from "@/services/api/api_service";
+import { clientPath } from "@/services/api/client_path";
 import type {
   FetchedAggregateCoherenceLinks,
   FetchedCoherenceLinks,
@@ -8,6 +9,11 @@ import { Question } from "@/types/question";
 export type AggregateLinkVoteValue = 1 | -1 | null;
 
 class CoherenceLinksApi extends ApiService {
+  static readonly clientRoutes = {
+    links: "/coherence/question/:questionId/links/",
+    aggregateLinks: "/coherence/question/:questionId/aggregate-links/",
+  } as const;
+
   /**
    * Retrieves coherence links associated with a post's question.
    * @param question - The question to get coherence links for
@@ -17,13 +23,19 @@ class CoherenceLinksApi extends ApiService {
   async getCoherenceLinksForPost(
     question: Question
   ): Promise<FetchedCoherenceLinks> {
-    return await this.get(`/coherence/question/${question.id}/links/`);
+    return await this.get(
+      clientPath(CoherenceLinksApi.clientRoutes.links, {
+        questionId: question.id,
+      })
+    );
   }
   async getAggregateCoherenceLinksForPost(
     question: Question
   ): Promise<FetchedAggregateCoherenceLinks> {
     return await this.get(
-      `/coherence/question/${question.id}/aggregate-links/`
+      clientPath(CoherenceLinksApi.clientRoutes.aggregateLinks, {
+        questionId: question.id,
+      })
     );
   }
 
