@@ -1,8 +1,10 @@
 import pytest  # noqa
 from django.db import connection
 from django.test.utils import CaptureQueriesContext
+from django.utils import translation
 
 from comments.models import KeyFactorVote, KeyFactorDriver
+from comments.serializers.common import serialize_comment_many
 from comments.serializers.key_factors import serialize_key_factors_many
 from tests.unit.test_comments.factories import factory_comment, factory_key_factor
 from tests.unit.test_posts.factories import factory_post
@@ -68,3 +70,38 @@ def test_key_factor_comments_load_only_serialized_columns(user1, user2):
         BaseUserSerializer(user).data for user in (user1, user2, user2)
     ]
     assert [key_factor["post"]["id"] for key_factor in data] == [post.id] * 3
+
+
+@pytest.mark.parametrize("language", ["en", "es", "cs", "zh-TW"])
+def test_comments_skip_unused_translation_columns(user1, mocker, language):
+    post = factory_post(
+        author=user1, title_original="P", title_es="P es", title_zh="P zh"
+    )
+    comments = [
+        factory_comment(author=user1, on_post=post, text_original="C", text_cs="C cs"),
+        factory_comment(author=user1, on_post=post, text_original="", text_en="Bot"),
+        factory_comment(
+            author=user1,
+            on_post=post,
+            text_original="O",
+            text_es="O es",
+            text_zh_TW="O tw",
+        ),
+    ]
+
+    with translation.override(language):
+        with CaptureQueriesContext(connection) as ctx:
+            data = serialize_comment_many(comments, user1)
+
+        assert '"comments_comment"."text",' not in ctx.captured_queries[0]["sql"]
+        assert '"posts_post"."title",' not in ctx.captured_queries[0]["sql"]
+
+        mocker.patch(
+            "comments.serializers.common.defer_unused_translations",
+            side_effect=lambda queryset, *related: queryset,
+        )
+        with CaptureQueriesContext(connection) as full_ctx:
+            expected = serialize_comment_many(comments, user1)
+
+    assert data == expected
+    assert len(ctx.captured_queries) == len(full_ctx.captured_queries)
