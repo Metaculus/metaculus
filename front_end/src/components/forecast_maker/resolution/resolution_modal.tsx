@@ -21,10 +21,16 @@ import {
   ANNULLED_RESOLUTION,
 } from "@/constants/questions";
 import { ErrorResponse } from "@/types/fetch";
-import { Question, QuestionType } from "@/types/question";
+import {
+  DefaultInboundOutcomeCount,
+  Question,
+  QuestionType,
+} from "@/types/question";
 import { getAllOptionsHistory } from "@/utils/questions/helpers";
 
-import ResolutionRangeInputs from "./resolution_range_inputs";
+import ResolutionRangeInputs, {
+  getRangeResolutionError,
+} from "./resolution_range_inputs";
 
 type Props = {
   question: Question;
@@ -121,6 +127,20 @@ const QuestionResolutionModal: FC<Props> = ({ isOpen, onClose, question }) => {
     supportsRangeResolution &&
     scoreAsRange &&
     (!resolutionLowerBound || !resolutionUpperBound);
+  const rangeError =
+    supportsRangeResolution && scoreAsRange
+      ? getRangeResolutionError({
+          questionType: question.type as
+            | QuestionType.Numeric
+            | QuestionType.Date,
+          scaling: question.scaling,
+          inboundOutcomeCount:
+            question.inbound_outcome_count ?? DefaultInboundOutcomeCount,
+          resolutionValue,
+          lower: resolutionLowerBound,
+          upper: resolutionUpperBound,
+        })
+      : null;
 
   const resetRange = useCallback(() => {
     setValue("scoreAsRange", false);
@@ -323,6 +343,8 @@ const QuestionResolutionModal: FC<Props> = ({ isOpen, onClose, question }) => {
               questionType={
                 question.type as QuestionType.Numeric | QuestionType.Date
               }
+              scaling={question.scaling}
+              error={rangeError}
               resolutionValue={resolutionValue}
               enabled={scoreAsRange}
               lower={resolutionLowerBound}
@@ -368,7 +390,8 @@ const QuestionResolutionModal: FC<Props> = ({ isOpen, onClose, question }) => {
                 !formState.isValid ||
                 !resolutionType ||
                 isSubmitting ||
-                missingRangeBounds
+                missingRangeBounds ||
+                !!rangeError
               }
             >
               {isSubmitting ? <LoadingSpinner size="sm" /> : t("resolve")}

@@ -2639,5 +2639,8 @@
   "rangeResolutionUpperBound": "上限",
   "rangeResolutionPresetDay": "日",
   "rangeResolutionPresetMonth": "月",
-  "rangeResolutionPresetYear": "年"
+  "rangeResolutionPresetYear": "年",
+  "rangeResolutionOutsideRange": "上下限都必须在问题的范围内。",
+  "rangeResolutionInvalidOrder": "下限必须小于上限，且决议值必须位于两者之间。",
+  "rangeResolutionTooNarrow": "区间宽度必须至少为问题刻度上的一个分箱。"
 }

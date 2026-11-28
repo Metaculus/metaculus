@@ -2626,5 +2626,8 @@
   "rangeResolutionUpperBound": "Upper bound",
   "rangeResolutionPresetDay": "Day",
   "rangeResolutionPresetMonth": "Month",
-  "rangeResolutionPresetYear": "Year"
+  "rangeResolutionPresetYear": "Year",
+  "rangeResolutionOutsideRange": "Both bounds must be within the question's range.",
+  "rangeResolutionInvalidOrder": "The lower bound must be below the upper bound, with the resolution value between them.",
+  "rangeResolutionTooNarrow": "The range must be at least one bin of the question's scale wide."
 }

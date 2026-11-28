@@ -2637,5 +2637,8 @@
   "rangeResolutionUpperBound": "Horní hranice",
   "rangeResolutionPresetDay": "Den",
   "rangeResolutionPresetMonth": "Měsíc",
-  "rangeResolutionPresetYear": "Rok"
+  "rangeResolutionPresetYear": "Rok",
+  "rangeResolutionOutsideRange": "Obě meze musí ležet v rozsahu otázky.",
+  "rangeResolutionInvalidOrder": "Dolní mez musí být menší než horní mez a hodnota rozhodnutí musí ležet mezi nimi.",
+  "rangeResolutionTooNarrow": "Rozsah musí být široký alespoň jeden interval škály otázky."
 }

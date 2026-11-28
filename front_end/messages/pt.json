@@ -2635,5 +2635,8 @@
   "rangeResolutionUpperBound": "Limite superior",
   "rangeResolutionPresetDay": "Dia",
   "rangeResolutionPresetMonth": "Mês",
-  "rangeResolutionPresetYear": "Ano"
+  "rangeResolutionPresetYear": "Ano",
+  "rangeResolutionOutsideRange": "Ambos os limites devem estar dentro do intervalo da pergunta.",
+  "rangeResolutionInvalidOrder": "O limite inferior deve ser menor que o limite superior, com o valor de resolução entre eles.",
+  "rangeResolutionTooNarrow": "O intervalo deve ter pelo menos a largura de uma faixa da escala da pergunta."
 }

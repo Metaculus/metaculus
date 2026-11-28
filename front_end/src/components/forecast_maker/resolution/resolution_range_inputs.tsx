@@ -6,7 +6,8 @@ import Button from "@/components/ui/button";
 import Checkbox from "@/components/ui/checkbox";
 import DatetimeUtc from "@/components/ui/datetime_utc";
 import { Input } from "@/components/ui/form_field";
-import { QuestionType } from "@/types/question";
+import { QuestionType, Scaling } from "@/types/question";
+import { unscaleNominalLocation } from "@/utils/math";
 
 type CalendarUnit = "day" | "month" | "year";
 
@@ -34,8 +35,74 @@ export function getCalendarUnitBounds(
   };
 }
 
+type RangeQuestionType = QuestionType.Numeric | QuestionType.Date;
+
+// bound strings to the scale of `Scaling` (dates in epoch seconds)
+function toScaledLocation(value: string, questionType: RangeQuestionType) {
+  return questionType === QuestionType.Date
+    ? new Date(value).getTime() / 1000
+    : Number(value);
+}
+
+function fromScaledLocation(location: number, questionType: RangeQuestionType) {
+  return questionType === QuestionType.Date
+    ? new Date(location * 1000).toISOString()
+    : String(location);
+}
+
+export type RangeResolutionError =
+  | "rangeResolutionOutsideRange"
+  | "rangeResolutionInvalidOrder"
+  | "rangeResolutionTooNarrow";
+
+/**
+ * Why these bounds can't be submitted, as a message key, or null if they can
+ * (or aren't complete yet). The backend enforces all but the minimum width.
+ */
+export function getRangeResolutionError({
+  questionType,
+  scaling,
+  inboundOutcomeCount,
+  resolutionValue,
+  lower,
+  upper,
+}: {
+  questionType: RangeQuestionType;
+  scaling: Scaling;
+  inboundOutcomeCount: number;
+  resolutionValue?: string;
+  lower?: string;
+  upper?: string;
+}): RangeResolutionError | null {
+  if (!lower || !upper || !resolutionValue) return null;
+  const { range_min, range_max } = scaling;
+  const low = toScaledLocation(lower, questionType);
+  const high = toScaledLocation(upper, questionType);
+  const value = toScaledLocation(resolutionValue, questionType);
+  if (range_min === null || range_max === null) return null;
+  // written so that NaN fails too
+  if (!(range_min <= low && high <= range_max)) {
+    return "rangeResolutionOutsideRange";
+  }
+  if (!(low <= value && value <= high && low < high)) {
+    return "rangeResolutionInvalidOrder";
+  }
+  // One bin is 1 / inboundOutcomeCount of the internal [0, 1] scale, so on
+  // log questions the minimum width in real units depends on where it sits.
+  // The tolerance lets a range of exactly one bin through.
+  const width =
+    unscaleNominalLocation(high, scaling) -
+    unscaleNominalLocation(low, scaling);
+  if (width < 1 / inboundOutcomeCount - 1e-9) {
+    return "rangeResolutionTooNarrow";
+  }
+  return null;
+}
+
 type Props = {
-  questionType: QuestionType.Numeric | QuestionType.Date;
+  questionType: RangeQuestionType;
+  scaling: Scaling;
+  error: RangeResolutionError | null;
   resolutionValue?: string;
   enabled: boolean;
   lower?: string;
@@ -46,6 +113,8 @@ type Props = {
 
 const ResolutionRangeInputs: FC<Props> = ({
   questionType,
+  scaling,
+  error,
   resolutionValue,
   enabled,
   lower,
@@ -56,6 +125,22 @@ const ResolutionRangeInputs: FC<Props> = ({
   const t = useTranslations();
   // DatetimeUtc only reads its value on mount, so remount it on presets
   const [presetCount, setPresetCount] = useState(0);
+  const { range_min, range_max } = scaling;
+
+  // presets never extend past the question's range
+  const clampToRange = ([low, high]: [string, string]): [string, string] => {
+    const clamp = (bound: string) => {
+      const location = toScaledLocation(bound, questionType);
+      if (range_min !== null && location < range_min) {
+        return fromScaledLocation(range_min, questionType);
+      }
+      if (range_max !== null && location > range_max) {
+        return fromScaledLocation(range_max, questionType);
+      }
+      return bound;
+    };
+    return [clamp(low), clamp(high)];
+  };
 
   const presets: { label: string; bounds: () => [string, string] | null }[] =
     questionType === QuestionType.Numeric
@@ -110,7 +195,7 @@ const ResolutionRangeInputs: FC<Props> = ({
                 onClick={() => {
                   const result = bounds();
                   if (result) {
-                    onBoundsChange(...result);
+                    onBoundsChange(...clampToRange(result));
                     setPresetCount((count) => count + 1);
                   }
                 }}
@@ -127,6 +212,8 @@ const ResolutionRangeInputs: FC<Props> = ({
                   type="number"
                   step="any"
                   className="max-w-xs bg-transparent"
+                  min={range_min ?? undefined}
+                  max={range_max ?? undefined}
                   value={lower ?? ""}
                   onChange={(event) =>
                     onBoundsChange(event.target.value, upper)
@@ -139,6 +226,8 @@ const ResolutionRangeInputs: FC<Props> = ({
                   type="number"
                   step="any"
                   className="max-w-xs bg-transparent"
+                  min={range_min ?? undefined}
+                  max={range_max ?? undefined}
                   value={upper ?? ""}
                   onChange={(event) =>
                     onBoundsChange(lower, event.target.value)
@@ -167,6 +256,11 @@ const ResolutionRangeInputs: FC<Props> = ({
                 />
               </label>
             </>
+          )}
+          {error && (
+            <p className="m-0 text-sm text-red-500 dark:text-red-500-dark">
+              {t(error)}
+            </p>
           )}
         </div>
       )}
