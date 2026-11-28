@@ -4,6 +4,7 @@ import { isNil } from "lodash";
 import { FC, useCallback, useEffect, useState } from "react";
 
 import { Input } from "@/components/ui/form_field";
+import NudgeButtons, { nudgeSteps } from "@/components/ui/nudge_buttons";
 import cn from "@/utils/core/cn";
 import { abbreviatedNumber } from "@/utils/formatters/number";
 
@@ -16,6 +17,7 @@ type Props = {
   error?: string;
   isDirty?: boolean;
   showPercentSign?: boolean;
+  nudge?: (value: number | undefined, steps: number) => number | undefined;
 };
 
 const AbreviatedNumericInput: FC<Props> = ({
@@ -27,7 +29,9 @@ const AbreviatedNumericInput: FC<Props> = ({
   error,
   isDirty,
   showPercentSign,
+  nudge,
 }) => {
+  const canNudge = !!nudge && !disabled;
   const [localValue, setLocalValue] = useState<string>(
     isNil(value) ? "" : abbreviatedNumber(value, 4)
   );
@@ -38,6 +42,21 @@ const AbreviatedNumericInput: FC<Props> = ({
     }
     setLocalValue(isNil(value) ? "" : abbreviatedNumber(value, 4));
   }, [value, isFocused]);
+
+  const handleNudge = (steps: number) => {
+    if (!nudge) return;
+    const current = isFocused
+      ? parseFormattedNumber(localValue)
+      : isNil(value)
+        ? undefined
+        : Number(value);
+    const next = nudge(current, steps);
+    if (isNil(next)) return;
+    // Unabbreviated while editing, or steps below the display precision
+    // would be lost
+    setLocalValue(isFocused ? String(next) : abbreviatedNumber(next, 4));
+    onChange(next);
+  };
 
   const handleBlur = useCallback(
     (e: React.FocusEvent<HTMLInputElement>) => {
@@ -79,9 +98,22 @@ const AbreviatedNumericInput: FC<Props> = ({
             "border-salmon-500 bg-salmon-200 dark:border-salmon-500-dark dark:bg-salmon-200-dark":
               error,
             "text-xs sm:text-base": disabled,
+            "px-6": canNudge,
           },
           className
         )}
+        onKeyDown={
+          canNudge
+            ? (e) => {
+                if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+                  e.preventDefault();
+                  handleNudge(
+                    nudgeSteps(e.key === "ArrowUp" ? 1 : -1, e.shiftKey)
+                  );
+                }
+              }
+            : undefined
+        }
         onFocus={(e) => {
           setIsFocused(true);
           e.target.placeholder = "";
@@ -92,10 +124,16 @@ const AbreviatedNumericInput: FC<Props> = ({
         }}
       />
       {showPercentSign && !disabled && (
-        <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-xs text-orange-800 dark:text-orange-800-dark sm:text-sm">
+        <span
+          className={cn(
+            "pointer-events-none absolute top-1/2 -translate-y-1/2 text-xs text-orange-800 dark:text-orange-800-dark sm:text-sm",
+            canNudge ? "right-5" : "right-2"
+          )}
+        >
           %
         </span>
       )}
+      {canNudge && <NudgeButtons onNudge={handleNudge} />}
     </div>
   );
 };

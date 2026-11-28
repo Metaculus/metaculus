@@ -22,6 +22,13 @@ const ContinuousSlider: FC<Props> = ({
     return null;
   }
 
+  const replaceAt = (index: number, component: DistributionSliderComponent) =>
+    onChange([
+      ...components.slice(0, index),
+      component,
+      ...components.slice(index + 1),
+    ]);
+
   return (
     <>
       {components.map((forecastValue, index) => {
@@ -34,19 +41,14 @@ const ContinuousSlider: FC<Props> = ({
                 value={forecastValue}
                 step={0.00001}
                 clampStep={0.035}
-                onChange={(value) => {
-                  const newForecast = [
-                    ...components.slice(0, index),
-                    {
-                      left: value.left,
-                      center: value.center,
-                      right: value.right,
-                      weight: forecastValue.weight,
-                    },
-                    ...components.slice(index + 1, components.length),
-                  ];
-                  onChange(newForecast);
-                }}
+                onChange={(value) =>
+                  replaceAt(index, {
+                    left: value.left,
+                    center: value.center,
+                    right: value.right,
+                    weight: forecastValue.weight,
+                  })
+                }
                 shouldSyncWithDefault
               />
             )}
@@ -62,17 +64,9 @@ const ContinuousSlider: FC<Props> = ({
                     step={0.00001}
                     defaultValue={forecastValue.weight}
                     round={true}
-                    onChange={(value) => {
-                      const newForecast = [
-                        ...components.slice(0, index),
-                        {
-                          ...forecastValue,
-                          weight: value,
-                        },
-                        ...components.slice(index + 1, components.length),
-                      ];
-                      onChange(newForecast);
-                    }}
+                    onChange={(value) =>
+                      replaceAt(index, { ...forecastValue, weight: value })
+                    }
                     disabled={disabled}
                     shouldSyncWithDefault
                   />
@@ -81,13 +75,9 @@ const ContinuousSlider: FC<Props> = ({
                   <FontAwesomeIcon
                     className="inline cursor-pointer pl-2 pt-2"
                     icon={faClose}
-                    onClick={() => {
-                      const newForecast = [
-                        ...components.slice(0, index),
-                        ...components.slice(index + 1, components.length),
-                      ];
-                      onChange(newForecast);
-                    }}
+                    onClick={() =>
+                      onChange(components.filter((_, i) => i !== index))
+                    }
                   />
                 )}
               </div>

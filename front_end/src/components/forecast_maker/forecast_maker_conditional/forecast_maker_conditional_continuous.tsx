@@ -43,6 +43,7 @@ import {
 import {
   clearQuantileComponents,
   isForecastActive,
+  makeDefaultSliderComponent,
 } from "@/utils/forecasts/helpers";
 import {
   extractPrevNumericForecastValue,
@@ -400,7 +401,7 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
             ...prevChoice,
             sliderForecast: [
               ...prevChoice.sliderForecast,
-              { left: 0.4, center: 0.5, right: 0.6, weight: 1 },
+              makeDefaultSliderComponent(),
             ],
             isDirty: true,
           };

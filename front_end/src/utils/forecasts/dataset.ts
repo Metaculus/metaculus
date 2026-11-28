@@ -154,20 +154,12 @@ export function getQuantileNumericForecastDataset(
   }
 
   const cdf = generateQuantileContinuousCdf({
-    quantiles: [
-      {
-        quantile: Number(Quantile.q1),
-        value: components.find((c) => c.quantile === Quantile.q1)?.value ?? 0,
-      },
-      {
-        quantile: Number(Quantile.q2),
-        value: components.find((c) => c.quantile === Quantile.q2)?.value ?? 0,
-      },
-      {
-        quantile: Number(Quantile.q3),
-        value: components.find((c) => c.quantile === Quantile.q3)?.value ?? 0,
-      },
-    ],
+    // Missing percentiles are interpolated between their neighbours
+    quantiles: components.flatMap((c) =>
+      typeof c.quantile === "number" && !isNil(c.value)
+        ? [{ quantile: c.quantile, value: c.value }]
+        : []
+    ),
     probBelowLower:
       components.find((c) => c.quantile === Quantile.lower)?.value ?? 0,
     probAboveUpper:

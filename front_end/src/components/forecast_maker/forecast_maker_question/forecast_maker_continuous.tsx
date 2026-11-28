@@ -45,6 +45,7 @@ import {
   isAllQuantileComponentsDirty,
   isForecastActive,
   isOpenQuestionPredicted,
+  makeDefaultSliderComponent,
 } from "@/utils/forecasts/helpers";
 import {
   extractPrevNumericForecastValue,
@@ -229,12 +230,7 @@ const ForecastMakerContinuous: FC<Props> = ({
   const handleAddComponent = () => {
     setSliderDistributionComponents([
       ...sliderDistributionComponents,
-      {
-        left: 0.4,
-        right: 0.6,
-        center: 0.5,
-        weight: 1,
-      },
+      makeDefaultSliderComponent(),
     ]);
   };
 

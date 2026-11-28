@@ -53,17 +53,13 @@ export function clearQuantileComponents(
   }));
 }
 
+export function makeDefaultSliderComponent(): DistributionSliderComponent {
+  return { left: 0.4, center: 0.5, right: 0.6, weight: 1 };
+}
+
 export const getNormalizedContinuousForecast = (
   forecast: DistributionSliderComponent[] | null | undefined
-): DistributionSliderComponent[] =>
-  forecast ?? [
-    {
-      left: 0.4,
-      center: 0.5,
-      right: 0.6,
-      weight: 1,
-    },
-  ];
+): DistributionSliderComponent[] => forecast ?? [makeDefaultSliderComponent()];
 
 export function getUserContinuousQuartiles(
   components?: DistributionSliderComponent[],
