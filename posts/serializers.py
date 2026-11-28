@@ -544,7 +544,9 @@ def serialize_post_many(
             Prefetch("coauthors", queryset=User.objects.only("id", "username")),
             Prefetch(
                 "default_project",
-                queryset=Project.objects.select_related("primary_leaderboard"),
+                queryset=defer_unused_translations(
+                    Project.objects.select_related("primary_leaderboard")
+                ),
             ),
         )
     )
