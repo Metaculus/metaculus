@@ -20,6 +20,11 @@ from questions.models import (
 from questions.services.multiple_choice_handlers import get_all_options_from_history
 from questions.types import AggregationMethod
 from scoring.models import ArchivedScore, Score
+from scoring.score_math import (
+    ResolutionRange,
+    get_resolution_range,
+    resolution_probability,
+)
 from scoring.reputations import REPUTATION_FORMULAS, reputations_at_forecast_time
 from users.models import User
 from utils.the_math.aggregations import (
@@ -356,6 +361,23 @@ def _reputation_columns(
     return [value, contribution, float(max(reputation, _REPUTATION_PARAMS["e"]))]
 
 
+def _get_resolution_range(
+    question: Question, cache: dict[int, ResolutionRange | None]
+) -> ResolutionRange | None:
+    if question.id not in cache:
+        cache[question.id] = get_resolution_range(question)
+    return cache[question.id]
+
+
+def _pdf_at_resolution(
+    pmf: list[float], resolution_index: int, question: Question
+) -> float | None:
+    """Density at the resolution value, whether or not it's scored as a range"""
+    if question.type not in QUESTION_CONTINUOUS_TYPES:
+        return None
+    return resolution_probability(pmf, resolution_index) * (len(pmf) - 2)
+
+
 def generate_data(
     questions: QuerySet[Question],
     user_forecasts: QuerySet[Forecast] | list[Forecast] | None = None,
@@ -379,6 +401,8 @@ def generate_data(
     #     key_factor_data - Only if key_factors given
     #     question_link_data - Only if aggregate_question_links given
     #     README.md - Always
+    resolution_ranges: dict[int, ResolutionRange | None] = {}
+
     questions = questions.select_related("post", "post__default_project")
     question_ids = questions.values_list("id", flat=True)
     if not question_ids:
@@ -458,6 +482,8 @@ def generate_data(
         + "**`Scheduled Close Time`** - the time when forecasting ends.\n"
         + "**`Actual Close Time`** - the earlier of the scheduled close time and the time when the resolution became known.\n"
         + "**`Resolution`** - the resolution for the question.\n"
+        + "**`Resolution Lower Bound`** - for a numeric or date question scored as a range, the lower end of that range. The question is scored on the probability between the two bounds rather than at the Resolution.\n"
+        + "**`Resolution Upper Bound`** - the upper end of that range.\n"
         + "**`Resolution Known Time`** - the time when the resolution became known.\n"
         + "**`Include Bots in Aggregates`** - whether bots are included in the aggregations by default.\n"
         + "**`Question Weight`** - the weight of the question in the leaderboard.\n"
@@ -496,6 +522,8 @@ def generate_data(
             "Scheduled Close Time",
             "Actual Close Time",
             "Resolution",
+            "Resolution Lower Bound",
+            "Resolution Upper Bound",
             "Resolution Known Time",
             "Include Bots in Aggregates",
             "Question Weight",
@@ -563,6 +591,8 @@ def generate_data(
                 question.scheduled_close_time,
                 question.actual_close_time,
                 question.resolution,
+                question.resolution_lower_bound,
+                question.resolution_upper_bound,
                 question.actual_resolve_time,
                 question.include_bots_in_aggregates,
                 question.question_weight,
@@ -606,8 +636,8 @@ def generate_data(
         + "**`Median`** - the median of forecast for a continuous question.\n"
         + "**`75th Percentile`** - the 75th percentile of forecast for a continuous question.\n"
         + "**`95th Percentile`** - the 95th percentile of forecast for a continuous question.\n"
-        + "**`Probability of Resolution`** - the actual probability assigned to the Resolution of the question, if resolved. This is the value used in scoring. Cross reference 'Resolution' in `question_data.csv`.\n"
-        + "**`PDF at Resolution`** - the height of the PDF (probability density function) value at the resolution for a continuous question. This is the value that will show on the continuous range in the prediction interface.\n"
+        + "**`Probability of Resolution`** - the actual probability assigned to the Resolution of the question, if resolved. This is the value used in scoring. Cross reference 'Resolution' in `question_data.csv`. For a question scored as a range, this is the probability between the Resolution Lower Bound and Resolution Upper Bound.\n"
+        + "**`PDF at Resolution`** - the height of the PDF (probability density function) value at the resolution for a continuous question. This is the value that will show on the continuous range in the prediction interface. It is taken at the Resolution even for a question scored as a range.\n"
     )
     forecast_output = io.StringIO()
     forecast_writer = csv.writer(forecast_output)
@@ -686,17 +716,14 @@ def generate_data(
             row.extend([None, None])
         else:
             pmf = forecast.get_pmf()
-            forecast_at_resolution = (
-                pmf[resolution_index]
-                if not np.isnan(pmf[resolution_index])
-                else pmf[-1]
+            row.append(
+                resolution_probability(
+                    pmf,
+                    resolution_index,
+                    _get_resolution_range(forecast.question, resolution_ranges),
+                )
             )
-            row.append(forecast_at_resolution)
-            if forecast.question.type in QUESTION_CONTINUOUS_TYPES:
-                # Also append PDF value
-                row.append(forecast_at_resolution * (len(pmf) - 2))
-            else:
-                row.append(None)
+            row.append(_pdf_at_resolution(pmf, resolution_index, forecast.question))
         if forecast_reputations is not None:
             row.extend(_reputation_columns(forecast_reputations.get(forecast.id)))
 
@@ -763,18 +790,28 @@ def generate_data(
         if resolution_index is None:
             row.append(None)
         else:
-            pmf = aggregate_forecast.get_pmf()
-            forecast_at_resolution = (
-                pmf[resolution_index]
-                if not np.isnan(pmf[resolution_index])
-                else pmf[-1]
+            pmf = (
+                # get_aggregation_history stores the bucket-wise geometric mean
+                # PMF itself, which get_pmf would read as a CDF
+                [
+                    float("nan") if v is None else v
+                    for v in aggregate_forecast.forecast_values
+                ]
+                if aggregate_forecast.method == "geometric_mean"
+                else aggregate_forecast.get_pmf()
             )
-            row.append(forecast_at_resolution)
-            if aggregate_forecast.question.type in QUESTION_CONTINUOUS_TYPES:
-                # Also append PDF value
-                row.append(forecast_at_resolution * (len(pmf) - 2))
-            else:
-                row.append(None)
+            row.append(
+                resolution_probability(
+                    pmf,
+                    resolution_index,
+                    _get_resolution_range(
+                        aggregate_forecast.question, resolution_ranges
+                    ),
+                )
+            )
+            row.append(
+                _pdf_at_resolution(pmf, resolution_index, aggregate_forecast.question)
+            )
         if forecast_reputations is not None:
             # user forecasts only
             row.extend([None] * (len(headers) - len(row)))

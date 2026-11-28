@@ -34,6 +34,7 @@ from questions.serializers.common import (
     QuestionsCommunityPredictionsSerializer,
     serialize_question,
     validate_question_resolution,
+    validate_question_resolution_bounds,
 )
 from questions.services.forecasts import (
     create_forecast_bulk,
@@ -91,6 +92,14 @@ def resolve_api_view(request, pk: int):
         raise ValidationError("This question is already resolved")
 
     resolution = validate_question_resolution(question, request.data.get("resolution"))
+    resolution_lower_bound, resolution_upper_bound = (
+        validate_question_resolution_bounds(
+            question,
+            resolution,
+            request.data.get("resolution_lower_bound"),
+            request.data.get("resolution_upper_bound"),
+        )
+    )
     actual_resolve_time = DateTimeField().run_validation(
         request.data.get("actual_resolve_time")
     )
@@ -101,7 +110,12 @@ def resolve_api_view(request, pk: int):
         request.data.get("score_as_task", False)
     )
     resolve_question(
-        question, resolution, actual_resolve_time, score_as_task=score_as_task
+        question,
+        resolution,
+        actual_resolve_time,
+        score_as_task=score_as_task,
+        resolution_lower_bound=resolution_lower_bound,
+        resolution_upper_bound=resolution_upper_bound,
     )
 
     return Response({"post_id": question.get_post().pk})

@@ -15,7 +15,11 @@ from questions.types import AggregationMethod
 from scoring.constants import ScoreTypes
 from scoring.models import Score
 from utils.the_math.aggregations import get_aggregation_history
-from utils.the_math.formulas import string_location_to_bucket_index
+from utils.the_math.formulas import (
+    scaled_location_to_unscaled_location,
+    string_location_to_bucket_index,
+    string_location_to_scaled_location,
+)
 
 
 @dataclass
@@ -25,9 +29,109 @@ class AggregationEntry:
     timestamp: float
 
 
+@dataclass(frozen=True)
+class ResolutionRange:
+    """
+    A continuous resolution scored as an interval instead of a single bucket.
+    `weights[i]` is the fraction of PMF bucket i inside the interval, so the
+    forecast's mass in the interval (CDF linear within a bucket) is
+    `weights @ pmf`. `width` is the interval's width in unscaled units.
+    """
+
+    weights: np.ndarray
+    width: float
+
+    def probability(self, pmf: np.ndarray | list[float]) -> float:
+        return float(np.dot(self.weights, pmf))
+
+
+def get_resolution_range(question: Question) -> ResolutionRange | None:
+    """
+    Raises ValueError for bounds that aren't range_min <= lower < upper <= range_max
+    rather than clamping them: such bounds can only have bypassed validation.
+    """
+    lower = question.resolution_lower_bound
+    upper = question.resolution_upper_bound
+    if lower is None and upper is None:
+        return None
+    if lower is None or upper is None:
+        raise ValueError(f"Question {question.id}: only one resolution bound is set")
+    lower_location = string_location_to_scaled_location(lower, question)
+    upper_location = string_location_to_scaled_location(upper, question)
+    # written so that NaN fails too
+    if not (
+        question.range_min <= lower_location < upper_location <= question.range_max
+    ):
+        raise ValueError(
+            f"Question {question.id}: resolution bounds [{lower}, {upper}] must "
+            "satisfy range_min <= lower < upper <= range_max "
+            f"([{question.range_min}, {question.range_max}])"
+        )
+    inbound_outcome_count = question.get_inbound_outcome_count()
+    # the range ends map to 0 and 1; this only removes floating point error
+    low, high = np.clip(
+        [
+            scaled_location_to_unscaled_location(lower_location, question),
+            scaled_location_to_unscaled_location(upper_location, question),
+        ],
+        0.0,
+        1.0,
+    )
+    edges = np.linspace(0, 1, inbound_outcome_count + 1)
+    inbound_weights = (
+        np.clip(np.minimum(high, edges[1:]) - np.maximum(low, edges[:-1]), 0, None)
+        * inbound_outcome_count
+    )
+    # out of bounds buckets are never inside the (clipped) interval
+    weights = np.concatenate([[0.0], inbound_weights, [0.0]])
+    return ResolutionRange(weights=weights, width=float(high - low))
+
+
+def resolution_probability(
+    pmf: np.ndarray | list[float],
+    resolution_bucket: int,
+    resolution_range: ResolutionRange | None = None,
+) -> float:
+    if resolution_range is not None:
+        return resolution_range.probability(pmf)
+    # if nan, read from Other
+    return pmf[resolution_bucket] if not np.isnan(pmf[resolution_bucket]) else pmf[-1]
+
+
+def geometric_mean_probability(
+    gm: AggregationEntry,
+    resolution_bucket: int,
+    resolution_range: ResolutionRange | None = None,
+) -> float:
+    if resolution_range is not None:
+        # see get_geometric_means
+        return gm.pmf[0]
+    return resolution_probability(gm.pmf, resolution_bucket)
+
+
+def continuous_baseline(
+    resolution_bucket: int,
+    pmf_length: int,
+    open_bounds_count: int,
+    resolution_range: ResolutionRange | None = None,
+) -> float:
+    if resolution_range is not None:
+        return (1 - 0.05 * open_bounds_count) * resolution_range.width
+    if resolution_bucket in [0, pmf_length - 1]:
+        return 0.05
+    return (1 - 0.05 * open_bounds_count) / (pmf_length - 2)
+
+
 def get_geometric_means(
     forecasts: Sequence[Forecast | AggregateForecast],
+    resolution_range: ResolutionRange | None = None,
 ) -> list[AggregationEntry]:
+    """
+    With a resolution_range, each entry's pmf is the single value
+    [geometric mean of each forecast's probability inside the range]: the
+    geometric mean of interval masses isn't the interval mass of the
+    bucket-wise geometric mean.
+    """
     geometric_means = []
     timesteps: set[float] = set()
     for forecast in forecasts:
@@ -36,7 +140,11 @@ def get_geometric_means(
             timesteps.add(forecast.end_time.timestamp())
     for timestep in sorted(timesteps):
         prediction_values = [
-            f.get_pmf()
+            (
+                [resolution_range.probability(f.get_pmf())]
+                if resolution_range
+                else f.get_pmf()
+            )
             for f in forecasts
             if f.start_time.timestamp() <= timestep
             and (f.end_time is None or f.end_time.timestamp() > timestep)
@@ -67,6 +175,7 @@ def evaluate_forecasts_baseline_accuracy(
     forecast_horizon_end: float,
     question_type: str,
     open_bounds_count: int,
+    resolution_range: ResolutionRange | None = None,
 ) -> list[ForecastScore]:
     total_duration = forecast_horizon_end - forecast_horizon_start
     forecast_scores: list[ForecastScore] = []
@@ -96,11 +205,11 @@ def evaluate_forecasts_baseline_accuracy(
             )  # if nan, read from Other
             forecast_score = 100 * np.log(p * options_at_time) / np.log(options_at_time)
         else:
-            if resolution_bucket in [0, len(pmf) - 1]:
-                baseline = 0.05
-            else:
-                baseline = (1 - 0.05 * open_bounds_count) / (len(pmf) - 2)
-            forecast_score = 100 * np.log(pmf[resolution_bucket] / baseline) / 2
+            p = resolution_probability(pmf, resolution_bucket, resolution_range)
+            baseline = continuous_baseline(
+                resolution_bucket, len(pmf), open_bounds_count, resolution_range
+            )
+            forecast_score = 100 * np.log(p / baseline) / 2
         forecast_scores.append(
             ForecastScore(forecast_score * forecast_coverage, forecast_coverage)
         )
@@ -114,6 +223,7 @@ def evaluate_forecasts_baseline_spot_forecast(
     spot_forecast_timestamp: float,
     question_type: str,
     open_bounds_count: int,
+    resolution_range: ResolutionRange | None = None,
 ) -> list[ForecastScore]:
     forecast_scores: list[ForecastScore] = []
     for forecast in forecasts:
@@ -138,11 +248,11 @@ def evaluate_forecasts_baseline_spot_forecast(
                     100 * np.log(p * options_at_time) / np.log(options_at_time)
                 )
             else:
-                if resolution_bucket in [0, len(pmf) - 1]:
-                    baseline = 0.05
-                else:
-                    baseline = (1 - 0.05 * open_bounds_count) / (len(pmf) - 2)
-                forecast_score = 100 * np.log(pmf[resolution_bucket] / baseline) / 2
+                p = resolution_probability(pmf, resolution_bucket, resolution_range)
+                baseline = continuous_baseline(
+                    resolution_bucket, len(pmf), open_bounds_count, resolution_range
+                )
+                forecast_score = 100 * np.log(p / baseline) / 2
             forecast_scores.append(ForecastScore(forecast_score, 1.0))
         else:
             forecast_scores.append(ForecastScore(0))
@@ -158,9 +268,13 @@ def evaluate_forecasts_peer_accuracy(
     forecast_horizon_end: float,
     question_type: str,
     geometric_means: list[AggregationEntry] | None = None,
+    resolution_range: ResolutionRange | None = None,
 ) -> list[ForecastScore]:
+    """geometric_means must be built with the same resolution_range"""
     base_forecasts = base_forecasts or forecasts
-    geometric_mean_forecasts = geometric_means or get_geometric_means(base_forecasts)
+    geometric_mean_forecasts = geometric_means or get_geometric_means(
+        base_forecasts, resolution_range
+    )
     for gm in geometric_mean_forecasts:
         gm.timestamp = max(gm.timestamp, forecast_horizon_start)
     total_duration = forecast_horizon_end - forecast_horizon_start
@@ -176,17 +290,15 @@ def evaluate_forecasts_peer_accuracy(
             forecast_scores.append(ForecastScore(0))
             continue
 
-        pmf = forecast.get_pmf()
-        # if nan, read from Other
-        p = pmf[resolution_bucket] if not np.isnan(pmf[resolution_bucket]) else pmf[-1]
+        p = resolution_probability(
+            forecast.get_pmf(), resolution_bucket, resolution_range
+        )
         interval_scores: list[float | None] = []
         for gm in geometric_mean_forecasts:
             if forecast_start <= gm.timestamp < forecast_end:
-                gmp = (
-                    gm.pmf[resolution_bucket]
-                    if not np.isnan(gm.pmf[resolution_bucket])
-                    else gm.pmf[-1]
-                )  # if nan, read from Other
+                gmp = geometric_mean_probability(
+                    gm, resolution_bucket, resolution_range
+                )
                 interval_score = (
                     100
                     * (gm.num_forecasters / (gm.num_forecasters - 1))
@@ -224,9 +336,13 @@ def evaluate_forecasts_peer_spot_forecast(
     spot_forecast_timestamp: float,
     question_type: str,
     geometric_means: list[AggregationEntry] | None = None,
+    resolution_range: ResolutionRange | None = None,
 ) -> list[ForecastScore]:
+    """geometric_means must be built with the same resolution_range"""
     base_forecasts = base_forecasts or forecasts
-    geometric_mean_forecasts = geometric_means or get_geometric_means(base_forecasts)
+    geometric_mean_forecasts = geometric_means or get_geometric_means(
+        base_forecasts, resolution_range
+    )
     g = None
     for gm in geometric_mean_forecasts[::-1]:
         if gm.timestamp < spot_forecast_timestamp:
@@ -242,17 +358,10 @@ def evaluate_forecasts_peer_spot_forecast(
             float("inf") if forecast.end_time is None else forecast.end_time.timestamp()
         )
         if start <= spot_forecast_timestamp < end:
-            pmf = forecast.get_pmf()
-            p = (
-                pmf[resolution_bucket]
-                if not np.isnan(pmf[resolution_bucket])
-                else pmf[-1]
-            )  # if nan, read from Other
-            gmp = (
-                gm.pmf[resolution_bucket]
-                if not np.isnan(gm.pmf[resolution_bucket])
-                else gm.pmf[-1]
-            )  # if nan, read from Other
+            p = resolution_probability(
+                forecast.get_pmf(), resolution_bucket, resolution_range
+            )
+            gmp = geometric_mean_probability(gm, resolution_bucket, resolution_range)
             forecast_score = (
                 100 * (gm.num_forecasters / (gm.num_forecasters - 1)) * np.log(p / gmp)
             )
@@ -270,6 +379,7 @@ def evaluate_forecasts_legacy_relative(
     resolution_bucket: int,
     forecast_horizon_start: float,
     actual_close_time: float,
+    resolution_range: ResolutionRange | None = None,
 ) -> list[ForecastScore]:
     baseline_forecasts = [
         AggregationEntry(
@@ -292,17 +402,15 @@ def evaluate_forecasts_legacy_relative(
             forecast_scores.append(ForecastScore(0))
             continue
 
-        pmf = forecast.get_pmf()
-        # if nan, read from Other
-        p = pmf[resolution_bucket] if not np.isnan(pmf[resolution_bucket]) else pmf[-1]
+        p = resolution_probability(
+            forecast.get_pmf(), resolution_bucket, resolution_range
+        )
         interval_scores: list[float | None] = []
         for bf in baseline_forecasts:
             if forecast_start <= bf.timestamp < forecast_end:
-                bfp = (
-                    bf.pmf[resolution_bucket]
-                    if not np.isnan(bf.pmf[resolution_bucket])
-                    else bf.pmf[-1]
-                )  # if nan, read from Other
+                bfp = resolution_probability(
+                    bf.pmf, resolution_bucket, resolution_range
+                )
                 interval_score = np.log2(p / bfp)
                 interval_scores.append(interval_score)
             else:
@@ -343,6 +451,11 @@ def evaluate_question(
     resolution_bucket = string_location_to_bucket_index(resolution, question)
     if resolution_bucket is None:
         return []
+    # Every caller scores the question's own resolution (or None to unset), and
+    # the bounds belong to that resolution.
+    resolution_range = (
+        get_resolution_range(question) if resolution == question.resolution else None
+    )
     aggregation_methods = aggregation_methods or []
     aggregations_to_calculate = aggregation_methods.copy()
     if ScoreTypes.RELATIVE_LEGACY in score_types and (
@@ -380,7 +493,7 @@ def evaluate_question(
 
     geometric_means: list[AggregationEntry] = []
     if ScoreTypes.PEER in score_types:
-        geometric_means = get_geometric_means(base_forecasts)
+        geometric_means = get_geometric_means(base_forecasts, resolution_range)
 
     scores: list[Score] = []
     for score_type in score_types:
@@ -399,6 +512,7 @@ def evaluate_question(
                 forecast_horizon_end,
                 question.type,
                 open_bounds_count,
+                resolution_range=resolution_range,
             )
             for method in aggregation_methods:
                 aggregation_forecasts = aggregations[method]
@@ -410,6 +524,7 @@ def evaluate_question(
                     forecast_horizon_end,
                     question.type,
                     open_bounds_count,
+                    resolution_range=resolution_range,
                 )
         elif score_type == ScoreTypes.SPOT_BASELINE:
             open_bounds_count = bool(question.open_upper_bound) + bool(
@@ -421,6 +536,7 @@ def evaluate_question(
                 spot_forecast_timestamp,
                 question.type,
                 open_bounds_count,
+                resolution_range=resolution_range,
             )
             for method in aggregation_methods:
                 aggregation_forecasts = aggregations[method]
@@ -430,6 +546,7 @@ def evaluate_question(
                     spot_forecast_timestamp,
                     question.type,
                     open_bounds_count,
+                    resolution_range=resolution_range,
                 )
         elif score_type == ScoreTypes.PEER:
             user_scores = evaluate_forecasts_peer_accuracy(
@@ -441,6 +558,7 @@ def evaluate_question(
                 forecast_horizon_end,
                 question.type,
                 geometric_means=geometric_means,
+                resolution_range=resolution_range,
             )
             for method in aggregation_methods:
                 aggregation_forecasts = aggregations[method]
@@ -453,6 +571,7 @@ def evaluate_question(
                     forecast_horizon_end,
                     question.type,
                     geometric_means=geometric_means,
+                    resolution_range=resolution_range,
                 )
         elif score_type == ScoreTypes.SPOT_PEER:
             user_scores = evaluate_forecasts_peer_spot_forecast(
@@ -462,6 +581,7 @@ def evaluate_question(
                 spot_forecast_timestamp,
                 question.type,
                 geometric_means=geometric_means,
+                resolution_range=resolution_range,
             )
             for method in aggregation_methods:
                 aggregation_forecasts = aggregations[method]
@@ -472,6 +592,7 @@ def evaluate_question(
                     spot_forecast_timestamp,
                     question.type,
                     geometric_means=geometric_means,
+                    resolution_range=resolution_range,
                 )
         elif score_type == ScoreTypes.RELATIVE_LEGACY:
             user_scores = evaluate_forecasts_legacy_relative(
@@ -480,6 +601,7 @@ def evaluate_question(
                 resolution_bucket,
                 forecast_horizon_start,
                 actual_close_time,
+                resolution_range=resolution_range,
             )
             for method in aggregation_methods:
                 aggregation_forecasts = aggregations[method]
@@ -489,6 +611,7 @@ def evaluate_question(
                     resolution_bucket,
                     forecast_horizon_start,
                     actual_close_time,
+                    resolution_range=resolution_range,
                 )
         else:
             raise NotImplementedError(f"Score type {score_type} not implemented")

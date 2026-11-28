@@ -14,6 +14,7 @@ from questions.constants import UnsuccessfulResolutionType
 from questions.models import Question, Conditional, UserForecastNotification
 from scoring.constants import ScoreTypes
 from scoring.reputations import question_counts_toward_reputation
+from scoring.score_math import get_resolution_range
 from scoring.utils import score_question
 from .common import update_leaderboards_for_question
 from .forecasts import rebuild_question_aggregations
@@ -132,6 +133,8 @@ def resolve_question(
     resolution: str,
     actual_resolve_time: datetime,
     score_as_task: bool = True,
+    resolution_lower_bound: str | None = None,
+    resolution_upper_bound: str | None = None,
 ):
     """
     By default scoring and notifications are handed to a background task, the
@@ -139,6 +142,9 @@ def resolve_question(
     transaction instead, so a failure or a timeout undoes the resolution.
 
     Conditional branches resolved along the way always score in the background.
+
+    The resolution bounds (see Question.resolution_lower_bound) must already be
+    validated against `resolution`.
     """
 
     if question.open_time and question.open_time > actual_resolve_time:
@@ -146,6 +152,13 @@ def resolve_question(
 
     previous_resolve_time = question.actual_resolve_time
     question.resolution = resolution
+    question.resolution_lower_bound = resolution_lower_bound
+    question.resolution_upper_bound = resolution_upper_bound
+    try:
+        # fail before saving, not later in (possibly background) scoring
+        get_resolution_range(question)
+    except ValueError as e:
+        raise ValidationError(str(e))
     question.resolution_set_time = timezone.now()
     question.actual_resolve_time = actual_resolve_time
     question.actual_close_time = min(actual_resolve_time, question.scheduled_close_time)
@@ -208,6 +221,8 @@ def resolve_question(
                         conditional.question_yes,
                         child.resolution,
                         conditional.question_yes.scheduled_close_time,
+                        resolution_lower_bound=child.resolution_lower_bound,
+                        resolution_upper_bound=child.resolution_upper_bound,
                     )
                     resolve_question(
                         conditional.question_no,
@@ -219,6 +234,8 @@ def resolve_question(
                         conditional.question_no,
                         child.resolution,
                         conditional.question_no.scheduled_close_time,
+                        resolution_lower_bound=child.resolution_lower_bound,
+                        resolution_upper_bound=child.resolution_upper_bound,
                     )
                     resolve_question(
                         conditional.question_yes,
@@ -260,12 +277,16 @@ def resolve_question(
                             conditional.question_yes,
                             question.resolution,
                             conditional.question_yes.scheduled_close_time,
+                            resolution_lower_bound=question.resolution_lower_bound,
+                            resolution_upper_bound=question.resolution_upper_bound,
                         )
                     if condition.resolution == "no":
                         resolve_question(
                             conditional.question_no,
                             question.resolution,
                             conditional.question_no.scheduled_close_time,
+                            resolution_lower_bound=question.resolution_lower_bound,
+                            resolution_upper_bound=question.resolution_upper_bound,
                         )
 
     post = question.get_post()
@@ -313,6 +334,8 @@ def resolve_question(
 def unresolve_question(question: Question):
     previous_resolve_time = question.actual_resolve_time
     question.resolution = None
+    question.resolution_lower_bound = None
+    question.resolution_upper_bound = None
     question.resolution_set_time = None
     question.actual_resolve_time = None
     question.actual_close_time = (

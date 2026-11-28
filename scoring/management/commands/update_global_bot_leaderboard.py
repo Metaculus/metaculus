@@ -24,6 +24,7 @@ from scoring.score_math import (
     evaluate_forecasts_peer_accuracy,
     evaluate_forecasts_peer_spot_forecast,
     get_geometric_means,
+    get_resolution_range,
 )
 from users.models import User
 from utils.the_math.aggregations import get_aggregation_history
@@ -152,7 +153,8 @@ def get_score_pair(
     forecast_horizon_start = question.open_time.timestamp()
     actual_close_time = question.actual_close_time.timestamp()
     forecast_horizon_end = question.scheduled_close_time.timestamp()
-    geometric_means = get_geometric_means(forecasts)
+    resolution_range = get_resolution_range(question)
+    geometric_means = get_geometric_means(forecasts, resolution_range)
 
     if question.default_score_type == ScoreTypes.PEER:
         # Coverage
@@ -178,6 +180,7 @@ def get_score_pair(
             forecast_horizon_end=forecast_horizon_end,
             question_type=question.type,
             geometric_means=geometric_means,
+            resolution_range=resolution_range,
         )
     elif question.default_score_type == ScoreTypes.SPOT_PEER:
         spot_forecast_timestamp = min(
@@ -202,6 +205,7 @@ def get_score_pair(
             spot_forecast_timestamp=spot_forecast_timestamp,
             question_type=question.type,
             geometric_means=geometric_means,
+            resolution_range=resolution_range,
         )
     else:
         raise ValueError("we only do Peer scores 'round hya")

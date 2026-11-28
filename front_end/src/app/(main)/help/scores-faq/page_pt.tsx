@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+import KatexRenderer from "@/components/katex_renderer";
+
 import PageWrapper from "../../components/pagewrapper";
 
 export const metadata = {
@@ -38,6 +40,12 @@ export default function ScoresFAQ() {
               <li>
                 <a href="#continuous-log-score">
                   Qual é a pontuação de log para perguntas contínuas?
+                </a>
+              </li>
+              <li>
+                <a href="#range-resolution">
+                  Como as perguntas contínuas são pontuadas quando se resolvem
+                  em um intervalo?
                 </a>
               </li>
               <li>
@@ -549,6 +557,90 @@ export default function ScoresFAQ() {
           mas na prática o Metaculus restringe o quão nítidos os pdfs podem ser
           obtidos (veja os escores máximos tabulados abaixo).
         </p>
+        <hr />
+        <h2 className="scroll-mt-nav" id="range-resolution">
+          Como as perguntas contínuas são pontuadas quando se resolvem em um
+          intervalo?
+        </h2>
+        <p>
+          Às vezes, só se sabe que o resultado de uma pergunta numérica ou de
+          data está dentro de um intervalo. Por exemplo, a fonte de resolução
+          pode informar apenas o mês em que um evento aconteceu, ou arredondar
+          um valor para o milhar mais próximo. Escolher um único ponto dentro
+          desse intervalo seria arbitrário, e recompensaria ou puniria as
+          previsões pela forma como distribuem a probabilidade dentro do
+          intervalo, algo que ninguém pode saber. Nesses casos, o Metaculus pode
+          pontuar a pergunta em um intervalo: um limite inferior e um limite
+          superior que contêm o resultado. A pergunta continua exibindo um único
+          valor de resolução, mas as pontuações usam o intervalo.
+        </p>
+        <p>
+          Em vez do pdf no resultado, um intervalo é pontuado com o pdf médio
+          sobre o intervalo: a probabilidade{" "}
+          <KatexRenderer equation="P" inline /> que a previsão coloca entre os
+          limites, dividida pela largura <KatexRenderer equation="w" inline />{" "}
+          do intervalo:
+        </p>
+        <KatexRenderer
+          equation="\text{pontuação de log} = \ln\left(\frac{P}{w}\right)"
+          inline={false}
+        />
+        <p>
+          Aqui, <KatexRenderer equation="w" inline /> é medida como uma fração
+          do intervalo da pergunta, na própria escala da pergunta. Em uma
+          pergunta logarítmica, isso significa que um intervalo que cobre a
+          mesma distância em unidades reais conta como mais largo perto da
+          extremidade inferior da escala do que perto da superior. Essa fórmula
+          substitui{" "}
+          <KatexRenderer equation="\operatorname{pdf}(resultado)" inline /> em
+          todas as pontuações:
+        </p>
+        <ul className="list-disc pl-5">
+          <li>
+            A{" "}
+            <Link href="/help/scores-faq/#baseline-score">
+              pontuação Baseline
+            </Link>{" "}
+            compara <KatexRenderer equation="P" inline /> com a probabilidade
+            que a linha de base uniforme coloca no intervalo.
+          </li>
+          <li>
+            A <Link href="/help/scores-faq/#peer-score">pontuação Peer</Link>{" "}
+            compara <KatexRenderer equation="P" inline /> com a média geométrica
+            da probabilidade no intervalo de todos os outros previsores.
+          </li>
+          <li>
+            As pontuações spot e a{" "}
+            <Link href="/help/scores-faq/#relative-score">
+              pontuação Relative
+            </Link>{" "}
+            legada usam a probabilidade no intervalo da mesma forma.
+          </li>
+        </ul>
+        <p>Algumas consequências que vale a pena conhecer:</p>
+        <ul className="list-disc pl-5">
+          <li>
+            Só conta a probabilidade total dentro do intervalo. Um pico estreito
+            em qualquer ponto do intervalo pontua o mesmo que a mesma
+            probabilidade distribuída uniformemente por ele.
+          </li>
+          <li>
+            Intervalos mais largos reduzem a melhor pontuação possível, porque{" "}
+            <KatexRenderer equation="P" inline /> é no máximo 1. Por exemplo, em
+            uma pergunta com limites fechados, um intervalo que cobre 10% do
+            intervalo da pergunta limita a pontuação Baseline a cerca de +115.
+          </li>
+          <li>
+            Um intervalo com exatamente a largura de uma faixa, alinhado com uma
+            faixa da escala da pergunta, pontua exatamente como uma resolução
+            dentro dessa faixa.
+          </li>
+          <li>
+            Os intervalos ficam sempre dentro dos limites da pergunta. Uma
+            pergunta que se resolve acima do limite superior ou abaixo do limite
+            inferior é pontuada como descrito acima, nunca em um intervalo.
+          </li>
+        </ul>
         {/* <hr> */}
         <h2 className="scroll-mt-nav" id="spot-score">
           O que é uma pontuação spot?
