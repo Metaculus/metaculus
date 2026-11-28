@@ -98,8 +98,7 @@ const KeyFactorsTileView: React.FC<Props> = ({
 
     const { question1, question2 } = primaryQuestionLink;
     let other: QuestionWithCP | undefined = (question1 ?? question2) as
-      | QuestionWithCP
-      | undefined;
+      QuestionWithCP | undefined;
 
     if (question1?.post_id === post.id && question2) {
       other = question2 as QuestionWithCP;

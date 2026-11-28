@@ -1397,7 +1397,7 @@ export function generateScale({
       // normalized [0, 1] domain for a wider numeric question range.
       const tickCountHint =
         direction === ScaleDirection.Horizontal
-          ? forceTickCount ?? maxLabelCount
+          ? (forceTickCount ?? maxLabelCount)
           : Math.min(
               MAX_VERTICAL_NUMERIC_MAJOR_TICK_COUNT,
               forceTickCount ?? maxLabelCount
@@ -1501,7 +1501,7 @@ export function generateScale({
     // Logarithmic Scaling
     const tickCountHint =
       direction === ScaleDirection.Horizontal
-        ? forceTickCount ?? maxLabelCount
+        ? (forceTickCount ?? maxLabelCount)
         : Math.min(
             MAX_VERTICAL_NUMERIC_MAJOR_TICK_COUNT,
             forceTickCount ?? maxLabelCount

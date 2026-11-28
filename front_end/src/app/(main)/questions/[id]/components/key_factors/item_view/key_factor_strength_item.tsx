@@ -89,7 +89,7 @@ const KeyFactorStrengthItem: FC<Props> = ({
 
   const aggregatedData = aggregate?.aggregated_data ?? [];
   const serverUpCount = isDirection
-    ? aggregatedData.find((a) => a.score === upScore)?.count ?? 0
+    ? (aggregatedData.find((a) => a.score === upScore)?.count ?? 0)
     : aggregatedData
         .filter((a) => a.score > 0)
         .reduce((sum, a) => sum + a.count, 0);

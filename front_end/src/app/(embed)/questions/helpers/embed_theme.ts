@@ -132,8 +132,7 @@ function getEmbeddedChipTheme(
 
 export const getEmbedAccentColor = (theme?: EmbedTheme): string | undefined => {
   const stroke = theme?.chart?.line?.style?.data?.stroke as unknown as
-    | string
-    | undefined;
+    string | undefined;
   return (
     stroke ?? (theme?.predictionChip?.backgroundColor as string | undefined)
   );

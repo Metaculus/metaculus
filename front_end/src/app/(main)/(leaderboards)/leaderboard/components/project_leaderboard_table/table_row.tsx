@@ -90,7 +90,7 @@ const TableRow: FC<Props> = ({
       ? t("communityPrediction")
       : aggregation_method == "unweighted"
         ? t("unweightedAggregate")
-        : aggregation_method ?? "";
+        : (aggregation_method ?? "");
   const formatScore = (value: number) =>
     compactScores ? formatCompact(value, 10) : value.toFixed(3);
   const formatScoreBound = (value: number) =>

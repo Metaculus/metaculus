@@ -299,7 +299,7 @@ const GeographicMap: FC<Props> = ({ races, tabsSlot, summarySlot }) => {
                 // for stroke, opacity and hover feedback.
                 const isFilled = safeParty != null || race?.demWinPct != null;
 
-                const stateName = abbr ? STATE_NAMES[abbr] ?? abbr : "";
+                const stateName = abbr ? (STATE_NAMES[abbr] ?? abbr) : "";
                 // Mouse enter/leave is wired on every state with a known
                 // abbreviation, so all of them get a hover fill swap. Whether a
                 // tooltip appears is decided by `hoveredRace` below: present for

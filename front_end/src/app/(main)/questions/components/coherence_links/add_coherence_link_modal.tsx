@@ -45,7 +45,7 @@ const SUGGESTION_LIMIT = 8;
 // so the modal treats each sub as a linkable target. Conditionals/notebooks
 // aren't linkable at all, so they drop out as an empty list.
 const expandPost = (p: PostWithForecasts): QuestionWithForecasts[] =>
-  p.question ? [p.question] : p.group_of_questions?.questions ?? [];
+  p.question ? [p.question] : (p.group_of_questions?.questions ?? []);
 
 const AddCoherenceLinkModal: FC<Props> = ({ post, isOpen, onClose }) => {
   const t = useTranslations();

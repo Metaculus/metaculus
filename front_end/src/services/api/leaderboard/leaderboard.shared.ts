@@ -23,8 +23,7 @@ type GlobalContributionsParams = {
   primary?: boolean;
 };
 type ContributionsRequestParams = { for_user: number } & (
-  | ProjectContributionsParams
-  | GlobalContributionsParams
+  ProjectContributionsParams | GlobalContributionsParams
 );
 
 class LeaderboardApi extends ApiService {

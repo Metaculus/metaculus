@@ -27,12 +27,10 @@ export type MultipleChoiceAggregationExtraQuestion =
   };
 
 export type AggregationsExtra =
-  | NumericAggregationsExtra
-  | MultipleChoiceAggregationsExtra;
+  NumericAggregationsExtra | MultipleChoiceAggregationsExtra;
 
 export type AggregationExtraQuestion =
-  | NumericAggregationExtraQuestion
-  | MultipleChoiceAggregationExtraQuestion;
+  NumericAggregationExtraQuestion | MultipleChoiceAggregationExtraQuestion;
 
 // All aggregation methods the aggregation explorer API accepts.
 // Each value is sent directly as the `aggregation_methods` query param.

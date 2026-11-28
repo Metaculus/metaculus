@@ -54,9 +54,9 @@ const PercentageForecastCard: FC<Props> = ({
       : t("Upcoming");
 
   const totalOptionsCount = isMC
-    ? post.question?.options?.length ?? 0
+    ? (post.question?.options?.length ?? 0)
     : isGroupOfQuestionsPost(post)
-      ? post.group_of_questions?.questions?.length ?? 0
+      ? (post.group_of_questions?.questions?.length ?? 0)
       : 0;
   const visibleChoicesCount = getEffectiveVisibleCount(totalOptionsCount);
 
@@ -64,7 +64,7 @@ const PercentageForecastCard: FC<Props> = ({
     const raw = generateChoiceItems(post, visibleChoicesCount, locale, t);
     return raw.map((choice) => {
       const valueStr = getPredictionDisplayValue(
-        hideCP ? null : choice.latestValue ?? choice.aggregationValues.at(-1),
+        hideCP ? null : (choice.latestValue ?? choice.aggregationValues.at(-1)),
         {
           questionType: QuestionType.Binary,
           scaling: choice.scaling,
@@ -112,7 +112,7 @@ const PercentageForecastCard: FC<Props> = ({
       const rawVal = hideCP
         ? null
         : ownIdx >= 0
-          ? choice.aggregationValues[ownIdx] ?? null
+          ? (choice.aggregationValues[ownIdx] ?? null)
           : null;
       const valueStr = getPredictionDisplayValue(rawVal, {
         questionType: QuestionType.Binary,

@@ -184,8 +184,8 @@ export function buildNumericChartData({
         x: forecast.start_time,
         y:
           questionType === "binary"
-            ? forecast.forecast_values[1] ?? null
-            : forecast.centers?.[aggregationIndex] ?? 0,
+            ? (forecast.forecast_values[1] ?? null)
+            : (forecast.centers?.[aggregationIndex] ?? 0),
         y1:
           questionType === "binary"
             ? undefined

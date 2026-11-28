@@ -55,7 +55,7 @@ export function userForecastToForecastType(
     options:
       questionType === QuestionType.MultipleChoice
         ? getAllOptionsHistory(question)
-        : question.options ?? [],
+        : (question.options ?? []),
     continuous_cdf: userForecast.forecast_values.map((value) => value ?? 0),
     quartiles,
     scaling,

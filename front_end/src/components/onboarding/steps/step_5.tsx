@@ -201,7 +201,9 @@ const Step5: React.FC<OnboardingStep> = ({
           ))}
       </div>
       <Step.Paragraph>
-        <span className="font-bold">{t("onboardingStep5ReadyToExplore")}</span>{" "}
+        <span className="font-bold">
+          {t("onboardingStep5ReadyToExplore")}
+        </span>{" "}
       </Step.Paragraph>
       <div className="mx-auto flex w-full flex-col justify-stretch gap-4 md:flex-row ">
         <Step.Button

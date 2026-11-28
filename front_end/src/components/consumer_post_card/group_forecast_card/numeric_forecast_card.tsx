@@ -147,7 +147,7 @@ const NumericForecastCard: FC<Props> = ({
     }
     const closestTs = findPreviousTimestamp(ownTimestamps, refTs);
     const idx = ownTimestamps.indexOf(closestTs);
-    return idx >= 0 ? aggregationValues[idx] ?? null : null;
+    return idx >= 0 ? (aggregationValues[idx] ?? null) : null;
   };
 
   const scaledValues = [...sortedChoices]

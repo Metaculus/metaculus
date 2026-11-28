@@ -73,10 +73,7 @@ export type ContactFormProps = {
   id?: string;
   preselectedService?: ServiceTypeValue;
   pageLabel?:
-    | "services"
-    | "tournaments"
-    | "pro-forecasters"
-    | "private-instances";
+    "services" | "tournaments" | "pro-forecasters" | "private-instances";
   serviceOptions?: ServiceOption[];
 };
 

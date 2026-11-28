@@ -147,17 +147,17 @@ export function generateChoiceItemsFromMultipleChoiceForecast(
       });
       aggregationValues.push(
         !!aggregationForecast?.centers
-          ? aggregationForecast.centers[index] ?? null
+          ? (aggregationForecast.centers[index] ?? null)
           : null
       );
       aggregationMinValues.push(
         !!aggregationForecast?.interval_lower_bounds
-          ? aggregationForecast.interval_lower_bounds[index] ?? null
+          ? (aggregationForecast.interval_lower_bounds[index] ?? null)
           : null
       );
       aggregationMaxValues.push(
         !!aggregationForecast?.interval_upper_bounds
-          ? aggregationForecast.interval_upper_bounds[index] ?? null
+          ? (aggregationForecast.interval_upper_bounds[index] ?? null)
           : null
       );
       aggregationForecasterCounts.push(

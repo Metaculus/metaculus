@@ -28,5 +28,5 @@ export function resolveEdition(slug: string | undefined): Edition {
 
 export function getPreviousEdition(edition: Edition): Edition | null {
   const index = EDITIONS.findIndex((item) => item.slug === edition.slug);
-  return index >= 0 ? EDITIONS[index + 1] ?? null : null;
+  return index >= 0 ? (EDITIONS[index + 1] ?? null) : null;
 }

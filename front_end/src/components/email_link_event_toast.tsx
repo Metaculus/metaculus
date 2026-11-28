@@ -17,8 +17,7 @@ const APPLIED_MESSAGE_KEYS = {
 } as const satisfies Record<GatedActionTrigger, string>;
 
 type SignedInMessageKey =
-  | (typeof APPLIED_MESSAGE_KEYS)[GatedActionTrigger]
-  | "emailLinkSignedIn";
+  (typeof APPLIED_MESSAGE_KEYS)[GatedActionTrigger] | "emailLinkSignedIn";
 
 function messageKey(applied: string | null): SignedInMessageKey {
   // No `applied` param means we could not tell what the link carried (it was

@@ -86,7 +86,7 @@ const PrismCodeBlock: FC<{ code?: string; language?: string }> = ({
   const normalizedLang = normalizeLang(raw);
   const source = entityDecoding
     ? decodeLiteralEntities(code ?? "", entityDecoding)
-    : code ?? "";
+    : (code ?? "");
   const codeTrimmed = source.replace(/^\n+|\n+$/g, "");
 
   // Handle plain text without syntax highlighting

@@ -393,7 +393,8 @@ const GroupChart: FC<Props> = ({
                 ? isClosed
                   ? ""
                   : t("now")
-                : xScale.cursorFormat?.(datum.x) ?? xScale.tickFormat(datum.x);
+                : (xScale.cursorFormat?.(datum.x) ??
+                    xScale.tickFormat(datum.x));
             }
           : undefined
       }
@@ -762,7 +763,7 @@ const GroupChart: FC<Props> = ({
                     if (isNil(lastY)) return null; // skip marker if last CP value is null — avoids fake dot on baseline
                     const point = {
                       x: isClosed
-                        ? line?.at(-1)?.x ?? Number(xDomain[1])
+                        ? (line?.at(-1)?.x ?? Number(xDomain[1]))
                         : Number(xDomain[1]),
                       y: lastY,
                     };
@@ -794,7 +795,7 @@ const GroupChart: FC<Props> = ({
                     ? null
                     : {
                         x: isClosed
-                          ? line?.at(-1)?.x ?? Number(xDomain[1])
+                          ? (line?.at(-1)?.x ?? Number(xDomain[1]))
                           : Number(xDomain[1]),
                         y: lastY,
                       };
@@ -1246,7 +1247,7 @@ function buildChartData({
         if (isFinite(Number(resolution))) {
           const yPos = scaling
             ? unscaleNominalLocation(Number(resolution), scaling)
-            : Number(resolution) ?? 0;
+            : (Number(resolution) ?? 0);
           // continuous group case
           item.resolutionPoint = {
             x: resolveTime,

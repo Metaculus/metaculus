@@ -133,10 +133,6 @@ jobs:
         run: bun ci
         working-directory: front_end
 
-      - name: prettier version
-        run: bun x prettier -v
-        working-directory: front_end
-
       - name: check formatting
         run: bun run format:check
         working-directory: front_end

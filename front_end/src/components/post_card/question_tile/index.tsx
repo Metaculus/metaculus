@@ -111,7 +111,7 @@ const QuestionTile: FC<Props> = ({
         ? question.aggregations[
             question.default_aggregation_method
           ].history.map((forecast) => forecast.start_time)
-        : userForecasts?.flatMap((option) => option.timestamps ?? []) ?? [];
+        : (userForecasts?.flatMap((option) => option.timestamps ?? []) ?? []);
 
       return (
         <MultipleChoiceTile

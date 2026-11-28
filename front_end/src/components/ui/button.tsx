@@ -14,11 +14,7 @@ import cn from "@/utils/core/cn";
 
 type ButtonSize = "xxs" | "xs" | "sm" | "md" | "lg" | "xl" | "2xl";
 export type ButtonVariant =
-  | "primary"
-  | "secondary"
-  | "tertiary"
-  | "text"
-  | "link";
+  "primary" | "secondary" | "tertiary" | "text" | "link";
 type PresentationType = "default" | "icon";
 
 type Props = {

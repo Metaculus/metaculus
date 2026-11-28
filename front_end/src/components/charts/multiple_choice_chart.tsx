@@ -237,7 +237,7 @@ const MultipleChoiceChart: FC<Props> = ({
             ? isClosed
               ? ""
               : t("now")
-            : xScale.cursorFormat?.(datum.x) ?? xScale.tickFormat(datum.x);
+            : (xScale.cursorFormat?.(datum.x) ?? xScale.tickFormat(datum.x));
         }
       }}
       cursorComponent={

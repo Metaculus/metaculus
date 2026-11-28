@@ -258,7 +258,7 @@ const ForecastMakerGroupBinary: FC<Props> = ({
         isDirty: false,
         forecast: prevQuestion.wasWithdrawn
           ? null
-          : prevForecastValuesMap[prevQuestion.id] ?? null,
+          : (prevForecastValuesMap[prevQuestion.id] ?? null),
       }))
     );
   }, [prevForecastValuesMap]);
@@ -550,8 +550,10 @@ function generateChoiceOptions({
       id: question.id,
       name: question.label,
       communityForecast:
-        latest && isForecastActive(latest) ? latest.centers?.[0] ?? null : null,
-      forecast: wasWithdrawn ? null : prev ?? null,
+        latest && isForecastActive(latest)
+          ? (latest.centers?.[0] ?? null)
+          : null,
+      forecast: wasWithdrawn ? null : (prev ?? null),
       resolution: question.resolution,
       isDirty: false,
       defaultSliderValue: prev ?? 50,

@@ -50,8 +50,7 @@ export default async function GenerateQuestionPreview(props: {
   );
 
   const titleOverride = searchParams[EMBED_QUESTION_TITLE] as
-    | string
-    | undefined;
+    string | undefined;
 
   const zoomParam = searchParams[GRAPH_ZOOM_PARAM] as string | undefined;
   const defaultZoom = Object.values(TimelineChartZoomOption).includes(

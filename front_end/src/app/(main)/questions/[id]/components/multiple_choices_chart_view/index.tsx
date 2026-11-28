@@ -454,7 +454,7 @@ function resolveDefaultZoom(
 
 function getSingleActive(all: ChoiceItem[]): ChoiceItem | null {
   const actives = all.filter((c) => c.active);
-  return actives.length === 1 ? actives[0] ?? null : null;
+  return actives.length === 1 ? (actives[0] ?? null) : null;
 }
 
 export default MultiChoicesChartView;

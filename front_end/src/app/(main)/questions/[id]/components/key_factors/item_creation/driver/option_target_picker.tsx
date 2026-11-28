@@ -74,13 +74,13 @@ const OptionTargetPicker: FC<Props> = ({
     ? value.question_option || placeholder
     : isGroup
       ? value.question_id
-        ? options.find((o) => o.value === String(value.question_id))?.label ??
-          ""
+        ? (options.find((o) => o.value === String(value.question_id))?.label ??
+          "")
         : placeholder
       : placeholder;
 
   const currentValue = isMC
-    ? value.question_option ?? ""
+    ? (value.question_option ?? "")
     : isGroup
       ? value.question_id
         ? String(value.question_id)

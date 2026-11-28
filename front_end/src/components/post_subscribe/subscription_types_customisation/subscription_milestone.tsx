@@ -23,10 +23,7 @@ const SubscriptionSectionMilestone: FC<
   );
 
   const current = (subscription.milestone_step * 100).toString() as
-    | "1"
-    | "5"
-    | "10"
-    | "20";
+    "1" | "5" | "10" | "20";
 
   return (
     <div className="mt-2 space-y-2">

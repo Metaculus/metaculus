@@ -230,7 +230,7 @@ function buildDatum(
     key,
     postId: post.id,
     title: post.title,
-    subtitle: ref.subQuestionId ? question.label : point?.option ?? null,
+    subtitle: ref.subQuestionId ? question.label : (point?.option ?? null),
     value: point?.value ?? null,
     display: point ? formatDisplay(ref, point) : null,
     interval: point ? formatInterval(ref, point.lower, point.upper) : null,

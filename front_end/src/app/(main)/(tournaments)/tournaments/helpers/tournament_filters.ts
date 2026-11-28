@@ -24,9 +24,9 @@ export function filterTournamentsFromParams(
 
   const sortBy: TournamentsSortBy | null = opts.disableClientSort
     ? null
-    : (params.get(TOURNAMENTS_SORT) as TournamentsSortBy | null) ??
+    : ((params.get(TOURNAMENTS_SORT) as TournamentsSortBy | null) ??
       opts.defaultSort ??
-      TournamentsSortBy.Featured;
+      TournamentsSortBy.Featured);
 
   return filterTournaments(items, decodeURIComponent(searchString), sortBy);
 }

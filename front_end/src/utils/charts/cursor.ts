@@ -38,5 +38,5 @@ export function getCursorForecast(
   }
   return forecastIndex === -1
     ? null
-    : aggregation.history[forecastIndex] ?? null;
+    : (aggregation.history[forecastIndex] ?? null);
 }

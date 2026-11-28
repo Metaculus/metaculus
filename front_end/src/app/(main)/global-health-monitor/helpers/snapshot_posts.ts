@@ -189,7 +189,7 @@ export function snapshotPostAt(
 function getQuestions(post: PostWithForecasts): QuestionWithForecasts[] {
   return post.question
     ? [post.question]
-    : post.group_of_questions?.questions ?? [];
+    : (post.group_of_questions?.questions ?? []);
 }
 
 // Whether any of the post's questions had opened by `asOf` (seconds).

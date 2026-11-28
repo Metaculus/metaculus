@@ -90,8 +90,7 @@ export async function fetchMultiQuestionDataset(
     const post =
       row.questionId != null ? postsById.get(row.questionId) : undefined;
     const questions = post?.group_of_questions?.questions as
-      | QuestionWithNumericForecasts[]
-      | undefined;
+      QuestionWithNumericForecasts[] | undefined;
     const questionByLabel = new Map(
       questions?.map((question) => [
         normalizeMultiQuestionLabel(question.label ?? ""),

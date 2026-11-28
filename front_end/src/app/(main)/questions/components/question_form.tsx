@@ -393,7 +393,7 @@ const QuestionForm: FC<Props> = ({
         ? base.default_project
         : typeof base.default_project === "string"
           ? Number(base.default_project)
-          : community_id ?? defaultProject.id;
+          : (community_id ?? defaultProject.id);
 
     const post_data: PostCreationData = {
       title: base.title,

@@ -284,7 +284,7 @@ const NumericChart: FC<Props> = ({
         if (datum) {
           return datum.x === defaultCursor
             ? ""
-            : xScale.cursorFormat?.(datum.x) ?? xScale.tickFormat(datum.x);
+            : (xScale.cursorFormat?.(datum.x) ?? xScale.tickFormat(datum.x));
         }
       }}
       cursorComponent={
@@ -465,14 +465,12 @@ const NumericChart: FC<Props> = ({
 
   const themeLineData = (
     actualTheme?.line as
-      | { style?: { data?: Record<string, unknown> } }
-      | undefined
+      { style?: { data?: Record<string, unknown> } } | undefined
   )?.style?.data as Record<string, unknown> | undefined;
 
   const themeAreaData = (
     actualTheme?.area as
-      | { style?: { data?: Record<string, unknown> } }
-      | undefined
+      { style?: { data?: Record<string, unknown> } } | undefined
   )?.style?.data as Record<string, unknown> | undefined;
 
   const asCssColor = (v: unknown): string | undefined =>

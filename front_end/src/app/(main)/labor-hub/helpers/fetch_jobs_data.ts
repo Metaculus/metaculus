@@ -39,8 +39,7 @@ export function getJobValueForYear(
   yearLabel: string
 ): number | null {
   const questions = job.post?.group_of_questions?.questions as
-    | QuestionWithNumericForecasts[]
-    | undefined;
+    QuestionWithNumericForecasts[] | undefined;
   const question = questions?.find((q) => q.label === yearLabel);
   if (!question) return null;
   return getSubQuestionValue(question);
@@ -87,8 +86,7 @@ export const fetchOverallData = cache(async (): Promise<YearValue[]> => {
   if (!post) return [];
 
   const questions = post.group_of_questions?.questions as
-    | QuestionWithNumericForecasts[]
-    | undefined;
+    QuestionWithNumericForecasts[] | undefined;
 
   const points =
     questions

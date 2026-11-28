@@ -10,8 +10,7 @@ export type MarkdownDocument = {
 
 // A result, not notFound(), so a miss can't render HTML into a markdown response
 export type MarkdownBuildResult =
-  | { status: "ok"; document: MarkdownDocument }
-  | { status: "not_found" };
+  { status: "ok"; document: MarkdownDocument } | { status: "not_found" };
 
 export type MarkdownRouteParams = Record<string, string | undefined>;
 

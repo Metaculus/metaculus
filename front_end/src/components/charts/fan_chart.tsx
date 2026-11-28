@@ -215,9 +215,7 @@ const FanChart: FC<Props> = ({
         : opt.question?.type === QuestionType.Date
           ? QuestionType.Date
           : QuestionType.Numeric) as
-        | QuestionType.Binary
-        | QuestionType.Numeric
-        | QuestionType.Date,
+        QuestionType.Binary | QuestionType.Numeric | QuestionType.Date,
     }));
     return typeof optionsLimit === "number"
       ? mapped.slice(0, optionsLimit)
@@ -378,7 +376,7 @@ const FanChart: FC<Props> = ({
       const val =
         o.resolved && typeof o.resolvedValue === "number"
           ? o.resolvedValue
-          : o.communityQuartiles?.median ?? null;
+          : (o.communityQuartiles?.median ?? null);
       map[o.name] = Number.isFinite(val as number) ? (val as number) : null;
     }
     return (xName: string) => map[xName] ?? null;
@@ -467,7 +465,7 @@ const FanChart: FC<Props> = ({
       const raw =
         o?.resolved && typeof o.resolvedValue === "number"
           ? o.resolvedValue
-          : o?.communityQuartiles?.median ?? null;
+          : (o?.communityQuartiles?.median ?? null);
 
       const valueText =
         typeof raw === "number" && Number.isFinite(raw)
@@ -482,7 +480,7 @@ const FanChart: FC<Props> = ({
   const mobilePinnedOption = useMemo(
     () =>
       effectiveActivePoint
-        ? tooltipOptions.find((o) => o.name === effectiveActivePoint) ?? null
+        ? (tooltipOptions.find((o) => o.name === effectiveActivePoint) ?? null)
         : null,
     [effectiveActivePoint, tooltipOptions]
   );
@@ -1277,11 +1275,11 @@ function getFanOptionsFromContinuousGroup(
     .map(({ name, communityCdf, resolved, question, userCdf }) => ({
       name,
       communityQuartiles: communityCdf.length
-        ? computeQuartilesFromCDF(communityCdf) ?? null
+        ? (computeQuartilesFromCDF(communityCdf) ?? null)
         : null,
       communityBounds: getCdfBounds(communityCdf) ?? null,
       userQuartiles: userCdf?.length ? computeQuartilesFromCDF(userCdf) : null,
-      userBounds: userCdf ? getCdfBounds(userCdf) ?? null : null,
+      userBounds: userCdf ? (getCdfBounds(userCdf) ?? null) : null,
       resolved,
       question,
     }));

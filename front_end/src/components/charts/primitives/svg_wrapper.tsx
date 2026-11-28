@@ -8,14 +8,7 @@ type DomainTuple = DomainTupleNum | DomainTupleDate;
 type DomainLike = DomainTuple | { x?: DomainTuple; y?: DomainTuple };
 
 type PrimitiveScale =
-  | "linear"
-  | "time"
-  | "log"
-  | "sqrt"
-  | "pow"
-  | "band"
-  | "point"
-  | "ordinal";
+  "linear" | "time" | "log" | "sqrt" | "pow" | "band" | "point" | "ordinal";
 type ScaleFn = (value: unknown) => number;
 type ScaleLike =
   | PrimitiveScale
@@ -33,8 +26,7 @@ type ExcludedProps = {
   height?: number;
   stringMap?: Record<string, number>;
   padding?:
-    | number
-    | { top?: number; bottom?: number; left?: number; right?: number };
+    number | { top?: number; bottom?: number; left?: number; right?: number };
 };
 type Props = SVGDefsProps & ExcludedProps;
 

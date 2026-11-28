@@ -132,9 +132,9 @@ const KeyFactorsFeed: FC<Props> = ({ post, truncateText, hideOverlay }) => {
   const preloadedComment = useMemo(
     () =>
       selectedKeyFactor
-        ? comments
+        ? (comments
             .flatMap((c) => [c, ...(c.children ?? [])])
-            .find((c) => c.id === selectedKeyFactor.comment_id) ?? null
+            .find((c) => c.id === selectedKeyFactor.comment_id) ?? null)
         : null,
     [comments, selectedKeyFactor]
   );

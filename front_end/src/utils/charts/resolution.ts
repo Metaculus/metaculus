@@ -45,8 +45,8 @@ export function getResolutionPoint({
         y: lastAggregation
           ? (lastAggregation.centers?.[0] as number)
           : resolution === "no"
-            ? scaling.range_min ?? 0
-            : scaling.range_max ?? 1,
+            ? (scaling.range_min ?? 0)
+            : (scaling.range_max ?? 1),
         x: resolveTime,
         symbol: "diamond",
         size: size ?? 4,

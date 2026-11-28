@@ -39,7 +39,7 @@ const MetaRow: FC<Props> = ({ post, className, variant }) => {
   const commentCount =
     typeof commentsFeed?.totalCount === "number"
       ? commentsFeed.totalCount
-      : post.comment_count ?? 0;
+      : (post.comment_count ?? 0);
 
   const projectsData = post.projects;
   const defaultProject = projectsData?.default_project ?? null;
