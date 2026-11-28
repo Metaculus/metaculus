@@ -369,6 +369,15 @@ def _get_resolution_range(
     return cache[question.id]
 
 
+def _pdf_at_resolution(
+    pmf: list[float], resolution_index: int, question: Question
+) -> float | None:
+    """Density at the resolution value, whether or not it's scored as a range"""
+    if question.type not in QUESTION_CONTINUOUS_TYPES:
+        return None
+    return resolution_probability(pmf, resolution_index) * (len(pmf) - 2)
+
+
 def generate_data(
     questions: QuerySet[Question],
     user_forecasts: QuerySet[Forecast] | list[Forecast] | None = None,
@@ -627,8 +636,8 @@ def generate_data(
         + "**`Median`** - the median of forecast for a continuous question.\n"
         + "**`75th Percentile`** - the 75th percentile of forecast for a continuous question.\n"
         + "**`95th Percentile`** - the 95th percentile of forecast for a continuous question.\n"
-        + "**`Probability of Resolution`** - the actual probability assigned to the Resolution of the question, if resolved. This is the value used in scoring. Cross reference 'Resolution' in `question_data.csv`.\n"
-        + "**`PDF at Resolution`** - the height of the PDF (probability density function) value at the resolution for a continuous question. This is the value that will show on the continuous range in the prediction interface.\n"
+        + "**`Probability of Resolution`** - the actual probability assigned to the Resolution of the question, if resolved. This is the value used in scoring. Cross reference 'Resolution' in `question_data.csv`. For a question scored as a range, this is the probability between the Resolution Lower Bound and Resolution Upper Bound.\n"
+        + "**`PDF at Resolution`** - the height of the PDF (probability density function) value at the resolution for a continuous question. This is the value that will show on the continuous range in the prediction interface. It is taken at the Resolution even for a question scored as a range.\n"
     )
     forecast_output = io.StringIO()
     forecast_writer = csv.writer(forecast_output)
@@ -707,17 +716,14 @@ def generate_data(
             row.extend([None, None])
         else:
             pmf = forecast.get_pmf()
-            forecast_at_resolution = resolution_probability(
-                pmf,
-                resolution_index,
-                _get_resolution_range(forecast.question, resolution_ranges),
+            row.append(
+                resolution_probability(
+                    pmf,
+                    resolution_index,
+                    _get_resolution_range(forecast.question, resolution_ranges),
+                )
             )
-            row.append(forecast_at_resolution)
-            if forecast.question.type in QUESTION_CONTINUOUS_TYPES:
-                # Also append PDF value
-                row.append(forecast_at_resolution * (len(pmf) - 2))
-            else:
-                row.append(None)
+            row.append(_pdf_at_resolution(pmf, resolution_index, forecast.question))
         if forecast_reputations is not None:
             row.extend(_reputation_columns(forecast_reputations.get(forecast.id)))
 
@@ -784,18 +790,28 @@ def generate_data(
         if resolution_index is None:
             row.append(None)
         else:
-            pmf = aggregate_forecast.get_pmf()
-            forecast_at_resolution = resolution_probability(
-                pmf,
-                resolution_index,
-                _get_resolution_range(aggregate_forecast.question, resolution_ranges),
+            pmf = (
+                # get_aggregation_history stores the bucket-wise geometric mean
+                # PMF itself, which get_pmf would read as a CDF
+                [
+                    float("nan") if v is None else v
+                    for v in aggregate_forecast.forecast_values
+                ]
+                if aggregate_forecast.method == "geometric_mean"
+                else aggregate_forecast.get_pmf()
             )
-            row.append(forecast_at_resolution)
-            if aggregate_forecast.question.type in QUESTION_CONTINUOUS_TYPES:
-                # Also append PDF value
-                row.append(forecast_at_resolution * (len(pmf) - 2))
-            else:
-                row.append(None)
+            row.append(
+                resolution_probability(
+                    pmf,
+                    resolution_index,
+                    _get_resolution_range(
+                        aggregate_forecast.question, resolution_ranges
+                    ),
+                )
+            )
+            row.append(
+                _pdf_at_resolution(pmf, resolution_index, aggregate_forecast.question)
+            )
         if forecast_reputations is not None:
             # user forecasts only
             row.extend([None] * (len(headers) - len(row)))
