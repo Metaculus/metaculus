@@ -45,6 +45,7 @@ from users.services.common import get_users_by_usernames
 from utils.csv_utils import export_data_for_questions
 from utils.models import get_by_pk_or_slug
 from utils.tasks import email_data_task
+from utils.translation import defer_unused_translations
 from utils.views import validate_data_request
 
 
@@ -163,7 +164,7 @@ def tournaments_list_api_view(request: Request):
         request.query_params.get("show_on_services_page")
     )
 
-    qs = (
+    qs = defer_unused_translations(
         get_projects_qs(
             user=request.user,
             permission=permission,
