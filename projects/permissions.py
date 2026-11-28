@@ -98,6 +98,15 @@ class ObjectPermission(models.TextChoices, metaclass=ChoicesType):
         return can
 
     @classmethod
+    def can_pin_post(cls, permission: Self, raise_exception=False):
+        can = permission in (cls.ADMIN,)
+
+        if raise_exception and not can:
+            raise PermissionDenied("You do not have permission to pin this post")
+
+        return can
+
+    @classmethod
     def can_forecast(cls, permission: Self, raise_exception=False):
         can = permission in (
             cls.FORECASTER,

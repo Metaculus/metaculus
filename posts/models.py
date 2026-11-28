@@ -631,6 +631,9 @@ class Post(DeferredByDefaultMixin, TimeStampedModel, TranslatedModel):  # type: 
 
     # Whether we should display Post/Notebook on the homepage
     show_on_homepage = models.BooleanField(default=False, db_index=True)
+
+    # Whether an admin pinned this post to the top of its default project's feed
+    is_pinned = models.BooleanField(default=False, db_index=True)
     html_metadata_json = models.JSONField(
         help_text=(
             "Custom JSON for HTML meta tags. Supported fields are: title, description, "
