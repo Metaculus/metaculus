@@ -1,9 +1,10 @@
 from datetime import timedelta
 
 import pytest
+from django.core.cache import cache
 from django.db import connection
 from django.test.utils import CaptureQueriesContext
-from django.utils import timezone
+from django.utils import timezone, translation
 from rest_framework import status
 from rest_framework.reverse import reverse
 from rest_framework.test import APIClient
@@ -163,3 +164,43 @@ def test_tournament_detail_timeline_skips_full_question_rows(anon_client, user1)
         for q in ctx.captured_queries
         if '"questions_question"."description' in q["sql"]
     ]
+
+
+@pytest.mark.parametrize("language", ["en", "es", "cs", "zh-TW"])
+def test_tournaments_list_skips_unused_translation_columns(
+    anon_client, mocker, language
+):
+    factory_project(
+        type=Project.ProjectTypes.TOURNAMENT,
+        default_permission=ObjectPermission.FORECASTER,
+        content_original_lang="en",
+        name_original="T",
+        name_es="T es",
+        description_original="D",
+        description_cs="D cs",
+        description_zh_TW="D zh-TW",
+        subtitle_original="S",
+        subtitle_pt="S pt",
+    )
+    url = "/api/projects/tournaments/"
+
+    cache.clear()
+    with translation.override(language), CaptureQueriesContext(connection) as ctx:
+        response = anon_client.get(url, HTTP_ACCEPT_LANGUAGE=language)
+
+    list_sql = next(
+        q["sql"] for q in ctx.captured_queries if 'FROM "projects_project"' in q["sql"]
+    )
+    assert '"projects_project"."description",' not in list_sql
+
+    mocker.patch(
+        "projects.views.common.defer_unused_translations",
+        side_effect=lambda queryset, *related: queryset,
+    )
+    cache.clear()
+    with translation.override(language), CaptureQueriesContext(connection) as full_ctx:
+        expected = anon_client.get(url, HTTP_ACCEPT_LANGUAGE=language)
+
+    assert len(response.json()) == 1
+    assert response.json() == expected.json()
+    assert len(ctx.captured_queries) == len(full_ctx.captured_queries)

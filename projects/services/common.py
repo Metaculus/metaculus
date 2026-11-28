@@ -209,7 +209,12 @@ def get_questions_by_project(
     }
 
 
-def _calculate_timeline_data(project: Project, questions: Iterable[Question]) -> dict:
+def _calculate_timeline_data(
+    questions: Iterable[Question],
+    *,
+    close_date: datetime | None,
+    forecasting_end_date: datetime | None,
+) -> dict:
     all_questions_resolved = True
     all_questions_closed = True
 
@@ -217,8 +222,8 @@ def _calculate_timeline_data(project: Project, questions: Iterable[Question]) ->
     actual_resolve_times = []
     scheduled_resolve_times = []
 
-    project_close_date = project.close_date or make_aware(datetime.max)
-    project_forecasting_end_date = project.forecasting_end_date or project_close_date
+    project_close_date = close_date or make_aware(datetime.max)
+    project_forecasting_end_date = forecasting_end_date or project_close_date
 
     for question in questions:
         if all_questions_resolved:
@@ -263,7 +268,9 @@ def _calculate_timeline_data(project: Project, questions: Iterable[Question]) ->
 
 @cache_per_object(timeout=60 * 15)
 def get_timeline_data_for_projects(project_ids: list[int]) -> dict[int, dict]:
-    projects = Project.objects.in_bulk(project_ids)
+    project_dates = Project.objects.filter(id__in=project_ids).values_list(
+        "id", "close_date", "forecasting_end_date"
+    )
 
     question_qs = Question.objects.only(
         "id",
@@ -281,8 +288,12 @@ def get_timeline_data_for_projects(project_ids: list[int]) -> dict[int, dict]:
     )
 
     return {
-        pid: _calculate_timeline_data(project, questions_by_project.get(pid, []))
-        for pid, project in projects.items()
+        pid: _calculate_timeline_data(
+            questions_by_project.get(pid, []),
+            close_date=close_date,
+            forecasting_end_date=forecasting_end_date,
+        )
+        for pid, close_date, forecasting_end_date in project_dates
     }
 
 
