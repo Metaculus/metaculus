@@ -3,10 +3,14 @@ from datetime import timedelta
 import pytest
 from django.utils import timezone
 
-from questions.models import AggregateForecast, Question
+from questions.models import AggregateForecast, GroupOfQuestions, Question
+from questions.services.common import get_questions_cutoff
 from questions.services.forecasts import get_last_aggregated_forecasts_for_questions
 from questions.types import AggregationMethod
-from tests.unit.test_questions.factories import create_question
+from tests.unit.test_questions.factories import (
+    create_question,
+    factory_group_of_questions,
+)
 
 
 def aggregate(question: Question, method: AggregationMethod, days_ago: float):
@@ -66,3 +70,43 @@ def test_last_aggregated_forecasts_per_question_and_method(
         expected.add(shadow)
     assert forecasts == sorted(expected, key=lambda f: (f.question_id, f.method))
     assert not any(forecast.get_deferred_fields() for forecast in forecasts)
+
+
+def test_questions_cutoff_reads_cp_only_for_trimmed_cp_ordered_groups(
+    django_assert_num_queries,
+):
+    def group_questions(count: int, **group_kwargs) -> list[Question]:
+        group = factory_group_of_questions(**group_kwargs)
+        return [
+            create_question(question_type=Question.QuestionType.BINARY, group=group)
+            for _ in range(count)
+        ]
+
+    other = [
+        create_question(question_type=Question.QuestionType.BINARY),
+        *group_questions(2),
+        *group_questions(
+            3, graph_type=GroupOfQuestions.GroupOfQuestionsGraphType.FAN_GRAPH
+        ),
+        *group_questions(
+            3,
+            subquestions_order=GroupOfQuestions.GroupOfQuestionsSubquestionsOrder.MANUAL,
+        ),
+    ]
+    with django_assert_num_queries(0):
+        kept = get_questions_cutoff(other, group_cutoff=2)
+    assert len(kept) == len(other) - 1
+
+    cp_ordered = group_questions(3)
+    for question, probability in zip(cp_ordered, (0.2, 0.9, 0.5)):
+        AggregateForecast.objects.create(
+            question=question,
+            method=question.default_aggregation_method,
+            start_time=timezone.now() - timedelta(days=1),
+            forecast_values=[1 - probability, probability],
+            centers=[1 - probability, probability],
+        )
+    with django_assert_num_queries(1):
+        kept = get_questions_cutoff(other + cp_ordered, group_cutoff=2)
+    assert cp_ordered[0] not in kept
+    assert {cp_ordered[1], cp_ordered[2]} <= kept
