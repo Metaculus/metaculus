@@ -417,6 +417,7 @@ class MyForecastSerializer(serializers.ModelSerializer):
             "centers",
             "interval_upper_bounds",
             "distribution_input",
+            "resilience",
         )
 
     def get_start_time(self, forecast: Forecast):
@@ -462,6 +463,10 @@ class ForecastWriteSerializer(serializers.ModelSerializer):
 
     distribution_input = serializers.JSONField(allow_null=True, required=False)
 
+    resilience = serializers.FloatField(
+        min_value=0.0, max_value=1.0, allow_null=True, required=False
+    )
+
     class Meta:
         model = Forecast
         fields = (
@@ -472,6 +477,7 @@ class ForecastWriteSerializer(serializers.ModelSerializer):
             "percentiles",
             "distribution_input",
             "end_time",
+            "resilience",
         )
 
     def binary_validation(self, probability_yes):

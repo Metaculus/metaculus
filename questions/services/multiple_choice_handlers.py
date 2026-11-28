@@ -271,6 +271,7 @@ def multiple_choice_delete_options(
                 probability_yes_per_category=new_pmf,
                 post=forecast.post,
                 source=Forecast.SourceChoices.AUTOMATIC,  # mark as automatic forecast
+                resilience=forecast.resilience,
             )
         )
         forecast.end_time = timestep

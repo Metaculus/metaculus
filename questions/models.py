@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 from typing import TYPE_CHECKING
 
 from django.core.exceptions import ValidationError
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models import Count, QuerySet, Q, F, Exists, OuterRef
 from django.utils import timezone
@@ -730,6 +731,21 @@ class Forecast(models.Model):
         blank=True,
     )
 
+    resilience: float | None = models.FloatField(
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(0.0), MaxValueValidator(1.0)],
+        help_text=(
+            "Optional, forecaster-reported resilience of this forecast: how little "
+            "they expect it to move if they learned more. 0 = no relevant "
+            "information (e.g. a question in a language they can't read, "
+            "forecast 0.5 out of ignorance); 1 = fully informed (e.g. 0.5 on a "
+            "fair coin flip). This is the weight of evidence behind the forecast, "
+            "NOT how extreme or certain the probability is: a 50% forecast can "
+            "have resilience 1 and a 99% forecast can have resilience 0."
+        ),
+    )
+
     class Meta:
         indexes = [
             models.Index(fields=["author", "question", "start_time"]),
@@ -740,6 +756,11 @@ class Forecast(models.Model):
             models.CheckConstraint(
                 check=Q(end_time__isnull=True) | Q(end_time__gt=F("start_time")),
                 name="end_time_after_start_time",
+            ),
+            models.CheckConstraint(
+                check=Q(resilience__isnull=True)
+                | Q(resilience__gte=0.0, resilience__lte=1.0),
+                name="forecast_resilience_between_0_and_1",
             ),
         ]
 
