@@ -16,7 +16,7 @@
     "start": "next start",
     "lint": "run-p lint:*",
     "lint:js": "eslint .",
-    "lint:types": "tsc",
+    "lint:types": "bun check",
     "format": "prettier \"src/**/**.{js,jsx,ts,tsx}\" --write",
     "format:check": "prettier \"src/**/**.{js,jsx,ts,tsx}\" --check",
     "translations:generate": "node ./scripts/add_missing_translations.mjs",
