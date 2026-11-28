@@ -872,6 +872,8 @@ components:
           type: string
           format: date-time
           description: The timestamp when the forecast is automatically withdrawn
+        resilience:
+          $ref: '#/components/schemas/ForecastResilience'
 
     ContinuousForecast:
       type: object
@@ -940,6 +942,8 @@ components:
           type: string
           format: date-time
           description: The timestamp when the forecast is automatically withdrawn
+        resilience:
+          $ref: '#/components/schemas/ForecastResilience'
 
     MultipleChoiceForecast:
       type: object
@@ -959,6 +963,26 @@ components:
           type: string
           format: date-time
           description: The timestamp when the forecast is automatically withdrawn
+        resilience:
+          $ref: '#/components/schemas/ForecastResilience'
+
+    ForecastResilience:
+      type: number
+      format: float
+      minimum: 0
+      maximum: 1
+      nullable: true
+      description: |
+        Optional. How little you expect this forecast to move if you learned
+        more about the question, from 0 to 1 inclusive. 0 means you have no
+        relevant information (e.g. you forecast 50% on a question written in a
+        language you can't read); 1 means you are fully informed (e.g. 50% on
+        a fair coin flip).<br><br>
+
+        This is the weight of evidence behind the forecast, not how extreme
+        or certain the probability is: a 50% forecast can have resilience 1,
+        and a 99% forecast can have resilience 0.
+      example: 0.8
 
     UserForecast:
       type: object
@@ -1002,6 +1026,8 @@ components:
           type: object
           nullable: true
           description: The slider/table input used to build a continuous forecast in the UI, if any.
+        resilience:
+          $ref: '#/components/schemas/ForecastResilience'
 
     Withdrawal:
       type: object
@@ -2615,6 +2641,7 @@ paths:
                         centers: null
                         interval_upper_bounds: null
                         distribution_input: null
+                        resilience: 0.8
                   - question_id: 2
                     forecasts: []
         '400':
@@ -2681,6 +2708,7 @@ paths:
                         centers: null
                         interval_upper_bounds: null
                         distribution_input: null
+                        resilience: 0.8
                   - question_id: 2
                     forecasts: []
         '400':
