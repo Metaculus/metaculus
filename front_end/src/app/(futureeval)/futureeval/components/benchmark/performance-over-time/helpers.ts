@@ -19,15 +19,34 @@ export function rectsOverlap(a: Rect, b: Rect, padding = 3): boolean {
   );
 }
 
-export function overlapArea(a: Rect, b: Rect): number {
-  const x1 = Math.max(a.x, b.x);
-  const y1 = Math.max(a.y, b.y);
-  const x2 = Math.min(a.x + a.width, b.x + b.width);
-  const y2 = Math.min(a.y + a.height, b.y + b.height);
-  const w = x2 - x1;
-  const h = y2 - y1;
-  if (w <= 0 || h <= 0) return 0;
-  return w * h;
+export type Segment = {
+  start: { x: number; y: number };
+  end: { x: number; y: number };
+};
+
+// Liang-Barsky clipping: true if any part of the segment lies inside the rect.
+export function segmentIntersectsRect(segment: Segment, rect: Rect): boolean {
+  const deltaX = segment.end.x - segment.start.x;
+  const deltaY = segment.end.y - segment.start.y;
+  const edges: Array<[number, number]> = [
+    [-deltaX, segment.start.x - rect.x],
+    [deltaX, rect.x + rect.width - segment.start.x],
+    [-deltaY, segment.start.y - rect.y],
+    [deltaY, rect.y + rect.height - segment.start.y],
+  ];
+  let enter = 0;
+  let exit = 1;
+  for (const [direction, distance] of edges) {
+    if (direction === 0) {
+      if (distance < 0) return false;
+      continue;
+    }
+    const ratio = distance / direction;
+    if (direction < 0) enter = Math.max(enter, ratio);
+    else exit = Math.min(exit, ratio);
+    if (enter > exit) return false;
+  }
+  return true;
 }
 
 type Padding = { top: number; bottom: number; left: number; right: number };
