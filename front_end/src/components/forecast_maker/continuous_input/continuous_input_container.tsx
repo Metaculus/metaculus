@@ -114,8 +114,6 @@ const ContinuousInputContainer: FC<ContinuousInputContainerProps> = ({
             clipboard={clipboard ?? undefined}
             subquestionCopyMenu={copyMenu}
           />
-          {/* Subquestion actions rather than input options, so not in the
-              options panel */}
           {menu && (
             <div className="size-[26px] rounded-full bg-gray-100 dark:bg-gray-100-dark">
               {menu}

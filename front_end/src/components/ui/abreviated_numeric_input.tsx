@@ -17,9 +17,6 @@ type Props = {
   error?: string;
   isDirty?: boolean;
   showPercentSign?: boolean;
-  // Enables up/down buttons and arrow keys. Gets the current value and a
-  // signed number of steps (see nudgeSteps); returns the nudged value, or
-  // undefined to leave it as is.
   nudge?: (value: number | undefined, steps: number) => number | undefined;
 };
 
@@ -48,7 +45,6 @@ const AbreviatedNumericInput: FC<Props> = ({
 
   const handleNudge = (steps: number) => {
     if (!nudge) return;
-    // While editing, nudge what's typed; otherwise the current value
     const current = isFocused
       ? parseFormattedNumber(localValue)
       : isNil(value)
@@ -56,9 +52,8 @@ const AbreviatedNumericInput: FC<Props> = ({
         : Number(value);
     const next = nudge(current, steps);
     if (isNil(next)) return;
-    // While editing, show the exact value: abbreviating it (e.g. 12345 as
-    // "12.35k") would lose steps smaller than the display precision. It's
-    // abbreviated on blur, like typed input.
+    // Unabbreviated while editing, or steps below the display precision
+    // would be lost
     setLocalValue(isFocused ? String(next) : abbreviatedNumber(next, 4));
     onChange(next);
   };
@@ -103,7 +98,6 @@ const AbreviatedNumericInput: FC<Props> = ({
             "border-salmon-500 bg-salmon-200 dark:border-salmon-500-dark dark:bg-salmon-200-dark":
               error,
             "text-xs sm:text-base": disabled,
-            // Room for the nudge buttons, on both sides to stay centered
             "px-6": canNudge,
           },
           className

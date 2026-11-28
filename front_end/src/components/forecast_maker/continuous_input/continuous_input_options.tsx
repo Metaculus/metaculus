@@ -16,27 +16,20 @@ import Tooltip from "@/components/ui/tooltip";
 
 type Props = {
   graph: {
-    // "PDF" or "PMF"
     densityLabel: string;
     isCdf: boolean;
     onChange: (isCdf: boolean) => void;
     description: string;
   };
-  // The rows below are only shown when provided
   overlayPrevious?: {
     label: string;
     checked: boolean;
     onChange: (value: boolean) => void;
   };
   clipboard?: { copy: () => void; paste?: () => void };
-  // Group questions: copy this forecast to/from other subquestions
   subquestionCopyMenu?: ReactNode;
 };
 
-/**
- * Options for the continuous input, behind a single gear button so the
- * header stays uncluttered. Each option gets its own labeled row.
- */
 const ContinuousInputOptions: FC<Props> = ({
   graph,
   overlayPrevious,
@@ -125,7 +118,6 @@ const ContinuousInputOptions: FC<Props> = ({
 
 const OptionRow: FC<{
   label: string;
-  // Help text, shown in a tooltip next to the label
   description?: string;
   children: ReactNode;
 }> = ({ label, description, children }) => (

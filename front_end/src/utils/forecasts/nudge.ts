@@ -3,13 +3,8 @@ import { isNil, round } from "lodash";
 import { Question, QuestionType } from "@/types/question";
 import { scaleInternalLocation, unscaleNominalLocation } from "@/utils/math";
 
-// Nudge functions take a signed number of steps: ±1 for a regular nudge,
-// more with Shift held (see nudgeSteps in components/ui/nudge_buttons).
-
-/** Roughly how much of the range one nudge moves a value */
 const VALUE_NUDGE_FRACTION = 0.01;
 
-/** 1, 2 or 5 times a power of ten, closest to `x` */
 function niceStep(x: number): number {
   const magnitude = 10 ** Math.floor(Math.log10(x));
   const mantissa = x / magnitude;
@@ -18,14 +13,6 @@ function niceStep(x: number): number {
   return nice * magnitude;
 }
 
-/**
- * A value (in the question's units) nudged by `steps` times about 1% of the
- * range:
- * - linear scales: a round step near range / 100;
- * - log scales: 1% of the (log) axis, rounded to the step's magnitude;
- * - discrete questions: whole outcomes, snapped onto the outcomes.
- * An unfilled value starts at the middle of the range.
- */
 export function nudgeNominalValue(
   value: number | null | undefined,
   steps: number,
@@ -54,8 +41,6 @@ export function nudgeNominalValue(
   }
 
   if (isNil(value)) {
-    // Rounded to the magnitude of one nudge there, so the value shown while
-    // editing stays readable
     const middle = scaleInternalLocation(0.5, question.scaling);
     const step =
       scaleInternalLocation(0.5 + VALUE_NUDGE_FRACTION, question.scaling) -
@@ -65,37 +50,27 @@ export function nudgeNominalValue(
   }
   if (!isNil(zero_point)) {
     const location = unscaleNominalLocation(value, question.scaling);
-    // A value at or beyond the zero point (e.g. 0 or a negative number typed
-    // on a log scale) has no place on the axis: leave it as is
+    // At or beyond the zero point, a value has no place on a log axis
     if (!Number.isFinite(location)) return undefined;
     const next = scaleInternalLocation(
       location + steps * VALUE_NUDGE_FRACTION,
       question.scaling
     );
-    // Round to the step's leading digit, so the result stays readable but
-    // always moves by roughly one step in the intended direction
+    // Rounding to the step's leading digit still always moves the value
     const magnitude = 10 ** Math.floor(Math.log10(Math.abs(next - value)));
     return round(Math.round(next / magnitude) * magnitude, 10);
   }
   return round(value + steps * niceStep(range * VALUE_NUDGE_FRACTION), 10);
 }
 
-// Out-of-bounds probabilities an open bound allows (percent), as validated
-// by validateQuantileInput
+// Must match validateQuantileInput
 const OPEN_BOUND_PROBABILITY_MIN = 0.1;
 const OPEN_BOUND_PROBABILITY_MAX = 99.9;
 const BOUND_NUDGE = 1;
-// Within this many points of either limit, nudges use finer steps so small
-// out-of-bounds probabilities (e.g. 0.5%) stay reachable
+// Finer steps near either limit, so e.g. 0.5% stays reachable
 const FINE_BOUND_ZONE = 1;
 const FINE_BOUND_NUDGE = 0.1;
 
-/**
- * An out-of-bounds probability (percent) nudged by `steps` points, or by
- * `steps` tenths within 1 point of either limit (0.1%-1% and 99%-99.9%).
- * A step never crosses the edge of a fine zone in one go: it stops on it.
- * Clamped to what an open bound allows; an unfilled one starts at 1%.
- */
 export function nudgeBoundProbability(
   probability: number | null | undefined,
   steps: number
@@ -104,13 +79,11 @@ export function nudgeBoundProbability(
   const up = steps > 0;
   const lowEdge = FINE_BOUND_ZONE;
   const highEdge = 100 - FINE_BOUND_ZONE;
-  // Fine steps when inside a fine zone, or on its edge heading into it
   const inFineZone = up
     ? probability < lowEdge || probability >= highEdge
     : probability <= lowEdge || probability > highEdge;
   let next =
     probability + steps * (inFineZone ? FINE_BOUND_NUDGE : BOUND_NUDGE);
-  // Stop on a zone edge rather than crossing it
   for (const edge of [lowEdge, highEdge]) {
     if (
       (up && probability < edge && next > edge) ||

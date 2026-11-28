@@ -131,14 +131,6 @@ export type DistributionClipboardData = {
   ) => void;
 };
 
-/**
- * Copying/pasting distributions via the clipboard, plus the Ctrl+C / Ctrl+V
- * shortcuts (attach `onKeyDown` to the input's container). A hook rather
- * than a component so the shortcuts keep working while the buttons' panel
- * is closed.
- *
- * Returns null without `data`; `paste` is omitted when disabled.
- */
 export function useDistributionClipboard({
   data,
   forecastInputMode,
@@ -199,8 +191,8 @@ export function useDistributionClipboard({
     }
   }, [data, t]);
 
-  // Ctrl+C / Ctrl+V keyboard shortcuts. A React handler rather than a native
-  // listener, so it also covers portaled children like the options panel.
+  // A React handler, not a native listener, so it also catches keys from the
+  // portaled options panel
   const handleKeyDown = (e: KeyboardEvent<HTMLElement>) => {
     if (!e.ctrlKey && !e.metaKey) return;
     // Let native copy/paste happen when the user is focused on a form field

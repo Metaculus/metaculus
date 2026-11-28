@@ -14,7 +14,6 @@ type Props = {
   error?: string;
   disabled?: boolean;
   showPercentSign?: boolean;
-  // Number inputs only: enables up/down nudging (see AbreviatedNumericInput)
   nudge?: (value: number | undefined, steps: number) => number | undefined;
 };
 

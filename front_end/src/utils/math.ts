@@ -110,11 +110,7 @@ export function cdfFromSliders(
   return cdf;
 }
 
-/**
- * Internal location (0-1 within the range) at which the CDF reaches the
- * given percentile (0-100). 0 or 1 when that percentile falls out of
- * bounds.
- */
+/** Internal location (0-1) where the CDF reaches `percentile` (0-100) */
 export function percentileFromCdf(
   cdf: number[],
   percentile: number,

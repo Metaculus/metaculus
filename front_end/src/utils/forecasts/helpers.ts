@@ -53,7 +53,6 @@ export function clearQuantileComponents(
   }));
 }
 
-/** The component a new slider forecast, or an added component, starts with */
 export function makeDefaultSliderComponent(): DistributionSliderComponent {
   return { left: 0.4, center: 0.5, right: 0.6, weight: 1 };
 }
