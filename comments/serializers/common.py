@@ -17,6 +17,7 @@ from users.models import User
 from users.serializers import BaseUserSerializer
 from utils.dtypes import flatten, generate_map_from_list
 from utils.frontend import build_frontend_url
+from utils.translation import defer_unused_translations
 from .key_factors import serialize_key_factors_many, KeyFactorWriteSerializer
 
 
@@ -278,7 +279,9 @@ def serialize_comment_many(
 
     # Get original ordering of the comments
     ids = [p.pk for p in comments]
-    qs = Comment.objects.filter(pk__in=[c.pk for c in comments])
+    qs = defer_unused_translations(
+        Comment.objects.filter(pk__in=[c.pk for c in comments]), "on_post"
+    )
 
     qs = qs.select_related(
         "included_forecast__question", "author", "on_post"
