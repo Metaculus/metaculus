@@ -53,6 +53,12 @@ export default async function ScoresFAQ() {
               </a>
             </li>
             <li>
+              <a href="#range-resolution">
+                How are continuous questions scored when they resolve to a
+                range?
+              </a>
+            </li>
+            <li>
               <a href="#spot-score">What is a spot score?</a>
             </li>
             <li>
@@ -437,6 +443,83 @@ export default async function ScoresFAQ() {
         value be below the lower bound?&quot; or &quot;Will the value be above
         the upper bound?&quot;.
       </p>
+      <hr />
+      <h2 className="scroll-mt-nav" id="range-resolution">
+        How are continuous questions scored when they resolve to a range?
+      </h2>
+      <p>
+        Sometimes the outcome of a numeric or date question is only known to lie
+        within an interval. For example, the resolution source may only report
+        the month in which an event happened, or round a value to the nearest
+        thousand. Picking a single point inside that interval would be
+        arbitrary, and it would reward or punish forecasts for where they put
+        their probability within the interval, which nobody can know. In these
+        cases, Metaculus may score the question on a range instead: a lower and
+        an upper bound that contain the outcome. The question still shows a
+        single resolution value, but scores use the range.
+      </p>
+      <p>
+        Instead of the pdf at the outcome, a range is scored with the average
+        pdf over the range: the probability{" "}
+        <KatexRenderer equation="P" inline /> the forecast puts between the
+        bounds, divided by the width <KatexRenderer equation="w" inline /> of
+        the range:
+      </p>
+      <KatexRenderer
+        equation="\text{log score} = \ln\left(\frac{P}{w}\right)"
+        inline={false}
+      />
+      <p>
+        Here <KatexRenderer equation="w" inline /> is measured as a fraction of
+        the question&apos;s range, on the question&apos;s own scale. On a
+        logarithmic question, this means a range covering the same distance in
+        real units counts as wider near the low end of the scale than near the
+        high end. This formula replaces{" "}
+        <KatexRenderer equation="\operatorname{pdf}(outcome)" inline /> in all
+        the scores below:
+      </p>
+      <ul className="list-disc pl-5">
+        <li>
+          The{" "}
+          <Link href="/help/scores-faq/#baseline-score">Baseline score</Link>{" "}
+          compares <KatexRenderer equation="P" inline /> to the probability the
+          uniform baseline puts in the range.
+        </li>
+        <li>
+          The <Link href="/help/scores-faq/#peer-score">Peer score</Link>{" "}
+          compares <KatexRenderer equation="P" inline /> to the geometric mean
+          of every other forecaster&apos;s probability in the range.
+        </li>
+        <li>
+          Spot scores and the legacy{" "}
+          <Link href="/help/scores-faq/#relative-score">Relative score</Link>{" "}
+          use the probability in the range in the same way.
+        </li>
+      </ul>
+      <p>A few consequences are worth knowing:</p>
+      <ul className="list-disc pl-5">
+        <li>
+          Only the total probability inside the range counts. A sharp peak
+          anywhere inside the range scores the same as the same probability
+          spread evenly across it.
+        </li>
+        <li>
+          Wider ranges lower the best possible score, because{" "}
+          <KatexRenderer equation="P" inline /> can be at most 1. For example,
+          on a question with closed bounds, a range covering 10% of the
+          question&apos;s range limits the Baseline score to about +115.
+        </li>
+        <li>
+          A range exactly one bin wide that lines up with a bin of the
+          question&apos;s scale scores exactly like a resolution inside that
+          bin.
+        </li>
+        <li>
+          Ranges always lie within the question&apos;s bounds. A question that
+          resolves above the upper bound or below the lower bound is scored as
+          described above, never on a range.
+        </li>
+      </ul>
       <hr />
       <h2 className="scroll-mt-nav" id="spot-score">
         What is a spot score?
