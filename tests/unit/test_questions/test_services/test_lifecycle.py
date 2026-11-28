@@ -10,6 +10,7 @@ from questions.constants import QuestionStatus, UnsuccessfulResolutionType
 from questions.jobs import job_close_question
 from questions.models import Question
 from questions.services.lifecycle import resolve_question, unresolve_question
+from rest_framework.exceptions import ValidationError
 from tests.unit.test_posts.factories import factory_post
 from tests.unit.test_questions.factories import create_question
 from users.models import User
@@ -1192,6 +1193,36 @@ class TestResolveConditionalQuestion:
         # conditional branch questions status
         assert question_yes.status == QuestionStatus.CLOSED
         assert question_no.status == QuestionStatus.CLOSED
+
+
+def test_resolution_bounds_outside_range_fail_to_resolve(
+    user1: User,  # noqa
+):
+    # bypasses validate_question_resolution_bounds, as admin or scripts could
+    question = create_question(
+        question_type=Question.QuestionType.NUMERIC,
+        range_min=0,
+        range_max=100,
+        open_lower_bound=False,
+        open_upper_bound=False,
+        open_time=make_aware(datetime(2023, 1, 1)),
+        scheduled_close_time=make_aware(datetime(2025, 1, 1)),
+        scheduled_resolve_time=make_aware(datetime(2026, 1, 1)),
+    )
+    factory_post(author=user1, question=question)
+
+    with pytest.raises(ValidationError, match="resolution bounds"):
+        resolve_question(
+            question,
+            "100",
+            actual_resolve_time=make_aware(datetime(2024, 1, 1)),
+            resolution_lower_bound="99.5",
+            resolution_upper_bound="100.5",
+            score_as_task=False,
+        )
+    question.refresh_from_db()
+    assert question.resolution is None
+    assert question.resolution_upper_bound is None
 
 
 def test_blank_resolution_bounds_saved_as_null(

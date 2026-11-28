@@ -1001,14 +1001,15 @@ def validate_question_resolution_bounds(
         raise ValidationError(
             "Resolution bounds require a resolution within the question's range."
         )
+    if not (question.range_min <= lower and upper <= question.range_max):
+        raise ValidationError(
+            "Resolution bounds must be within the question's range "
+            f"[{question.range_min}, {question.range_max}]."
+        )
     if not (lower <= value <= upper) or lower == upper:
         raise ValidationError(
             "Resolution bounds must satisfy lower <= resolution <= upper, "
             "with lower < upper."
-        )
-    if min(upper, question.range_max) <= max(lower, question.range_min):
-        raise ValidationError(
-            "Resolution bounds must overlap the question's range by more than a point."
         )
     return lower_bound, upper_bound
 

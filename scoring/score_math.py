@@ -16,8 +16,9 @@ from scoring.constants import ScoreTypes
 from scoring.models import Score
 from utils.the_math.aggregations import get_aggregation_history
 from utils.the_math.formulas import (
+    scaled_location_to_unscaled_location,
     string_location_to_bucket_index,
-    string_location_to_unscaled_location,
+    string_location_to_scaled_location,
 )
 
 
@@ -45,17 +46,37 @@ class ResolutionRange:
 
 
 def get_resolution_range(question: Question) -> ResolutionRange | None:
+    """
+    Raises ValueError for bounds that aren't range_min <= lower < upper <= range_max
+    rather than clamping them: such bounds can only have bypassed validation.
+    """
     lower = question.resolution_lower_bound
     upper = question.resolution_upper_bound
-    if lower is None or upper is None:
+    if lower is None and upper is None:
         return None
-    inbound_outcome_count = question.get_inbound_outcome_count()
-    low = max(string_location_to_unscaled_location(lower, question), 0.0)
-    high = min(string_location_to_unscaled_location(upper, question), 1.0)
-    if high <= low:
+    if lower is None or upper is None:
+        raise ValueError(f"Question {question.id}: only one resolution bound is set")
+    lower_location = string_location_to_scaled_location(lower, question)
+    upper_location = string_location_to_scaled_location(upper, question)
+    # written so that NaN fails too
+    if not (
+        question.range_min <= lower_location < upper_location <= question.range_max
+    ):
         raise ValueError(
-            f"Question {question.id}: resolution bounds don't overlap its range"
+            f"Question {question.id}: resolution bounds [{lower}, {upper}] must "
+            "satisfy range_min <= lower < upper <= range_max "
+            f"([{question.range_min}, {question.range_max}])"
         )
+    inbound_outcome_count = question.get_inbound_outcome_count()
+    # the range ends map to 0 and 1; this only removes floating point error
+    low, high = np.clip(
+        [
+            scaled_location_to_unscaled_location(lower_location, question),
+            scaled_location_to_unscaled_location(upper_location, question),
+        ],
+        0.0,
+        1.0,
+    )
     edges = np.linspace(0, 1, inbound_outcome_count + 1)
     inbound_weights = (
         np.clip(np.minimum(high, edges[1:]) - np.maximum(low, edges[:-1]), 0, None)
@@ -63,7 +84,7 @@ def get_resolution_range(question: Question) -> ResolutionRange | None:
     )
     # out of bounds buckets are never inside the (clipped) interval
     weights = np.concatenate([[0.0], inbound_weights, [0.0]])
-    return ResolutionRange(weights=weights, width=high - low)
+    return ResolutionRange(weights=weights, width=float(high - low))
 
 
 def resolution_probability(

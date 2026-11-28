@@ -763,7 +763,17 @@ class TestQuestionResolve:
         "status_code, q_props, resolution, lower, upper",
         [
             (200, NUMERIC, "5", "4.5", "5.5"),
-            (200, NUMERIC, "0", "-0.5", "0.5"),  # clipped when scored
+            (200, NUMERIC, "0", "0", "0.5"),  # bounds may sit on the range ends
+            (200, NUMERIC, "100", "99.5", "100"),
+            (400, NUMERIC, "0", "-0.5", "0.5"),  # bounds outside the range
+            (400, NUMERIC, "100", "99.5", "100.5"),
+            (  # open bounds don't widen the allowed range
+                400,
+                {**NUMERIC, "open_upper_bound": True},
+                "100",
+                "99.5",
+                "100.5",
+            ),
             (200, NUMERIC, "5", "5", "6"),  # resolution may sit on a bound
             (400, NUMERIC, "5", "4.5", None),  # only one bound
             (400, NUMERIC, "5", "5.5", "6.5"),  # resolution outside the bounds

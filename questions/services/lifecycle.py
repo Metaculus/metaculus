@@ -14,6 +14,7 @@ from questions.constants import UnsuccessfulResolutionType
 from questions.models import Question, Conditional, UserForecastNotification
 from scoring.constants import ScoreTypes
 from scoring.reputations import question_counts_toward_reputation
+from scoring.score_math import get_resolution_range
 from scoring.utils import score_question
 from .common import update_leaderboards_for_question
 from .forecasts import rebuild_question_aggregations
@@ -153,6 +154,11 @@ def resolve_question(
     question.resolution = resolution
     question.resolution_lower_bound = resolution_lower_bound
     question.resolution_upper_bound = resolution_upper_bound
+    try:
+        # fail before saving, not later in (possibly background) scoring
+        get_resolution_range(question)
+    except ValueError as e:
+        raise ValidationError(str(e))
     question.resolution_set_time = timezone.now()
     question.actual_resolve_time = actual_resolve_time
     question.actual_close_time = min(actual_resolve_time, question.scheduled_close_time)

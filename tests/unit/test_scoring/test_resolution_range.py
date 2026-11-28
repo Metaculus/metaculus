@@ -61,21 +61,39 @@ class TestGetResolutionRange:
         np.testing.assert_allclose(resolution_range.weights, [0, 0.5, 0.5, 0, 0])
         assert resolution_range.width == pytest.approx(1 / 3)
 
-    def test_clipped_to_closed_bounds(self):
-        resolution_range = get_resolution_range(numeric_question(0, 1, "-0.5", "0.5"))
-        np.testing.assert_allclose(resolution_range.weights, [0, 1, 0.5, 0, 0])
-        assert resolution_range.width == pytest.approx(0.5)
+    def test_bounds_on_the_range_ends(self):
+        resolution_range = get_resolution_range(numeric_question(0, 3, "0", "3"))
+        np.testing.assert_allclose(resolution_range.weights, [0, 1, 1, 1, 0])
+        assert resolution_range.width == pytest.approx(1)
 
-    def test_out_of_bounds_buckets_never_weighted(self):
-        question = numeric_question(0, 3, "-5", "5")
-        question.open_lower_bound = question.open_upper_bound = True
+    def test_bounds_on_the_range_ends_of_a_log_question(self):
+        question = numeric_question(1, 1000, "1", "1000", zero_point=0)
         resolution_range = get_resolution_range(question)
         np.testing.assert_allclose(resolution_range.weights, [0, 1, 1, 1, 0])
         assert resolution_range.width == pytest.approx(1)
 
-    def test_no_overlap_raises(self):
+    @pytest.mark.parametrize(
+        "lower, upper, open_bounds",
+        [
+            ("-0.5", "0.5", False),  # below the range
+            ("2.5", "3.5", False),  # above the range
+            ("-5", "5", True),  # open bounds don't widen the allowed range
+            ("4", "5", False),  # no overlap at all
+            ("2", "1", False),  # inverted
+            ("1", "1", False),  # zero width
+            ("nan", "1", False),
+            ("1", None, False),  # only one bound
+        ],
+    )
+    def test_invalid_bounds_raise(self, lower, upper, open_bounds):
+        question = numeric_question(0, 3, lower, upper)
+        question.open_lower_bound = question.open_upper_bound = open_bounds
         with pytest.raises(ValueError):
-            get_resolution_range(numeric_question(0, 3, "4", "5"))
+            get_resolution_range(question)
+
+    def test_below_a_log_range_raises_instead_of_nan(self):
+        with pytest.raises(ValueError):
+            get_resolution_range(numeric_question(1, 1000, "-0.5", "10", zero_point=0))
 
     def test_date_question(self):
         question = Question(
