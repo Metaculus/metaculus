@@ -5,7 +5,16 @@ from typing import cast, Iterable, Literal
 
 import sentry_sdk
 from django.db import IntegrityError, transaction
-from django.db.models import F, Q, QuerySet, Subquery, OuterRef, Count
+from django.db.models import (
+    BigIntegerField,
+    Count,
+    F,
+    Func,
+    OuterRef,
+    Q,
+    QuerySet,
+    Subquery,
+)
 from django.utils import timezone
 from rest_framework.exceptions import PermissionDenied, ValidationError
 
@@ -453,11 +462,32 @@ def get_last_aggregated_forecasts_for_questions(
     # whether it is still live. Closed/resolved questions keep their final CP this way,
     # and — crucially — this row is fully loaded, so serializing it with full=True does
     # not trigger a deferred-field reload against the (heavy, deferred) CP history.
-    return (
-        aggregated_forecast_qs.filter(question__in=questions)
-        .filter(start_time__lte=timezone.now())
-        .order_by("question_id", "method", "-start_time")
-        .distinct("question_id", "method")
+    # One index probe per (question, method) instead of sorting every history row
+    now = timezone.now()
+    newest_ids = [
+        Subquery(
+            AggregateForecast.objects.filter(
+                question_id=OuterRef("pk"), method=method, start_time__lte=now
+            )
+            .order_by("-start_time")
+            .values("id")[:1]
+        )
+        for method in AggregationMethod
+    ]
+    latest_ids = (
+        Question.objects.filter(pk__in=[question.pk for question in questions])
+        .annotate(
+            latest_id=Func(
+                *newest_ids,
+                template="unnest(ARRAY[%(expressions)s])",
+                output_field=BigIntegerField(),
+            )
+        )
+        .values("latest_id")
+    )
+
+    return aggregated_forecast_qs.filter(id__in=latest_ids).order_by(
+        "question_id", "method", "-start_time"
     )
 
 
